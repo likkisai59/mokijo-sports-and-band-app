@@ -10,7 +10,9 @@ from app.routes import (
     venues_router,
     activities_router,
     dashboard_router,
-    messages_router
+    messages_router,
+    venue_owner_router,
+    games_router,
 )
 
 api_router = APIRouter()
@@ -26,3 +28,6 @@ api_router.include_router(venues_router)
 api_router.include_router(activities_router)
 api_router.include_router(dashboard_router)
 api_router.include_router(messages_router)
+api_router.include_router(venue_owner_router)
+api_router.include_router(games_router)
+

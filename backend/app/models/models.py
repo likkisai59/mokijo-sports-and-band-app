@@ -1,6 +1,7 @@
+import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Integer, String, Text, Boolean, ForeignKey, Float
+from sqlalchemy import Column, DateTime, Integer, String, Text, Boolean, ForeignKey, Float, Index, UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 
@@ -108,6 +109,7 @@ class User(Base):
     sport = Column(String)
     first_name = Column(String)
     last_name = Column(String)
+    dob = Column(String, nullable=True)
     email = Column(String, unique=True, index=True)
     phone = Column(String)
     aadhar_number = Column(String, nullable=True)
@@ -128,6 +130,9 @@ class User(Base):
     bookings = relationship("Booking", back_populates="user")
     activities = relationship("Activity", back_populates="owner")
     rsvps = relationship("ActivityRSVP", back_populates="user")
+    hosted_games = relationship("Game", back_populates="host")
+    game_participations = relationship("GamePlayer", back_populates="user")
+    waitlist_entries = relationship("GameWaitlist", back_populates="user")
 
 class FundraisingCampaign(Base):
     __tablename__ = "fundraising_campaigns"
@@ -253,52 +258,183 @@ class SignupSubmission(Base):
 
     owner = relationship("User", back_populates="signup_submissions")
 
+class VenueOwner(Base):
+    __tablename__ = "venue_owners"
+
+    id = Column(Integer, primary_key=True, index=True)
+    full_name = Column(String, nullable=False)
+    dob = Column(String, nullable=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    phone = Column(String, nullable=False)
+    aadhar_number = Column(String, nullable=True)
+    password = Column(String, nullable=False)
+    is_verified = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    venues = relationship("Venue", back_populates="venue_owner", foreign_keys="Venue.venue_owner_id")
+
+
+from sqlalchemy import Table
+
+# Many-to-many join table for bookings and slots
+booking_slots = Table(
+    "booking_slots",
+    Base.metadata,
+    Column("booking_id", Integer, ForeignKey("bookings.id", ondelete="CASCADE"), primary_key=True),
+    Column("slot_id", Integer, ForeignKey("slots.id", ondelete="CASCADE"), primary_key=True)
+)
+
 class Venue(Base):
     __tablename__ = "venues"
 
     id = Column(Integer, primary_key=True, index=True)
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    venue_owner_id = Column(Integer, ForeignKey("venue_owners.id"), nullable=True)
     name = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
     location = Column(String, nullable=False)
+    landmark = Column(String, nullable=True)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
-    sports_supported = Column(Text, nullable=True) # JSON Array of sports
-    amenities = Column(Text, nullable=True) # JSON Array of amenities
+    sports_supported = Column(Text, nullable=True)  # JSON Array of sports
+    amenities = Column(Text, nullable=True)          # JSON Array of amenities
     rating = Column(Float, default=5.0)
     cover_image = Column(Text, nullable=True)
     venue_images = Column(Text, nullable=True)
+    opening_time = Column(String, nullable=True)     # e.g. "06:00"
+    closing_time = Column(String, nullable=True)     # e.g. "22:00"
+    days_open = Column(Text, nullable=True)          # JSON Array e.g. ["Mon","Tue",...]
+    slot_duration = Column(Integer, default=60)      # minutes: 30 or 60
+    base_price_per_hour = Column(Integer, default=0)
 
     owner = relationship("User", back_populates="venues")
+    venue_owner = relationship("VenueOwner", back_populates="venues", foreign_keys=[venue_owner_id])
     slots = relationship("Slot", back_populates="venue", cascade="all, delete-orphan")
+    courts = relationship("Court", back_populates="venue", cascade="all, delete-orphan")
+    reviews = relationship("Review", back_populates="venue", cascade="all, delete-orphan")
+
+class Court(Base):
+    __tablename__ = "courts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    venue_id = Column(Integer, ForeignKey("venues.id"), nullable=False)
+    name = Column(String, nullable=False)
+    sport_type = Column(String, nullable=False)
+    capacity = Column(Integer, default=4)
+    price_per_hour = Column(Integer, nullable=True)
+
+    venue = relationship("Venue", back_populates="courts")
+    slots = relationship("Slot", back_populates="court")
 
 class Slot(Base):
     __tablename__ = "slots"
 
     id = Column(Integer, primary_key=True, index=True)
     venue_id = Column(Integer, ForeignKey("venues.id"), nullable=False)
+    court_id = Column(Integer, ForeignKey("courts.id"), nullable=True)
     sport = Column(String, nullable=False)
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
     base_price = Column(Integer, nullable=False)
     current_price = Column(Integer, nullable=False)
     is_blocked = Column(Boolean, default=False)
+    status = Column(String, default="AVAILABLE") # AVAILABLE, HELD, BOOKED, BLOCKED
+    held_until = Column(DateTime, nullable=True)
+    held_by_user_id = Column(Integer, nullable=True)
 
     venue = relationship("Venue", back_populates="slots")
-    bookings = relationship("Booking", back_populates="slot", cascade="all, delete-orphan")
+    court = relationship("Court", back_populates="slots")
+    bookings = relationship("Booking", secondary=booking_slots, back_populates="slots")
 
 class Booking(Base):
     __tablename__ = "bookings"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    slot_id = Column(Integer, ForeignKey("slots.id"), nullable=False)
+    court_id = Column(Integer, ForeignKey("courts.id"), nullable=True)
     booking_date = Column(DateTime, default=datetime.utcnow)
-    status = Column(String, default="reserved") # reserved, cancelled, completed
+    status = Column(String, default="reserved") # reserved, pending_payment, confirmed, cancelled, completed
     amount_paid = Column(Integer, default=0)
     payment_status = Column(String, default="pending") # pending, paid, refunded
+    payment_id = Column(String, nullable=True)
+    cancelled_at = Column(DateTime, nullable=True)
+    cancellation_reason = Column(String, nullable=True)
 
     user = relationship("User", back_populates="bookings")
-    slot = relationship("Slot", back_populates="bookings")
+    court = relationship("Court")
+    slots = relationship("Slot", secondary=booking_slots, back_populates="bookings")
+
+    @property
+    def slot(self):
+        return self.slots[0] if self.slots else None
+
+
+class VenueBookingOrder(Base):
+    """Tracks a Razorpay order created for a venue booking payment."""
+    __tablename__ = "venue_booking_orders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    booking_id = Column(Integer, ForeignKey("bookings.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    razorpay_order_id = Column(String, unique=True, index=True, nullable=False)
+    razorpay_payment_id = Column(String, nullable=True)
+    razorpay_signature = Column(String, nullable=True)
+    amount = Column(Integer, nullable=False)  # in paise
+    currency = Column(String, default="INR")
+    status = Column(String, default="created")  # created, paid, failed, signature_failed
+    created_at = Column(DateTime, default=datetime.utcnow)
+    verified_at = Column(DateTime, nullable=True)
+
+    booking = relationship("Booking")
+
+
+class CancellationPolicy(Base):
+    """Venue-specific cancellation and refund policy."""
+    __tablename__ = "cancellation_policies"
+
+    id = Column(Integer, primary_key=True, index=True)
+    venue_id = Column(Integer, ForeignKey("venues.id"), nullable=True, unique=True)
+    hours_before_free_cancel = Column(Integer, default=24)   # full refund if cancelled >= N hours before
+    refund_pct_full = Column(Integer, default=100)            # % refund in full window
+    partial_window_hours = Column(Integer, default=6)         # partial refund if cancelled >= N hours before
+    refund_pct_partial = Column(Integer, default=50)          # % refund in partial window
+    no_refund_window_hours = Column(Integer, default=2)       # < N hours before = 0 refund
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    venue = relationship("Venue")
+
+
+class RefundRecord(Base):
+    """Tracks refund transactions for cancelled venue bookings."""
+    __tablename__ = "refund_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+    booking_id = Column(Integer, ForeignKey("bookings.id"), nullable=False)
+    razorpay_payment_id = Column(String, nullable=True)   # original payment id
+    razorpay_refund_id = Column(String, nullable=True)    # refund id from Razorpay
+    amount = Column(Integer, nullable=False)               # refund amount in paise
+    refund_pct = Column(Integer, default=100)             # percentage refunded
+    status = Column(String, default="initiated")          # initiated, succeeded, failed, skipped
+    reason = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    completed_at = Column(DateTime, nullable=True)
+
+    booking = relationship("Booking")
+
+class Review(Base):
+    __tablename__ = "reviews"
+
+    id = Column(Integer, primary_key=True, index=True)
+    venue_id = Column(Integer, ForeignKey("venues.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    booking_id = Column(Integer, ForeignKey("bookings.id"), nullable=True)
+    rating = Column(Integer, nullable=False) # 1-5
+    comment = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    venue = relationship("Venue", back_populates="reviews")
+    user = relationship("User")
 
 class Activity(Base):
     __tablename__ = "activities"
@@ -315,6 +451,7 @@ class Activity(Base):
     min_players = Column(Integer, default=2)
     skill_level = Column(String, default="All") # Beginner, Intermediate, Advanced, All
     status = Column(String, default="open") # open, confirmed, cancelled, completed
+    privacy_type = Column(String, default="public") # public, private
     description = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -351,4 +488,67 @@ class Message(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     group = relationship("Group", back_populates="messages")
+
+
+class Game(Base):
+    __tablename__ = "games"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    host_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    venue_id = Column(Integer, ForeignKey("venues.id", ondelete="CASCADE"), nullable=True)
+    sport = Column(String(50), nullable=False)
+    slot_start = Column(DateTime, nullable=False)
+    slot_end = Column(DateTime, nullable=False)
+    total_spots = Column(Integer, nullable=False)
+    current_players = Column(Integer, default=1, nullable=False)
+    price_per_player = Column(Float, nullable=False)
+    join_policy = Column(String(20), default="instant", nullable=False)  # instant, request_approval
+    visibility = Column(String(20), default="public", nullable=False)  # public, private, friends_only
+    status = Column(String(20), default="open", nullable=False)  # open, full, cancelled, completed
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    host = relationship("User", back_populates="hosted_games")
+    venue = relationship("Venue")
+    players = relationship("GamePlayer", back_populates="game", cascade="all, delete-orphan")
+    waitlist = relationship("GameWaitlist", back_populates="game", cascade="all, delete-orphan")
+
+
+class GamePlayer(Base):
+    __tablename__ = "game_players"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    game_id = Column(String(36), ForeignKey("games.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    status = Column(String(20), default="pending_payment", nullable=False)  # pending_payment, pending_approval, confirmed, cancelled, rejected
+    payment_id = Column(String, nullable=True)
+    joined_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    cancelled_at = Column(DateTime, nullable=True)
+
+    game = relationship("Game", back_populates="players")
+    user = relationship("User", back_populates="game_participations")
+
+    __table_args__ = (
+        UniqueConstraint("game_id", "user_id", name="uq_game_user"),
+        Index("idx_game_player_status", "game_id", "status"),
+    )
+
+
+class GameWaitlist(Base):
+    __tablename__ = "game_waitlist"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    game_id = Column(String(36), ForeignKey("games.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    position = Column(Integer, nullable=False)
+    status = Column(String(20), default="waiting", nullable=False)  # waiting, promoted, expired
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    game = relationship("Game", back_populates="waitlist")
+    user = relationship("User", back_populates="waitlist_entries")
+
+    __table_args__ = (
+        Index("idx_game_waitlist_pos", "game_id", "position"),
+    )
+
 

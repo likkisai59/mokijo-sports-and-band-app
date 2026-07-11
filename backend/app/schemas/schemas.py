@@ -186,6 +186,15 @@ class UserCreate(BaseModel):
     aadharNumber: Optional[str] = None
     hearAbout: Optional[str] = None
 
+class StandardUserRegister(BaseModel):
+    firstName: str
+    lastName: str
+    dob: str
+    email: str
+    password: str
+    phone: str
+    aadharNumber: str
+
 class UserResponse(BaseModel):
     id: int
     club_name: Optional[str]
@@ -425,10 +434,55 @@ class SignupSubmissionResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class CourtCreate(BaseModel):
+    venue_id: int
+    name: str
+    sport_type: str
+    capacity: Optional[int] = 4
+    price_per_hour: Optional[int] = None
+
+class CourtResponse(BaseModel):
+    id: int
+    venue_id: int
+    name: str
+    sport_type: str
+    capacity: int
+    price_per_hour: Optional[int]
+
+    class Config:
+        from_attributes = True
+
+class ReviewCreate(BaseModel):
+    user_id: int
+    rating: int # 1 to 5
+    comment: Optional[str] = None
+    booking_id: Optional[int] = None
+
+class ReviewResponse(BaseModel):
+    id: int
+    venue_id: int
+    user_id: int
+    booking_id: Optional[int] = None
+    rating: int
+    comment: Optional[str]
+    created_at: datetime
+    user_name: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class SlotHoldRequest(BaseModel):
+    slot_ids: List[int]
+    user_id: int
+
+# BookingConfirmRequest is defined at the bottom with Razorpay signature support
+
 class VenueCreate(BaseModel):
-    owner_id: int
+    owner_id: Optional[int] = None
+    venue_owner_id: Optional[int] = None
     name: str
     location: str
+    landmark: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     sports_supported: Optional[str] = None
@@ -436,12 +490,16 @@ class VenueCreate(BaseModel):
     rating: Optional[float] = 5.0
     cover_image: Optional[str] = None
     venue_images: Optional[str] = None
+    description: Optional[str] = None
+    base_price_per_hour: Optional[int] = 0
 
 class VenueResponse(BaseModel):
     id: int
-    owner_id: int
+    owner_id: Optional[int] = None
+    venue_owner_id: Optional[int] = None
     name: str
     location: str
+    landmark: Optional[str] = None
     latitude: Optional[float]
     longitude: Optional[float]
     sports_supported: Optional[str]
@@ -449,12 +507,18 @@ class VenueResponse(BaseModel):
     rating: float
     cover_image: Optional[str] = None
     venue_images: Optional[str] = None
+    description: Optional[str] = None
+    base_price_per_hour: Optional[int] = 0
+    distance: Optional[float] = None
+    courts: List[CourtResponse] = []
+    reviews: List[ReviewResponse] = []
 
     class Config:
         from_attributes = True
 
 class SlotCreate(BaseModel):
     venue_id: int
+    court_id: Optional[int] = None
     sport: str
     start_time: datetime
     end_time: datetime
@@ -465,30 +529,39 @@ class SlotCreate(BaseModel):
 class SlotResponse(BaseModel):
     id: int
     venue_id: int
+    court_id: Optional[int] = None
     sport: str
     start_time: datetime
     end_time: datetime
     base_price: int
     current_price: int
     is_blocked: bool
+    status: str
+    held_until: Optional[datetime] = None
+    held_by_user_id: Optional[int] = None
 
     class Config:
         from_attributes = True
 
 class BookingCreate(BaseModel):
     user_id: int
-    slot_id: int
+    court_id: Optional[int] = None
+    slot_ids: List[int]
     amount_paid: Optional[int] = 0
     payment_status: Optional[str] = "pending"
 
 class BookingResponse(BaseModel):
     id: int
     user_id: int
-    slot_id: int
+    court_id: Optional[int] = None
     booking_date: datetime
     status: str
     amount_paid: int
     payment_status: str
+    payment_id: Optional[str] = None
+    cancelled_at: Optional[datetime] = None
+    cancellation_reason: Optional[str] = None
+    slots: List[SlotResponse] = []
 
     class Config:
         from_attributes = True
@@ -518,6 +591,7 @@ class ActivityCreate(BaseModel):
     max_players: int
     min_players: Optional[int] = 2
     skill_level: Optional[str] = "All"
+    privacy_type: Optional[str] = "public"
     description: Optional[str] = None
 class ActivityUpdate(BaseModel):
     sport: Optional[str] = None
@@ -529,6 +603,7 @@ class ActivityUpdate(BaseModel):
     max_players: Optional[int] = None
     min_players: Optional[int] = None
     skill_level: Optional[str] = None
+    privacy_type: Optional[str] = None
     description: Optional[str] = None
     status: Optional[str] = None
 
@@ -545,6 +620,7 @@ class ActivityResponse(BaseModel):
     min_players: int
     skill_level: str
     status: str
+    privacy_type: str
     description: Optional[str]
     created_at: datetime
     rsvps: List[ActivityRSVPResponse] = []
@@ -630,5 +706,228 @@ class MessageResponse(BaseModel):
         from_attributes = True
 
 
+# ─── VENUE OWNER SCHEMAS ─────────────────────────────────────────────
 
+class VenueOwnerCreate(BaseModel):
+    full_name: str
+    dob: Optional[str] = None
+    email: str
+    phone: str
+    aadhar_number: Optional[str] = None
+    password: str
+
+class VenueOwnerLogin(BaseModel):
+    email: str
+    password: str
+
+class VenueOwnerResponse(BaseModel):
+    id: int
+    full_name: str
+    dob: Optional[str] = None
+    email: str
+    phone: str
+    aadhar_number: Optional[str] = None
+    is_verified: bool
+
+    class Config:
+        from_attributes = True
+
+
+class VenueInput(BaseModel):
+    """Single venue data submitted during venue owner registration."""
+    name: str
+    location: str
+    landmark: Optional[str] = None
+    sports_supported: Optional[str] = None   # JSON string e.g. '["Cricket","Football"]'
+    amenities: Optional[str] = None          # JSON string
+    cover_image: Optional[str] = None
+    venue_images: Optional[str] = None
+    opening_time: Optional[str] = None
+    closing_time: Optional[str] = None
+    days_open: Optional[str] = None          # JSON string e.g. '["Mon","Tue","Wed"]'
+    slot_duration: Optional[int] = 60
+
+
+class VenueOwnerRegister(BaseModel):
+    """Combined payload: owner details + list of venues."""
+    owner: VenueOwnerCreate
+    venues: List[VenueInput]
+
+
+# ─── VENUE BOOKING RAZORPAY SCHEMAS ──────────────────────────────────────────
+
+class VenueBookingOrderCreate(BaseModel):
+    booking_id: int
+    user_id: int
+
+class VenueBookingOrderResponse(BaseModel):
+    key_id: str
+    razorpay_order_id: str
+    local_order_id: int
+    booking_id: int
+    amount: int
+    currency: str
+    name: str
+    description: Optional[str] = None
+    prefill_name: Optional[str] = None
+    prefill_email: Optional[str] = None
+    prefill_contact: Optional[str] = None
+
+class VenueBookingVerifyRequest(BaseModel):
+    booking_id: int
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+
+
+# ─── UPDATED BOOKING CONFIRM (now also accepts Razorpay fields) ───────────────
+
+class BookingConfirmRequest(BaseModel):
+    booking_id: int
+    payment_id: str                           # Razorpay payment id OR legacy mock id
+    razorpay_order_id: Optional[str] = None  # Required for signature verify
+    razorpay_signature: Optional[str] = None  # Required for signature verify
+
+
+# ─── CANCELLATION POLICY SCHEMAS ─────────────────────────────────────────────
+
+class CancellationPolicyCreate(BaseModel):
+    hours_before_free_cancel: Optional[int] = 24
+    refund_pct_full: Optional[int] = 100
+    partial_window_hours: Optional[int] = 6
+    refund_pct_partial: Optional[int] = 50
+    no_refund_window_hours: Optional[int] = 2
+
+class CancellationPolicyResponse(BaseModel):
+    id: int
+    venue_id: Optional[int] = None
+    hours_before_free_cancel: int
+    refund_pct_full: int
+    partial_window_hours: int
+    refund_pct_partial: int
+    no_refund_window_hours: int
+
+    class Config:
+        from_attributes = True
+
+class RefundRecordResponse(BaseModel):
+    id: int
+    booking_id: int
+    razorpay_payment_id: Optional[str] = None
+    razorpay_refund_id: Optional[str] = None
+    amount: int
+    refund_pct: int
+    status: str
+    reason: Optional[str] = None
+    created_at: datetime
+    completed_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class CancelBookingRequest(BaseModel):
+    reason: Optional[str] = "User cancelled"
+    user_id: Optional[int] = None  # for auth verification (future use)
+
+
+# Game Discovery & Escrow Lobbies Schemas
+from datetime import datetime
+from pydantic import computed_field
+
+class GameCreate(BaseModel):
+    host_id: int
+    venue_id: Optional[int] = None
+    sport: str
+    slot_start: datetime
+    slot_end: datetime
+    total_spots: int
+    price_per_player: float
+    join_policy: Optional[str] = "instant"
+    visibility: Optional[str] = "public"
+
+class GameResponse(BaseModel):
+    id: str
+    host_id: int
+    venue_id: Optional[int] = None
+    sport: str
+    slot_start: datetime
+    slot_end: datetime
+    total_spots: int
+    current_players: int
+    price_per_player: float
+    join_policy: str
+    visibility: str
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class GameJoinRequest(BaseModel):
+    note: Optional[str] = None
+
+class GameJoinResponse(BaseModel):
+    status: str  # pending_payment, pending_approval, confirmed, waitlist, full
+    payment_required: bool
+    payment_intent_id: Optional[str] = None
+    hold_expires_at: Optional[datetime] = None
+    message: Optional[str] = None
+
+class JoinRequestRespondBody(BaseModel):
+    action: str  # accept or reject
+
+class WaitlistEntryOut(BaseModel):
+    id: str
+    game_id: str
+    user_id: int
+    position: int
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class UserMinOut(BaseModel):
+    id: int
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class GamePlayerOut(BaseModel):
+    id: str
+    user_id: int
+    user: UserMinOut
+    status: str
+    joined_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class GameDetailOut(BaseModel):
+    id: str
+    host_id: int
+    host: UserMinOut
+    venue_id: Optional[int] = None
+    sport: str
+    slot_start: datetime
+    slot_end: datetime
+    total_spots: int
+    current_players: int
+    price_per_player: float
+    join_policy: str
+    visibility: str
+    status: str
+    players: List[GamePlayerOut]
+    waitlist_count: int
+
+    @computed_field
+    @property
+    def spots_left(self) -> int:
+        return max(0, self.total_spots - self.current_players)
+
+    class Config:
+        from_attributes = True
 

@@ -90,6 +90,57 @@ def login_user(user_data: schemas.UserLogin, db: Session = Depends(get_db)):
 
     return {"message": "Login successful", "userName": user.first_name, "userId": user.id, "clubName": user.club_name}
 
+
+@router.post("/user/login")
+def login_standard_user(user_data: schemas.UserLogin, db: Session = Depends(get_db)):
+    """Authenticate a standard user and return their session details."""
+    email_clean = user_data.email.replace(" ", "").lower() if user_data.email else ""
+    password_clean = user_data.password.strip() if user_data.password else ""
+    user = db.query(models.User).filter(func.lower(models.User.email) == email_clean).first()
+
+    print(f"[DEBUG USER LOGIN] email_clean='{email_clean}' incoming_password='{password_clean}' user_found={user is not None}")
+
+    if not user:
+        print(f"[DEBUG USER LOGIN] User not found for email: '{email_clean}'")
+        raise HTTPException(status_code=400, detail="Invalid email or password")
+
+    if user.password != password_clean:
+        print(f"[DEBUG USER LOGIN] Password mismatch: database='{user.password}' incoming='{password_clean}'")
+        raise HTTPException(status_code=400, detail="Invalid email or password")
+
+    return {
+        "message": "Login successful",
+        "userName": user.first_name,
+        "userId": user.id,
+        "userEmail": user.email,
+        "clubName": user.club_name
+    }
+
+
+@router.post("/user/register")
+def register_standard_user(payload: schemas.StandardUserRegister, db: Session = Depends(get_db)):
+    """Register a new standard user in the system."""
+    email_clean = payload.email.replace(" ", "").lower() if payload.email else ""
+    db_user = db.query(models.User).filter(func.lower(models.User.email) == email_clean).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    new_user = models.User(
+        first_name=payload.firstName,
+        last_name=payload.lastName,
+        dob=payload.dob,
+        email=email_clean,
+        password=payload.password.strip() if payload.password else "",
+        phone=payload.phone,
+        aadhar_number=payload.aadharNumber,
+        is_verified=True
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return {"message": "User registered successfully", "userId": new_user.id}
+
+
 # --- CUSTOM SIGNUP FORMS & REGISTRATIONS ENDPOINTS ---
 
 def get_default_fields(role: str):

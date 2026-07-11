@@ -9,3 +9,6 @@ from app.routes.venues import router as venues_router
 from app.routes.activities import router as activities_router
 from app.routes.dashboard import router as dashboard_router
 from app.routes.messages import router as messages_router
+from app.routes.venue_owner import router as venue_owner_router
+from app.routes.games import router as games_router
+

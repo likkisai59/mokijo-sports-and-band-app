@@ -7,3 +7,6 @@ pydantic
 pandas
 openpyxl
 python-multipart
+redis
+websockets
+apscheduler

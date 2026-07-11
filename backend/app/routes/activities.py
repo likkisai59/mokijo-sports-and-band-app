@@ -31,6 +31,7 @@ def create_activity(activity: schemas.ActivityCreate, db: Session = Depends(get_
         max_players=activity.max_players,
         min_players=activity.min_players or 2,
         skill_level=activity.skill_level or "All",
+        privacy_type=activity.privacy_type or "public",
         description=activity.description,
         status="open"
     )
@@ -161,12 +162,14 @@ def cancel_activity(activity_id: int, db: Session = Depends(get_db), x_is_member
     
     # If there is a slot_id, unblock/cancel the booking so venue is free
     if activity.slot_id:
-        booking = db.query(models.Booking).filter(
-            models.Booking.slot_id == activity.slot_id,
+        booking = db.query(models.Booking).join(models.Booking.slots).filter(
+            models.Slot.id == activity.slot_id,
             models.Booking.status == "reserved"
         ).first()
         if booking:
             booking.status = "cancelled"
+            for slot in booking.slots:
+                slot.status = "AVAILABLE"
             
     db.commit()
     return {"message": "Activity cancelled successfully.", "status": "cancelled"}

@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { Shield, Users, ArrowRight, Zap, Trophy, Calendar, CreditCard, BarChart3 } from "lucide-react";
+import LoginDropdown from "../components/LoginDropdown";
+import RegisterDropdown from "../components/RegisterDropdown";
 import "./styles/landing.css";
+
+
 
 const ACTION_BOXES = [
   {
@@ -19,18 +23,19 @@ const ACTION_BOXES = [
   },
   {
     href: "/login-member",
-    title: "Login as Member",
+    title: "Login as Club Member",
     description: "Sign in as a coach, player, parent, or referee to access your dashboard.",
     variant: "member-login",
     Icon: Users,
   },
   {
     href: "/register-member",
-    title: "Register as Member",
+    title: "Register as Club Member",
     description: "Join your club as a member and unlock your personalized member space.",
     variant: "member-register",
     Icon: Users,
   },
+
 ];
 
 const FEATURES = [
@@ -53,10 +58,13 @@ export default function Home() {
       {/* ── Top Navigation ── */}
       <header className="landing-topbar">
         <strong className="logo">Mukijo</strong>
-        <div className="topbar-right">
-          <span className="topbar-tag">Advanced Club Management</span>
+        <div className="topbar-nav">
+          <LoginDropdown />
+          <RegisterDropdown />
         </div>
+
       </header>
+
 
       {/* ── Hero Section ── */}
       <section className="landing-hero">
