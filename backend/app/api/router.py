@@ -13,6 +13,7 @@ from app.routes import (
     messages_router,
     venue_owner_router,
     games_router,
+    matches_router,
 )
 
 api_router = APIRouter()
@@ -30,4 +31,5 @@ api_router.include_router(dashboard_router)
 api_router.include_router(messages_router)
 api_router.include_router(venue_owner_router)
 api_router.include_router(games_router)
+api_router.include_router(matches_router, tags=["matches"])
 

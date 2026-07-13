@@ -18,7 +18,7 @@ export default function SignupPage() {
         country: "",
         state: "",
         memberCount: "",
-        sport: "",
+        sport: [],
         firstName: "",
         lastName: "",
         email: "",
@@ -51,12 +51,17 @@ export default function SignupPage() {
             const apiUrl = `http://127.0.0.1:8001/register`;
             console.log("Attempting registration at:", apiUrl);
 
+            const submissionBody = {
+                ...formData,
+                sport: Array.isArray(formData.sport) ? formData.sport.join(", ") : formData.sport
+            };
+
             const response = await fetch(apiUrl, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(submissionBody),
             });
 
             if (response.ok) {

@@ -5,7 +5,7 @@ import { countries, indianStates, memberOptions, sportsOptions } from "./constan
 export default function Step1({ formData, onChange, onNext }) {
     function handleNext() {
         if (!formData.clubName || !formData.country || !formData.state ||
-            !formData.memberCount || !formData.sport) {
+            !formData.memberCount || !formData.sport || (Array.isArray(formData.sport) && formData.sport.length === 0)) {
             alert("Please fill in all fields before continuing.");
             return;
         }
@@ -77,17 +77,42 @@ export default function Step1({ formData, onChange, onNext }) {
             </div>
 
             <div className={styles.fieldGroup}>
-                <label className={styles.label}>Sport / Activity *</label>
-                <select
-                    className={styles.select}
-                    value={formData.sport}
-                    onChange={(e) => onChange("sport", e.target.value)}
-                >
-                    <option value="">-- Select Sport or Activity --</option>
-                    {sportsOptions.map((sport) => (
-                        <option key={sport} value={sport}>{sport}</option>
-                    ))}
-                </select>
+                <label className={styles.label}>Sports / Activities * (Select all that apply)</label>
+                <div style={{
+                    maxHeight: "180px",
+                    overflowY: "auto",
+                    border: "1.5px solid rgba(255, 255, 255, 0.08)",
+                    borderRadius: "10px",
+                    padding: "12px 14px",
+                    background: "rgba(255, 255, 255, 0.05)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px"
+                }}>
+                    {sportsOptions.map((sport) => {
+                        const selectedSports = Array.isArray(formData.sport) ? formData.sport : [];
+                        const isChecked = selectedSports.includes(sport);
+                        return (
+                            <label key={sport} style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", fontSize: "14px", color: "#f1f5f9" }}>
+                                <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={(e) => {
+                                        let updated;
+                                        if (e.target.checked) {
+                                            updated = [...selectedSports, sport];
+                                        } else {
+                                            updated = selectedSports.filter(s => s !== sport);
+                                        }
+                                        onChange("sport", updated);
+                                    }}
+                                    style={{ width: "16px", height: "16px", accentColor: "#bffe00", cursor: "pointer" }}
+                                />
+                                <span>{sport}</span>
+                            </label>
+                        );
+                    })}
+                </div>
             </div>
 
             <div className={styles.buttonRow}>

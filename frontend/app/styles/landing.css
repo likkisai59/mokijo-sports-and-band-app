@@ -21,7 +21,28 @@
   font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
   overflow-x: hidden;
   position: relative;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
+
+.landing-page::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* Hide main browser scrollbar when landing page is rendered */
+html:has(.landing-page) {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+html:has(.landing-page)::-webkit-scrollbar {
+  display: none !important;
+}
+
+html:has(.landing-page) body::-webkit-scrollbar {
+  display: none !important;
+}
+
 
 /* ─── ANIMATED MESH BACKGROUND ───────────────────────────────────── */
 .landing-page::before {
@@ -428,6 +449,7 @@
   padding: 1px;
   background: linear-gradient(135deg, transparent 40%, rgba(255, 255, 255, 0.12) 50%, transparent 60%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 0;

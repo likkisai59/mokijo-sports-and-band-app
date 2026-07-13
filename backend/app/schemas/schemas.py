@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional, List
+from datetime import datetime
 
 class MemberCreate(BaseModel):
     first_name: str
@@ -930,4 +931,92 @@ class GameDetailOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class MatchTeamCreate(BaseModel):
+    team_name: str
+    group_id: Optional[int] = None
+    club_name: Optional[str] = None
+    color: Optional[str] = None
+
+
+class MatchTeamResponse(BaseModel):
+    id: int
+    match_id: int
+    team_name: str
+    group_id: Optional[int] = None
+    club_name: Optional[str] = None
+    color: Optional[str] = None
+    score: int
+
+    class Config:
+        from_attributes = True
+
+
+class MatchCreate(BaseModel):
+    owner_id: int
+    title: str
+    sport: str
+    match_type: Optional[str] = "intra_club"
+    venue: Optional[str] = None
+    scheduled_at: Optional[datetime] = None
+    teams: List[MatchTeamCreate]
+
+
+class MatchUpdate(BaseModel):
+    title: Optional[str] = None
+    sport: Optional[str] = None
+    match_type: Optional[str] = None
+    venue: Optional[str] = None
+    scheduled_at: Optional[datetime] = None
+    status: Optional[str] = None
+    winner_team_id: Optional[int] = None
+
+
+class MatchEventCreate(BaseModel):
+    team_id: Optional[int] = None
+    event_type: str
+    description: Optional[str] = None
+    minute: Optional[int] = None
+    score_at_event: Optional[str] = None
+
+
+class MatchEventResponse(BaseModel):
+    id: int
+    match_id: int
+    team_id: Optional[int] = None
+    event_type: str
+    description: Optional[str] = None
+    minute: Optional[int] = None
+    score_at_event: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class MatchResponse(BaseModel):
+    id: int
+    owner_id: int
+    title: str
+    sport: str
+    match_type: str
+    venue: Optional[str] = None
+    scheduled_at: Optional[datetime] = None
+    status: str
+    winner_team_id: Optional[int] = None
+    created_at: datetime
+    teams: List[MatchTeamResponse]
+    events: List[MatchEventResponse] = []
+
+    class Config:
+        from_attributes = True
+
+
+class MatchScoreUpdate(BaseModel):
+    team_id: int
+    new_score: int
+    event_type: Optional[str] = "point"
+    description: Optional[str] = None
+    minute: Optional[int] = None
 

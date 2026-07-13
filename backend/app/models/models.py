@@ -133,6 +133,7 @@ class User(Base):
     hosted_games = relationship("Game", back_populates="host")
     game_participations = relationship("GamePlayer", back_populates="user")
     waitlist_entries = relationship("GameWaitlist", back_populates="user")
+    matches = relationship("Match", back_populates="owner", cascade="all, delete-orphan")
 
 class FundraisingCampaign(Base):
     __tablename__ = "fundraising_campaigns"
@@ -550,5 +551,55 @@ class GameWaitlist(Base):
     __table_args__ = (
         Index("idx_game_waitlist_pos", "game_id", "position"),
     )
+
+
+class Match(Base):
+    __tablename__ = "matches"
+
+    id = Column(Integer, primary_key=True, index=True)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)     # Club admin
+    title = Column(String, nullable=False)               # e.g., "Finals 2026"
+    sport = Column(String, nullable=False)               # e.g., "Football", "Cricket"
+    match_type = Column(String, default="intra_club")         # intra_club | inter_club
+    venue = Column(String, nullable=True)
+    scheduled_at = Column(DateTime, nullable=True)
+    status = Column(String, default="scheduled")          # scheduled | live | completed | cancelled
+    winner_team_id = Column(Integer, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    owner = relationship("User", back_populates="matches")
+    teams = relationship("MatchTeam", back_populates="match", cascade="all, delete-orphan")
+    events = relationship("MatchEvent", back_populates="match", cascade="all, delete-orphan")
+
+
+class MatchTeam(Base):
+    __tablename__ = "match_teams"
+
+    id = Column(Integer, primary_key=True, index=True)
+    match_id = Column(Integer, ForeignKey("matches.id", ondelete="CASCADE"), nullable=False)
+    team_name = Column(String, nullable=False)    # "Team A" or group name
+    group_id = Column(Integer, ForeignKey("groups.id", ondelete="SET NULL"), nullable=True)  # optional link
+    club_name = Column(String, nullable=True)     # for inter-club matches
+    color = Column(String, nullable=True)     # team jersey color (e.g. hex #FF0000)
+    score = Column(Integer, default=0)
+
+    match = relationship("Match", back_populates="teams")
+    group = relationship("Group")
+
+
+class MatchEvent(Base):
+    __tablename__ = "match_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    match_id = Column(Integer, ForeignKey("matches.id", ondelete="CASCADE"), nullable=False)
+    team_id = Column(Integer, ForeignKey("match_teams.id", ondelete="CASCADE"), nullable=True) # can be null for general events
+    event_type = Column(String, nullable=False)    # "goal", "point", "wicket", "timeout", "halftime", "start", "end", etc.
+    description = Column(String, nullable=True)
+    minute = Column(Integer, nullable=True)
+    score_at_event = Column(String, nullable=True)  # snapshot "2-1"
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    match = relationship("Match", back_populates="events")
+    team = relationship("MatchTeam")
 
 

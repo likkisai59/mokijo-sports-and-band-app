@@ -1,42 +1,9 @@
-import Link from "next/link";
-import { Shield, Users, ArrowRight, Zap, Trophy, Calendar, CreditCard, BarChart3 } from "lucide-react";
+import { Zap, Trophy, Calendar, CreditCard, BarChart3 } from "lucide-react";
 import LoginDropdown from "../components/LoginDropdown";
 import RegisterDropdown from "../components/RegisterDropdown";
 import "./styles/landing.css";
 
 
-
-const ACTION_BOXES = [
-  {
-    href: "/login",
-    title: "Login as Club Admin",
-    description: "Manage your club, members, events, and finances with full control.",
-    variant: "admin-login",
-    Icon: Shield,
-  },
-  {
-    href: "/register",
-    title: "Register as Club Admin",
-    description: "Create your club admin account and set up your organization in minutes.",
-    variant: "admin-register",
-    Icon: Shield,
-  },
-  {
-    href: "/login-member",
-    title: "Login as Club Member",
-    description: "Sign in as a coach, player, parent, or referee to access your dashboard.",
-    variant: "member-login",
-    Icon: Users,
-  },
-  {
-    href: "/register-member",
-    title: "Register as Club Member",
-    description: "Join your club as a member and unlock your personalized member space.",
-    variant: "member-register",
-    Icon: Users,
-  },
-
-];
 
 const FEATURES = [
   { icon: <Trophy size={13} />, label: "Group Management" },
@@ -46,11 +13,6 @@ const FEATURES = [
   { icon: <Zap size={13} />, label: "Real-time Updates" },
 ];
 
-const STATS = [
-  { number: "5+", label: "Roles Supported" },
-  { number: "∞", label: "Members Scale" },
-  { number: "24/7", label: "Access" },
-];
 
 export default function Home() {
   return (
@@ -96,39 +58,6 @@ export default function Home() {
             <div key={f.label} className="feat-pill">
               {f.icon}
               {f.label}
-            </div>
-          ))}
-        </div>
-
-        {/* Action Cards */}
-        <div className="landing-boxes-grid">
-          {ACTION_BOXES.map((box) => (
-            <Link
-              key={box.variant}
-              href={box.href}
-              className="action-box"
-              data-variant={box.variant}
-            >
-              <div className="action-box__icon">
-                <box.Icon size={24} />
-              </div>
-              <div className="action-box__content">
-                <h2>{box.title}</h2>
-                <p>{box.description}</p>
-              </div>
-              <div className="action-box__arrow">
-                <ArrowRight size={13} />
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {/* Stats */}
-        <div className="hero-stats">
-          {STATS.map((s) => (
-            <div key={s.label} className="stat-item">
-              <span className="stat-number">{s.number}</span>
-              <span className="stat-label">{s.label}</span>
             </div>
           ))}
         </div>

@@ -82,9 +82,9 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
             newErrors["password"] = "Password is required";
         }
 
-        // Validate sport if parent role
-        if (role.toLowerCase() === "parent" && !formData["sport"]) {
-            newErrors["sport"] = "Selecting a sport is required";
+        // Validate interested sports
+        if (!(formData["sports"] && formData["sports"].length > 0)) {
+            newErrors["sports"] = "Selecting at least one sport is required";
         }
 
         if (Object.keys(newErrors).length > 0) {
@@ -96,6 +96,8 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
         try {
             const submittedData = {
                 ...formData,
+                sports: formData["sports"] || [],
+                sport: formData["sports"] ? formData["sports"].join(", ") : "",
                 email: String(formData.email || "").trim().toLowerCase(),
                 password: String(formData.password || "").trim()
             };
@@ -220,42 +222,52 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                     );
                 })}
 
-                {role.toLowerCase() === "parent" && (
-                    <div className={styles.fieldGroup}>
-                        <label className={styles.label}>
-                            Select Sport <span style={{ color: "#ef4444" }}>*</span>
-                        </label>
-                        <select
-                            className={styles.select}
-                            value={formData["sport"] || ""}
-                            onChange={(e) => handleFieldChange("sport", e.target.value)}
-                            required
-                            style={{
-                                width: "100%",
-                                padding: "10px 12px",
-                                border: "1px solid #cbd5e1",
-                                borderRadius: "6px",
-                                fontSize: "14px",
-                                outline: "none",
-                                background: "#ffffff",
-                                color: "#0f172a"
-                            }}
-                        >
-                            <option value="">Choose a sport...</option>
-                            <option value="Tennis">Tennis</option>
-                            <option value="Cricket">Cricket</option>
-                            <option value="Football (Soccer)">Football (Soccer)</option>
-                            <option value="Basketball">Basketball</option>
-                            <option value="Badminton">Badminton</option>
-                            <option value="Swimming">Swimming</option>
-                        </select>
-                        {errors["sport"] && (
-                            <span style={{ color: "#ef4444", fontSize: "12px", marginTop: "4px", display: "block" }}>
-                                {errors["sport"]}
-                            </span>
-                        )}
+                <div className={styles.fieldGroup}>
+                    <label className={styles.label}>
+                        Interested Sports <span style={{ color: "#ef4444" }}>*</span> (Select all that apply)
+                    </label>
+                    <div style={{
+                        maxHeight: "180px",
+                        overflowY: "auto",
+                        border: "1.5px solid rgba(255, 255, 255, 0.08)",
+                        borderRadius: "10px",
+                        padding: "12px 14px",
+                        background: "rgba(255, 255, 255, 0.05)",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "8px",
+                        marginTop: "8px"
+                    }}>
+                        {["Tennis", "Cricket", "Football (Soccer)", "Basketball", "Badminton", "Swimming"].map(sport => {
+                            const selectedSports = formData["sports"] || [];
+                            const isChecked = selectedSports.includes(sport);
+                            return (
+                                <label key={sport} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#f1f5f9' }}>
+                                    <input 
+                                        type="checkbox" 
+                                        checked={isChecked}
+                                        onChange={(e) => {
+                                            let updated;
+                                            if (e.target.checked) {
+                                                updated = [...selectedSports, sport];
+                                            } else {
+                                                updated = selectedSports.filter(s => s !== sport);
+                                            }
+                                            handleFieldChange("sports", updated);
+                                        }}
+                                        style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: '#bffe00' }}
+                                    />
+                                    <span>{sport}</span>
+                                </label>
+                            );
+                        })}
                     </div>
-                )}
+                    {errors["sports"] && (
+                        <span style={{ color: "#ef4444", fontSize: "12px", marginTop: "4px", display: "block" }}>
+                            {errors["sports"]}
+                        </span>
+                    )}
+                </div>
 
                 <button
                     type="submit"

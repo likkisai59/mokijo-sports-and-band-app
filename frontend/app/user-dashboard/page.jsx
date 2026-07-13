@@ -62,6 +62,14 @@ export default function UserDashboard() {
     const [joiningGameId, setJoiningGameId] = useState(null);
 
     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+
+    useEffect(() => {
+        if (!dropdownOpen) return;
+        const closeDropdown = () => setDropdownOpen(false);
+        document.addEventListener("click", closeDropdown);
+        return () => document.removeEventListener("click", closeDropdown);
+    }, [dropdownOpen]);
 
     useEffect(() => {
         const storedName = localStorage.getItem("userName");
@@ -535,12 +543,14 @@ export default function UserDashboard() {
                     </button>
                 </div>
 
-                {/* Right: User Profile (Sign Out button removed next to avatar) */}
-                <div style={styles.userNav}>
+                {/* Right: User Profile & Log Out Dropdown */}
+                <div style={{ ...styles.userNav, position: "relative" }}>
                     <div 
-                        onClick={handleLogout} 
-                        style={styles.userInfoClickable} 
-                        title="Click to Sign Out"
+                        style={{ ...styles.userInfoClickable, cursor: "pointer" }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setDropdownOpen(prev => !prev);
+                        }}
                     >
                         <div style={styles.avatar}>{userName.charAt(0).toUpperCase()}</div>
                         <div style={styles.userDetails}>
@@ -548,6 +558,44 @@ export default function UserDashboard() {
                             <span style={styles.userEmail}>{userEmail}</span>
                         </div>
                     </div>
+                    {dropdownOpen && (
+                        <div 
+                            style={{
+                                position: "absolute",
+                                top: "120%",
+                                right: 0,
+                                backgroundColor: "#0f0f1a",
+                                border: "1px solid rgba(255, 255, 255, 0.08)",
+                                borderRadius: "8px",
+                                padding: "6px",
+                                minWidth: "140px",
+                                boxShadow: "0 10px 25px rgba(0, 0, 0, 0.5)",
+                                zIndex: 1000
+                            }}
+                        >
+                            <button 
+                                className="user-logout-btn" 
+                                onClick={handleLogout}
+                                style={{
+                                    width: "100%",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "8px",
+                                    padding: "8px 12px",
+                                    border: "none",
+                                    background: "transparent",
+                                    color: "#ffffff",
+                                    cursor: "pointer",
+                                    fontSize: "14px",
+                                    borderRadius: "4px",
+                                    transition: "background 0.2s"
+                                }}
+                            >
+                                <LogOut size={16} />
+                                <span>Logout</span>
+                            </button>
+                        </div>
+                    )}
                 </div>
             </header>
 

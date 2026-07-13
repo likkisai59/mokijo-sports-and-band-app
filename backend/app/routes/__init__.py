@@ -11,4 +11,5 @@ from app.routes.dashboard import router as dashboard_router
 from app.routes.messages import router as messages_router
 from app.routes.venue_owner import router as venue_owner_router
 from app.routes.games import router as games_router
+from app.routes.matches import router as matches_router
 

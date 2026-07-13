@@ -91,18 +91,27 @@
 }
 
 .vd-logout-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 7px 16px;
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
   border-radius: 8px;
-  color: rgba(255,255,255,0.55);
+  color: #ffffff;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   font-family: 'Outfit',sans-serif;
   transition: all 0.2s;
 }
-.vd-logout-btn:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.vd-logout-btn:hover {
+  color: rgba(255, 255, 255, 0.7);
+  background: transparent;
+  box-shadow: none;
+}
+
+
 
 /* ─── LAYOUT ─────────────────────────────────────────────────────── */
 .vd-layout {
