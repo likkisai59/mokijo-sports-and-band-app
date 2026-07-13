@@ -1,0 +1,3 @@
+service:
+  name: "mukijo-backend"
+  version: "1.0.0"

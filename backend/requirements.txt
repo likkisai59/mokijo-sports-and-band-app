@@ -10,3 +10,7 @@ python-multipart
 redis
 websockets
 apscheduler
+PyJWT
+bcrypt
+python-jose[cryptography]
+boto3
