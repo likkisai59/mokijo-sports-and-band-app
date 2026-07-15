@@ -12,6 +12,7 @@ def serialize_activity(activity):
     if not activity:
         return None
     a_date = activity.get("date")
+    created = activity.get("created_at")
     return {
         "id": activity.get("id"),
         "owner_id": activity.get("owner_id"),
@@ -26,8 +27,10 @@ def serialize_activity(activity):
         "skill_level": activity.get("skill_level"),
         "privacy_type": activity.get("privacy_type"),
         "description": activity.get("description"),
-        "status": activity.get("status")
+        "status": activity.get("status"),
+        "created_at": created.isoformat() if isinstance(created, datetime) else created
     }
+
 
 
 def serialize_rsvp(rsvp):
@@ -187,7 +190,8 @@ class ActivitiesLogic(ConnectionService):
                     "skill_level": activity.skill_level or "All",
                     "privacy_type": activity.privacy_type or "public",
                     "description": activity.description,
-                    "status": "open"
+                    "status": "open",
+                    "created_at": datetime.utcnow()
                 }
                 act_id = db.insert("activities", insert_data)
 
@@ -195,7 +199,8 @@ class ActivitiesLogic(ConnectionService):
                 rsvp_data = {
                     "activity_id": act_id,
                     "user_id": activity.owner_id,
-                    "status": "confirmed"
+                    "status": "confirmed",
+                    "joined_at": datetime.utcnow()
                 }
                 db.insert("activity_rsvps", rsvp_data)
 
@@ -260,7 +265,8 @@ class ActivitiesLogic(ConnectionService):
                 insert_rsvp = {
                     "activity_id": activity_id,
                     "user_id": rsvp_data.user_id,
-                    "status": status_val
+                    "status": status_val,
+                    "joined_at": datetime.utcnow()
                 }
                 rsvp_id = db.insert("activity_rsvps", insert_rsvp)
                 new_rsvp = db.fetch_one("SELECT * FROM activity_rsvps WHERE id = %s", (rsvp_id,))
