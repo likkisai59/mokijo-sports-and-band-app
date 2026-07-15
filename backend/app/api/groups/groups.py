@@ -343,8 +343,41 @@ class GroupsLogic(ConnectionService):
                 if not group:
                     raise HTTPException(status_code=404, detail="Group not found or access denied")
                 
-                db.execute_query("DELETE FROM groups WHERE id = %s AND owner_id = %s", (group_id, owner_id))
+                # Execute all updates and deletes in a single transaction to reduce commits & connections
+                with db.get_connection() as conn:
+                    with conn.cursor() as cursor:
+                        # 1. Disassociate members of this group in referencing tables
+                        cursor.execute(
+                            "UPDATE event_registrations SET member_id = NULL WHERE member_id IN (SELECT id FROM members WHERE group_id = %s)",
+                            (group_id,)
+                        )
+                        cursor.execute(
+                            "UPDATE payments SET member_id = NULL WHERE member_id IN (SELECT id FROM members WHERE group_id = %s)",
+                            (group_id,)
+                        )
+                        cursor.execute(
+                            "UPDATE course_registrations SET member_id = NULL WHERE member_id IN (SELECT id FROM members WHERE group_id = %s)",
+                            (group_id,)
+                        )
+
+                        # 2. Disassociate the group itself in other tables
+                        cursor.execute("UPDATE events SET group_id = NULL WHERE group_id = %s", (group_id,))
+                        cursor.execute("UPDATE payments SET group_id = NULL WHERE group_id = %s", (group_id,))
+                        cursor.execute("UPDATE courses SET group_id = NULL WHERE group_id = %s", (group_id,))
+                        cursor.execute("UPDATE messages SET group_id = NULL WHERE group_id = %s", (group_id,))
+                        cursor.execute("UPDATE match_teams SET group_id = NULL WHERE group_id = %s", (group_id,))
+
+                        # 3. Delete members belonging to the group
+                        cursor.execute("DELETE FROM members WHERE group_id = %s", (group_id,))
+
+                        # 4. Finally delete the group itself
+                        cursor.execute("DELETE FROM groups WHERE id = %s AND owner_id = %s", (group_id, owner_id))
+                    
+                    conn.commit()
+
                 return {"message": "Group deleted successfully"}
+
+
         except HTTPException as he:
             raise he
         except Exception as e:
