@@ -1,7 +1,9 @@
 /* ─── Event Section (inside dashboard) ──────────── */
 /* Uses design tokens from dashboard.css */
 
-.event-section { width: 100%; }
+.event-section {
+    width: 100%;
+}
 
 .event-top {
     display: flex;
@@ -25,11 +27,11 @@
 .event-controls select {
     padding: 7px 14px;
     border-radius: 8px;
-    border: 1px solid var(--border, rgba(255,255,255,0.08));
-    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+    background: rgba(255, 255, 255, 0.05);
     color: var(--text-secondary, #94a3b8);
     font-size: 13px;
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     color-scheme: dark;
     outline: none;
     cursor: pointer;
@@ -43,7 +45,7 @@
 }
 
 .event-controls select:hover {
-    border-color: rgba(255,255,255,0.14);
+    border-color: rgba(255, 255, 255, 0.14);
 }
 
 .create-event-btn {
@@ -54,7 +56,7 @@
     text-decoration: none;
     font-weight: 600;
     font-size: 13px;
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
     transition: all 0.2s ease;
     white-space: nowrap;
@@ -68,10 +70,10 @@
 .loading-box {
     padding: 40px;
     text-align: center;
-    color: var(--text-secondary, rgba(148,163,184,0.6));
-    background: rgba(255,255,255,0.02);
+    color: var(--text-secondary, rgba(148, 163, 184, 0.6));
+    background: rgba(255, 255, 255, 0.02);
     border-radius: 12px;
-    border: 1px solid var(--border, rgba(255,255,255,0.07));
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.07));
     font-size: 14px;
 }
 
@@ -85,10 +87,10 @@
 /* ─── Mini Event Item ─────────────────────────────── */
 .event-item {
     padding: 18px;
-    border: 1px solid rgba(255,255,255,0.07);
+    border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 14px;
-    background: rgba(15,15,26,0.8);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+    background: rgba(15, 15, 26, 0.8);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -98,9 +100,11 @@
 }
 
 .event-item::before {
-    content: '';
+    content: "";
     position: absolute;
-    top: 0; left: 0; right: 0;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 2px;
     background: linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4);
     opacity: 0;
@@ -109,11 +113,15 @@
 
 .event-item:hover {
     transform: translateY(-4px);
-    border-color: rgba(99,102,241,0.25);
-    box-shadow: 0 12px 36px rgba(0,0,0,0.55), 0 0 24px rgba(99,102,241,0.06);
+    border-color: rgba(99, 102, 241, 0.25);
+    box-shadow:
+        0 12px 36px rgba(0, 0, 0, 0.55),
+        0 0 24px rgba(99, 102, 241, 0.06);
 }
 
-.event-item:hover::before { opacity: 1; }
+.event-item:hover::before {
+    opacity: 1;
+}
 
 .event-item-header {
     display: flex;
@@ -130,15 +138,15 @@
 
 .event-item-group {
     font-size: 0.78rem;
-    color: rgba(148,163,184,0.5);
+    color: rgba(148, 163, 184, 0.5);
     margin-top: 2px;
 }
 
 .event-type-badge {
     font-size: 10px;
     padding: 3px 9px;
-    background: rgba(99,102,241,0.12);
-    border: 1px solid rgba(99,102,241,0.2);
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px solid rgba(99, 102, 241, 0.2);
     border-radius: 12px;
     color: #a5b4fc;
     font-weight: 700;
@@ -151,7 +159,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: rgba(148,163,184,0.55);
+    color: rgba(148, 163, 184, 0.55);
     font-size: 0.85rem;
     margin-top: 2px;
 }
@@ -160,9 +168,9 @@
 .empty-box {
     text-align: center;
     padding: 48px 32px;
-    background: rgba(255,255,255,0.02);
+    background: rgba(255, 255, 255, 0.02);
     border-radius: 16px;
-    border: 1.5px dashed rgba(255,255,255,0.08);
+    border: 1.5px dashed rgba(255, 255, 255, 0.08);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -170,8 +178,9 @@
 }
 
 .empty-box svg {
-    width: 48px; height: 48px;
-    stroke: rgba(99,102,241,0.3);
+    width: 48px;
+    height: 48px;
+    stroke: rgba(99, 102, 241, 0.3);
     fill: none;
     stroke-width: 1.5;
     margin-bottom: 4px;
@@ -185,7 +194,7 @@
 }
 
 .empty-box p {
-    color: rgba(148,163,184,0.55);
+    color: rgba(148, 163, 184, 0.55);
     margin: 0;
     font-size: 14px;
 }
@@ -205,5 +214,5 @@
 
 .manage-events-link:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(99,102,241,0.45);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.45);
 }

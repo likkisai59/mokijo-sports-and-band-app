@@ -7,13 +7,19 @@
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
-    font-family: 'Outfit', 'Inter', sans-serif;
+    font-family: "Outfit", "Inter", sans-serif;
     animation: vnFadeIn 0.45s ease;
 }
 
 @keyframes vnFadeIn {
-    from { opacity: 0; transform: translateY(14px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ─── Header ──────────────────────────────────────── */
@@ -75,7 +81,7 @@
     color: var(--text-primary);
     width: 100%;
     font-size: 14px;
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
 }
 
 .search-box input::placeholder {
@@ -138,9 +144,11 @@
 }
 
 .venue-card::before {
-    content: '';
+    content: "";
     position: absolute;
-    top: 0; left: 0; right: 0;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 3px;
     background: linear-gradient(90deg, var(--brand), var(--violet));
     opacity: 0;
@@ -150,7 +158,9 @@
 .venue-card:hover {
     transform: translateY(-4px);
     border-color: rgba(191, 254, 0, 0.25);
-    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.6), 0 0 30px rgba(191, 254, 0, 0.08);
+    box-shadow:
+        0 20px 48px rgba(0, 0, 0, 0.6),
+        0 0 30px rgba(191, 254, 0, 0.08);
 }
 
 .venue-card:hover::before {
@@ -322,7 +332,7 @@
     padding: 8px 14px;
     border-radius: var(--radius-md);
     font-size: 14px;
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     outline: none;
     color-scheme: dark;
 }

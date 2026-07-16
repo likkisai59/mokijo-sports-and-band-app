@@ -25,35 +25,11 @@ async def check_user_authorization(request: Request) -> dict:
         auth_header = request.headers.get("Authorization")
 
         if not auth_header or not auth_header.startswith("Bearer "):
-            # Fallback mechanism if no Authorization header is present
-            await logger.log_warning(request=request, message="Authorization header missing or invalid. Attempting parameter fallback.")
-            
-            owner_id = request.query_params.get("owner_id") or request.query_params.get("user_id") or request.query_params.get("member_id")
-            
-            if not owner_id:
-                owner_id = request.path_params.get("owner_id") or request.path_params.get("user_id") or request.path_params.get("member_id")
-                
-            if not owner_id:
-                # Check query params for JSON payloads or similar
-                # To avoid exhausting request body stream, we check if body is already parsed
-                if hasattr(request, "_json") and request._json:
-                    owner_id = request._json.get("owner_id") or request._json.get("user_id") or request._json.get("member_id")
-            
-            if owner_id:
-                try:
-                    user_id_val = int(owner_id)
-                except Exception:
-                    user_id_val = 1
-                user_data = {"id": user_id_val, "userId": user_id_val, "username": f"user_{user_id_val}", "role": "admin"}
-            else:
-                # Default fallback
-                user_data = {"id": 1, "userId": 1, "username": "default_user", "role": "admin"}
-            
-            request.state.user_details = user_data
-            request_id = str(uuid.uuid4())
-            request.state.request_id = request_id
-            await logger.log_message(request=request, message=f"Generated request ID: {request_id} with fallback user ID: {user_data.get('id')}")
-            return user_data
+            await logger.log_warning(request=request, message="Authorization header missing or invalid.")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication credentials were not provided or are invalid.",
+            )
 
         # Step 2: Extract token
         access_token = auth_header.split(" ")[1]
@@ -69,13 +45,23 @@ async def check_user_authorization(request: Request) -> dict:
                 user_data = token_str
             else:
                 try:
-                    user_data = json.loads(token_str)
+                    loaded = json.loads(token_str)
+                    if isinstance(loaded, dict):
+                        user_data = loaded
                 except Exception:
+                    pass
+                
+                if not user_data:
                     try:
-                        user_data = eval(token_str.replace("ObjectId(", "").replace(")", ""))
+                        loaded = eval(token_str.replace("ObjectId(", "").replace(")", ""))
+                        if isinstance(loaded, dict):
+                            user_data = loaded
                     except Exception:
-                        # Fallback if it's a raw string
-                        user_data = {"id": token_str, "username": token_str}
+                        pass
+                
+                if not user_data:
+                    # Fallback if it's a raw string
+                    user_data = {"id": token_str, "username": token_str}
         
         if not user_data:
             await logger.log_error(request=request, message="Feature: Verification: Invalid Access token - no user data found")
@@ -84,13 +70,24 @@ async def check_user_authorization(request: Request) -> dict:
                 detail="Invalid access token",
             )
 
+        # Extract role from token_data if not present in user_data
+        if "role" not in user_data and "role" in token_data:
+            user_data["role"] = token_data["role"]
+
         # Ensure id is present in user_data
         if "id" not in user_data and "userId" in user_data:
             user_data["id"] = user_data["userId"]
 
+        # Normalize id to integer if numeric
+        if "id" in user_data:
+            try:
+                user_data["id"] = int(user_data["id"])
+            except (ValueError, TypeError):
+                pass
+
         await logger.log_message(
             request=request,
-            message=f"Feature: Verification: Access token verified successfully for user: {user_data.get('username', 'unknown')}"
+            message=f"Feature: Verification: Access token verified successfully for user: {user_data.get('username', 'unknown')} with role: {user_data.get('role', 'unknown')}"
         )
 
         # Step 5: Attach user to request state + generate request ID
@@ -114,3 +111,83 @@ async def check_user_authorization(request: Request) -> dict:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to verify access token",
         )
+
+
+def validate_role_and_permission(db, current_user: dict, allowed_roles: list[str], resource_owner_id: int | None = None):
+    """
+    Validates that the authenticated current_user:
+    1. Has a valid session and role (401 if missing).
+    2. Has a role contained in allowed_roles (403 if disallowed).
+    3. Has ownership or belonging to the resource represented by resource_owner_id (403 if forbidden).
+    """
+    if not current_user or "role" not in current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication credentials were not provided or are invalid."
+        )
+
+    role = current_user.get("role")
+    if role not in allowed_roles:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied: Role '{role}' is not allowed to perform this operation."
+        )
+
+    if resource_owner_id is not None:
+        user_id = current_user.get("id")
+
+        try:
+            user_id_int = int(user_id) if user_id is not None else None
+        except (ValueError, TypeError):
+            user_id_int = user_id
+
+        try:
+            resource_owner_id_int = int(resource_owner_id) if resource_owner_id is not None else None
+        except (ValueError, TypeError):
+            resource_owner_id_int = resource_owner_id
+
+        if role == "admin" or role == "club_admin":
+            # For backward compatibility, both "admin" and "club_admin" are allowed
+            if user_id_int != resource_owner_id_int:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied: You do not own this resource."
+                )
+        elif role == "team_member":
+            # Check if member belongs to a group owned by resource_owner_id
+            member = db.fetch_one("SELECT group_id FROM members WHERE id = %s", (user_id_int,))
+            if not member:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied: Member profile not found."
+                )
+            group = db.fetch_one("SELECT owner_id FROM groups WHERE id = %s", (member.get("group_id"),))
+            if not group:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied: Member is not assigned to any group."
+                )
+
+            try:
+                group_owner_id = int(group.get("owner_id"))
+            except (ValueError, TypeError):
+                group_owner_id = group.get("owner_id")
+
+            if group_owner_id != resource_owner_id_int:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied: You do not belong to this club."
+                )
+        elif role == "venue_owner":
+            if user_id_int != resource_owner_id_int:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied: You do not own this venue resource."
+                )
+        elif role == "user":
+            if user_id_int != resource_owner_id_int:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied: You do not own this user resource."
+                )
+

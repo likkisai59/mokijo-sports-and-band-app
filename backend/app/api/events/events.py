@@ -5,7 +5,7 @@ from datetime import datetime
 
 from app.models import schemas
 from app.connectors.connection_service import ConnectionService
-from app.auth.authorization import check_user_authorization
+from app.auth.authorization import check_user_authorization, validate_role_and_permission
 from app.core.helpers import serialize_event
 from app.logger import logger
 
@@ -304,6 +304,7 @@ class EventsLogic(ConnectionService):
         try:
             with logger.time_operation("CREATE_EVENT", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin"], owner_id)
                 db_group = db.fetch_one(
                     "SELECT id FROM groups WHERE id = %s AND owner_id = %s LIMIT 1",
                     (group_id, owner_id)
@@ -353,6 +354,7 @@ class EventsLogic(ConnectionService):
         try:
             with logger.time_operation("GET_GROUP_EVENTS", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member"], owner_id)
                 group = None
                 if group_id.isdigit():
                     group = db.fetch_one(
@@ -379,6 +381,7 @@ class EventsLogic(ConnectionService):
         try:
             with logger.time_operation("GET_ALL_EVENTS", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member"], owner_id)
                 if member_email:
                     email_clean = member_email.replace(" ", "").lower()
                     registrations = db.fetch_all(
@@ -419,6 +422,8 @@ class EventsLogic(ConnectionService):
                             events = []
                             
                 return [serialize_event(e, db) for e in events]
+        except HTTPException as he:
+            raise he
         except Exception as e:
             await logger.log_error(request=request, message=f"Failed to get all events: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
@@ -427,6 +432,7 @@ class EventsLogic(ConnectionService):
         try:
             with logger.time_operation("GET_EVENT", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member"], owner_id)
                 event = db.fetch_one("SELECT * FROM events WHERE id = %s", (event_id,))
                 if not event:
                     raise HTTPException(status_code=404, detail="Event not found")
@@ -450,6 +456,7 @@ class EventsLogic(ConnectionService):
         try:
             with logger.time_operation("UPDATE_EVENT", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin"], owner_id)
                 db_event = db.fetch_one("SELECT * FROM events WHERE id = %s", (event_id,))
                 if not db_event:
                     raise HTTPException(status_code=404, detail="Event not found")
@@ -490,6 +497,7 @@ class EventsLogic(ConnectionService):
         try:
             with logger.time_operation("DELETE_EVENT", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin"], owner_id)
                 db_event = db.fetch_one("SELECT * FROM events WHERE id = %s", (event_id,))
                 if not db_event:
                     raise HTTPException(status_code=404, detail="Event not found")
@@ -517,6 +525,7 @@ class EventsLogic(ConnectionService):
                 event = db.fetch_one("SELECT * FROM events WHERE id = %s", (event_id,))
                 if not event:
                     raise HTTPException(status_code=404, detail="Event not found")
+                validate_role_and_permission(db, current_user, ["admin"], event.get("owner_id"))
 
                 members = []
                 if req.invite_type == "all_members":
@@ -585,6 +594,16 @@ class EventsLogic(ConnectionService):
                 event = db.fetch_one("SELECT * FROM events WHERE id = %s", (event_id,))
                 if not event:
                     raise HTTPException(status_code=404, detail="Event not found")
+                validate_role_and_permission(db, current_user, ["admin", "team_member"])
+                
+                # Check email matches token for team member
+                if current_user.get("role") == "team_member":
+                    token_member = db.fetch_one("SELECT email FROM members WHERE id = %s", (current_user.get("id"),))
+                    if not token_member or token_member.get("email", "").replace(" ", "").lower() != req.member_email.replace(" ", "").lower():
+                        raise HTTPException(
+                            status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Access denied: You cannot RSVP for another member's email."
+                        )
 
                 if req.status not in ["accepted", "declined", "maybe"]:
                     raise HTTPException(status_code=400, detail="Invalid response status")
@@ -650,6 +669,7 @@ class EventsLogic(ConnectionService):
         try:
             with logger.time_operation("REGISTER_GUEST", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member", "user"])
                 event = db.fetch_one("SELECT * FROM events WHERE id = %s", (event_id,))
                 if not event:
                     raise HTTPException(status_code=404, detail="Event not found")
@@ -698,6 +718,11 @@ class EventsLogic(ConnectionService):
         try:
             with logger.time_operation("MARK_ATTENDANCE", request=request):
                 db = self.db_driver
+                event = db.fetch_one("SELECT * FROM events WHERE id = %s", (event_id,))
+                if not event:
+                    raise HTTPException(status_code=404, detail="Event not found")
+                validate_role_and_permission(db, current_user, ["admin"], event.get("owner_id"))
+                
                 reg = db.fetch_one(
                     "SELECT * FROM event_registrations WHERE id = %s AND event_id = %s LIMIT 1",
                     (req.registration_id, event_id)
@@ -723,6 +748,11 @@ class EventsLogic(ConnectionService):
         try:
             with logger.time_operation("GET_EVENT_PARTICIPANTS", request=request):
                 db = self.db_driver
+                event = db.fetch_one("SELECT * FROM events WHERE id = %s", (event_id,))
+                if not event:
+                    raise HTTPException(status_code=404, detail="Event not found")
+                validate_role_and_permission(db, current_user, ["admin", "team_member"], event.get("owner_id"))
+                
                 registrations = db.fetch_all("SELECT * FROM event_registrations WHERE event_id = %s", (event_id,))
                 
                 result = []
@@ -740,6 +770,8 @@ class EventsLogic(ConnectionService):
                         "responded_at": r.get("responded_at").isoformat() if r.get("responded_at") else None
                     })
                 return result
+        except HTTPException as he:
+            raise he
         except Exception as e:
             await logger.log_error(request=request, message=f"Failed getting participants: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
@@ -751,7 +783,8 @@ class EventsLogic(ConnectionService):
                 event = db.fetch_one("SELECT * FROM events WHERE id = %s", (event_id,))
                 if not event:
                     raise HTTPException(status_code=404, detail="Event not found")
-
+                validate_role_and_permission(db, current_user, ["admin"], event.get("owner_id"))
+                
                 query = "SELECT participant_email FROM event_registrations WHERE event_id = %s"
                 params = [event_id]
                 if req.recipient_group == "confirmed":
@@ -777,7 +810,8 @@ class EventsLogic(ConnectionService):
                 event = db.fetch_one("SELECT * FROM events WHERE id = %s", (event_id,))
                 if not event:
                     raise HTTPException(status_code=404, detail="Event not found")
-
+                validate_role_and_permission(db, current_user, ["admin"], event.get("owner_id"))
+                
                 recipients = db.fetch_all(
                     "SELECT participant_email FROM event_registrations WHERE event_id = %s AND status IN ('accepted', 'pending')",
                     (event_id,)
@@ -795,7 +829,15 @@ class EventsLogic(ConnectionService):
         try:
             with logger.time_operation("GET_MEMBER_REGISTRATIONS", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member"])
                 email_clean = member_email.replace(" ", "").lower()
+                if current_user.get("role") == "team_member":
+                    token_member = db.fetch_one("SELECT email FROM members WHERE id = %s", (current_user.get("id"),))
+                    if not token_member or token_member.get("email", "").replace(" ", "").lower() != email_clean:
+                        raise HTTPException(
+                            status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Access denied: You cannot view registrations for another email."
+                        )
                 registrations = db.fetch_all(
                     "SELECT * FROM event_registrations WHERE LOWER(participant_email) = %s",
                     (email_clean,)
@@ -821,6 +863,8 @@ class EventsLogic(ConnectionService):
                     "status": r.get("status"),
                     "attendance": r.get("attendance")
                 } for r in registrations]
+        except HTTPException as he:
+            raise he
         except Exception as e:
             await logger.log_error(request=request, message=f"Failed member registrations lookup: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")

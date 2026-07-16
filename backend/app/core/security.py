@@ -3,7 +3,10 @@ import bcrypt
 from datetime import datetime, timedelta
 from typing import Optional
 
-SECRET_KEY = "mukijo-jwt-super-secret-key-change-me"
+from app.core.config import get_settings
+
+settings = get_settings()
+SECRET_KEY = settings.JWT_SECRET_KEY
 ALGORITHM = "HS256"
 
 def hash_password(password: str) -> str:

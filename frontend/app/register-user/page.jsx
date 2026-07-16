@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -34,14 +35,22 @@ export default function RegisterUserPage() {
         setError(null);
 
         // Simple validation
-        if (!formData.firstName || !formData.lastName || !formData.dob || !formData.email || !formData.password || !formData.phone || !formData.aadharNumber) {
+        if (
+            !formData.firstName ||
+            !formData.lastName ||
+            !formData.dob ||
+            !formData.email ||
+            !formData.password ||
+            !formData.phone ||
+            !formData.aadharNumber
+        ) {
             setError("All fields are required.");
             setLoading(false);
             return;
         }
 
         try {
-            const apiUrl = "http://127.0.0.1:8001/user/register";
+            const apiUrl = `${API_BASE_URL}/user/register`;
             const response = await fetch(apiUrl, {
                 method: "POST",
                 headers: {
@@ -71,16 +80,18 @@ export default function RegisterUserPage() {
         <div className={styles.pageWrapper}>
             <div className={styles.card}>
                 {error && (
-                    <div style={{
-                        backgroundColor: "#ffe3e3",
-                        color: "#d32f2f",
-                        padding: "12px",
-                        borderRadius: "8px",
-                        marginBottom: "20px",
-                        fontSize: "14px",
-                        textAlign: "center",
-                        border: "1px solid #fbc2c2"
-                    }}>
+                    <div
+                        style={{
+                            backgroundColor: "#ffe3e3",
+                            color: "#d32f2f",
+                            padding: "12px",
+                            borderRadius: "8px",
+                            marginBottom: "20px",
+                            fontSize: "14px",
+                            textAlign: "center",
+                            border: "1px solid #fbc2c2",
+                        }}
+                    >
                         {error}
                     </div>
                 )}
@@ -92,33 +103,49 @@ export default function RegisterUserPage() {
 
                 {submitted ? (
                     <div style={{ textAlign: "center", padding: "24px 0" }}>
-                        <div style={{
-                            width: "60px",
-                            height: "60px",
-                            borderRadius: "50%",
-                            background: "rgba(191, 254, 0, 0.1)",
-                            color: "#bffe00",
-                            fontSize: "24px",
-                            fontWeight: "bold",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            margin: "0 auto 16px auto",
-                            border: "2px solid #bffe00"
-                        }}>
+                        <div
+                            style={{
+                                width: "60px",
+                                height: "60px",
+                                borderRadius: "50%",
+                                background: "rgba(191, 254, 0, 0.1)",
+                                color: "#bffe00",
+                                fontSize: "24px",
+                                fontWeight: "bold",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                margin: "0 auto 16px auto",
+                                border: "2px solid #bffe00",
+                            }}
+                        >
                             ✓
                         </div>
                         <h2 className={styles.stepTitle}>Account Created!</h2>
                         <p className={styles.stepSubtitle} style={{ marginBottom: "30px" }}>
                             Your standard user account was created successfully. You can now login.
                         </p>
-                        <Link href="/login-user" className={styles.nextButton} style={{ display: "inline-block", textDecoration: "none" }}>
+                        <Link
+                            href="/login-user"
+                            className={styles.nextButton}
+                            style={{ display: "inline-block", textDecoration: "none" }}
+                        >
                             Go to Sign In
                         </Link>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column" }}>
-                        <Link href="/" className={styles.prevButton} style={{ display: "inline-block", alignSelf: "flex-start", marginBottom: "16px", textDecoration: "none", width: "fit-content" }}>
+                        <Link
+                            href="/"
+                            className={styles.prevButton}
+                            style={{
+                                display: "inline-block",
+                                alignSelf: "flex-start",
+                                marginBottom: "16px",
+                                textDecoration: "none",
+                                width: "fit-content",
+                            }}
+                        >
                             ← Back to Home
                         </Link>
 
@@ -218,13 +245,28 @@ export default function RegisterUserPage() {
                             </div>
                         </div>
 
-                        <button type="submit" className={styles.nextButton} style={{ marginTop: "16px", width: "100%" }} disabled={loading}>
+                        <button
+                            type="submit"
+                            className={styles.nextButton}
+                            style={{ marginTop: "16px", width: "100%" }}
+                            disabled={loading}
+                        >
                             {loading ? "Registering User..." : "Register"}
                         </button>
 
-                        <div style={{ textAlign: "center", marginTop: "20px", fontSize: "14px", color: "rgba(148, 163, 184, 0.6)" }}>
+                        <div
+                            style={{
+                                textAlign: "center",
+                                marginTop: "20px",
+                                fontSize: "14px",
+                                color: "rgba(148, 163, 184, 0.6)",
+                            }}
+                        >
                             Already have an account?{" "}
-                            <Link href="/login-user" style={{ color: "#00f0ff", textDecoration: "none", fontWeight: "bold" }}>
+                            <Link
+                                href="/login-user"
+                                style={{ color: "#00f0ff", textDecoration: "none", fontWeight: "bold" }}
+                            >
                                 Sign In
                             </Link>
                         </div>

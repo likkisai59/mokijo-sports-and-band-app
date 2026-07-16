@@ -1,17 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-    BookOpen,
-    CalendarDays,
-    ClipboardList,
-    IndianRupee,
-    MapPin,
-    Plus,
-    Search,
-    Users,
-    X,
-} from "lucide-react";
+import { BookOpen, CalendarDays, ClipboardList, IndianRupee, MapPin, Plus, Search, Users, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import api from "../../../lib/api";
 import "../../styles/course-registration.css";
@@ -119,7 +109,9 @@ export default function CoursesPage() {
                 course.instructor,
                 course.group_name,
                 course.location,
-            ].join(" ").toLowerCase();
+            ]
+                .join(" ")
+                .toLowerCase();
             return matchesStatus && (!query || text.includes(query));
         });
     }, [courses, filter, search]);
@@ -172,7 +164,11 @@ export default function CoursesPage() {
                 <div>
                     <span className="courses-kicker">Course Registration</span>
                     <h1>Courses</h1>
-                    <p>{isMember ? "Enroll in exclusive sports courses, academy camps, and special workshops" : "Create programs, register members, track seats, and monitor course fee status."}</p>
+                    <p>
+                        {isMember
+                            ? "Enroll in exclusive sports courses, academy camps, and special workshops"
+                            : "Create programs, register members, track seats, and monitor course fee status."}
+                    </p>
                 </div>
                 {!isMember && (
                     <button className="courses-primary-btn" onClick={() => setShowCourseModal(true)}>
@@ -200,7 +196,11 @@ export default function CoursesPage() {
             <div className="courses-toolbar">
                 <div className="courses-search">
                     <Search size={16} />
-                    <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search courses" />
+                    <input
+                        value={search}
+                        onChange={(event) => setSearch(event.target.value)}
+                        placeholder="Search courses"
+                    />
                 </div>
                 <div className="courses-filter">
                     {["all", "open", "full", "closed", "completed"].map((item) => (
@@ -219,7 +219,11 @@ export default function CoursesPage() {
                 <div className="courses-empty">
                     <BookOpen size={44} />
                     <h2>No courses yet</h2>
-                    <p>{isMember ? "There are currently no courses available for enrollment. Check back soon!" : "Create your first course for coaching batches, workshops, camps, or certification programs."}</p>
+                    <p>
+                        {isMember
+                            ? "There are currently no courses available for enrollment. Check back soon!"
+                            : "Create your first course for coaching batches, workshops, camps, or certification programs."}
+                    </p>
                     {!isMember && (
                         <button className="courses-primary-btn" onClick={() => setShowCourseModal(true)}>
                             <Plus size={17} />
@@ -240,14 +244,24 @@ export default function CoursesPage() {
                                     <h3>{course.title}</h3>
                                     <span>{course.code || course.category}</span>
                                 </div>
-                                <small className={`course-status ${course.status}`}>{statusLabels[course.status] || course.status}</small>
+                                <small className={`course-status ${course.status}`}>
+                                    {statusLabels[course.status] || course.status}
+                                </small>
                             </div>
                             <p>{course.description || "No description added."}</p>
                             <div className="course-meta-grid">
-                                <span><Users size={14} /> {course.registration_count}/{course.capacity}</span>
-                                <span><IndianRupee size={14} /> {Number(course.fee || 0).toLocaleString("en-IN")}</span>
-                                <span><CalendarDays size={14} /> {dateText(course.start_date)}</span>
-                                <span><MapPin size={14} /> {course.location || "TBA"}</span>
+                                <span>
+                                    <Users size={14} /> {course.registration_count}/{course.capacity}
+                                </span>
+                                <span>
+                                    <IndianRupee size={14} /> {Number(course.fee || 0).toLocaleString("en-IN")}
+                                </span>
+                                <span>
+                                    <CalendarDays size={14} /> {dateText(course.start_date)}
+                                </span>
+                                <span>
+                                    <MapPin size={14} /> {course.location || "TBA"}
+                                </span>
                             </div>
                         </button>
                     ))}
@@ -262,26 +276,144 @@ export default function CoursesPage() {
                                 <h2>New Course</h2>
                                 <p>Add a new course or training program.</p>
                             </div>
-                            <button type="button" className="courses-icon-btn" onClick={() => setShowCourseModal(false)}><X size={18} /></button>
+                            <button
+                                type="button"
+                                className="courses-icon-btn"
+                                onClick={() => setShowCourseModal(false)}
+                            >
+                                <X size={18} />
+                            </button>
                         </div>
                         <div className="courses-form-grid">
-                            <label>Title<input value={courseForm.title} onChange={(e) => updateCourseField("title", e.target.value)} placeholder="Junior cricket foundation" /></label>
-                            <label>Code<input value={courseForm.code} onChange={(e) => updateCourseField("code", e.target.value)} placeholder="CRK-101" /></label>
-                            <label>Category<select value={courseForm.category} onChange={(e) => updateCourseField("category", e.target.value)}><option>Training</option><option>Camp</option><option>Workshop</option><option>Certification</option><option>Fitness</option></select></label>
-                            <label>Level<input value={courseForm.level} onChange={(e) => updateCourseField("level", e.target.value)} placeholder="Beginner" /></label>
-                            <label>Group<select value={courseForm.group_id} onChange={(e) => updateCourseField("group_id", e.target.value)}><option value="">Whole club</option>{groups.map((group) => <option key={group.id} value={group.id}>{group.group_name}</option>)}</select></label>
-                            <label>Instructor<input value={courseForm.instructor} onChange={(e) => updateCourseField("instructor", e.target.value)} placeholder="Coach name" /></label>
-                            <label>Start Date<input type="date" value={courseForm.start_date} onChange={(e) => updateCourseField("start_date", e.target.value)} /></label>
-                            <label>End Date<input type="date" value={courseForm.end_date} onChange={(e) => updateCourseField("end_date", e.target.value)} /></label>
-                            <label>Schedule<input value={courseForm.schedule} onChange={(e) => updateCourseField("schedule", e.target.value)} placeholder="Mon, Wed 6 PM" /></label>
-                            <label>Location<input value={courseForm.location} onChange={(e) => updateCourseField("location", e.target.value)} placeholder="Main court" /></label>
-                            <label>Capacity<input type="number" min="1" value={courseForm.capacity} onChange={(e) => updateCourseField("capacity", e.target.value)} /></label>
-                            <label>Fee<input type="number" min="0" value={courseForm.fee} onChange={(e) => updateCourseField("fee", e.target.value)} /></label>
-                            <label className="wide">Description<textarea value={courseForm.description} onChange={(e) => updateCourseField("description", e.target.value)} placeholder="What members will learn" /></label>
+                            <label>
+                                Title
+                                <input
+                                    value={courseForm.title}
+                                    onChange={(e) => updateCourseField("title", e.target.value)}
+                                    placeholder="Junior cricket foundation"
+                                />
+                            </label>
+                            <label>
+                                Code
+                                <input
+                                    value={courseForm.code}
+                                    onChange={(e) => updateCourseField("code", e.target.value)}
+                                    placeholder="CRK-101"
+                                />
+                            </label>
+                            <label>
+                                Category
+                                <select
+                                    value={courseForm.category}
+                                    onChange={(e) => updateCourseField("category", e.target.value)}
+                                >
+                                    <option>Training</option>
+                                    <option>Camp</option>
+                                    <option>Workshop</option>
+                                    <option>Certification</option>
+                                    <option>Fitness</option>
+                                </select>
+                            </label>
+                            <label>
+                                Level
+                                <input
+                                    value={courseForm.level}
+                                    onChange={(e) => updateCourseField("level", e.target.value)}
+                                    placeholder="Beginner"
+                                />
+                            </label>
+                            <label>
+                                Group
+                                <select
+                                    value={courseForm.group_id}
+                                    onChange={(e) => updateCourseField("group_id", e.target.value)}
+                                >
+                                    <option value="">Whole club</option>
+                                    {groups.map((group) => (
+                                        <option key={group.id} value={group.id}>
+                                            {group.group_name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label>
+                                Instructor
+                                <input
+                                    value={courseForm.instructor}
+                                    onChange={(e) => updateCourseField("instructor", e.target.value)}
+                                    placeholder="Coach name"
+                                />
+                            </label>
+                            <label>
+                                Start Date
+                                <input
+                                    type="date"
+                                    value={courseForm.start_date}
+                                    onChange={(e) => updateCourseField("start_date", e.target.value)}
+                                />
+                            </label>
+                            <label>
+                                End Date
+                                <input
+                                    type="date"
+                                    value={courseForm.end_date}
+                                    onChange={(e) => updateCourseField("end_date", e.target.value)}
+                                />
+                            </label>
+                            <label>
+                                Schedule
+                                <input
+                                    value={courseForm.schedule}
+                                    onChange={(e) => updateCourseField("schedule", e.target.value)}
+                                    placeholder="Mon, Wed 6 PM"
+                                />
+                            </label>
+                            <label>
+                                Location
+                                <input
+                                    value={courseForm.location}
+                                    onChange={(e) => updateCourseField("location", e.target.value)}
+                                    placeholder="Main court"
+                                />
+                            </label>
+                            <label>
+                                Capacity
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={courseForm.capacity}
+                                    onChange={(e) => updateCourseField("capacity", e.target.value)}
+                                />
+                            </label>
+                            <label>
+                                Fee
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={courseForm.fee}
+                                    onChange={(e) => updateCourseField("fee", e.target.value)}
+                                />
+                            </label>
+                            <label className="wide">
+                                Description
+                                <textarea
+                                    value={courseForm.description}
+                                    onChange={(e) => updateCourseField("description", e.target.value)}
+                                    placeholder="What members will learn"
+                                />
+                            </label>
                         </div>
                         <div className="courses-modal-actions">
-                            <button type="button" className="courses-secondary-btn" onClick={() => setShowCourseModal(false)}>Cancel</button>
-                            <button type="submit" className="courses-primary-btn" disabled={saving}>{saving ? "Saving..." : "Create Course"}</button>
+                            <button
+                                type="button"
+                                className="courses-secondary-btn"
+                                onClick={() => setShowCourseModal(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button type="submit" className="courses-primary-btn" disabled={saving}>
+                                {saving ? "Saving..." : "Create Course"}
+                            </button>
                         </div>
                     </form>
                 </div>

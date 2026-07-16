@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -29,7 +30,7 @@ export default function EditMemberPage() {
     useEffect(() => {
         const fetchMember = async () => {
             try {
-                const response = await fetch(`http://127.0.0.1:8001/members/${id}`);
+                const response = await fetch(`${API_BASE_URL}/members/${id}`);
                 if (response.ok) {
                     const data = await response.json();
                     setFirstName(data.first_name || "");
@@ -57,7 +58,7 @@ export default function EditMemberPage() {
 
     const handleUpdateMember = async (e) => {
         e.preventDefault();
-        
+
         if (!firstName.trim()) {
             alert("First Name is required");
             return;
@@ -88,16 +89,16 @@ export default function EditMemberPage() {
             email: email,
             phone: phone,
             role: role,
-            password: password
+            password: password,
         };
 
         try {
-            const response = await fetch(`http://127.0.0.1:8001/members/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/members/${id}`, {
                 method: "PUT",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
                 },
-                body: JSON.stringify(updatedData)
+                body: JSON.stringify(updatedData),
             });
 
             if (!response.ok) {
@@ -109,11 +110,10 @@ export default function EditMemberPage() {
 
             // Success animation trigger
             setShowSuccess(true);
-            
+
             setTimeout(() => {
                 router.push("/dashboard/members");
             }, 1800);
-
         } catch (err) {
             console.error("Error updating member:", err);
             setError("Server connection lost. Unable to update member.");
@@ -124,21 +124,20 @@ export default function EditMemberPage() {
     return (
         <div className="create-group-page" style={{ padding: "40px 20px", minHeight: "calc(100vh - 120px)" }}>
             <div className="create-group-container" style={{ maxWidth: "650px" }}>
-                
                 {/* Back Button Link */}
-                <button 
-                    className="back-btn" 
+                <button
+                    className="back-btn"
                     onClick={() => router.push("/dashboard/members")}
-                    style={{ 
-                        display: "inline-flex", 
-                        alignItems: "center", 
-                        gap: "6px", 
+                    style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
                         marginBottom: "24px",
                         fontSize: "15px",
                         background: "none",
                         border: "none",
                         cursor: "pointer",
-                        fontWeight: "600"
+                        fontWeight: "600",
                     }}
                 >
                     <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2.5" fill="none">
@@ -148,10 +147,28 @@ export default function EditMemberPage() {
                     Back to members list
                 </button>
 
-                <div className="form-card" style={{ backdropFilter: "blur(20px)", border: "1px solid rgba(226, 232, 240, 0.8)", boxShadow: "0 20px 40px -15px rgba(0, 0, 0, 0.05)" }}>
+                <div
+                    className="form-card"
+                    style={{
+                        backdropFilter: "blur(20px)",
+                        border: "1px solid rgba(226, 232, 240, 0.8)",
+                        boxShadow: "0 20px 40px -15px rgba(0, 0, 0, 0.05)",
+                    }}
+                >
                     {loading ? (
                         <div style={{ padding: "40px 20px", textAlign: "center", color: "#64748b" }}>
-                            <div className="loading-spinner" style={{ margin: "0 auto 16px", border: "3px solid #f3f3f3", borderTop: "3px solid #2563eb", borderRadius: "50%", width: "30px", height: "30px", animation: "spin 1s linear infinite" }}></div>
+                            <div
+                                className="loading-spinner"
+                                style={{
+                                    margin: "0 auto 16px",
+                                    border: "3px solid #f3f3f3",
+                                    borderTop: "3px solid #2563eb",
+                                    borderRadius: "50%",
+                                    width: "30px",
+                                    height: "30px",
+                                    animation: "spin 1s linear infinite",
+                                }}
+                            ></div>
                             <p style={{ fontWeight: "500" }}>Fetching member profile...</p>
                             <style>{`
                                 @keyframes spin {
@@ -163,10 +180,12 @@ export default function EditMemberPage() {
                     ) : error ? (
                         <div style={{ textAlign: "center", padding: "20px 0" }}>
                             <div style={{ fontSize: "48px", marginBottom: "16px" }}>⚠️</div>
-                            <h2 style={{ color: "#ef4444", fontSize: "22px", fontWeight: "700", marginBottom: "8px" }}>Profile Load Error</h2>
+                            <h2 style={{ color: "#ef4444", fontSize: "22px", fontWeight: "700", marginBottom: "8px" }}>
+                                Profile Load Error
+                            </h2>
                             <p style={{ color: "#64748b", marginBottom: "24px" }}>{error}</p>
-                            <button 
-                                className="next-btn" 
+                            <button
+                                className="next-btn"
                                 onClick={() => router.push("/dashboard/members")}
                                 style={{ maxWidth: "200px", margin: "0 auto" }}
                             >
@@ -175,7 +194,9 @@ export default function EditMemberPage() {
                         </div>
                     ) : showSuccess ? (
                         <div className="success-message">
-                            <div className="success-icon" style={{ animation: "bounce 0.8s ease infinite alternate" }}>✨</div>
+                            <div className="success-icon" style={{ animation: "bounce 0.8s ease infinite alternate" }}>
+                                ✨
+                            </div>
                             <h1>Member Updated!</h1>
                             <p>Profile changes saved persistently in the database. Redirecting...</p>
                             <style>{`
@@ -188,17 +209,39 @@ export default function EditMemberPage() {
                     ) : (
                         <form onSubmit={handleUpdateMember} className="step-content fade-in">
                             <div className="step-header" style={{ marginBottom: "28px" }}>
-                                <span style={{ fontSize: "12px", textTransform: "uppercase", fontWeight: "700", letterSpacing: "1.5px", color: "#3b82f6", display: "block", marginBottom: "6px" }}>
+                                <span
+                                    style={{
+                                        fontSize: "12px",
+                                        textTransform: "uppercase",
+                                        fontWeight: "700",
+                                        letterSpacing: "1.5px",
+                                        color: "#3b82f6",
+                                        display: "block",
+                                        marginBottom: "6px",
+                                    }}
+                                >
                                     Club Member Management
                                 </span>
                                 <h1>Edit Member Details</h1>
-                                <p style={{ fontSize: "14px", marginTop: "4px" }}>Modify first name, last name, and contact details. Club assignment remains read-only.</p>
+                                <p style={{ fontSize: "14px", marginTop: "4px" }}>
+                                    Modify first name, last name, and contact details. Club assignment remains
+                                    read-only.
+                                </p>
                             </div>
 
                             <div className="input-section">
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+                                <div
+                                    style={{
+                                        display: "grid",
+                                        gridTemplateColumns: "1fr 1fr",
+                                        gap: "16px",
+                                        marginBottom: "16px",
+                                    }}
+                                >
                                     <div className="input-group" style={{ marginBottom: 0 }}>
-                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>First Name *</label>
+                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
+                                            First Name *
+                                        </label>
                                         <input
                                             type="text"
                                             value={firstName}
@@ -208,7 +251,9 @@ export default function EditMemberPage() {
                                         />
                                     </div>
                                     <div className="input-group" style={{ marginBottom: 0 }}>
-                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>Last Name *</label>
+                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
+                                            Last Name *
+                                        </label>
                                         <input
                                             type="text"
                                             value={lastName}
@@ -220,7 +265,9 @@ export default function EditMemberPage() {
                                 </div>
 
                                 <div className="input-group">
-                                    <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>Email Address *</label>
+                                    <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
+                                        Email Address *
+                                    </label>
                                     <input
                                         type="email"
                                         value={email}
@@ -230,9 +277,18 @@ export default function EditMemberPage() {
                                     />
                                 </div>
 
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+                                <div
+                                    style={{
+                                        display: "grid",
+                                        gridTemplateColumns: "1fr 1fr",
+                                        gap: "16px",
+                                        marginBottom: "16px",
+                                    }}
+                                >
                                     <div className="input-group" style={{ marginBottom: 0 }}>
-                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>Phone Number *</label>
+                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
+                                            Phone Number *
+                                        </label>
                                         <input
                                             type="tel"
                                             value={phone}
@@ -242,7 +298,9 @@ export default function EditMemberPage() {
                                         />
                                     </div>
                                     <div className="input-group" style={{ marginBottom: 0 }}>
-                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>Member Password *</label>
+                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
+                                            Member Password *
+                                        </label>
                                         <input
                                             type="text"
                                             value={password}
@@ -255,7 +313,9 @@ export default function EditMemberPage() {
 
                                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                                     <div className="input-group">
-                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>Member Role</label>
+                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
+                                            Member Role
+                                        </label>
                                         <select
                                             value={role}
                                             onChange={(e) => setRole(e.target.value)}
@@ -269,17 +329,21 @@ export default function EditMemberPage() {
                                                 color: "#1e293b",
                                                 outline: "none",
                                                 cursor: "pointer",
-                                                transition: "0.2s"
+                                                transition: "0.2s",
                                             }}
                                         >
                                             {roles.map((r) => (
-                                                <option key={r} value={r}>{r}</option>
+                                                <option key={r} value={r}>
+                                                    {r}
+                                                </option>
                                             ))}
                                         </select>
                                     </div>
 
                                     <div className="input-group">
-                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#94a3b8" }}>Group / Club (Read-Only)</label>
+                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#94a3b8" }}>
+                                            Group / Club (Read-Only)
+                                        </label>
                                         <input
                                             type="text"
                                             value={groupName}
@@ -289,7 +353,7 @@ export default function EditMemberPage() {
                                                 borderColor: "#e2e8f0",
                                                 color: "#64748b",
                                                 cursor: "not-allowed",
-                                                fontWeight: "500"
+                                                fontWeight: "500",
                                             }}
                                             title="Group assignment cannot be changed from this screen."
                                         />
@@ -297,17 +361,17 @@ export default function EditMemberPage() {
                                 </div>
                             </div>
 
-                            <button 
+                            <button
                                 type="submit"
-                                className="submit-btn" 
+                                className="submit-btn"
                                 disabled={isSubmitting}
-                                style={{ 
-                                    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)", 
+                                style={{
+                                    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
                                     boxShadow: "0 4px 14px rgba(16, 185, 129, 0.25)",
                                     fontWeight: "600",
                                     fontSize: "16px",
                                     padding: "16px",
-                                    borderRadius: "14px"
+                                    borderRadius: "14px",
                                 }}
                             >
                                 {isSubmitting ? "Saving Profile..." : "Update Member"}

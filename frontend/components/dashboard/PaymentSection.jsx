@@ -57,7 +57,9 @@ function loadRazorpayCheckout() {
         const existingScript = document.querySelector("script[src='https://checkout.razorpay.com/v1/checkout.js']");
         if (existingScript) {
             existingScript.addEventListener("load", resolve, { once: true });
-            existingScript.addEventListener("error", () => reject(new Error("Could not load Razorpay Checkout.")), { once: true });
+            existingScript.addEventListener("error", () => reject(new Error("Could not load Razorpay Checkout.")), {
+                once: true,
+            });
             return;
         }
 
@@ -137,7 +139,9 @@ export default function PaymentSection() {
                 payment.member_name,
                 payment.description,
                 payment.status,
-            ].join(" ").toLowerCase();
+            ]
+                .join(" ")
+                .toLowerCase();
             return matchesStatus && (!q || haystack.includes(q));
         });
     }, [payments, search, statusFilter]);
@@ -333,7 +337,11 @@ export default function PaymentSection() {
             <div className="payment-toolbar">
                 <div className="payment-search">
                     <Search size={16} />
-                    <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search payments" />
+                    <input
+                        value={search}
+                        onChange={(event) => setSearch(event.target.value)}
+                        placeholder="Search payments"
+                    />
                 </div>
                 <div className="payment-filters">
                     {["all", "pending", "paid", "overdue", "cancelled"].map((status) => (
@@ -386,8 +394,12 @@ export default function PaymentSection() {
                                         </td>
                                         <td>
                                             <div className="payment-target">
-                                                <strong>{payment.member_name || payment.group_name || "Whole club"}</strong>
-                                                {payment.member_name && payment.group_name && <span>{payment.group_name}</span>}
+                                                <strong>
+                                                    {payment.member_name || payment.group_name || "Whole club"}
+                                                </strong>
+                                                {payment.member_name && payment.group_name && (
+                                                    <span>{payment.group_name}</span>
+                                                )}
                                             </div>
                                         </td>
                                         <td>{formatDate(payment.due_date)}</td>
@@ -402,34 +414,60 @@ export default function PaymentSection() {
                                                     onClick={() => payWithRazorpay(payment)}
                                                     disabled={!gatewayConfig?.configured || payingId === payment.id}
                                                 >
-                                                    {payingId === payment.id ? <Loader2 className="payment-spin" size={15} /> : <CreditCard size={15} />}
+                                                    {payingId === payment.id ? (
+                                                        <Loader2 className="payment-spin" size={15} />
+                                                    ) : (
+                                                        <CreditCard size={15} />
+                                                    )}
                                                     Pay
                                                 </button>
                                             )}
-                                            <button className="payment-icon-btn" onClick={() => setOpenMenuId(openMenuId === payment.id ? null : payment.id)}>
+                                            <button
+                                                className="payment-icon-btn"
+                                                onClick={() =>
+                                                    setOpenMenuId(openMenuId === payment.id ? null : payment.id)
+                                                }
+                                            >
                                                 <MoreVertical size={17} />
                                             </button>
                                             {openMenuId === payment.id && (
                                                 <div className="payment-menu">
                                                     {payment.status !== "paid" && (
                                                         <>
-                                                            <button onClick={() => payWithRazorpay(payment)} disabled={!gatewayConfig?.configured || payingId === payment.id}>
-                                                                {payingId === payment.id ? <Loader2 className="payment-spin" size={15} /> : <CreditCard size={15} />}
+                                                            <button
+                                                                onClick={() => payWithRazorpay(payment)}
+                                                                disabled={
+                                                                    !gatewayConfig?.configured ||
+                                                                    payingId === payment.id
+                                                                }
+                                                            >
+                                                                {payingId === payment.id ? (
+                                                                    <Loader2 className="payment-spin" size={15} />
+                                                                ) : (
+                                                                    <CreditCard size={15} />
+                                                                )}
                                                                 Pay online
                                                             </button>
-                                                            <button onClick={() => updatePaymentStatus(payment, "paid")}>
+                                                            <button
+                                                                onClick={() => updatePaymentStatus(payment, "paid")}
+                                                            >
                                                                 <Check size={15} />
                                                                 Mark paid
                                                             </button>
                                                         </>
                                                     )}
                                                     {payment.status !== "cancelled" && (
-                                                        <button onClick={() => updatePaymentStatus(payment, "cancelled")}>
+                                                        <button
+                                                            onClick={() => updatePaymentStatus(payment, "cancelled")}
+                                                        >
                                                             <X size={15} />
                                                             Cancel
                                                         </button>
                                                     )}
-                                                    <button className="danger" onClick={() => deletePayment(payment.id)}>
+                                                    <button
+                                                        className="danger"
+                                                        onClick={() => deletePayment(payment.id)}
+                                                    >
                                                         <Trash2 size={15} />
                                                         Delete
                                                     </button>
@@ -470,15 +508,28 @@ export default function PaymentSection() {
                         <div className="payment-form-grid">
                             <label>
                                 Title
-                                <input value={form.title} onChange={(event) => updateForm("title", event.target.value)} placeholder="Monthly membership fee" />
+                                <input
+                                    value={form.title}
+                                    onChange={(event) => updateForm("title", event.target.value)}
+                                    placeholder="Monthly membership fee"
+                                />
                             </label>
                             <label>
                                 Amount
-                                <input type="number" min="1" value={form.amount} onChange={(event) => updateForm("amount", event.target.value)} placeholder="1500" />
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={form.amount}
+                                    onChange={(event) => updateForm("amount", event.target.value)}
+                                    placeholder="1500"
+                                />
                             </label>
                             <label>
                                 Category
-                                <select value={form.category} onChange={(event) => updateForm("category", event.target.value)}>
+                                <select
+                                    value={form.category}
+                                    onChange={(event) => updateForm("category", event.target.value)}
+                                >
                                     <option>Membership Fee</option>
                                     <option>Event Ticket</option>
                                     <option>Training Fee</option>
@@ -488,38 +539,57 @@ export default function PaymentSection() {
                             </label>
                             <label>
                                 Due Date
-                                <input type="date" value={form.due_date} onChange={(event) => updateForm("due_date", event.target.value)} />
+                                <input
+                                    type="date"
+                                    value={form.due_date}
+                                    onChange={(event) => updateForm("due_date", event.target.value)}
+                                />
                             </label>
                             <label>
                                 Group
-                                <select value={form.group_id} onChange={(event) => updateForm("group_id", event.target.value)}>
+                                <select
+                                    value={form.group_id}
+                                    onChange={(event) => updateForm("group_id", event.target.value)}
+                                >
                                     <option value="">Whole club</option>
                                     {groups.map((group) => (
-                                        <option key={group.id} value={group.id}>{group.group_name}</option>
+                                        <option key={group.id} value={group.id}>
+                                            {group.group_name}
+                                        </option>
                                     ))}
                                 </select>
                             </label>
                             <label>
                                 Member
-                                <select value={form.member_id} onChange={(event) => updateForm("member_id", event.target.value)}>
+                                <select
+                                    value={form.member_id}
+                                    onChange={(event) => updateForm("member_id", event.target.value)}
+                                >
                                     <option value="">Any member</option>
                                     {filteredMembers.map((member) => (
                                         <option key={member.id} value={member.id}>
-                                            {member.first_name} {member.last_name} {member.group_name ? `- ${member.group_name}` : ""}
+                                            {member.first_name} {member.last_name}{" "}
+                                            {member.group_name ? `- ${member.group_name}` : ""}
                                         </option>
                                     ))}
                                 </select>
                             </label>
                             <label className="payment-form-wide">
                                 Note
-                                <textarea value={form.description} onChange={(event) => updateForm("description", event.target.value)} placeholder="Optional message for this payment request" />
+                                <textarea
+                                    value={form.description}
+                                    onChange={(event) => updateForm("description", event.target.value)}
+                                    placeholder="Optional message for this payment request"
+                                />
                             </label>
                         </div>
 
                         {error && <div className="payment-error">{error}</div>}
 
                         <div className="payment-modal-actions">
-                            <button type="button" className="payment-secondary-btn" onClick={resetModal}>Cancel</button>
+                            <button type="button" className="payment-secondary-btn" onClick={resetModal}>
+                                Cancel
+                            </button>
                             <button type="submit" className="payment-primary-btn" disabled={saving}>
                                 {saving ? "Saving..." : "Create Request"}
                             </button>

@@ -51,7 +51,7 @@
     font-style: italic;
     text-transform: uppercase;
     margin: 0;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .profile-description {
@@ -79,7 +79,9 @@
     transition: border-color 0.2s ease;
 }
 
-.group-profile-stats div:hover { border-color: rgba(255,255,255,0.13); }
+.group-profile-stats div:hover {
+    border-color: rgba(255, 255, 255, 0.13);
+}
 
 .group-profile-stats span {
     display: block;
@@ -320,7 +322,7 @@
     border-radius: 16px;
     padding: 24px;
     border: 1px solid rgba(255, 255, 255, 0.07);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 .widget-card h3 {
@@ -402,13 +404,18 @@
     transition: background 0.2s;
 }
 
-.member-item:last-child { border-bottom: none; }
+.member-item:last-child {
+    border-bottom: none;
+}
 
-.member-item:hover { background: rgba(191, 254, 0, 0.04); }
+.member-item:hover {
+    background: rgba(191, 254, 0, 0.04);
+}
 
 .member-avatar {
-    width: 38px; height: 38px;
-    background: rgba(191, 254, 0, 0.10);
+    width: 38px;
+    height: 38px;
+    background: rgba(191, 254, 0, 0.1);
     color: var(--brand);
     border-radius: 4px;
     display: flex;
@@ -416,15 +423,25 @@
     justify-content: center;
     font-weight: 800;
     font-size: 0.9rem;
-    border: 1px solid rgba(191,254,0,0.25);
-    box-shadow: 0 0 12px rgba(191,254,0,0.15);
+    border: 1px solid rgba(191, 254, 0, 0.25);
+    box-shadow: 0 0 12px rgba(191, 254, 0, 0.15);
     transform: skewX(-4deg);
 }
 
-.member-info { display: flex; flex-direction: column; }
+.member-info {
+    display: flex;
+    flex-direction: column;
+}
 
-.member-name { font-weight: 600; color: #f1f5f9; font-size: 0.9rem; }
-.member-role { font-size: 0.78rem; color: rgba(148,163,184,0.5); }
+.member-name {
+    font-weight: 600;
+    color: #f1f5f9;
+    font-size: 0.9rem;
+}
+.member-role {
+    font-size: 0.78rem;
+    color: rgba(148, 163, 184, 0.5);
+}
 
 /* Invite Widget */
 .invite-desc {
@@ -473,7 +490,10 @@
 /* Modal Styles */
 .modal-overlay {
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: rgba(0, 0, 0, 0.7);
     display: flex;
     align-items: center;
@@ -495,8 +515,14 @@
 }
 
 @keyframes modalAppear {
-    from { opacity: 0; transform: translateY(20px) scale(0.97); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .modal-header {
@@ -514,18 +540,24 @@
 }
 
 .close-btn {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
-    width: 32px; height: 32px;
-    display: flex; align-items: center; justify-content: center;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1.2rem;
-    color: rgba(148,163,184,0.7);
+    color: rgba(148, 163, 184, 0.7);
     cursor: pointer;
     transition: all 0.2s;
 }
 
-.close-btn:hover { background: rgba(255,255,255,0.1); color: #f1f5f9; }
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #f1f5f9;
+}
 
 .member-form {
     display: flex;
@@ -559,19 +591,21 @@
     border: 1.5px solid rgba(255, 255, 255, 0.08);
     border-radius: 9px;
     font-size: 14px;
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
     color: #f1f5f9;
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     color-scheme: dark;
     transition: border-color 0.2s;
     outline: none;
 }
 
-.form-group input::placeholder { color: rgba(148,163,184,0.25); }
+.form-group input::placeholder {
+    color: rgba(148, 163, 184, 0.25);
+}
 
 .form-group input:focus {
     border-color: rgba(99, 102, 241, 0.55);
-    background: rgba(99,102,241,0.07);
+    background: rgba(99, 102, 241, 0.07);
     box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
@@ -585,17 +619,17 @@
     font-style: italic;
     text-transform: uppercase;
     font-size: 0.95rem;
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     cursor: pointer;
     transition: all 0.2s;
     margin-top: 10px;
-    box-shadow: 0 4px 14px rgba(191,254,0,0.25);
+    box-shadow: 0 4px 14px rgba(191, 254, 0, 0.25);
     transform: skewX(-6deg);
 }
 
 .submit-member-btn:hover {
     transform: translateY(-1px) skewX(-6deg);
-    box-shadow: 0 8px 24px rgba(191,254,0,0.40);
+    box-shadow: 0 8px 24px rgba(191, 254, 0, 0.4);
     background: linear-gradient(135deg, var(--brand-hover), #00d8e6);
 }
 
@@ -604,7 +638,8 @@
     max-width: 450px;
 }
 
-.template-download-box, .file-upload-box {
+.template-download-box,
+.file-upload-box {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
@@ -612,7 +647,8 @@
     margin-bottom: 15px;
 }
 
-.template-download-box p, .file-upload-box p {
+.template-download-box p,
+.file-upload-box p {
     margin: 0 0 10px 0;
     font-weight: 600;
     color: #1e293b;
@@ -660,7 +696,9 @@
     max-width: 500px;
     border-radius: 20px;
     padding: 30px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow:
+        0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .modal-header {

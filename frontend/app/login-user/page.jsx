@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
@@ -10,6 +11,9 @@ function LoginUserContent() {
     const [showSuccess, setShowSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [showResend, setShowResend] = useState(false);
+    const [resendLoading, setResendLoading] = useState(false);
+    const [resendSuccess, setResendSuccess] = useState("");
 
     useEffect(() => {
         if (searchParams.get("registered") === "true") {
@@ -25,12 +29,37 @@ function LoginUserContent() {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
+    const handleResend = async () => {
+        setResendLoading(true);
+        setError("");
+        setResendSuccess("");
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/resend-verification`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: formData.email }),
+            });
+            const data = await response.json();
+            if (response.ok) {
+                setResendSuccess(data.message || "Verification email sent successfully!");
+            } else {
+                setError(data.detail || "Failed to resend verification email.");
+            }
+        } catch (err) {
+            setError("Server connection failed.");
+        } finally {
+            setResendLoading(false);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError("");
+        setShowResend(false);
+        setResendSuccess("");
         try {
-            const response = await fetch(`http://127.0.0.1:8001/user/login`, {
+            const response = await fetch(`${API_BASE_URL}/user/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),
@@ -38,23 +67,27 @@ function LoginUserContent() {
 
             if (response.ok) {
                 const data = await response.json();
-                
+
                 // Clear any existing member or admin session details
                 localStorage.removeItem("isMember");
                 localStorage.removeItem("memberRole");
                 localStorage.removeItem("clubName");
                 localStorage.removeItem("userPhone");
-                
+
                 // Set standard user session details
                 localStorage.setItem("userName", data.userName);
                 localStorage.setItem("userId", data.userId);
                 localStorage.setItem("userEmail", data.userEmail);
                 localStorage.setItem("isUser", "true");
-                
+                localStorage.setItem("accessToken", data.accessToken);
+
                 window.location.href = "/user-dashboard";
             } else {
                 const errorData = await response.json().catch(() => ({}));
                 setError(errorData.detail || "Invalid credentials. Please try again.");
+                if (response.status === 403) {
+                    setShowResend(true);
+                }
             }
         } catch (err) {
             setError("Cannot connect to server. Is the backend running?");
@@ -70,28 +103,35 @@ function LoginUserContent() {
                     <div className={styles.header}>
                         <span className={styles.logo}>Mukijo</span>
                         <h1 className={styles.title}>User Sign In</h1>
-                        <p className={styles.subtitle}>Welcome back — enter your credentials to access your user account</p>
+                        <p className={styles.subtitle}>
+                            Welcome back — enter your credentials to access your user account
+                        </p>
                     </div>
 
                     {showSuccess && (
-                        <div style={{
-                            background: "rgba(16, 185, 129, 0.1)",
-                            border: "1px solid rgba(16, 185, 129, 0.3)",
-                            color: "#6ee7b7",
-                            padding: "12px 16px",
-                            borderRadius: "10px",
-                            marginBottom: "20px",
-                            fontSize: "14px",
-                            textAlign: "center",
-                        }}>
-                            <strong>Registration successful!</strong><br />
-                            You can now sign in with your account.
+                        <div
+                            style={{
+                                background: "rgba(16, 185, 129, 0.1)",
+                                border: "1px solid rgba(16, 185, 129, 0.3)",
+                                color: "#6ee7b7",
+                                padding: "12px 16px",
+                                borderRadius: "10px",
+                                marginBottom: "20px",
+                                fontSize: "14px",
+                                textAlign: "center",
+                            }}
+                        >
+                            <strong>Registration successful!</strong>
+                            <br />
+                            A verification link has been sent to your email. Please verify your email before signing in.
                         </div>
                     )}
 
                     <form className={styles.form} onSubmit={handleSubmit}>
                         <div className={styles.inputGroup}>
-                            <label htmlFor="email" className={styles.label}>Email address</label>
+                            <label htmlFor="email" className={styles.label}>
+                                Email address
+                            </label>
                             <div className={styles.inputWrapper}>
                                 <input
                                     id="email"
@@ -108,7 +148,9 @@ function LoginUserContent() {
 
                         <div className={styles.inputGroup}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                <label htmlFor="password" className={styles.label}>Password</label>
+                                <label htmlFor="password" className={styles.label}>
+                                    Password
+                                </label>
                             </div>
                             <div className={styles.inputWrapper}>
                                 <input
@@ -126,12 +168,56 @@ function LoginUserContent() {
 
                         {error && <div className={styles.errorMsg}>{error}</div>}
 
+                        {showResend && !resendSuccess && (
+                            <button
+                                type="button"
+                                onClick={handleResend}
+                                disabled={resendLoading}
+                                style={{
+                                    width: "100%",
+                                    padding: "10px",
+                                    background: "rgba(0, 240, 255, 0.1)",
+                                    border: "1px solid rgba(0, 240, 255, 0.3)",
+                                    borderRadius: "8px",
+                                    color: "#00f0ff",
+                                    fontWeight: "600",
+                                    fontSize: "14px",
+                                    marginTop: "10px",
+                                    marginBottom: "15px",
+                                    cursor: "pointer",
+                                    transition: "all 0.2s ease"
+                                }}
+                            >
+                                {resendLoading ? "Resending..." : "Resend Verification Link"}
+                            </button>
+                        )}
+
+                        {resendSuccess && (
+                            <div
+                                style={{
+                                    background: "rgba(191, 254, 0, 0.1)",
+                                    border: "1px solid rgba(191, 254, 0, 0.3)",
+                                    color: "#bffe00",
+                                    padding: "12px",
+                                    borderRadius: "8px",
+                                    marginTop: "10px",
+                                    marginBottom: "15px",
+                                    fontSize: "14px",
+                                    textAlign: "center"
+                                }}
+                            >
+                                {resendSuccess}
+                            </div>
+                        )}
+
                         <button type="submit" className={styles.loginButton} disabled={loading}>
                             {loading ? "Signing in…" : "Sign in to Dashboard →"}
                         </button>
                     </form>
 
-                    <div className={styles.divider}><span>or</span></div>
+                    <div className={styles.divider}>
+                        <span>or</span>
+                    </div>
 
                     <div className={styles.footer}>
                         Don&apos;t have an account?{" "}

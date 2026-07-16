@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -21,7 +22,7 @@ export default function GroupProfilePage() {
         last_name: "",
         email: "",
         phone: "",
-        role: "Player"
+        role: "Player",
     });
 
     const handleAddMember = async (e) => {
@@ -31,23 +32,23 @@ export default function GroupProfilePage() {
 
         try {
             const encodedId = encodeURIComponent(id);
-            const response = await fetch(`http://127.0.0.1:8001/groups/${encodedId}/members?owner_id=${userId}`, {
+            const response = await fetch(`${API_BASE_URL}/groups/${encodedId}/members?owner_id=${userId}`, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
                     first_name: memberForm.first_name,
                     last_name: memberForm.last_name || "",
                     email: memberForm.email || "",
                     phone: memberForm.phone || "",
-                    role: memberForm.role || "Player"
-                })
+                    role: memberForm.role || "Player",
+                }),
             });
 
             if (response.ok) {
                 const newMember = await response.json();
-                setMembers(prev => [...prev, newMember]);
+                setMembers((prev) => [...prev, newMember]);
                 setShowAddMemberModal(false);
                 // Reset form
                 setMemberForm({
@@ -55,7 +56,7 @@ export default function GroupProfilePage() {
                     last_name: "",
                     email: "",
                     phone: "",
-                    role: "Player"
+                    role: "Player",
                 });
                 alert("Member added successfully!");
             } else {
@@ -88,8 +89,8 @@ export default function GroupProfilePage() {
             try {
                 const encodedId = encodeURIComponent(id);
                 // Try fetching group details
-                const groupResponse = await fetch(`http://127.0.0.1:8001/groups/${encodedId}?owner_id=${userId}`);
-                
+                const groupResponse = await fetch(`${API_BASE_URL}/groups/${encodedId}?owner_id=${userId}`);
+
                 let groupData = null;
                 if (groupResponse.ok) {
                     groupData = await groupResponse.json();
@@ -101,35 +102,40 @@ export default function GroupProfilePage() {
                 }
 
                 // Fetch group members
-                const membersResponse = await fetch(`http://127.0.0.1:8001/groups/${encodedId}/members?owner_id=${userId}`);
+                const membersResponse = await fetch(`${API_BASE_URL}/groups/${encodedId}/members?owner_id=${userId}`);
                 if (membersResponse.ok) {
                     const membersData = await membersResponse.json();
                     const storedName = localStorage.getItem("userName") || "Admin";
-                    setMembers([{
-                        first_name: storedName.split(" ")[0] || storedName,
-                        last_name: storedName.split(" ")[1] || "",
-                        role: "Admin"
-                    }, ...membersData]);
+                    setMembers([
+                        {
+                            first_name: storedName.split(" ")[0] || storedName,
+                            last_name: storedName.split(" ")[1] || "",
+                            role: "Admin",
+                        },
+                        ...membersData,
+                    ]);
                 }
 
                 // Fetch group events
-                const eventsResponse = await fetch(`http://127.0.0.1:8001/groups/${encodedId}/events?owner_id=${userId}`);
+                const eventsResponse = await fetch(`${API_BASE_URL}/groups/${encodedId}/events?owner_id=${userId}`);
                 if (eventsResponse.ok) {
                     const eventsData = await eventsResponse.json();
                     setEvents(eventsData);
                 }
 
-                const paymentsResponse = await fetch(`http://127.0.0.1:8001/payments?owner_id=${userId}&group_id=${groupData.id}`);
+                const paymentsResponse = await fetch(
+                    `${API_BASE_URL}/payments?owner_id=${userId}&group_id=${groupData.id}`
+                );
                 if (paymentsResponse.ok) {
                     const paymentsData = await paymentsResponse.json();
                     setPayments(paymentsData);
                 }
 
                 // Fetch group fundraising
-                const fundraisingResponse = await fetch(`http://127.0.0.1:8001/fundraising?owner_id=${userId}`);
+                const fundraisingResponse = await fetch(`${API_BASE_URL}/fundraising?owner_id=${userId}`);
                 if (fundraisingResponse.ok) {
                     const frData = await fundraisingResponse.json();
-                    const groupCampaigns = frData.filter(c => c.group_name === groupData.group_name);
+                    const groupCampaigns = frData.filter((c) => c.group_name === groupData.group_name);
                     const total = groupCampaigns.reduce((s, c) => s + (c.raised || 0), 0);
                     setGroupFundraising(total);
                 }
@@ -147,9 +153,13 @@ export default function GroupProfilePage() {
     const handleDeleteGroup = async () => {
         if (!confirm(`Delete group "${group.group_name}"?`)) return;
         try {
-            const response = await fetch(`http://127.0.0.1:8001/groups/${id}?owner_id=${localStorage.getItem("userId")}`, { method: "DELETE" });
+            const response = await fetch(`${API_BASE_URL}/groups/${id}?owner_id=${localStorage.getItem("userId")}`, {
+                method: "DELETE",
+            });
             if (response.ok) window.location.href = "/dashboard";
-        } catch (error) { console.error(error); }
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     if (loading) return <div className="group-state-card">Loading profile...</div>;
@@ -194,14 +204,20 @@ export default function GroupProfilePage() {
                         <div className="members-list-card">
                             <div className="members-header">
                                 <h3>Recent Members</h3>
-                                <button className="add-member-inline-btn" onClick={() => setActiveTab("Members")}>View All</button>
+                                <button className="add-member-inline-btn" onClick={() => setActiveTab("Members")}>
+                                    View All
+                                </button>
                             </div>
                             <div className="members-list-content">
                                 {members.slice(0, 4).map((member, index) => (
                                     <div className="member-item" key={`${member.id || "admin"}-${index}`}>
-                                        <div className="member-avatar">{(member.first_name || "M").charAt(0).toUpperCase()}</div>
+                                        <div className="member-avatar">
+                                            {(member.first_name || "M").charAt(0).toUpperCase()}
+                                        </div>
                                         <div className="member-info">
-                                            <span className="member-name">{member.first_name} {member.last_name}</span>
+                                            <span className="member-name">
+                                                {member.first_name} {member.last_name}
+                                            </span>
                                             <span className="member-role">{member.role || "Member"}</span>
                                         </div>
                                     </div>
@@ -216,24 +232,46 @@ export default function GroupProfilePage() {
                         <div className="members-list-card">
                             <div className="members-header">
                                 <h3>Upcoming Events</h3>
-                                <button onClick={() => setShowCreateEventModal(true)} className="create-event-inline-btn">+ Create Events</button>
+                                <button
+                                    onClick={() => setShowCreateEventModal(true)}
+                                    className="create-event-inline-btn"
+                                >
+                                    + Create Events
+                                </button>
                             </div>
                             <div className="event-list-profile">
-                            {events.length > 0 ? (
-                                events.map((event, index) => (
-                                    <div key={index} className="event-item">
-                                        <div className="event-item-header">
-                                            <h4>{event.name}</h4>
-                                            <span className="event-type-badge">{event.type}</span>
+                                {events.length > 0 ? (
+                                    events.map((event, index) => (
+                                        <div key={index} className="event-item">
+                                            <div className="event-item-header">
+                                                <h4>{event.name}</h4>
+                                                <span className="event-type-badge">{event.type}</span>
+                                            </div>
+                                            <div className="event-detail">
+                                                <svg
+                                                    viewBox="0 0 24 24"
+                                                    width="16"
+                                                    height="16"
+                                                    stroke="currentColor"
+                                                    fill="none"
+                                                >
+                                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                                </svg>
+                                                <span>
+                                                    {event.date} at {event.time}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div className="event-detail">
-                                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                            <span>{event.date} at {event.time}</span>
-                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="empty-events-profile">
+                                        <h3>No upcoming events</h3>
                                     </div>
-                                ))
-                            ) : <div className="empty-events-profile"><h3>No upcoming events</h3></div>}
-                        </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 );
@@ -243,17 +281,28 @@ export default function GroupProfilePage() {
                         <div className="members-list-card">
                             <div className="members-header">
                                 <h3>Group Members ({members.length})</h3>
-                                <div style={{ display: 'flex', gap: '10px' }}>
-                                    <button className="add-member-inline-btn" onClick={() => setShowImportModal(true)}>Import</button>
-                                    <button className="add-member-inline-btn" onClick={() => setShowAddMemberModal(true)}>Add Member</button>
+                                <div style={{ display: "flex", gap: "10px" }}>
+                                    <button className="add-member-inline-btn" onClick={() => setShowImportModal(true)}>
+                                        Import
+                                    </button>
+                                    <button
+                                        className="add-member-inline-btn"
+                                        onClick={() => setShowAddMemberModal(true)}
+                                    >
+                                        Add Member
+                                    </button>
                                 </div>
                             </div>
                             <div className="members-list-content">
                                 {members.map((member, index) => (
                                     <div className="member-item" key={index}>
-                                        <div className="member-avatar">{(member.first_name || "M").charAt(0).toUpperCase()}</div>
+                                        <div className="member-avatar">
+                                            {(member.first_name || "M").charAt(0).toUpperCase()}
+                                        </div>
                                         <div className="member-info">
-                                            <span className="member-name">{member.first_name} {member.last_name}</span>
+                                            <span className="member-name">
+                                                {member.first_name} {member.last_name}
+                                            </span>
                                             <span className="member-role">{member.role}</span>
                                         </div>
                                     </div>
@@ -267,7 +316,13 @@ export default function GroupProfilePage() {
                     <div className="members-list-card">
                         <div className="members-header">
                             <h3>Group Payments ({payments.length})</h3>
-                            <Link href="/dashboard" className="add-member-inline-btn" style={{ textDecoration: "none" }}>Manage Payments</Link>
+                            <Link
+                                href="/dashboard"
+                                className="add-member-inline-btn"
+                                style={{ textDecoration: "none" }}
+                            >
+                                Manage Payments
+                            </Link>
                         </div>
                         {payments.length > 0 ? (
                             <div className="group-payment-list">
@@ -275,22 +330,36 @@ export default function GroupProfilePage() {
                                     <div className="group-payment-item" key={payment.id}>
                                         <div>
                                             <strong>{payment.title}</strong>
-                                            <span>{payment.member_name || "Group request"} - {payment.due_date || "No due date"}</span>
+                                            <span>
+                                                {payment.member_name || "Group request"} -{" "}
+                                                {payment.due_date || "No due date"}
+                                            </span>
                                         </div>
                                         <div className="group-payment-side">
-                                            <strong>{"\u20B9"}{Number(payment.amount || 0).toLocaleString("en-IN")}</strong>
-                                            <span className={`group-payment-status ${payment.status}`}>{payment.status}</span>
+                                            <strong>
+                                                {"\u20B9"}
+                                                {Number(payment.amount || 0).toLocaleString("en-IN")}
+                                            </strong>
+                                            <span className={`group-payment-status ${payment.status}`}>
+                                                {payment.status}
+                                            </span>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="empty-events-profile"><h3>No payments for this group</h3></div>
+                            <div className="empty-events-profile">
+                                <h3>No payments for this group</h3>
+                            </div>
                         )}
                     </div>
                 );
             default:
-                return <div className="empty-events-profile"><h3>No {activeTab.toLowerCase()} yet</h3></div>;
+                return (
+                    <div className="empty-events-profile">
+                        <h3>No {activeTab.toLowerCase()} yet</h3>
+                    </div>
+                );
         }
     };
 
@@ -303,7 +372,9 @@ export default function GroupProfilePage() {
                     {group.description && <p className="profile-description">{group.description}</p>}
                 </div>
                 <div className="group-profile-photo-container">
-                    <button className="delete-group-btn" onClick={handleDeleteGroup}>Delete Group</button>
+                    <button className="delete-group-btn" onClick={handleDeleteGroup}>
+                        Delete Group
+                    </button>
                 </div>
             </header>
 
@@ -318,17 +389,29 @@ export default function GroupProfilePage() {
                 </div>
                 <div>
                     <span>Pending Payments</span>
-                    <strong>{"\u20B9"}{pendingTotal.toLocaleString("en-IN")}</strong>
+                    <strong>
+                        {"\u20B9"}
+                        {pendingTotal.toLocaleString("en-IN")}
+                    </strong>
                 </div>
                 <div>
                     <span>Collected</span>
-                    <strong>{"\u20B9"}{paidTotal.toLocaleString("en-IN")}</strong>
+                    <strong>
+                        {"\u20B9"}
+                        {paidTotal.toLocaleString("en-IN")}
+                    </strong>
                 </div>
             </section>
 
             <nav className="profile-tabs">
-                {tabs.map(tab => (
-                    <div key={tab} className={`tab-item ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>{tab}</div>
+                {tabs.map((tab) => (
+                    <div
+                        key={tab}
+                        className={`tab-item ${activeTab === tab ? "active" : ""}`}
+                        onClick={() => setActiveTab(tab)}
+                    >
+                        {tab}
+                    </div>
                 ))}
             </nav>
 
@@ -342,7 +425,17 @@ export default function GroupProfilePage() {
                                 ₹{groupFundraising.toLocaleString()}
                             </div>
                             <p style={{ fontSize: "12px", color: "#64748b" }}>Total funds raised by this group.</p>
-                            <Link href="/dashboard/fundraising" style={{ display: "block", marginTop: "12px", fontSize: "13px", color: "#3b82f6", textDecoration: "none", fontWeight: "600" }}>
+                            <Link
+                                href="/dashboard/fundraising"
+                                style={{
+                                    display: "block",
+                                    marginTop: "12px",
+                                    fontSize: "13px",
+                                    color: "#3b82f6",
+                                    textDecoration: "none",
+                                    fontWeight: "600",
+                                }}
+                            >
                                 View All Campaigns →
                             </Link>
                         </div>
@@ -360,65 +453,71 @@ export default function GroupProfilePage() {
                     <div className="modal-card">
                         <div className="modal-header">
                             <h2>Add New Member</h2>
-                            <button className="close-btn" onClick={() => setShowAddMemberModal(false)}>&times;</button>
+                            <button className="close-btn" onClick={() => setShowAddMemberModal(false)}>
+                                &times;
+                            </button>
                         </div>
                         <form className="member-form" onSubmit={handleAddMember}>
                             <div className="form-row">
                                 <div className="form-group">
                                     <label htmlFor="first_name">First Name *</label>
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         id="first_name"
-                                        required 
+                                        required
                                         value={memberForm.first_name}
-                                        onChange={(e) => setMemberForm(prev => ({ ...prev, first_name: e.target.value }))}
+                                        onChange={(e) =>
+                                            setMemberForm((prev) => ({ ...prev, first_name: e.target.value }))
+                                        }
                                         placeholder="e.g. Rahul"
                                     />
                                 </div>
                                 <div className="form-group">
                                     <label htmlFor="last_name">Last Name</label>
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         id="last_name"
                                         value={memberForm.last_name}
-                                        onChange={(e) => setMemberForm(prev => ({ ...prev, last_name: e.target.value }))}
+                                        onChange={(e) =>
+                                            setMemberForm((prev) => ({ ...prev, last_name: e.target.value }))
+                                        }
                                         placeholder="e.g. Sharma"
                                     />
                                 </div>
                             </div>
                             <div className="form-group">
                                 <label htmlFor="email">Email Address</label>
-                                <input 
-                                    type="email" 
+                                <input
+                                    type="email"
                                     id="email"
                                     value={memberForm.email}
-                                    onChange={(e) => setMemberForm(prev => ({ ...prev, email: e.target.value }))}
+                                    onChange={(e) => setMemberForm((prev) => ({ ...prev, email: e.target.value }))}
                                     placeholder="e.g. rahul@example.com"
                                 />
                             </div>
                             <div className="form-group">
                                 <label htmlFor="phone">Phone Number</label>
-                                <input 
-                                    type="tel" 
+                                <input
+                                    type="tel"
                                     id="phone"
                                     value={memberForm.phone}
-                                    onChange={(e) => setMemberForm(prev => ({ ...prev, phone: e.target.value }))}
+                                    onChange={(e) => setMemberForm((prev) => ({ ...prev, phone: e.target.value }))}
                                     placeholder="e.g. +91 98765 43210"
                                 />
                             </div>
                             <div className="form-group">
                                 <label htmlFor="role">Role</label>
-                                <select 
+                                <select
                                     id="role"
                                     value={memberForm.role}
-                                    onChange={(e) => setMemberForm(prev => ({ ...prev, role: e.target.value }))}
+                                    onChange={(e) => setMemberForm((prev) => ({ ...prev, role: e.target.value }))}
                                     style={{
                                         padding: "12px",
                                         border: "1px solid #e2e8f0",
                                         borderRadius: "8px",
                                         fontSize: "0.95rem",
                                         outline: "none",
-                                        background: "white"
+                                        background: "white",
                                     }}
                                 >
                                     <option value="Player">Player</option>
@@ -427,13 +526,29 @@ export default function GroupProfilePage() {
                                     <option value="Referee">Referee</option>
                                 </select>
                             </div>
-                            <button type="submit" className="submit-member-btn">Add Member to Group</button>
+                            <button type="submit" className="submit-member-btn">
+                                Add Member to Group
+                            </button>
                         </form>
                     </div>
                 </div>
             )}
-            {showCreateEventModal && <div className="modal-overlay"><div className="modal-card"><h2>Create Event</h2><button onClick={() => setShowCreateEventModal(false)}>Close</button></div></div>}
-            {showImportModal && <div className="modal-overlay"><div className="modal-card"><h2>Import</h2><button onClick={() => setShowImportModal(false)}>Close</button></div></div>}
+            {showCreateEventModal && (
+                <div className="modal-overlay">
+                    <div className="modal-card">
+                        <h2>Create Event</h2>
+                        <button onClick={() => setShowCreateEventModal(false)}>Close</button>
+                    </div>
+                </div>
+            )}
+            {showImportModal && (
+                <div className="modal-overlay">
+                    <div className="modal-card">
+                        <h2>Import</h2>
+                        <button onClick={() => setShowImportModal(false)}>Close</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

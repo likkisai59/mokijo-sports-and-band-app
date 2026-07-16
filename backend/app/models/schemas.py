@@ -206,6 +206,10 @@ class UserLogin(BaseModel):
     email: str
     password: str
 
+class ResendVerificationPayload(BaseModel):
+    email: str
+
+
 class FundraisingCampaignCreate(BaseModel):
     title: str
     goal: int
@@ -485,6 +489,11 @@ class VenueCreate(BaseModel):
     venue_images: Optional[str] = None
     description: Optional[str] = None
     base_price_per_hour: Optional[int] = 0
+    contact_phone: Optional[str] = None
+    contact_email: Optional[str] = None
+    city: Optional[str] = None
+    state_name: Optional[str] = None
+    postal_code: Optional[str] = None
 
 class VenueResponse(BaseModel):
     id: int
@@ -505,6 +514,17 @@ class VenueResponse(BaseModel):
     distance: Optional[float] = None
     courts: List[CourtResponse] = []
     reviews: List[ReviewResponse] = []
+    
+    verification_status: Optional[str] = "DRAFT"
+    is_verified: Optional[bool] = False
+    verified_at: Optional[datetime] = None
+    rejection_reason: Optional[str] = None
+    verification_notes: Optional[str] = None
+    contact_phone: Optional[str] = None
+    contact_email: Optional[str] = None
+    city: Optional[str] = None
+    state_name: Optional[str] = None
+    postal_code: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -734,6 +754,11 @@ class VenueInput(BaseModel):
     closing_time: Optional[str] = None
     days_open: Optional[str] = None
     slot_duration: Optional[int] = 60
+    contact_phone: Optional[str] = None
+    contact_email: Optional[str] = None
+    city: Optional[str] = None
+    state_name: Optional[str] = None
+    postal_code: Optional[str] = None
 
 class VenueOwnerRegister(BaseModel):
     owner: VenueOwnerCreate

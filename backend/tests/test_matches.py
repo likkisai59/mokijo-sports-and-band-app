@@ -7,6 +7,9 @@ import os
 from app.main import app
 from app.core.database import Base, get_db
 from app.models import models
+from jose import jwt
+from app.core.config import get_settings
+from app.connectors.postgresql import PostgreSQLConnector
 
 # In-memory SQLite for testing matches
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_matches.db"
@@ -30,8 +33,10 @@ app.dependency_overrides[get_db] = override_get_db
 def setup_test_db():
     Base.metadata.create_all(bind=engine)
     
-    # Seed owner admin user
+    # Seed owner admin user in SQLite (for matches logic that might read from it)
     db = TestingSessionLocal()
+    db.query(models.User).filter_by(id=99).delete()
+    db.commit()
     user = models.User(
         id=99,
         club_name="Test Club",
@@ -44,7 +49,25 @@ def setup_test_db():
     db.commit()
     db.close()
     
+    # Seed owner admin user in PostgreSQL (since matches routes use PostgreSQLConnector directly)
+    postgres_db = PostgreSQLConnector()
+    postgres_db.execute_query("DELETE FROM match_events WHERE match_id IN (SELECT id FROM matches WHERE owner_id = 99)")
+    postgres_db.execute_query("DELETE FROM match_teams WHERE match_id IN (SELECT id FROM matches WHERE owner_id = 99)")
+    postgres_db.execute_query("DELETE FROM matches WHERE owner_id = 99")
+    postgres_db.execute_query("DELETE FROM users WHERE id = 99")
+    postgres_db.execute_query(
+        "INSERT INTO users (id, club_name, first_name, last_name, email, password, is_email_verified) "
+        "VALUES (99, 'Test Club', 'Admin', 'Owner', 'owner@test.com', 'hashedpassword', true)"
+    )
+    
     yield
+    
+    # Clean up PostgreSQL matches, match_teams, match_events, and the seeded user
+    postgres_db = PostgreSQLConnector()
+    postgres_db.execute_query("DELETE FROM match_events WHERE match_id IN (SELECT id FROM matches WHERE owner_id = 99)")
+    postgres_db.execute_query("DELETE FROM match_teams WHERE match_id IN (SELECT id FROM matches WHERE owner_id = 99)")
+    postgres_db.execute_query("DELETE FROM matches WHERE owner_id = 99")
+    postgres_db.execute_query("DELETE FROM users WHERE id = 99")
     
     Base.metadata.drop_all(bind=engine)
     if os.path.exists("test_matches.db"):
@@ -56,6 +79,15 @@ def setup_test_db():
 
 def test_create_and_manage_match():
     client = TestClient(app)
+    
+    import json
+    settings = get_settings()
+    token = jwt.encode(
+        {"sub": json.dumps({"id": 99, "userId": 99, "first_name": "Admin", "email": "owner@test.com", "role": "admin"})},
+        settings.JWT_SECRET_KEY,
+        algorithm="HS256"
+    )
+    headers = {"Authorization": f"Bearer {token}"}
     
     # 1. Create a match
     match_payload = {
@@ -70,7 +102,7 @@ def test_create_and_manage_match():
         ]
     }
     
-    response = client.post("/matches", json=match_payload)
+    response = client.post("/matches", json=match_payload, headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert data["title"] == "Local Derby"
@@ -83,7 +115,7 @@ def test_create_and_manage_match():
     team_b_id = data["teams"][1]["id"]
     
     # 2. Get list of matches
-    response = client.get("/matches?owner_id=99")
+    response = client.get("/matches?owner_id=99", headers=headers)
     assert response.status_code == 200
     assert len(response.json()) >= 1
     
@@ -95,7 +127,7 @@ def test_create_and_manage_match():
         assert initial_data["status"] == "scheduled"
         
         # 4. Start the match (live)
-        response = client.patch(f"/matches/{match_id}", json={"status": "live"})
+        response = client.patch(f"/matches/{match_id}", json={"status": "live"}, headers=headers)
         assert response.status_code == 200
         
         # WebSocket should receive status update broadcast
@@ -110,17 +142,23 @@ def test_create_and_manage_match():
             "event_type": "goal",
             "description": "Reds scores a majestic header!"
         }
-        response = client.patch(f"/matches/{match_id}/score", json=score_payload)
+        response = client.patch(f"/matches/{match_id}/score", json=score_payload, headers=headers)
         assert response.status_code == 200
-        assert response.json()["teams"][0]["score"] == 1
+        
+        # Find team A score in response (order is not guaranteed)
+        teams_response = response.json()["teams"]
+        team_a_response = next(t for t in teams_response if t["id"] == team_a_id)
+        assert team_a_response["score"] == 1
         
         # WebSocket should receive score update broadcast
         score_broadcast = websocket.receive_json()
-        assert score_broadcast["teams"][0]["score"] == 1
+        broadcast_teams = score_broadcast["teams"]
+        team_a_broadcast = next(t for t in broadcast_teams if t["id"] == team_a_id)
+        assert team_a_broadcast["score"] == 1
         assert any(e["event_type"] == "goal" for e in score_broadcast["events"])
         
         # 6. Complete the match
-        response = client.patch(f"/matches/{match_id}", json={"status": "completed"})
+        response = client.patch(f"/matches/{match_id}", json={"status": "completed"}, headers=headers)
         assert response.status_code == 200
         assert response.json()["status"] == "completed"
         assert response.json()["winner_team_id"] == team_a_id

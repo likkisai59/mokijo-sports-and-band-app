@@ -6,9 +6,14 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
     function handleSubmit() {
         if (loading) return;
         if (
-            !formData.firstName || !formData.lastName ||
-            !formData.email || !formData.password || !formData.phone ||
-            !formData.aadharNumber || !formData.hearAbout || !formData.termsAgreed
+            !formData.firstName ||
+            !formData.lastName ||
+            !formData.email ||
+            !formData.password ||
+            !formData.phone ||
+            !formData.aadharNumber ||
+            !formData.hearAbout ||
+            !formData.termsAgreed
         ) {
             alert("Please fill in all fields before submitting.");
             return;
@@ -109,7 +114,7 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                     value={formData.aadharNumber}
                     onChange={(e) => {
                         // Automatically strip non-digits to prevent frustration
-                        const val = e.target.value.replace(/\D/g, ""); 
+                        const val = e.target.value.replace(/\D/g, "");
                         onChange("aadharNumber", val);
                     }}
                     disabled={loading}
@@ -126,7 +131,9 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                 >
                     <option value="">-- Select an Option --</option>
                     {hearAboutOptions.map((option) => (
-                        <option key={option} value={option}>{option}</option>
+                        <option key={option} value={option}>
+                            {option}
+                        </option>
                     ))}
                 </select>
             </div>
@@ -134,9 +141,8 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
             <div className={styles.fieldGroup}>
                 <label className={styles.label}>Terms & Conditions *</label>
                 <p className={styles.termsText}>
-                    I hereby confirm that I have read and accept the Terms & Conditions,
-                    and that I have the right to enter this agreement on behalf of my
-                    club or organisation.
+                    I hereby confirm that I have read and accept the Terms & Conditions, and that I have the right to
+                    enter this agreement on behalf of my club or organisation.
                 </p>
                 <select
                     className={styles.select}
@@ -146,7 +152,9 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                 >
                     <option value="">-- Select --</option>
                     {termsOptions.map((option) => (
-                        <option key={option} value={option}>{option}</option>
+                        <option key={option} value={option}>
+                            {option}
+                        </option>
                     ))}
                 </select>
             </div>
@@ -155,12 +163,12 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                 <button type="button" className={styles.prevButton} onClick={onPrevious} disabled={loading}>
                     ← Previous
                 </button>
-                <button 
+                <button
                     type="button"
-                    className={styles.submitButton} 
-                    onClick={handleSubmit} 
+                    className={styles.submitButton}
+                    onClick={handleSubmit}
                     disabled={loading}
-                    style={{ opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
+                    style={{ opacity: loading ? 0.7 : 1, cursor: loading ? "not-allowed" : "pointer" }}
                 >
                     {loading ? "Registering..." : "Sign Up"}
                 </button>

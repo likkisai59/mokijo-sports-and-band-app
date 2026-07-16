@@ -44,13 +44,13 @@ export default function TopHeader({ isMobileMenuOpen = false, onMenuToggle }) {
                 </button>
                 <strong className="logo">Mukijo</strong>
             </div>
-            
+
             <div className="user-box" style={{ position: "relative" }}>
-                <div 
-                    className="user-profile-trigger" 
+                <div
+                    className="user-profile-trigger"
                     onClick={(e) => {
                         e.stopPropagation();
-                        setDropdownOpen(prev => !prev);
+                        setDropdownOpen((prev) => !prev);
                     }}
                     style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }}
                 >
@@ -59,7 +59,7 @@ export default function TopHeader({ isMobileMenuOpen = false, onMenuToggle }) {
                 </div>
 
                 {dropdownOpen && (
-                    <div 
+                    <div
                         className="user-dropdown"
                         style={{
                             position: "absolute",
@@ -71,11 +71,11 @@ export default function TopHeader({ isMobileMenuOpen = false, onMenuToggle }) {
                             padding: "6px",
                             minWidth: "140px",
                             boxShadow: "0 10px 25px rgba(0, 0, 0, 0.5)",
-                            zIndex: 1000
+                            zIndex: 1000,
                         }}
                     >
-                        <button 
-                            className="top-logout-btn" 
+                        <button
+                            className="top-logout-btn"
                             onClick={handleLogout}
                             style={{
                                 width: "100%",
@@ -89,7 +89,7 @@ export default function TopHeader({ isMobileMenuOpen = false, onMenuToggle }) {
                                 cursor: "pointer",
                                 fontSize: "14px",
                                 borderRadius: "4px",
-                                transition: "background 0.2s"
+                                transition: "background 0.2s",
                             }}
                         >
                             <LogOut size={16} />
@@ -101,5 +101,3 @@ export default function TopHeader({ isMobileMenuOpen = false, onMenuToggle }) {
         </header>
     );
 }
-
-

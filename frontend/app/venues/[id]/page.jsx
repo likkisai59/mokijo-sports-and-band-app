@@ -1,9 +1,20 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, MapPin, Star, Calendar as CalIcon, Clock, ChevronRight, CheckCircle2, User, MessageSquare } from "lucide-react";
+import {
+    ArrowLeft,
+    MapPin,
+    Star,
+    Calendar as CalIcon,
+    Clock,
+    ChevronRight,
+    CheckCircle2,
+    User,
+    MessageSquare,
+} from "lucide-react";
 
 export default function VenueDetailPage({ params: paramsPromise }) {
     const params = use(paramsPromise);
@@ -47,7 +58,7 @@ export default function VenueDetailPage({ params: paramsPromise }) {
         const fetchVenueDetail = async () => {
             setLoadingVenue(true);
             try {
-                const res = await fetch(`http://127.0.0.1:8001/venues`);
+                const res = await fetch(`${API_BASE_URL}/venues`);
                 if (res.ok) {
                     const allVenues = await res.json();
                     const found = allVenues.find((v) => v.id.toString() === id.toString());
@@ -79,7 +90,7 @@ export default function VenueDetailPage({ params: paramsPromise }) {
         const fetchSlots = async () => {
             setLoadingSlots(true);
             try {
-                const res = await fetch(`http://127.0.0.1:8001/venues/${id}/slots?date_str=${selectedDate}`);
+                const res = await fetch(`${API_BASE_URL}/venues/${id}/slots?date_str=${selectedDate}`);
                 if (res.ok) {
                     const data = await res.json();
                     // Filter slots by court if court is selected
@@ -122,7 +133,7 @@ export default function VenueDetailPage({ params: paramsPromise }) {
         setSubmitting(true);
         setError(null);
         try {
-            const res = await fetch("http://127.0.0.1:8001/bookings/hold", {
+            const res = await fetch(`${API_BASE_URL}/bookings/hold`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -158,7 +169,7 @@ export default function VenueDetailPage({ params: paramsPromise }) {
 
         setSubmittingReview(true);
         try {
-            const res = await fetch(`http://127.0.0.1:8001/venues/${id}/reviews`, {
+            const res = await fetch(`${API_BASE_URL}/venues/${id}/reviews`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -196,14 +207,14 @@ export default function VenueDetailPage({ params: paramsPromise }) {
         return (
             <div style={styles.errorWrapper}>
                 <div style={styles.errorContainer}>{error}</div>
-                <Link href="/venues" style={styles.backLink}>Go Back</Link>
+                <Link href="/venues" style={styles.backLink}>
+                    Go Back
+                </Link>
             </div>
         );
     }
 
-    const totalPrice = slots
-        .filter((s) => selectedSlots.includes(s.id))
-        .reduce((sum, s) => sum + s.current_price, 0);
+    const totalPrice = slots.filter((s) => selectedSlots.includes(s.id)).reduce((sum, s) => sum + s.current_price, 0);
 
     return (
         <div style={styles.container}>
@@ -233,21 +244,23 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                             <span style={styles.ratingCount}>({reviews.length} reviews)</span>
                         </div>
                         <p style={styles.desc}>
-                            {venue?.description || "A premier sports facility featuring top-tier courts, lighting, and amenities to support all competitive and recreational activities."}
+                            {venue?.description ||
+                                "A premier sports facility featuring top-tier courts, lighting, and amenities to support all competitive and recreational activities."}
                         </p>
                     </div>
                     <div style={styles.bannerMedia}>
                         <img
-                            src={venue?.cover_image || "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?q=80&w=600&auto=format&fit=crop"}
+                            src={
+                                venue?.cover_image ||
+                                "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?q=80&w=600&auto=format&fit=crop"
+                            }
                             alt={venue?.name}
                             style={styles.coverImg}
                         />
                     </div>
                 </section>
 
-                {error && (
-                    <div style={{ ...styles.errorContainer, marginBottom: "24px" }}>{error}</div>
-                )}
+                {error && <div style={{ ...styles.errorContainer, marginBottom: "24px" }}>{error}</div>}
 
                 {/* Booking Picker Section */}
                 <div style={styles.grid}>
@@ -263,8 +276,14 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                                             onClick={() => setSelectedCourt(court)}
                                             style={{
                                                 ...styles.courtCard,
-                                                borderColor: selectedCourt?.id === court.id ? "#bffe00" : "rgba(255, 255, 255, 0.08)",
-                                                background: selectedCourt?.id === court.id ? "rgba(191, 254, 0, 0.05)" : "rgba(255, 255, 255, 0.02)",
+                                                borderColor:
+                                                    selectedCourt?.id === court.id
+                                                        ? "#bffe00"
+                                                        : "rgba(255, 255, 255, 0.08)",
+                                                background:
+                                                    selectedCourt?.id === court.id
+                                                        ? "rgba(191, 254, 0, 0.05)"
+                                                        : "rgba(255, 255, 255, 0.02)",
                                             }}
                                         >
                                             <h3 style={styles.courtName}>{court.name}</h3>
@@ -286,9 +305,11 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                                         onClick={() => setSelectedDate(d.iso)}
                                         style={{
                                             ...styles.dateChip,
-                                            backgroundColor: selectedDate === d.iso ? "#00f0ff" : "rgba(255, 255, 255, 0.04)",
+                                            backgroundColor:
+                                                selectedDate === d.iso ? "#00f0ff" : "rgba(255, 255, 255, 0.04)",
                                             color: selectedDate === d.iso ? "#050508" : "#f1f5f9",
-                                            borderColor: selectedDate === d.iso ? "#00f0ff" : "rgba(255, 255, 255, 0.08)",
+                                            borderColor:
+                                                selectedDate === d.iso ? "#00f0ff" : "rgba(255, 255, 255, 0.08)",
                                         }}
                                     >
                                         {d.display}
@@ -307,8 +328,14 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                             ) : (
                                 <div style={styles.slotsGrid}>
                                     {slots.map((slot) => {
-                                        const startTime = new Date(slot.start_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-                                        const endTime = new Date(slot.end_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                                        const startTime = new Date(slot.start_time).toLocaleTimeString([], {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                        });
+                                        const endTime = new Date(slot.end_time).toLocaleTimeString([], {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                        });
                                         const isBooked = slot.status === "BOOKED" || slot.is_blocked;
                                         const isHeld = slot.status === "HELD" && new Date(slot.held_until) > new Date();
                                         const isSelected = selectedSlots.includes(slot.id);
@@ -348,10 +375,16 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                                             >
                                                 <div style={styles.slotTime}>
                                                     <Clock size={12} />
-                                                    <span>{startTime} - {endTime}</span>
+                                                    <span>
+                                                        {startTime} - {endTime}
+                                                    </span>
                                                 </div>
                                                 <span style={styles.slotPrice}>
-                                                    {isBooked ? "BOOKED" : isHeld ? "PENDING" : `₹${slot.current_price}`}
+                                                    {isBooked
+                                                        ? "BOOKED"
+                                                        : isHeld
+                                                          ? "PENDING"
+                                                          : `₹${slot.current_price}`}
                                                 </span>
                                             </div>
                                         );
@@ -366,16 +399,30 @@ export default function VenueDetailPage({ params: paramsPromise }) {
 
                             {/* Review Form */}
                             <form onSubmit={handleReviewSubmit} style={styles.reviewForm}>
-                                <h3 style={{ fontSize: "14px", fontWeight: "700", marginBottom: "12px" }}>Write a Review</h3>
-                                <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "12px" }}>
-                                    <label style={{ fontSize: "12px", color: "rgba(148, 163, 184, 0.6)", textTransform: "uppercase" }}>Rating:</label>
+                                <h3 style={{ fontSize: "14px", fontWeight: "700", marginBottom: "12px" }}>
+                                    Write a Review
+                                </h3>
+                                <div
+                                    style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "12px" }}
+                                >
+                                    <label
+                                        style={{
+                                            fontSize: "12px",
+                                            color: "rgba(148, 163, 184, 0.6)",
+                                            textTransform: "uppercase",
+                                        }}
+                                    >
+                                        Rating:
+                                    </label>
                                     <select
                                         value={newRating}
                                         onChange={(e) => setNewRating(Number(e.target.value))}
                                         style={styles.reviewSelect}
                                     >
                                         {[5, 4, 3, 2, 1].map((r) => (
-                                            <option key={r} value={r}>{r} Star{r > 1 ? "s" : ""}</option>
+                                            <option key={r} value={r}>
+                                                {r} Star{r > 1 ? "s" : ""}
+                                            </option>
                                         ))}
                                     </select>
                                 </div>
@@ -395,7 +442,9 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                             {/* Reviews list */}
                             <div style={styles.reviewsList}>
                                 {reviews.length === 0 ? (
-                                    <p style={{ color: "rgba(148, 163, 184, 0.4)", fontSize: "14px" }}>No reviews posted yet.</p>
+                                    <p style={{ color: "rgba(148, 163, 184, 0.4)", fontSize: "14px" }}>
+                                        No reviews posted yet.
+                                    </p>
                                 ) : (
                                     reviews.map((rev) => (
                                         <div key={rev.id} style={styles.reviewItem}>
@@ -425,7 +474,7 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                     <div style={styles.rightCol}>
                         <div style={styles.stickySummary}>
                             <h3 style={styles.summaryTitle}>Booking Summary</h3>
-                            
+
                             <div style={styles.summaryDetails}>
                                 <div style={styles.summaryRow}>
                                     <span style={styles.summaryLabel}>Venue</span>
@@ -437,7 +486,13 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                                 </div>
                                 <div style={styles.summaryRow}>
                                     <span style={styles.summaryLabel}>Date</span>
-                                    <span style={styles.summaryVal}>{new Date(selectedDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                                    <span style={styles.summaryVal}>
+                                        {new Date(selectedDate).toLocaleDateString("en-US", {
+                                            month: "short",
+                                            day: "numeric",
+                                            year: "numeric",
+                                        })}
+                                    </span>
                                 </div>
                                 <div style={styles.summaryRow}>
                                     <span style={styles.summaryLabel}>Slots Selected</span>
@@ -461,9 +516,7 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                             >
                                 {submitting ? "Holding Slots..." : "Proceed to Hold Slots →"}
                             </button>
-                            <p style={styles.summaryTip}>
-                                * Slots will be held for 5 minutes during payment checkout.
-                            </p>
+                            <p style={styles.summaryTip}>* Slots will be held for 5 minutes during payment checkout.</p>
                         </div>
                     </div>
                 </div>

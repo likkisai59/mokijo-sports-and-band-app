@@ -29,9 +29,7 @@ export default function SettingsPage() {
     return (
         <div className="settings-container">
             <h1>Club Settings</h1>
-            <p className="settings-subtitle">
-                Manage your club information and account preferences.
-            </p>
+            <p className="settings-subtitle">Manage your club information and account preferences.</p>
 
             <div className="settings-card">
                 <h2>Profile Information</h2>

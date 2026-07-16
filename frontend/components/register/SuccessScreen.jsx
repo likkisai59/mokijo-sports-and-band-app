@@ -9,13 +9,20 @@ export default function SuccessScreen({ role }) {
             <div className={styles.successIcon}>OK</div>
             <h2 className={styles.successTitle}>Application Submitted</h2>
             <p className={styles.successText}>
-                {isCustomRole ? (
-                    `Club admin has to approve your application as a ${role}. You can log in only after the admin accepts it.`
-                ) : (
-                    "Your club has been registered successfully. You can now sign in to your dashboard to manage your club."
-                )}
+                {isCustomRole
+                    ? `Club admin has to approve your application as a ${role}. You can log in only after the admin accepts it.`
+                    : "Your club has been registered successfully. A verification link has been sent to your email. Please verify your email before logging in."}
             </p>
-            <Link href={isCustomRole ? "/login-member?registered=true" : "/login"} className={styles.submitButton} style={{ display: "inline-block", marginTop: "20px", textDecoration: "none", backgroundColor: "#1a73e8" }}>
+            <Link
+                href={isCustomRole ? "/" : "/login?registered=true"}
+                className={styles.submitButton}
+                style={{
+                    display: "inline-block",
+                    marginTop: "20px",
+                    textDecoration: "none",
+                    backgroundColor: "#1a73e8",
+                }}
+            >
                 OK
             </Link>
         </div>

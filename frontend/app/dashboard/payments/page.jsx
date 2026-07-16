@@ -43,7 +43,7 @@ export default function PaymentsPage() {
                 const [paymentsResponse, membersResponse] = await Promise.all([
                     api.get("/payments/member-status", {
                         params: { owner_id: userId || 1 },
-                        headers: { "X-Is-Member": "false" }
+                        headers: { "X-Is-Member": "false" },
                     }),
                     api.get("/members", {
                         params: { owner_id: userId || 1 },
@@ -54,7 +54,8 @@ export default function PaymentsPage() {
                     const member = membersById.get(String(payment.member_id));
                     return {
                         ...payment,
-                        member_group_name: payment.member_group_name || member?.group_name || payment.group_name || "N/A",
+                        member_group_name:
+                            payment.member_group_name || member?.group_name || payment.group_name || "N/A",
                     };
                 });
 
@@ -83,7 +84,9 @@ export default function PaymentsPage() {
                 payment.member_group_name,
                 payment.payment_for,
                 payment.status,
-            ].join(" ").toLowerCase();
+            ]
+                .join(" ")
+                .toLowerCase();
 
             return searchableText.includes(query);
         });
@@ -93,7 +96,17 @@ export default function PaymentsPage() {
         return (
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px" }}>
                 <div style={{ textAlign: "center", color: "#64748b" }}>
-                    <div style={{ width: "40px", height: "40px", border: "4px solid #cbd5e1", borderTopColor: "#2563eb", borderRadius: "50%", animation: "spin 1s linear infinite", margin: "0 auto 16px" }}></div>
+                    <div
+                        style={{
+                            width: "40px",
+                            height: "40px",
+                            border: "4px solid #cbd5e1",
+                            borderTopColor: "#2563eb",
+                            borderRadius: "50%",
+                            animation: "spin 1s linear infinite",
+                            margin: "0 auto 16px",
+                        }}
+                    ></div>
                     <p style={{ fontWeight: 600 }}>Verifying credentials & role view...</p>
                 </div>
             </div>
@@ -115,7 +128,14 @@ export default function PaymentsPage() {
                 </div>
                 <div className="search-wrapper">
                     <span className="search-icon">
-                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2.5" fill="none">
+                        <svg
+                            viewBox="0 0 24 24"
+                            width="18"
+                            height="18"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            fill="none"
+                        >
                             <circle cx="11" cy="11" r="8" />
                             <line x1="21" y1="21" x2="16.65" y2="16.65" />
                         </svg>
@@ -174,13 +194,17 @@ export default function PaymentsPage() {
                                         <span className="group-badge">{payment.member_group_name || "N/A"}</span>
                                     </td>
                                     <td>
-                                        <span className="payment-title">{payment.payment_for || "No Assigned Payments"}</span>
+                                        <span className="payment-title">
+                                            {payment.payment_for || "No Assigned Payments"}
+                                        </span>
                                     </td>
                                     <td>
                                         <span className="amount-text">{formatMoney(payment.amount)}</span>
                                     </td>
                                     <td>
-                                        <span className={`status-pill status-${payment.status === "paid" ? "paid" : "unpaid"}`}>
+                                        <span
+                                            className={`status-pill status-${payment.status === "paid" ? "paid" : "unpaid"}`}
+                                        >
                                             {displayStatus(payment.status)}
                                         </span>
                                     </td>

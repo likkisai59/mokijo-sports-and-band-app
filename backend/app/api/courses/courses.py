@@ -4,7 +4,7 @@ from datetime import date, datetime
 
 from app.models import schemas
 from app.connectors.connection_service import ConnectionService
-from app.auth.authorization import check_user_authorization
+from app.auth.authorization import check_user_authorization, validate_role_and_permission
 from app.core.helpers import (
     serialize_course,
     serialize_course_registration,
@@ -222,6 +222,7 @@ class CoursesLogic(ConnectionService):
         try:
             with logger.time_operation("GET_COURSES_SUMMARY", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member"], owner_id)
                 courses = db.fetch_all("SELECT * FROM courses WHERE owner_id = %s", (owner_id,))
                 registrations = db.fetch_all("SELECT * FROM course_registrations WHERE owner_id = %s", (owner_id,))
                 
@@ -263,6 +264,7 @@ class CoursesLogic(ConnectionService):
         try:
             with logger.time_operation("GET_COURSES", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member"], owner_id)
                 
                 if member_email:
                     email_clean = member_email.replace(" ", "").lower()
@@ -318,6 +320,7 @@ class CoursesLogic(ConnectionService):
         try:
             with logger.time_operation("CREATE_COURSE", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin"], course.owner_id)
                 if not course.title.strip():
                     raise HTTPException(status_code=400, detail="Course title is required")
                 if course.capacity is not None and course.capacity <= 0:
@@ -362,6 +365,7 @@ class CoursesLogic(ConnectionService):
         try:
             with logger.time_operation("GET_COURSE", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member"], owner_id)
                 course = db.fetch_one(
                     "SELECT * FROM courses WHERE id = %s AND owner_id = %s",
                     (course_id, owner_id)
@@ -386,6 +390,7 @@ class CoursesLogic(ConnectionService):
         try:
             with logger.time_operation("UPDATE_COURSE", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin"], owner_id)
                 course = db.fetch_one(
                     "SELECT * FROM courses WHERE id = %s AND owner_id = %s",
                     (course_id, owner_id)
@@ -432,6 +437,7 @@ class CoursesLogic(ConnectionService):
         try:
             with logger.time_operation("DELETE_COURSE", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin"], owner_id)
                 course = db.fetch_one(
                     "SELECT * FROM courses WHERE id = %s AND owner_id = %s",
                     (course_id, owner_id)
@@ -451,6 +457,7 @@ class CoursesLogic(ConnectionService):
         try:
             with logger.time_operation("GET_COURSE_REGISTRATIONS", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member"], owner_id)
                 course = db.fetch_one(
                     "SELECT * FROM courses WHERE id = %s AND owner_id = %s",
                     (course_id, owner_id)
@@ -479,6 +486,7 @@ class CoursesLogic(ConnectionService):
         try:
             with logger.time_operation("CREATE_COURSE_REGISTRATION", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member", "user"])
                 course = db.fetch_one(
                     "SELECT * FROM courses WHERE id = %s AND owner_id = %s",
                     (course_id, registration.owner_id)
@@ -561,6 +569,7 @@ class CoursesLogic(ConnectionService):
         try:
             with logger.time_operation("UPDATE_COURSE_REGISTRATION", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin"], owner_id)
                 registration = db.fetch_one(
                     "SELECT * FROM course_registrations WHERE id = %s AND owner_id = %s",
                     (registration_id, owner_id)
@@ -598,6 +607,7 @@ class CoursesLogic(ConnectionService):
         try:
             with logger.time_operation("DELETE_COURSE_REGISTRATION", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin"], owner_id)
                 registration = db.fetch_one(
                     "SELECT * FROM course_registrations WHERE id = %s AND owner_id = %s",
                     (registration_id, owner_id)

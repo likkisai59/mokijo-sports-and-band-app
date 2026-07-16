@@ -20,7 +20,12 @@ export default function VenueTopHeader() {
         return () => document.removeEventListener("click", closeDropdown);
     }, [dropdownOpen]);
 
-    const initials = ownerName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+    const initials = ownerName
+        .split(" ")
+        .map((w) => w[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
 
     const handleLogout = () => {
         localStorage.clear();
@@ -32,11 +37,11 @@ export default function VenueTopHeader() {
             <span className="vd-header-logo">Mukijo</span>
             <span className="vd-header-title">Venue Partner Dashboard</span>
             <div className="vd-header-right" style={{ position: "relative" }}>
-                <div 
+                <div
                     className="vd-owner-badge"
                     onClick={(e) => {
                         e.stopPropagation();
-                        setDropdownOpen(prev => !prev);
+                        setDropdownOpen((prev) => !prev);
                     }}
                     style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}
                 >
@@ -45,7 +50,7 @@ export default function VenueTopHeader() {
                 </div>
 
                 {dropdownOpen && (
-                    <div 
+                    <div
                         className="vd-owner-dropdown"
                         style={{
                             position: "absolute",
@@ -57,11 +62,11 @@ export default function VenueTopHeader() {
                             padding: "6px",
                             minWidth: "140px",
                             boxShadow: "0 10px 25px rgba(0, 0, 0, 0.5)",
-                            zIndex: 1000
+                            zIndex: 1000,
                         }}
                     >
-                        <button 
-                            className="vd-logout-btn" 
+                        <button
+                            className="vd-logout-btn"
                             onClick={handleLogout}
                             style={{
                                 width: "100%",
@@ -75,7 +80,7 @@ export default function VenueTopHeader() {
                                 cursor: "pointer",
                                 fontSize: "14px",
                                 borderRadius: "4px",
-                                transition: "background 0.2s"
+                                transition: "background 0.2s",
                             }}
                         >
                             <LogOut size={16} />
@@ -87,4 +92,3 @@ export default function VenueTopHeader() {
         </header>
     );
 }
-

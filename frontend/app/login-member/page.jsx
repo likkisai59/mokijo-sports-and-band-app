@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
@@ -30,7 +31,7 @@ function LoginMemberContent() {
         setLoading(true);
         setError("");
         try {
-            const response = await fetch("http://127.0.0.1:8001/login-member", {
+            const response = await fetch(`${API_BASE_URL}/login-member`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -51,6 +52,8 @@ function LoginMemberContent() {
                 localStorage.setItem("userPhone", data.userPhone || "");
                 localStorage.setItem("memberGroupName", data.groupName || "");
                 localStorage.setItem("approvalStatus", data.approvalStatus || "accepted");
+                localStorage.setItem("userRole", "team_member");
+                localStorage.setItem("accessToken", data.accessToken);
                 window.location.href = "/dashboard";
             } else {
                 const errorData = await response.json().catch(() => ({}));
@@ -71,30 +74,33 @@ function LoginMemberContent() {
                     <div className={styles.header}>
                         <span className={styles.logo}>Mukijo</span>
                         <h1 className={styles.title}>Member Login</h1>
-                        <p className={styles.subtitle}>
-                            Sign in with your approved member credentials
-                        </p>
+                        <p className={styles.subtitle}>Sign in with your approved member credentials</p>
                     </div>
 
                     {showSuccess && (
-                        <div style={{
-                            background: "rgba(245, 158, 11, 0.1)",
-                            border: "1px solid rgba(245, 158, 11, 0.3)",
-                            color: "#fcd34d",
-                            padding: "12px 16px",
-                            borderRadius: "10px",
-                            marginBottom: "20px",
-                            fontSize: "13px",
-                            textAlign: "center",
-                        }}>
-                            <strong>Application submitted!</strong><br />
+                        <div
+                            style={{
+                                background: "rgba(245, 158, 11, 0.1)",
+                                border: "1px solid rgba(245, 158, 11, 0.3)",
+                                color: "#fcd34d",
+                                padding: "12px 16px",
+                                borderRadius: "10px",
+                                marginBottom: "20px",
+                                fontSize: "13px",
+                                textAlign: "center",
+                            }}
+                        >
+                            <strong>Application submitted!</strong>
+                            <br />
                             Your club admin must approve your application before you can log in.
                         </div>
                     )}
 
                     <form className={styles.form} onSubmit={handleSubmit}>
                         <div className={styles.inputGroup}>
-                            <label htmlFor="email" className={styles.label}>Email address</label>
+                            <label htmlFor="email" className={styles.label}>
+                                Email address
+                            </label>
                             <div className={styles.inputWrapper}>
                                 <input
                                     id="email"
@@ -110,7 +116,9 @@ function LoginMemberContent() {
                         </div>
 
                         <div className={styles.inputGroup}>
-                            <label htmlFor="password" className={styles.label}>Password</label>
+                            <label htmlFor="password" className={styles.label}>
+                                Password
+                            </label>
                             <div className={styles.inputWrapper}>
                                 <input
                                     id="password"
@@ -137,7 +145,9 @@ function LoginMemberContent() {
                         </button>
                     </form>
 
-                    <div className={styles.divider}><span>or</span></div>
+                    <div className={styles.divider}>
+                        <span>or</span>
+                    </div>
 
                     <div className={styles.footer}>
                         Not a member yet?{" "}

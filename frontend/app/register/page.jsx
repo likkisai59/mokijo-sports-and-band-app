@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -48,12 +49,12 @@ export default function SignupPage() {
         setLoading(true);
         setError(null);
         try {
-            const apiUrl = `http://127.0.0.1:8001/register`;
+            const apiUrl = `${API_BASE_URL}/register`;
             console.log("Attempting registration at:", apiUrl);
 
             const submissionBody = {
                 ...formData,
-                sport: Array.isArray(formData.sport) ? formData.sport.join(", ") : formData.sport
+                sport: Array.isArray(formData.sport) ? formData.sport.join(", ") : formData.sport,
             };
 
             const response = await fetch(apiUrl, {
@@ -76,13 +77,13 @@ export default function SignupPage() {
             } else {
                 const errorData = await response.json().catch(() => ({}));
                 console.error("Registration failed:", errorData);
-                
+
                 let errorMessage = "Registration failed. Please check your data.";
                 if (errorData.detail) {
                     if (typeof errorData.detail === "string") {
                         errorMessage = errorData.detail;
                     } else if (Array.isArray(errorData.detail)) {
-                        errorMessage = errorData.detail.map(err => err.msg || JSON.stringify(err)).join(", ");
+                        errorMessage = errorData.detail.map((err) => err.msg || JSON.stringify(err)).join(", ");
                     }
                 }
                 setError(errorMessage);
@@ -99,20 +100,22 @@ export default function SignupPage() {
         <div className={styles.pageWrapper}>
             <div className={styles.card}>
                 {error && (
-                    <div style={{
-                        backgroundColor: "#ffe3e3",
-                        color: "#d32f2f",
-                        padding: "12px",
-                        borderRadius: "8px",
-                        marginBottom: "20px",
-                        fontSize: "14px",
-                        textAlign: "center",
-                        border: "1px solid #fbc2c2"
-                    }}>
+                    <div
+                        style={{
+                            backgroundColor: "#ffe3e3",
+                            color: "#d32f2f",
+                            padding: "12px",
+                            borderRadius: "8px",
+                            marginBottom: "20px",
+                            fontSize: "14px",
+                            textAlign: "center",
+                            border: "1px solid #fbc2c2",
+                        }}
+                    >
                         {error}
                     </div>
                 )}
-                
+
                 <div className={styles.brand}>
                     <span className={styles.brandName}>Mukijo</span>
                     <span className={styles.brandTag}>Club Administrator Sign Up</span>
@@ -122,14 +125,20 @@ export default function SignupPage() {
                     <SuccessScreen role="admin" />
                 ) : currentStep === 1 ? (
                     <div style={{ display: "flex", flexDirection: "column" }}>
-                        <Link href="/" className={styles.prevButton} style={{ display: "inline-block", alignSelf: "flex-start", marginBottom: "16px", textDecoration: "none", width: "fit-content" }}>
+                        <Link
+                            href="/"
+                            className={styles.prevButton}
+                            style={{
+                                display: "inline-block",
+                                alignSelf: "flex-start",
+                                marginBottom: "16px",
+                                textDecoration: "none",
+                                width: "fit-content",
+                            }}
+                        >
                             ← Back to Home
                         </Link>
-                        <Step1
-                            formData={formData}
-                            onChange={handleChange}
-                            onNext={handleNext}
-                        />
+                        <Step1 formData={formData} onChange={handleChange} onNext={handleNext} />
                     </div>
                 ) : (
                     <Step2

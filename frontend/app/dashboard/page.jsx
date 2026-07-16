@@ -42,12 +42,24 @@ export default function DashboardPage() {
         return (
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px" }}>
                 <div style={{ textAlign: "center", color: "#64748b" }}>
-                    <div style={{ width: "40px", height: "40px", border: "4px solid #cbd5e1", borderTopColor: "#2563eb", borderRadius: "50%", animation: "spin 1s linear infinite", margin: "0 auto 16px" }}></div>
+                    <div
+                        style={{
+                            width: "40px",
+                            height: "40px",
+                            border: "4px solid #cbd5e1",
+                            borderTopColor: "#2563eb",
+                            borderRadius: "50%",
+                            animation: "spin 1s linear infinite",
+                            margin: "0 auto 16px",
+                        }}
+                    ></div>
                     <p style={{ fontWeight: 600 }}>Verifying credentials & role view...</p>
                 </div>
                 <style jsx>{`
                     @keyframes spin {
-                        to { transform: rotate(360deg); }
+                        to {
+                            transform: rotate(360deg);
+                        }
                     }
                 `}</style>
             </div>

@@ -1,11 +1,12 @@
 "use client";
+import { API_BASE_URL, WS_BASE_URL } from "@/lib/api";
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import { Trophy, Clock, MapPin, Calendar, RefreshCw } from "lucide-react";
 import "../../styles/matches.css";
 
-const API = "http://127.0.0.1:8001";
-const WS_API = "ws://127.0.0.1:8001";
+const API = API_BASE_URL;
+const WS_API = WS_BASE_URL;
 
 export default function PublicScoreboardPage() {
     const params = useParams();
@@ -96,7 +97,10 @@ export default function PublicScoreboardPage() {
         return (
             <div className="pub-root">
                 <div style={{ textAlign: "center" }}>
-                    <div className="vd-spinner" style={{ width: "40px", height: "40px", borderWidth: "3px", margin: "0 auto 16px" }} />
+                    <div
+                        className="vd-spinner"
+                        style={{ width: "40px", height: "40px", borderWidth: "3px", margin: "0 auto 16px" }}
+                    />
                     <p style={{ color: "var(--vd-muted)", fontSize: "14px" }}>Loading live scoreboard feed…</p>
                 </div>
             </div>
@@ -119,14 +123,19 @@ export default function PublicScoreboardPage() {
 
     const teamA = match.teams[0] || { team_name: "Team A", score: 0 };
     const teamB = match.teams[1] || { team_name: "Team B", score: 0 };
-    const scheduledDate = match.scheduled_at 
-        ? new Date(match.scheduled_at).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    const scheduledDate = match.scheduled_at
+        ? new Date(match.scheduled_at).toLocaleDateString(undefined, {
+              weekday: "long",
+              month: "short",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+          })
         : null;
 
     return (
         <div className="pub-root">
             <div className="pub-container">
-                
                 {/* Scoreboard Widget */}
                 <div className="pub-card">
                     {/* Status badge */}
@@ -137,51 +146,104 @@ export default function PublicScoreboardPage() {
                                 LIVE BROADCAST
                             </span>
                         ) : match.status === "completed" ? (
-                            <span className="pub-live-glow" style={{ color: "var(--vd-muted)", background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.15)" }}>
+                            <span
+                                className="pub-live-glow"
+                                style={{
+                                    color: "var(--vd-muted)",
+                                    background: "rgba(255,255,255,0.04)",
+                                    borderColor: "rgba(255,255,255,0.15)",
+                                }}
+                            >
                                 FINAL RESULT
                             </span>
                         ) : (
-                            <span className="pub-live-glow" style={{ color: "var(--vd-cyan)", background: "rgba(0, 240, 255, 0.04)", borderColor: "rgba(0, 240, 255, 0.2)" }}>
+                            <span
+                                className="pub-live-glow"
+                                style={{
+                                    color: "var(--vd-cyan)",
+                                    background: "rgba(0, 240, 255, 0.04)",
+                                    borderColor: "rgba(0, 240, 255, 0.2)",
+                                }}
+                            >
                                 UPCOMING MATCH
                             </span>
                         )}
                     </div>
 
-                    <div style={{ fontSize: "13px", fontWeight: "700", textTransform: "uppercase", color: "var(--vd-brand)", letterSpacing: "1px" }}>
+                    <div
+                        style={{
+                            fontSize: "13px",
+                            fontWeight: "700",
+                            textTransform: "uppercase",
+                            color: "var(--vd-brand)",
+                            letterSpacing: "1px",
+                        }}
+                    >
                         {match.sport} Match
                     </div>
 
-                    <h1 style={{ fontSize: "24px", fontWeight: "800", color: "#fff", marginTop: "8px", marginBottom: "28px" }}>{match.title}</h1>
+                    <h1
+                        style={{
+                            fontSize: "24px",
+                            fontWeight: "800",
+                            color: "#fff",
+                            marginTop: "8px",
+                            marginBottom: "28px",
+                        }}
+                    >
+                        {match.title}
+                    </h1>
 
                     {/* Scores Display */}
                     <div className="pub-score-display">
                         {/* Team A */}
                         <div className="pub-team" style={{ textAlign: "right" }}>
-                            <div className="pub-team-name" style={{ color: teamA.color || "var(--vd-brand)" }}>{teamA.team_name}</div>
+                            <div className="pub-team-name" style={{ color: teamA.color || "var(--vd-brand)" }}>
+                                {teamA.team_name}
+                            </div>
                             {teamA.club_name && <div className="pub-team-club">{teamA.club_name}</div>}
                         </div>
 
                         {/* Team A Score */}
-                        <div className="pub-score-num" style={{ textShadow: `0 0 30px ${teamA.color || "var(--vd-brand)"}22` }}>
+                        <div
+                            className="pub-score-num"
+                            style={{ textShadow: `0 0 30px ${teamA.color || "var(--vd-brand)"}22` }}
+                        >
                             {teamA.score}
                         </div>
 
                         <div className="pub-vs">vs</div>
 
                         {/* Team B Score */}
-                        <div className="pub-score-num" style={{ textShadow: `0 0 30px ${teamB.color || "var(--vd-cyan)"}22` }}>
+                        <div
+                            className="pub-score-num"
+                            style={{ textShadow: `0 0 30px ${teamB.color || "var(--vd-cyan)"}22` }}
+                        >
                             {teamB.score}
                         </div>
 
                         {/* Team B */}
                         <div className="pub-team" style={{ textAlign: "left" }}>
-                            <div className="pub-team-name" style={{ color: teamB.color || "var(--vd-cyan)" }}>{teamB.team_name}</div>
+                            <div className="pub-team-name" style={{ color: teamB.color || "var(--vd-cyan)" }}>
+                                {teamB.team_name}
+                            </div>
                             {teamB.club_name && <div className="pub-team-club">{teamB.club_name}</div>}
                         </div>
                     </div>
 
                     {/* Footer Info */}
-                    <div style={{ display: "flex", justifyContent: "center", gap: "24px", fontSize: "13px", color: "var(--vd-muted)", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "24px", marginTop: "12px" }}>
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            gap: "24px",
+                            fontSize: "13px",
+                            color: "var(--vd-muted)",
+                            borderTop: "1px solid rgba(255,255,255,0.06)",
+                            paddingTop: "24px",
+                            marginTop: "12px",
+                        }}
+                    >
                         {scheduledDate && (
                             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                                 <Calendar size={14} />
@@ -199,20 +261,53 @@ export default function PublicScoreboardPage() {
 
                 {/* Event Timeline Widget */}
                 <div className="pub-timeline">
-                    <h2 style={{ fontSize: "16px", fontWeight: "800", color: "#fff", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <h2
+                        style={{
+                            fontSize: "16px",
+                            fontWeight: "800",
+                            color: "#fff",
+                            marginBottom: "20px",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                        }}
+                    >
                         <span>Match Timeline</span>
                         {match.status === "live" && (
-                            <span style={{ fontSize: "11px", color: wsConnected ? "var(--vd-brand)" : "#ff3b30", display: "flex", alignItems: "center", gap: "6px" }}>
-                                <span className="pub-live-dot" style={{ backgroundColor: wsConnected ? "var(--vd-brand)" : "#ff3b30" }} />
+                            <span
+                                style={{
+                                    fontSize: "11px",
+                                    color: wsConnected ? "var(--vd-brand)" : "#ff3b30",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "6px",
+                                }}
+                            >
+                                <span
+                                    className="pub-live-dot"
+                                    style={{ backgroundColor: wsConnected ? "var(--vd-brand)" : "#ff3b30" }}
+                                />
                                 {wsConnected ? "Auto-updating in real-time" : "Connecting feed..."}
                             </span>
                         )}
                     </h2>
 
-                    <div style={{ display: "flex", flexDirection: "column", gap: "14px", maxHeight: "360px", overflowY: "auto" }}>
+                    <div
+                        style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "14px",
+                            maxHeight: "360px",
+                            overflowY: "auto",
+                        }}
+                    >
                         {match.events && match.events.length > 0 ? (
                             match.events.map((evt, idx) => (
-                                <div key={evt.id || idx} className="timeline-item" style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                                <div
+                                    key={evt.id || idx}
+                                    className="timeline-item"
+                                    style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+                                >
                                     <span className="timeline-time">
                                         {evt.minute !== null && evt.minute !== undefined ? `${evt.minute}'` : "Live"}
                                     </span>
@@ -220,21 +315,27 @@ export default function PublicScoreboardPage() {
                                         <div className="timeline-title" style={{ fontWeight: "700" }}>
                                             {evt.event_type.replace("_", " ").toUpperCase()}
                                         </div>
-                                        <div className="timeline-desc" style={{ color: "rgba(255,255,255,0.7)" }}>{evt.description}</div>
+                                        <div className="timeline-desc" style={{ color: "rgba(255,255,255,0.7)" }}>
+                                            {evt.description}
+                                        </div>
                                     </div>
-                                    {evt.score_at_event && (
-                                        <span className="timeline-score">{evt.score_at_event}</span>
-                                    )}
+                                    {evt.score_at_event && <span className="timeline-score">{evt.score_at_event}</span>}
                                 </div>
                             ))
                         ) : (
-                            <div style={{ color: "var(--vd-muted)", fontSize: "14px", textAlign: "center", padding: "40px 0" }}>
+                            <div
+                                style={{
+                                    color: "var(--vd-muted)",
+                                    fontSize: "14px",
+                                    textAlign: "center",
+                                    padding: "40px 0",
+                                }}
+                            >
                                 The match has not started or no events have been logged yet.
                             </div>
                         )}
                     </div>
                 </div>
-
             </div>
         </div>
     );

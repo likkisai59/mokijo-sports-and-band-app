@@ -1,12 +1,13 @@
 "use client";
+import { API_BASE_URL, WS_BASE_URL } from "@/lib/api";
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Save, Plus, AlertCircle, RefreshCw, Send, CheckCircle, Clock } from "lucide-react";
 import "../../../../styles/matches.css";
 
-const API = "http://127.0.0.1:8001";
-const WS_API = "ws://127.0.0.1:8001";
+const API = API_BASE_URL;
+const WS_API = WS_BASE_URL;
 
 const EVENT_TYPES = [
     { value: "score_update", label: "Score (Goal / Point)" },
@@ -16,7 +17,7 @@ const EVENT_TYPES = [
     { value: "timeout", label: "Timeout" },
     { value: "halftime", label: "Halftime" },
     { value: "substitution", label: "Substitution" },
-    { value: "general", label: "General Note" }
+    { value: "general", label: "General Note" },
 ];
 
 export default function MatchManagePage() {
@@ -27,7 +28,7 @@ export default function MatchManagePage() {
     const [match, setMatch] = useState(null);
     const [loading, setLoading] = useState(true);
     const [wsConnected, setWsConnected] = useState(false);
-    
+
     // Log Custom Event Form States
     const [eventType, setEventType] = useState("general");
     const [eventDesc, setEventDesc] = useState("");
@@ -116,9 +117,9 @@ export default function MatchManagePage() {
         const newScore = Math.max(0, currentScore + delta);
         if (newScore === currentScore) return;
 
-        const team = match.teams.find(t => t.id === teamId);
+        const team = match.teams.find((t) => t.id === teamId);
         const actionLabel = delta > 0 ? "scored" : "score corrected";
-        
+
         let scoreEventDesc = `${team.team_name} score updated to ${newScore}.`;
         let logEventType = "score_update";
 
@@ -141,8 +142,8 @@ export default function MatchManagePage() {
                     new_score: newScore,
                     event_type: logEventType,
                     description: scoreEventDesc,
-                    minute: eventMinute ? Number(eventMinute) : null
-                })
+                    minute: eventMinute ? Number(eventMinute) : null,
+                }),
             });
 
             if (!r.ok) {
@@ -168,8 +169,8 @@ export default function MatchManagePage() {
                     event_type: eventType,
                     description: eventDesc.trim(),
                     minute: eventMinute ? Number(eventMinute) : null,
-                    team_id: null
-                })
+                    team_id: null,
+                }),
             });
 
             if (r.ok) {
@@ -186,12 +187,17 @@ export default function MatchManagePage() {
     };
 
     const handleFinishMatch = async () => {
-        if (!confirm("Are you sure you want to finish this match? This action will set the match status to Completed and declare the winner based on current scores.")) return;
+        if (
+            !confirm(
+                "Are you sure you want to finish this match? This action will set the match status to Completed and declare the winner based on current scores."
+            )
+        )
+            return;
         try {
             const r = await fetch(`${API}/matches/${matchId}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: "completed" })
+                body: JSON.stringify({ status: "completed" }),
             });
 
             if (r.ok) {
@@ -205,7 +211,11 @@ export default function MatchManagePage() {
     };
 
     if (loading) {
-        return <div className="vd-loading"><div className="vd-spinner" /> Loading scorekeeper dashboard…</div>;
+        return (
+            <div className="vd-loading">
+                <div className="vd-spinner" /> Loading scorekeeper dashboard…
+            </div>
+        );
     }
 
     if (!match) {
@@ -213,8 +223,14 @@ export default function MatchManagePage() {
             <div className="vd-card" style={{ padding: 48, textAlign: "center" }}>
                 <div style={{ color: "#ff3b30", fontSize: "36px", marginBottom: "16px" }}>⚠️</div>
                 <h2 style={{ color: "#fff" }}>Match Not Found</h2>
-                <p style={{ color: "var(--vd-muted)", marginTop: "8px" }}>The match you are trying to manage does not exist or has been deleted.</p>
-                <Link href="/venue-dashboard/matches" className="m-btn secondary" style={{ display: "inline-flex", marginTop: "24px", width: "200px" }}>
+                <p style={{ color: "var(--vd-muted)", marginTop: "8px" }}>
+                    The match you are trying to manage does not exist or has been deleted.
+                </p>
+                <Link
+                    href="/venue-dashboard/matches"
+                    className="m-btn secondary"
+                    style={{ display: "inline-flex", marginTop: "24px", width: "200px" }}
+                >
                     Back to Matches
                 </Link>
             </div>
@@ -227,35 +243,50 @@ export default function MatchManagePage() {
     return (
         <>
             {/* Header section */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+            <div
+                style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}
+            >
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                    <Link href="/venue-dashboard/matches" style={{ color: "var(--vd-muted)", display: "flex", alignItems: "center" }}>
+                    <Link
+                        href="/venue-dashboard/matches"
+                        style={{ color: "var(--vd-muted)", display: "flex", alignItems: "center" }}
+                    >
                         <ArrowLeft size={20} />
                     </Link>
                     <div>
-                        <h1 className="vd-page-title" style={{ margin: 0 }}>Scorekeeper Panel</h1>
-                        <p className="vd-page-sub">Updating live feed for: <strong style={{ color: "#fff" }}>{match.title}</strong></p>
+                        <h1 className="vd-page-title" style={{ margin: 0 }}>
+                            Scorekeeper Panel
+                        </h1>
+                        <p className="vd-page-sub">
+                            Updating live feed for: <strong style={{ color: "#fff" }}>{match.title}</strong>
+                        </p>
                     </div>
                 </div>
 
                 <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-                    <span style={{ 
-                        display: "inline-flex", 
-                        alignItems: "center", 
-                        gap: "6px", 
-                        fontSize: "12px", 
-                        fontWeight: "600",
-                        color: wsConnected ? "var(--vd-brand)" : "#ff3b30",
-                        background: wsConnected ? "rgba(191, 254, 0, 0.06)" : "rgba(255, 59, 48, 0.06)",
-                        padding: "6px 12px",
-                        borderRadius: "8px",
-                        border: `1px solid ${wsConnected ? "rgba(191, 254, 0, 0.2)" : "rgba(255, 59, 48, 0.2)"}`
-                    }}>
+                    <span
+                        style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            fontSize: "12px",
+                            fontWeight: "600",
+                            color: wsConnected ? "var(--vd-brand)" : "#ff3b30",
+                            background: wsConnected ? "rgba(191, 254, 0, 0.06)" : "rgba(255, 59, 48, 0.06)",
+                            padding: "6px 12px",
+                            borderRadius: "8px",
+                            border: `1px solid ${wsConnected ? "rgba(191, 254, 0, 0.2)" : "rgba(255, 59, 48, 0.2)"}`,
+                        }}
+                    >
                         <RefreshCw size={12} className={wsConnected ? "" : "animate-spin"} />
                         {wsConnected ? "Live Connection Active" : "Disconnected, Reconnecting..."}
                     </span>
 
-                    <button onClick={handleFinishMatch} className="m-btn primary" style={{ background: "#ff3b30", color: "#fff" }}>
+                    <button
+                        onClick={handleFinishMatch}
+                        className="m-btn primary"
+                        style={{ background: "#ff3b30", color: "#fff" }}
+                    >
                         <CheckCircle size={14} />
                         Finish Match
                     </button>
@@ -264,24 +295,43 @@ export default function MatchManagePage() {
 
             {/* Scorekeeper Layout */}
             <div className="op-layout">
-                
                 {/* Left Column: Scores & Logs */}
                 <div>
                     {/* Score Control Card */}
                     <div className="op-scoreboard-card">
-                        <div className="op-match-title">{match.sport} · {match.match_type.replace("_", "-").toUpperCase()}</div>
-                        <div style={{ fontSize: "12px", color: "var(--vd-muted)", margin: "4px 0" }}>{match.venue || "No venue assigned"}</div>
-                        
+                        <div className="op-match-title">
+                            {match.sport} · {match.match_type.replace("_", "-").toUpperCase()}
+                        </div>
+                        <div style={{ fontSize: "12px", color: "var(--vd-muted)", margin: "4px 0" }}>
+                            {match.venue || "No venue assigned"}
+                        </div>
+
                         <div className="op-teams-grid">
                             {/* Team A */}
                             <div className="op-team-col">
                                 <div className="op-team-name">{teamA?.team_name}</div>
-                                <div className="op-score-box" style={{ borderColor: teamA?.color || "var(--vd-brand)", textShadow: `0 0 10px ${teamA?.color || "var(--vd-brand)"}33` }}>
+                                <div
+                                    className="op-score-box"
+                                    style={{
+                                        borderColor: teamA?.color || "var(--vd-brand)",
+                                        textShadow: `0 0 10px ${teamA?.color || "var(--vd-brand)"}33`,
+                                    }}
+                                >
                                     {teamA?.score}
                                 </div>
                                 <div className="op-score-btns">
-                                    <button onClick={() => handleScoreChange(teamA.id, teamA.score, -1)} className="op-score-btn minus">-1</button>
-                                    <button onClick={() => handleScoreChange(teamA.id, teamA.score, 1)} className="op-score-btn plus">+1</button>
+                                    <button
+                                        onClick={() => handleScoreChange(teamA.id, teamA.score, -1)}
+                                        className="op-score-btn minus"
+                                    >
+                                        -1
+                                    </button>
+                                    <button
+                                        onClick={() => handleScoreChange(teamA.id, teamA.score, 1)}
+                                        className="op-score-btn plus"
+                                    >
+                                        +1
+                                    </button>
                                 </div>
                             </div>
 
@@ -290,12 +340,29 @@ export default function MatchManagePage() {
                             {/* Team B */}
                             <div className="op-team-col">
                                 <div className="op-team-name">{teamB?.team_name}</div>
-                                <div className="op-score-box" style={{ borderColor: teamB?.color || "var(--vd-cyan)", textShadow: `0 0 10px ${teamB?.color || "var(--vd-cyan)"}33` }}>
+                                <div
+                                    className="op-score-box"
+                                    style={{
+                                        borderColor: teamB?.color || "var(--vd-cyan)",
+                                        textShadow: `0 0 10px ${teamB?.color || "var(--vd-cyan)"}33`,
+                                    }}
+                                >
                                     {teamB?.score}
                                 </div>
                                 <div className="op-score-btns">
-                                    <button onClick={() => handleScoreChange(teamB.id, teamB.score, -1)} className="op-score-btn minus">-1</button>
-                                    <button onClick={() => handleScoreChange(teamB.id, teamB.score, 1)} className="op-score-btn plus" style={{ backgroundColor: "var(--vd-cyan)" }}>+1</button>
+                                    <button
+                                        onClick={() => handleScoreChange(teamB.id, teamB.score, -1)}
+                                        className="op-score-btn minus"
+                                    >
+                                        -1
+                                    </button>
+                                    <button
+                                        onClick={() => handleScoreChange(teamB.id, teamB.score, 1)}
+                                        className="op-score-btn plus"
+                                        style={{ backgroundColor: "var(--vd-cyan)" }}
+                                    >
+                                        +1
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -303,29 +370,33 @@ export default function MatchManagePage() {
 
                     {/* Event Logger Form */}
                     <div className="op-log-form">
-                        <h2 style={{ fontSize: "16px", fontWeight: "700", color: "#fff", marginBottom: "16px" }}>Log Match Event</h2>
-                        
+                        <h2 style={{ fontSize: "16px", fontWeight: "700", color: "#fff", marginBottom: "16px" }}>
+                            Log Match Event
+                        </h2>
+
                         <form onSubmit={handleLogEvent}>
                             <div className="m-grid-2">
                                 <div className="m-input-group">
                                     <label className="m-label">Event Type</label>
-                                    <select 
-                                        className="m-select" 
-                                        value={eventType} 
+                                    <select
+                                        className="m-select"
+                                        value={eventType}
                                         onChange={(e) => setEventType(e.target.value)}
                                     >
-                                        {EVENT_TYPES.map(type => (
-                                            <option key={type.value} value={type.value}>{type.label}</option>
+                                        {EVENT_TYPES.map((type) => (
+                                            <option key={type.value} value={type.value}>
+                                                {type.label}
+                                            </option>
                                         ))}
                                     </select>
                                 </div>
 
                                 <div className="m-input-group">
                                     <label className="m-label">Match Minute (Optional)</label>
-                                    <input 
-                                        type="number" 
-                                        className="m-input" 
-                                        placeholder="e.g. 45" 
+                                    <input
+                                        type="number"
+                                        className="m-input"
+                                        placeholder="e.g. 45"
                                         min="0"
                                         max="180"
                                         value={eventMinute}
@@ -337,20 +408,26 @@ export default function MatchManagePage() {
                             <div className="m-input-group">
                                 <label className="m-label">Event Description *</label>
                                 <div style={{ display: "flex", gap: "10px" }}>
-                                    <input 
-                                        type="text" 
-                                        className="m-input" 
-                                        placeholder="e.g. Yellow card for jersey #7, Corner kick, Halftime whistle" 
+                                    <input
+                                        type="text"
+                                        className="m-input"
+                                        placeholder="e.g. Yellow card for jersey #7, Corner kick, Halftime whistle"
                                         style={{ flexGrow: 1 }}
                                         value={eventDesc}
                                         onChange={(e) => setEventDesc(e.target.value)}
                                         required
                                     />
-                                    <button 
-                                        type="submit" 
-                                        disabled={submittingEvent || !eventDesc.trim()} 
-                                        className="m-btn primary" 
-                                        style={{ flex: "0 0 auto", width: "120px", display: "flex", alignItems: "center", justifyContent: "center" }}
+                                    <button
+                                        type="submit"
+                                        disabled={submittingEvent || !eventDesc.trim()}
+                                        className="m-btn primary"
+                                        style={{
+                                            flex: "0 0 auto",
+                                            width: "120px",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                        }}
                                     >
                                         <Send size={14} />
                                         Log
@@ -381,19 +458,23 @@ export default function MatchManagePage() {
                                         </div>
                                         <div className="timeline-desc">{evt.description}</div>
                                     </div>
-                                    {evt.score_at_event && (
-                                        <span className="timeline-score">{evt.score_at_event}</span>
-                                    )}
+                                    {evt.score_at_event && <span className="timeline-score">{evt.score_at_event}</span>}
                                 </div>
                             ))
                         ) : (
-                            <div style={{ color: "var(--vd-muted)", fontSize: "13px", textAlign: "center", padding: "40px 0" }}>
+                            <div
+                                style={{
+                                    color: "var(--vd-muted)",
+                                    fontSize: "13px",
+                                    textAlign: "center",
+                                    padding: "40px 0",
+                                }}
+                            >
                                 No events logged yet. Match updates will appear here in chronological order.
                             </div>
                         )}
                     </div>
                 </div>
-
             </div>
         </>
     );

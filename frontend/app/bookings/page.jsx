@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -22,7 +23,7 @@ export default function MyBookingsPage() {
         }
 
         try {
-            const res = await fetch(`http://127.0.0.1:8001/users/${userId}/bookings`);
+            const res = await fetch(`${API_BASE_URL}/users/${userId}/bookings`);
             if (res.ok) {
                 const data = await res.json();
                 setBookings(data || []);
@@ -46,7 +47,7 @@ export default function MyBookingsPage() {
         setCancellingId(bookingId);
 
         try {
-            const res = await fetch(`http://127.0.0.1:8001/bookings/${bookingId}/cancel`, {
+            const res = await fetch(`${API_BASE_URL}/bookings/${bookingId}/cancel`, {
                 method: "POST",
             });
 
@@ -147,9 +148,15 @@ export default function MyBookingsPage() {
                     /* Bookings list */
                     <div style={styles.list}>
                         {displayList.map((booking) => {
-                            const date = booking.slots && booking.slots.length > 0
-                                ? new Date(booking.slots[0].start_time).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" })
-                                : "Unknown Date";
+                            const date =
+                                booking.slots && booking.slots.length > 0
+                                    ? new Date(booking.slots[0].start_time).toLocaleDateString("en-US", {
+                                          weekday: "long",
+                                          month: "short",
+                                          day: "numeric",
+                                          year: "numeric",
+                                      })
+                                    : "Unknown Date";
 
                             const isCancelled = booking.status === "cancelled";
                             const isPaid = booking.payment_status === "paid" || booking.status === "confirmed";
@@ -160,28 +167,28 @@ export default function MyBookingsPage() {
                                         <div style={styles.sportHeader}>
                                             <Trophy size={18} style={{ color: "#bffe00" }} />
                                             <span style={styles.sportLabel}>
-                                                {booking.slots && booking.slots.length > 0 ? booking.slots[0].sport.toUpperCase() : "SPORTS"}
+                                                {booking.slots && booking.slots.length > 0
+                                                    ? booking.slots[0].sport.toUpperCase()
+                                                    : "SPORTS"}
                                             </span>
                                         </div>
                                         {/* Status badge */}
-                                        <div style={{
-                                            ...styles.badge,
-                                            backgroundColor: isCancelled 
-                                                ? "rgba(239, 68, 68, 0.1)" 
-                                                : isPaid 
-                                                    ? "rgba(16, 185, 129, 0.1)" 
-                                                    : "rgba(234, 179, 8, 0.1)",
-                                            color: isCancelled 
-                                                ? "#f87171" 
-                                                : isPaid 
-                                                    ? "#34d399" 
-                                                    : "#fbbf24",
-                                            borderColor: isCancelled 
-                                                ? "rgba(239, 68, 68, 0.2)" 
-                                                : isPaid 
-                                                    ? "rgba(16, 185, 129, 0.2)" 
-                                                    : "rgba(234, 179, 8, 0.2)",
-                                        }}>
+                                        <div
+                                            style={{
+                                                ...styles.badge,
+                                                backgroundColor: isCancelled
+                                                    ? "rgba(239, 68, 68, 0.1)"
+                                                    : isPaid
+                                                      ? "rgba(16, 185, 129, 0.1)"
+                                                      : "rgba(234, 179, 8, 0.1)",
+                                                color: isCancelled ? "#f87171" : isPaid ? "#34d399" : "#fbbf24",
+                                                borderColor: isCancelled
+                                                    ? "rgba(239, 68, 68, 0.2)"
+                                                    : isPaid
+                                                      ? "rgba(16, 185, 129, 0.2)"
+                                                      : "rgba(234, 179, 8, 0.2)",
+                                            }}
+                                        >
                                             {isCancelled ? "CANCELLED" : isPaid ? "CONFIRMED" : "HOLDING (UNPAID)"}
                                         </div>
                                     </div>
@@ -192,28 +199,44 @@ export default function MyBookingsPage() {
                                             <Calendar size={14} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
                                             <span>{date}</span>
                                         </div>
-                                        
-                                        {booking.slots && booking.slots.map((slot) => {
-                                            const startStr = new Date(slot.start_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-                                            const endStr = new Date(slot.end_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-                                            return (
-                                                <div key={slot.id} style={styles.detailItem}>
-                                                    <Clock size={14} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
-                                                    <span>{startStr} - {endStr} (₹{slot.current_price})</span>
-                                                </div>
-                                            );
-                                        })}
+
+                                        {booking.slots &&
+                                            booking.slots.map((slot) => {
+                                                const startStr = new Date(slot.start_time).toLocaleTimeString([], {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                });
+                                                const endStr = new Date(slot.end_time).toLocaleTimeString([], {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                });
+                                                return (
+                                                    <div key={slot.id} style={styles.detailItem}>
+                                                        <Clock
+                                                            size={14}
+                                                            style={{ color: "rgba(148, 163, 184, 0.6)" }}
+                                                        />
+                                                        <span>
+                                                            {startStr} - {endStr} (₹{slot.current_price})
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })}
                                     </div>
 
                                     {/* Metadata billing / cancellations */}
                                     <div style={styles.cardFooter}>
                                         <div style={styles.metaInfo}>
-                                            <span>Booking ID: <strong>#MK-{booking.id}</strong></span>
+                                            <span>
+                                                Booking ID: <strong>#MK-{booking.id}</strong>
+                                            </span>
                                             {booking.payment_id && (
-                                                <span style={{ marginLeft: "16px" }}>Ref: <strong>{booking.payment_id}</strong></span>
+                                                <span style={{ marginLeft: "16px" }}>
+                                                    Ref: <strong>{booking.payment_id}</strong>
+                                                </span>
                                             )}
                                         </div>
-                                        
+
                                         {/* Actions */}
                                         {!isCancelled && activeTab === "upcoming" && (
                                             <button

@@ -29,7 +29,10 @@ def serialize_venue(venue, db):
         "rating": venue.get("rating"),
         "cover_image": venue.get("cover_image"),
         "venue_images": venue.get("venue_images"),
-        "distance": distance
+        "distance": distance,
+        "verification_status": venue.get("verification_status", "DRAFT"),
+        "is_verified": venue.get("verification_status") == "VERIFIED",
+        "verified_at": venue.get("verified_at").isoformat() if venue.get("verified_at") else None,
     }
 
 
@@ -329,7 +332,8 @@ class VenuesLogic(ConnectionService):
                     "amenities": venue.amenities,
                     "rating": venue.rating or 5.0,
                     "cover_image": venue.cover_image,
-                    "venue_images": venue.venue_images
+                    "venue_images": venue.venue_images,
+                    "verification_status": "DRAFT",
                 }
                 v_id = db.insert("venues", insert_data)
                 new_v = db.fetch_one("SELECT * FROM venues WHERE id = %s", (v_id,))
@@ -356,7 +360,7 @@ class VenuesLogic(ConnectionService):
         try:
             with logger.time_operation("GET_VENUES", request=request):
                 db = self.db_driver
-                query = "SELECT * FROM venues WHERE venue_owner_id IS NOT NULL"
+                query = "SELECT * FROM venues WHERE venue_owner_id IS NOT NULL AND verification_status = 'VERIFIED'"
                 params = []
 
                 if sport and sport != "all":
@@ -586,9 +590,15 @@ class VenuesLogic(ConnectionService):
                 if not booking.slot_ids:
                     raise HTTPException(status_code=400, detail="No slot IDs specified")
 
+                # ── Verify the venue is VERIFIED before booking ──────────────
+                first_slot = db.fetch_one("SELECT venue_id FROM slots WHERE id = %s LIMIT 1", (booking.slot_ids[0],))
+                if first_slot:
+                    venue_check = db.fetch_one("SELECT verification_status FROM venues WHERE id = %s LIMIT 1", (first_slot.get("venue_id"),))
+                    if not venue_check or venue_check.get("verification_status") != "VERIFIED":
+                        raise HTTPException(status_code=400, detail="This venue is not verified and cannot accept bookings.")
+                # ─────────────────────────────────────────────────────────────
+
                 placeholders = ", ".join(["%s"] * len(booking.slot_ids))
-                # Using standard select because connection service execute_query runs inside transaction
-                # We can enforce locking by adding FOR UPDATE
                 slots = db.fetch_all(
                     f"SELECT * FROM slots WHERE id IN ({placeholders}) FOR UPDATE",
                     tuple(booking.slot_ids)
@@ -937,6 +947,14 @@ class VenuesLogic(ConnectionService):
                 if not req.slot_ids:
                     raise HTTPException(status_code=400, detail="No slot IDs provided")
 
+                # ── Verify venue is VERIFIED before allowing hold ──────────────
+                first_slot_row = db.fetch_one("SELECT venue_id FROM slots WHERE id = %s LIMIT 1", (req.slot_ids[0],))
+                if first_slot_row:
+                    v_check = db.fetch_one("SELECT verification_status FROM venues WHERE id = %s LIMIT 1", (first_slot_row.get("venue_id"),))
+                    if not v_check or v_check.get("verification_status") != "VERIFIED":
+                        raise HTTPException(status_code=400, detail="This venue is not verified and cannot accept bookings.")
+                # ──────────────────────────────────────────────────────────────
+
                 # Lock slot rows for update
                 placeholders = ", ".join(["%s"] * len(req.slot_ids))
                 slots = db.fetch_all(
@@ -949,6 +967,7 @@ class VenuesLogic(ConnectionService):
                         status_code=409,
                         detail="One or more selected slots are currently locked in checkout by another session."
                     )
+
 
                 for s in slots:
                     status_val = s.get("status") or "AVAILABLE"

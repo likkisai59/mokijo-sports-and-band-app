@@ -1,12 +1,40 @@
 "use client";
+import { API_BASE_URL, WS_BASE_URL } from "@/lib/api";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { 
-    LogOut, Calendar, Trophy, Award, MapPin, Activity, Bell, Compass, Clock, Search, Star, Loader2,
-    Home as HomeIcon, Bike, Waves, Target, Flag, Shield, Users, UserCheck, Dumbbell, Sparkles, Flame, Heart, Gamepad2, Sword, PlusCircle, Play,
-    CalendarCheck, Locate
+import {
+    LogOut,
+    Calendar,
+    Trophy,
+    Award,
+    MapPin,
+    Activity,
+    Bell,
+    Compass,
+    Clock,
+    Search,
+    Star,
+    Loader2,
+    Home as HomeIcon,
+    Bike,
+    Waves,
+    Target,
+    Flag,
+    Shield,
+    Users,
+    UserCheck,
+    Dumbbell,
+    Sparkles,
+    Flame,
+    Heart,
+    Gamepad2,
+    Sword,
+    PlusCircle,
+    Play,
+    CalendarCheck,
+    Locate,
 } from "lucide-react";
 
 export default function UserDashboard() {
@@ -107,7 +135,7 @@ export default function UserDashboard() {
                     }
                 }
 
-                const response = await fetch(`http://127.0.0.1:8001/venues?${queryParams.toString()}`);
+                const response = await fetch(`${API_BASE_URL}/venues?${queryParams.toString()}`);
                 if (response.ok) {
                     const data = await response.json();
                     setVenues(data || []);
@@ -159,7 +187,7 @@ export default function UserDashboard() {
         if (!userId) return;
         setLoadingBookings(true);
         try {
-            const res = await fetch(`http://127.0.0.1:8001/users/${userId}/bookings`);
+            const res = await fetch(`${API_BASE_URL}/users/${userId}/bookings`);
             if (res.ok) {
                 const data = await res.json();
                 setBookings(data || []);
@@ -176,24 +204,24 @@ export default function UserDashboard() {
         if (!userId) return;
         setLoadingHostedGames(true);
         try {
-            const res = await fetch(`http://127.0.0.1:8001/users/${userId}/games`);
+            const res = await fetch(`${API_BASE_URL}/users/${userId}/games`);
             if (res.ok) {
                 const data = await res.json();
-                const mappedGames = data.map(game => {
+                const mappedGames = data.map((game) => {
                     const dt = new Date(game.slot_start);
                     return {
                         id: game.id,
                         owner_id: game.host_id,
                         sport: game.sport,
-                        date: dt.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }),
-                        time: dt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
+                        date: dt.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }),
+                        time: dt.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
                         location: "Venue Sports Court",
                         max_players: game.total_spots,
                         current_players: game.current_players,
                         skill_level: "All",
                         privacy_type: game.visibility,
                         status: game.status,
-                        price: game.price_per_player
+                        price: game.price_per_player,
                     };
                 });
                 setHostedGames(mappedGames);
@@ -209,11 +237,11 @@ export default function UserDashboard() {
         if (!userId) return;
         setLoadingPublicGames(true);
         try {
-            const res = await fetch("http://127.0.0.1:8001/games");
+            const res = await fetch(`${API_BASE_URL}/games`);
             if (res.ok) {
                 const data = await res.json();
                 // Exclude lobbies where current user is the host
-                const lobbies = data.filter(g => g.host_id !== Number(userId));
+                const lobbies = data.filter((g) => g.host_id !== Number(userId));
                 setPublicGames(lobbies);
             }
         } catch (err) {
@@ -227,10 +255,10 @@ export default function UserDashboard() {
         if (!userId) return;
         setJoiningGameId(gameId);
         try {
-            const res = await fetch(`http://127.0.0.1:8001/games/${gameId}/join?user_id=${userId}`, {
+            const res = await fetch(`${API_BASE_URL}/games/${gameId}/join?user_id=${userId}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({})
+                body: JSON.stringify({}),
             });
 
             if (res.ok) {
@@ -259,9 +287,9 @@ export default function UserDashboard() {
     const handleJoinWaitlist = async (gameId) => {
         if (!userId) return;
         try {
-            const res = await fetch(`http://127.0.0.1:8001/games/${gameId}/waitlist?user_id=${userId}`, {
+            const res = await fetch(`${API_BASE_URL}/games/${gameId}/waitlist?user_id=${userId}`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" }
+                headers: { "Content-Type": "application/json" },
             });
 
             if (res.ok) {
@@ -293,20 +321,25 @@ export default function UserDashboard() {
     useEffect(() => {
         if (activeTab !== "game" || gameSubTab !== "explore") return;
 
-        const ws = new WebSocket(`ws://127.0.0.1:8001/ws/game/all`);
+        const ws = new WebSocket(`${WS_BASE_URL}/ws/game/all`);
         ws.onmessage = (event) => {
             try {
                 const payload = JSON.parse(event.data);
-                setPublicGames(prev => prev.map(game => {
-                    if (game.id === payload.game_id) {
-                        return {
-                            ...game,
-                            current_players: payload.current_players !== undefined ? payload.current_players : game.current_players,
-                            status: payload.status || game.status
-                        };
-                    }
-                    return game;
-                }));
+                setPublicGames((prev) =>
+                    prev.map((game) => {
+                        if (game.id === payload.game_id) {
+                            return {
+                                ...game,
+                                current_players:
+                                    payload.current_players !== undefined
+                                        ? payload.current_players
+                                        : game.current_players,
+                                status: payload.status || game.status,
+                            };
+                        }
+                        return game;
+                    })
+                );
             } catch (err) {
                 console.error("Socket parse error:", err);
             }
@@ -324,7 +357,7 @@ export default function UserDashboard() {
         if (!confirm("Are you sure you want to cancel this slot reservation?")) return;
         setCancellingId(bookingId);
         try {
-            const res = await fetch(`http://127.0.0.1:8001/bookings/${bookingId}/cancel`, {
+            const res = await fetch(`${API_BASE_URL}/bookings/${bookingId}/cancel`, {
                 method: "POST",
             });
             if (res.ok) {
@@ -361,14 +394,14 @@ export default function UserDashboard() {
             total_spots: Number(gameMaxPlayers),
             price_per_player: Number(gamePrice),
             join_policy: "instant",
-            visibility: gamePrivacy
+            visibility: gamePrivacy,
         };
 
         try {
-            const res = await fetch("http://127.0.0.1:8001/games", {
+            const res = await fetch(`${API_BASE_URL}/games`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
             });
 
             if (res.ok) {
@@ -401,8 +434,8 @@ export default function UserDashboard() {
     const handleCancelHostedGame = async (gameId) => {
         if (!confirm("Are you sure you want to cancel this hosted game?")) return;
         try {
-            const res = await fetch(`http://127.0.0.1:8001/games/${gameId}?host_id=${userId}`, {
-                method: "DELETE"
+            const res = await fetch(`${API_BASE_URL}/games/${gameId}?host_id=${userId}`, {
+                method: "DELETE",
             });
             if (res.ok) {
                 await fetchHostedGames();
@@ -417,12 +450,13 @@ export default function UserDashboard() {
 
     // Filter discovery search list
     const filteredVenues = venues.filter((venue) => {
-        const matchesSearch = venue.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        const matchesSearch =
+            venue.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             venue.location.toLowerCase().includes(searchTerm.toLowerCase());
         let matchesSport = true;
         if (selectedSport && selectedSport !== "all") {
-            matchesSport = venue.sports_supported && 
-                venue.sports_supported.toLowerCase().includes(selectedSport.toLowerCase());
+            matchesSport =
+                venue.sports_supported && venue.sports_supported.toLowerCase().includes(selectedSport.toLowerCase());
         }
         return matchesSearch && matchesSport;
     });
@@ -450,24 +484,24 @@ export default function UserDashboard() {
         { name: "Karate", emoji: "🥋", color: "#f43f5e" },
         { name: "Archery", emoji: "🏹", color: "#00f0ff" },
         { name: "Cycling", emoji: "🚴", color: "#06b6d4" },
-        { name: "Fencing", emoji: "🤺", color: "#cbd5e1" }
+        { name: "Fencing", emoji: "🤺", color: "#cbd5e1" },
     ];
 
     const mockTrainers = [
         { name: "Rahul Sharma", sport: "Cricket Coach", exp: "8 Yrs" },
         { name: "Priya Patel", sport: "Badminton Pro", exp: "5 Yrs" },
-        { name: "David Miller", sport: "Football Instructor", exp: "10 Yrs" }
+        { name: "David Miller", sport: "Football Instructor", exp: "10 Yrs" },
     ];
 
     const mockTeams = [
         { name: "Strikers FC", sport: "Football", members: "18/22" },
         { name: "Spin Wizards", sport: "Table Tennis", members: "4/6" },
-        { name: "Court Kings", sport: "Basketball", members: "12/15" }
+        { name: "Court Kings", sport: "Basketball", members: "12/15" },
     ];
 
     // Get sport emoji mapping helper
     const getSportEmoji = (sportName) => {
-        const found = twentySports.find(s => s.name.toLowerCase() === sportName.toLowerCase());
+        const found = twentySports.find((s) => s.name.toLowerCase() === sportName.toLowerCase());
         return found ? found.emoji : "🏆";
     };
 
@@ -479,63 +513,63 @@ export default function UserDashboard() {
                 <div style={styles.logoArea}>
                     <strong style={styles.logo}>Mukijo</strong>
                 </div>
-                
+
                 {/* Center: 5 Navigation Tabs (Home, Game, Book, My Bookings, Training) */}
                 <div style={styles.headerTabs}>
-                    <button 
+                    <button
                         onClick={() => setActiveTab("home")}
                         style={{
                             ...styles.headerTabBtn,
                             color: activeTab === "home" ? "#bffe00" : "rgba(241, 245, 249, 0.6)",
-                            borderBottomColor: activeTab === "home" ? "#bffe00" : "transparent"
+                            borderBottomColor: activeTab === "home" ? "#bffe00" : "transparent",
                         }}
                     >
                         <HomeIcon size={16} />
                         <span>Home</span>
                     </button>
 
-                    <button 
+                    <button
                         onClick={() => setActiveTab("game")}
                         style={{
                             ...styles.headerTabBtn,
                             color: activeTab === "game" ? "#bffe00" : "rgba(241, 245, 249, 0.6)",
-                            borderBottomColor: activeTab === "game" ? "#bffe00" : "transparent"
+                            borderBottomColor: activeTab === "game" ? "#bffe00" : "transparent",
                         }}
                     >
                         <Trophy size={16} />
                         <span>Game</span>
                     </button>
 
-                    <button 
+                    <button
                         onClick={() => setActiveTab("booking")}
                         style={{
                             ...styles.headerTabBtn,
                             color: activeTab === "booking" ? "#bffe00" : "rgba(241, 245, 249, 0.6)",
-                            borderBottomColor: activeTab === "booking" ? "#bffe00" : "transparent"
+                            borderBottomColor: activeTab === "booking" ? "#bffe00" : "transparent",
                         }}
                     >
                         <Calendar size={16} />
                         <span>Book</span>
                     </button>
 
-                    <button 
+                    <button
                         onClick={() => setActiveTab("my-bookings")}
                         style={{
                             ...styles.headerTabBtn,
                             color: activeTab === "my-bookings" ? "#bffe00" : "rgba(241, 245, 249, 0.6)",
-                            borderBottomColor: activeTab === "my-bookings" ? "#bffe00" : "transparent"
+                            borderBottomColor: activeTab === "my-bookings" ? "#bffe00" : "transparent",
                         }}
                     >
                         <CalendarCheck size={16} />
                         <span>My Bookings</span>
                     </button>
 
-                    <button 
+                    <button
                         onClick={() => setActiveTab("training")}
                         style={{
                             ...styles.headerTabBtn,
                             color: activeTab === "training" ? "#bffe00" : "rgba(241, 245, 249, 0.6)",
-                            borderBottomColor: activeTab === "training" ? "#bffe00" : "transparent"
+                            borderBottomColor: activeTab === "training" ? "#bffe00" : "transparent",
                         }}
                     >
                         <Award size={16} />
@@ -545,11 +579,11 @@ export default function UserDashboard() {
 
                 {/* Right: User Profile & Log Out Dropdown */}
                 <div style={{ ...styles.userNav, position: "relative" }}>
-                    <div 
+                    <div
                         style={{ ...styles.userInfoClickable, cursor: "pointer" }}
                         onClick={(e) => {
                             e.stopPropagation();
-                            setDropdownOpen(prev => !prev);
+                            setDropdownOpen((prev) => !prev);
                         }}
                     >
                         <div style={styles.avatar}>{userName.charAt(0).toUpperCase()}</div>
@@ -559,7 +593,7 @@ export default function UserDashboard() {
                         </div>
                     </div>
                     {dropdownOpen && (
-                        <div 
+                        <div
                             style={{
                                 position: "absolute",
                                 top: "120%",
@@ -570,11 +604,11 @@ export default function UserDashboard() {
                                 padding: "6px",
                                 minWidth: "140px",
                                 boxShadow: "0 10px 25px rgba(0, 0, 0, 0.5)",
-                                zIndex: 1000
+                                zIndex: 1000,
                             }}
                         >
-                            <button 
-                                className="user-logout-btn" 
+                            <button
+                                className="user-logout-btn"
                                 onClick={handleLogout}
                                 style={{
                                     width: "100%",
@@ -588,7 +622,7 @@ export default function UserDashboard() {
                                     cursor: "pointer",
                                     fontSize: "14px",
                                     borderRadius: "4px",
-                                    transition: "background 0.2s"
+                                    transition: "background 0.2s",
                                 }}
                             >
                                 <LogOut size={16} />
@@ -643,12 +677,12 @@ export default function UserDashboard() {
                                 <div style={styles.trainersList}>
                                     {mockTrainers.map((trainer, idx) => (
                                         <div key={idx} style={styles.trainerItem}>
-                                            <div style={styles.trainerAvatar}>
-                                                {trainer.name.charAt(0)}
-                                            </div>
+                                            <div style={styles.trainerAvatar}>{trainer.name.charAt(0)}</div>
                                             <div style={styles.trainerInfo}>
                                                 <span style={styles.trainerName}>{trainer.name}</span>
-                                                <span style={styles.trainerSport}>{trainer.sport} • {trainer.exp} Exp</span>
+                                                <span style={styles.trainerSport}>
+                                                    {trainer.sport} • {trainer.exp} Exp
+                                                </span>
                                             </div>
                                             <button style={styles.trainerBtn}>Book Session</button>
                                         </div>
@@ -670,7 +704,9 @@ export default function UserDashboard() {
                                             </div>
                                             <div style={styles.teamInfo}>
                                                 <span style={styles.teamName}>{team.name}</span>
-                                                <span style={styles.teamSport}>{team.sport} • {team.members} players</span>
+                                                <span style={styles.teamSport}>
+                                                    {team.sport} • {team.members} players
+                                                </span>
                                             </div>
                                             <button style={styles.teamJoinBtn}>Join Team</button>
                                         </div>
@@ -804,11 +840,16 @@ export default function UserDashboard() {
                         {loadingVenues ? (
                             <div style={styles.loadingContainer}>
                                 <Loader2 className="animate-spin" size={32} style={{ color: "#bffe00" }} />
-                                <p style={{ marginTop: "16px", color: "rgba(148, 163, 184, 0.6)" }}>Searching sports arenas nearby...</p>
+                                <p style={{ marginTop: "16px", color: "rgba(148, 163, 184, 0.6)" }}>
+                                    Searching sports arenas nearby...
+                                </p>
                             </div>
                         ) : filteredVenues.length === 0 ? (
                             <div style={styles.emptyContainer}>
-                                <Compass size={48} style={{ color: "rgba(148, 163, 184, 0.2)", marginBottom: "16px" }} />
+                                <Compass
+                                    size={48}
+                                    style={{ color: "rgba(148, 163, 184, 0.2)", marginBottom: "16px" }}
+                                />
                                 <h3>No arenas found</h3>
                                 <p style={{ color: "rgba(148, 163, 184, 0.5)", fontSize: "14px", marginTop: "8px" }}>
                                     Try adjusting your search criteria.
@@ -820,7 +861,10 @@ export default function UserDashboard() {
                                     <div key={venue.id} style={styles.card}>
                                         <div style={styles.cardImageWrapper}>
                                             <img
-                                                src={venue.cover_image || "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?q=80&w=600&auto=format&fit=crop"}
+                                                src={
+                                                    venue.cover_image ||
+                                                    "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?q=80&w=600&auto=format&fit=crop"
+                                                }
                                                 alt={venue.name}
                                                 style={styles.cardImage}
                                             />
@@ -857,7 +901,9 @@ export default function UserDashboard() {
 
                                             <div style={styles.cardFooter}>
                                                 <div style={styles.priceSec}>
-                                                    <span style={styles.priceVal}>₹{venue.base_price_per_hour || 800}</span>
+                                                    <span style={styles.priceVal}>
+                                                        ₹{venue.base_price_per_hour || 800}
+                                                    </span>
                                                     <span style={styles.priceUnit}>/hr onwards</span>
                                                 </div>
                                                 <Link href={`/venues/${venue.id}`} style={styles.bookBtn}>
@@ -882,7 +928,7 @@ export default function UserDashboard() {
                                     ...styles.gameSubNavBtn,
                                     backgroundColor: gameSubTab === "host" ? "rgba(191, 254, 0, 0.1)" : "transparent",
                                     color: gameSubTab === "host" ? "#bffe00" : "rgba(241, 245, 249, 0.7)",
-                                    borderColor: gameSubTab === "host" ? "#bffe00" : "rgba(255, 255, 255, 0.1)"
+                                    borderColor: gameSubTab === "host" ? "#bffe00" : "rgba(255, 255, 255, 0.1)",
                                 }}
                             >
                                 <PlusCircle size={14} />
@@ -895,7 +941,7 @@ export default function UserDashboard() {
                                     ...styles.gameSubNavBtn,
                                     backgroundColor: gameSubTab === "joined" ? "rgba(191, 254, 0, 0.1)" : "transparent",
                                     color: gameSubTab === "joined" ? "#bffe00" : "rgba(241, 245, 249, 0.7)",
-                                    borderColor: gameSubTab === "joined" ? "#bffe00" : "rgba(255, 255, 255, 0.1)"
+                                    borderColor: gameSubTab === "joined" ? "#bffe00" : "rgba(255, 255, 255, 0.1)",
                                 }}
                             >
                                 <Users size={14} />
@@ -906,9 +952,10 @@ export default function UserDashboard() {
                                 onClick={() => setGameSubTab("explore")}
                                 style={{
                                     ...styles.gameSubNavBtn,
-                                    backgroundColor: gameSubTab === "explore" ? "rgba(191, 254, 0, 0.1)" : "transparent",
+                                    backgroundColor:
+                                        gameSubTab === "explore" ? "rgba(191, 254, 0, 0.1)" : "transparent",
                                     color: gameSubTab === "explore" ? "#bffe00" : "rgba(241, 245, 249, 0.7)",
-                                    borderColor: gameSubTab === "explore" ? "#bffe00" : "rgba(255, 255, 255, 0.1)"
+                                    borderColor: gameSubTab === "explore" ? "#bffe00" : "rgba(255, 255, 255, 0.1)",
                                 }}
                             >
                                 <Compass size={14} />
@@ -923,20 +970,35 @@ export default function UserDashboard() {
                                     <PlusCircle size={20} style={{ color: "#bffe00" }} />
                                     <h3 style={styles.boxTitle}>Host a Sports Match</h3>
                                 </div>
-                                
+
                                 {gameSuccess ? (
                                     <div style={{ textAlign: "center", padding: "30px 0" }}>
-                                        <div style={{
-                                            width: "50px", height: "50px", borderRadius: "50%",
-                                            background: "rgba(191, 254, 0, 0.1)", color: "#bffe00",
-                                            fontSize: "20px", fontWeight: "bold", display: "flex",
-                                            alignItems: "center", justifyContent: "center", margin: "0 auto 16px auto",
-                                            border: "1px solid #bffe00"
-                                        }}>
+                                        <div
+                                            style={{
+                                                width: "50px",
+                                                height: "50px",
+                                                borderRadius: "50%",
+                                                background: "rgba(191, 254, 0, 0.1)",
+                                                color: "#bffe00",
+                                                fontSize: "20px",
+                                                fontWeight: "bold",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                margin: "0 auto 16px auto",
+                                                border: "1px solid #bffe00",
+                                            }}
+                                        >
                                             ✓
                                         </div>
                                         <h3 style={{ color: "#ffffff" }}>Match Created Successfully!</h3>
-                                        <p style={{ color: "rgba(148, 163, 184, 0.6)", fontSize: "13px", marginTop: "8px" }}>
+                                        <p
+                                            style={{
+                                                color: "rgba(148, 163, 184, 0.6)",
+                                                fontSize: "13px",
+                                                marginTop: "8px",
+                                            }}
+                                        >
                                             Hosting lobby created. Redirecting to your hosted matches...
                                         </p>
                                     </div>
@@ -945,9 +1007,9 @@ export default function UserDashboard() {
                                         <div style={styles.formRow}>
                                             <div style={styles.formGroup}>
                                                 <label style={styles.formLabel}>Select Sport</label>
-                                                <select 
-                                                    value={gameSport} 
-                                                    onChange={(e) => setGameSport(e.target.value)} 
+                                                <select
+                                                    value={gameSport}
+                                                    onChange={(e) => setGameSport(e.target.value)}
                                                     style={styles.formSelect}
                                                 >
                                                     <option value="badminton">🏸 Badminton</option>
@@ -962,9 +1024,9 @@ export default function UserDashboard() {
 
                                             <div style={styles.formGroup}>
                                                 <label style={styles.formLabel}>Skill Level Required</label>
-                                                <select 
-                                                    value={gameSkillLevel} 
-                                                    onChange={(e) => setGameSkillLevel(e.target.value)} 
+                                                <select
+                                                    value={gameSkillLevel}
+                                                    onChange={(e) => setGameSkillLevel(e.target.value)}
                                                     style={styles.formSelect}
                                                 >
                                                     <option value="All">All Skill Levels</option>
@@ -978,23 +1040,23 @@ export default function UserDashboard() {
                                         <div style={styles.formRow}>
                                             <div style={styles.formGroup}>
                                                 <label style={styles.formLabel}>Match Date</label>
-                                                <input 
-                                                    type="date" 
-                                                    value={gameDate} 
-                                                    onChange={(e) => setGameDate(e.target.value)} 
-                                                    style={styles.formInput} 
-                                                    required 
+                                                <input
+                                                    type="date"
+                                                    value={gameDate}
+                                                    onChange={(e) => setGameDate(e.target.value)}
+                                                    style={styles.formInput}
+                                                    required
                                                 />
                                             </div>
 
                                             <div style={styles.formGroup}>
                                                 <label style={styles.formLabel}>Start Time</label>
-                                                <input 
-                                                    type="time" 
-                                                    value={gameTime} 
-                                                    onChange={(e) => setGameTime(e.target.value)} 
-                                                    style={styles.formInput} 
-                                                    required 
+                                                <input
+                                                    type="time"
+                                                    value={gameTime}
+                                                    onChange={(e) => setGameTime(e.target.value)}
+                                                    style={styles.formInput}
+                                                    required
                                                 />
                                             </div>
                                         </div>
@@ -1002,26 +1064,26 @@ export default function UserDashboard() {
                                         <div style={styles.formRow}>
                                             <div style={styles.formGroup}>
                                                 <label style={styles.formLabel}>Ground / Location / Venue Name</label>
-                                                <input 
-                                                    type="text" 
-                                                    value={gameLocation} 
-                                                    onChange={(e) => setGameLocation(e.target.value)} 
-                                                    placeholder="e.g. Mukijo Sports Arena, Gachibowli" 
-                                                    style={styles.formInput} 
-                                                    required 
+                                                <input
+                                                    type="text"
+                                                    value={gameLocation}
+                                                    onChange={(e) => setGameLocation(e.target.value)}
+                                                    placeholder="e.g. Mukijo Sports Arena, Gachibowli"
+                                                    style={styles.formInput}
+                                                    required
                                                 />
                                             </div>
 
                                             <div style={styles.formGroup}>
                                                 <label style={styles.formLabel}>Max Players Wanted</label>
-                                                <input 
-                                                    type="number" 
-                                                    value={gameMaxPlayers} 
-                                                    onChange={(e) => setGameMaxPlayers(e.target.value)} 
-                                                    min="2" 
-                                                    max="50" 
-                                                    style={styles.formInput} 
-                                                    required 
+                                                <input
+                                                    type="number"
+                                                    value={gameMaxPlayers}
+                                                    onChange={(e) => setGameMaxPlayers(e.target.value)}
+                                                    min="2"
+                                                    max="50"
+                                                    style={styles.formInput}
+                                                    required
                                                 />
                                             </div>
                                         </div>
@@ -1035,8 +1097,12 @@ export default function UserDashboard() {
                                                         onClick={() => setGamePrivacy("public")}
                                                         style={{
                                                             ...styles.toggleTabBtn,
-                                                            backgroundColor: gamePrivacy === "public" ? "#bffe00" : "transparent",
-                                                            color: gamePrivacy === "public" ? "#050508" : "rgba(241, 245, 249, 0.6)",
+                                                            backgroundColor:
+                                                                gamePrivacy === "public" ? "#bffe00" : "transparent",
+                                                            color:
+                                                                gamePrivacy === "public"
+                                                                    ? "#050508"
+                                                                    : "rgba(241, 245, 249, 0.6)",
                                                         }}
                                                     >
                                                         🌍 Public Match
@@ -1046,8 +1112,12 @@ export default function UserDashboard() {
                                                         onClick={() => setGamePrivacy("private")}
                                                         style={{
                                                             ...styles.toggleTabBtn,
-                                                            backgroundColor: gamePrivacy === "private" ? "#bffe00" : "transparent",
-                                                            color: gamePrivacy === "private" ? "#050508" : "rgba(241, 245, 249, 0.6)",
+                                                            backgroundColor:
+                                                                gamePrivacy === "private" ? "#bffe00" : "transparent",
+                                                            color:
+                                                                gamePrivacy === "private"
+                                                                    ? "#050508"
+                                                                    : "rgba(241, 245, 249, 0.6)",
                                                         }}
                                                     >
                                                         🔒 Invite-Only
@@ -1058,19 +1128,15 @@ export default function UserDashboard() {
 
                                         <div style={styles.formGroup}>
                                             <label style={styles.formLabel}>Additional Match Info / Rules</label>
-                                            <textarea 
-                                                value={gameDescription} 
-                                                onChange={(e) => setGameDescription(e.target.value)} 
-                                                placeholder="e.g. Bring your own sports gear and rackets. We will split the court cost at the venue!" 
+                                            <textarea
+                                                value={gameDescription}
+                                                onChange={(e) => setGameDescription(e.target.value)}
+                                                placeholder="e.g. Bring your own sports gear and rackets. We will split the court cost at the venue!"
                                                 style={styles.formTextarea}
                                             />
                                         </div>
 
-                                        <button 
-                                            type="submit" 
-                                            disabled={submittingGame} 
-                                            style={styles.formSubmitBtn}
-                                        >
+                                        <button type="submit" disabled={submittingGame} style={styles.formSubmitBtn}>
                                             {submittingGame ? "Hosting Match..." : "Host Match"}
                                         </button>
                                     </form>
@@ -1089,9 +1155,18 @@ export default function UserDashboard() {
                                     </div>
                                 ) : hostedGames.length === 0 ? (
                                     <div style={styles.emptyContainer}>
-                                        <Play size={48} style={{ color: "rgba(148, 163, 184, 0.15)", marginBottom: "16px" }} />
+                                        <Play
+                                            size={48}
+                                            style={{ color: "rgba(148, 163, 184, 0.15)", marginBottom: "16px" }}
+                                        />
                                         <h3>No active matches</h3>
-                                        <p style={{ color: "rgba(148, 163, 184, 0.4)", fontSize: "14px", marginTop: "8px" }}>
+                                        <p
+                                            style={{
+                                                color: "rgba(148, 163, 184, 0.4)",
+                                                fontSize: "14px",
+                                                marginTop: "8px",
+                                            }}
+                                        >
                                             You are not hosting or participating in any match lobbies.
                                         </p>
                                         <button onClick={() => setGameSubTab("host")} style={styles.exploreLinkBtn}>
@@ -1106,56 +1181,105 @@ export default function UserDashboard() {
                                                 <div key={act.id} style={styles.miniGameCard}>
                                                     <div style={styles.cardHeaderMini}>
                                                         <div style={styles.sportHeader}>
-                                                            <span style={{ fontSize: "20px" }}>{getSportEmoji(act.sport)}</span>
+                                                            <span style={{ fontSize: "20px" }}>
+                                                                {getSportEmoji(act.sport)}
+                                                            </span>
                                                             <span style={{ ...styles.sportLabel, marginLeft: "8px" }}>
                                                                 {act.sport.toUpperCase()} MATCH
                                                             </span>
                                                             {isOwner && (
-                                                                <span style={{
-                                                                    ...styles.badge,
-                                                                    backgroundColor: "rgba(0, 240, 255, 0.1)",
-                                                                    color: "#00f0ff",
-                                                                    borderColor: "rgba(0, 240, 255, 0.2)",
-                                                                    marginLeft: "10px"
-                                                                }}>
+                                                                <span
+                                                                    style={{
+                                                                        ...styles.badge,
+                                                                        backgroundColor: "rgba(0, 240, 255, 0.1)",
+                                                                        color: "#00f0ff",
+                                                                        borderColor: "rgba(0, 240, 255, 0.2)",
+                                                                        marginLeft: "10px",
+                                                                    }}
+                                                                >
                                                                     HOST
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <div style={{
-                                                            ...styles.badge,
-                                                            backgroundColor: act.status === "cancelled" ? "rgba(239, 68, 68, 0.1)" : "rgba(16, 185, 129, 0.1)",
-                                                            color: act.status === "cancelled" ? "#f87171" : "#34d399",
-                                                            borderColor: act.status === "cancelled" ? "rgba(239, 68, 68, 0.2)" : "rgba(16, 185, 129, 0.2)"
-                                                        }}>
+                                                        <div
+                                                            style={{
+                                                                ...styles.badge,
+                                                                backgroundColor:
+                                                                    act.status === "cancelled"
+                                                                        ? "rgba(239, 68, 68, 0.1)"
+                                                                        : "rgba(16, 185, 129, 0.1)",
+                                                                color:
+                                                                    act.status === "cancelled" ? "#f87171" : "#34d399",
+                                                                borderColor:
+                                                                    act.status === "cancelled"
+                                                                        ? "rgba(239, 68, 68, 0.2)"
+                                                                        : "rgba(16, 185, 129, 0.2)",
+                                                            }}
+                                                        >
                                                             {act.status.toUpperCase()}
                                                         </div>
                                                     </div>
 
                                                     <div style={styles.cardDetailsMini}>
                                                         <div style={styles.detailItem}>
-                                                            <Calendar size={14} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
-                                                            <span>{act.date} • {act.time}</span>
+                                                            <Calendar
+                                                                size={14}
+                                                                style={{ color: "rgba(148, 163, 184, 0.6)" }}
+                                                            />
+                                                            <span>
+                                                                {act.date} • {act.time}
+                                                            </span>
                                                         </div>
                                                         <div style={styles.detailItem}>
-                                                            <MapPin size={14} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
+                                                            <MapPin
+                                                                size={14}
+                                                                style={{ color: "rgba(148, 163, 184, 0.6)" }}
+                                                            />
                                                             <span>{act.location}</span>
                                                         </div>
                                                         <div style={styles.detailItem}>
-                                                            <Users size={14} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
-                                                            <span>Players: <strong>{act.rsvps ? act.rsvps.length : 1} / {act.max_players}</strong> ({act.skill_level} Level • {act.privacy_type === "private" ? "Invite-Only 🔒" : "Public 🌍"})</span>
+                                                            <Users
+                                                                size={14}
+                                                                style={{ color: "rgba(148, 163, 184, 0.6)" }}
+                                                            />
+                                                            <span>
+                                                                Players:{" "}
+                                                                <strong>
+                                                                    {act.rsvps ? act.rsvps.length : 1} /{" "}
+                                                                    {act.max_players}
+                                                                </strong>{" "}
+                                                                ({act.skill_level} Level •{" "}
+                                                                {act.privacy_type === "private"
+                                                                    ? "Invite-Only 🔒"
+                                                                    : "Public 🌍"}
+                                                                )
+                                                            </span>
                                                         </div>
                                                         {act.description && (
-                                                            <p style={{ fontSize: "13px", color: "rgba(241, 245, 249, 0.6)", fontStyle: "italic", marginTop: "6px" }}>
-                                                                Notes: "{act.description}"
+                                                            <p
+                                                                style={{
+                                                                    fontSize: "13px",
+                                                                    color: "rgba(241, 245, 249, 0.6)",
+                                                                    fontStyle: "italic",
+                                                                    marginTop: "6px",
+                                                                }}
+                                                            >
+                                                                Notes: &quot;{act.description}&quot;
                                                             </p>
                                                         )}
                                                     </div>
 
                                                     {isOwner && act.status !== "cancelled" && (
                                                         <div style={styles.cardFooterMini}>
-                                                            <span style={{ fontSize: "11px", color: "rgba(148, 163, 184, 0.4)" }}>Host Controls</span>
-                                                            <button 
+                                                            <span
+                                                                style={{
+                                                                    fontSize: "11px",
+                                                                    color: "rgba(148, 163, 184, 0.4)",
+                                                                }}
+                                                            >
+                                                                Host Controls
+                                                            </span>
+                                                            <button
                                                                 onClick={() => handleCancelHostedGame(act.id)}
                                                                 style={styles.cancelBtn}
                                                             >
@@ -1182,9 +1306,18 @@ export default function UserDashboard() {
                                     </div>
                                 ) : publicGames.length === 0 ? (
                                     <div style={styles.emptyContainer}>
-                                        <Compass size={48} style={{ color: "rgba(148, 163, 184, 0.15)", marginBottom: "16px" }} />
+                                        <Compass
+                                            size={48}
+                                            style={{ color: "rgba(148, 163, 184, 0.15)", marginBottom: "16px" }}
+                                        />
                                         <h3>No matches found</h3>
-                                        <p style={{ color: "rgba(148, 163, 184, 0.4)", fontSize: "14px", marginTop: "8px" }}>
+                                        <p
+                                            style={{
+                                                color: "rgba(148, 163, 184, 0.4)",
+                                                fontSize: "14px",
+                                                marginTop: "8px",
+                                            }}
+                                        >
                                             There are no public game lobbies hosted by other players right now.
                                         </p>
                                         <button onClick={() => setGameSubTab("host")} style={styles.exploreLinkBtn}>
@@ -1194,12 +1327,21 @@ export default function UserDashboard() {
                                 ) : (
                                     <div style={styles.miniGameGrid}>
                                         {publicGames.map((game) => {
-                                            const formattedDate = new Date(game.slot_start).toLocaleDateString(undefined, {
-                                                weekday: 'short', month: 'short', day: 'numeric'
-                                            });
-                                            const formattedTime = new Date(game.slot_start).toLocaleTimeString(undefined, {
-                                                hour: '2-digit', minute: '2-digit'
-                                            });
+                                            const formattedDate = new Date(game.slot_start).toLocaleDateString(
+                                                undefined,
+                                                {
+                                                    weekday: "short",
+                                                    month: "short",
+                                                    day: "numeric",
+                                                }
+                                            );
+                                            const formattedTime = new Date(game.slot_start).toLocaleTimeString(
+                                                undefined,
+                                                {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                }
+                                            );
                                             const spotsLeft = game.total_spots - game.current_players;
                                             const isFull = spotsLeft <= 0;
 
@@ -1207,56 +1349,107 @@ export default function UserDashboard() {
                                                 <div key={game.id} style={styles.miniGameCard}>
                                                     <div style={styles.cardHeaderMini}>
                                                         <div style={styles.sportHeader}>
-                                                            <span style={{ fontSize: "20px" }}>{getSportEmoji(game.sport)}</span>
+                                                            <span style={{ fontSize: "20px" }}>
+                                                                {getSportEmoji(game.sport)}
+                                                            </span>
                                                             <span style={{ ...styles.sportLabel, marginLeft: "8px" }}>
                                                                 {game.sport.toUpperCase()}
                                                             </span>
                                                         </div>
-                                                        <span style={{
-                                                            ...styles.badge,
-                                                            backgroundColor: isFull ? "rgba(239, 68, 68, 0.1)" : "rgba(191, 254, 0, 0.1)",
-                                                            color: isFull ? "#f87171" : "#bffe00",
-                                                            borderColor: isFull ? "rgba(239, 68, 68, 0.2)" : "rgba(191, 254, 0, 0.2)"
-                                                        }}>
+                                                        <span
+                                                            style={{
+                                                                ...styles.badge,
+                                                                backgroundColor: isFull
+                                                                    ? "rgba(239, 68, 68, 0.1)"
+                                                                    : "rgba(191, 254, 0, 0.1)",
+                                                                color: isFull ? "#f87171" : "#bffe00",
+                                                                borderColor: isFull
+                                                                    ? "rgba(239, 68, 68, 0.2)"
+                                                                    : "rgba(191, 254, 0, 0.2)",
+                                                            }}
+                                                        >
                                                             {isFull ? "FULL" : "JOINABLE"}
                                                         </span>
                                                     </div>
 
                                                     <div style={styles.cardDetailsMini}>
                                                         <div style={styles.detailItem}>
-                                                            <Calendar size={14} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
-                                                            <span>{formattedDate} at {formattedTime}</span>
-                                                        </div>
-                                                        <div style={styles.detailItem}>
-                                                            <Trophy size={14} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
-                                                            <span>Split Cost: <strong style={{ color: "#bffe00" }}>₹{game.price_per_player}</strong> per player</span>
-                                                        </div>
-                                                        <div style={styles.detailItem}>
-                                                            <Users size={14} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
+                                                            <Calendar
+                                                                size={14}
+                                                                style={{ color: "rgba(148, 163, 184, 0.6)" }}
+                                                            />
                                                             <span>
-                                                                Spots: <strong>{game.current_players} / {game.total_spots}</strong>
+                                                                {formattedDate} at {formattedTime}
                                                             </span>
                                                         </div>
-                                                        
-                                                        {/* Player progress-bar indicator */}
-                                                        <div style={{
-                                                            width: "100%", height: "4px", backgroundColor: "rgba(255,255,255,0.05)",
-                                                            borderRadius: "2px", overflow: "hidden", margin: "12px 0 6px 0"
-                                                        }}>
-                                                            <div style={{
-                                                                width: `${(game.current_players / game.total_spots) * 100}%`,
-                                                                height: "100%", backgroundColor: isFull ? "#f87171" : "#bffe00",
-                                                                transition: "width 0.4s ease"
-                                                            }} />
+                                                        <div style={styles.detailItem}>
+                                                            <Trophy
+                                                                size={14}
+                                                                style={{ color: "rgba(148, 163, 184, 0.6)" }}
+                                                            />
+                                                            <span>
+                                                                Split Cost:{" "}
+                                                                <strong style={{ color: "#bffe00" }}>
+                                                                    ₹{game.price_per_player}
+                                                                </strong>{" "}
+                                                                per player
+                                                            </span>
                                                         </div>
-                                                        <span style={{ fontSize: "11px", color: "rgba(148, 163, 184, 0.4)" }}>
-                                                            {isFull ? "Lobby is full. Join waitlist to get auto-promoted on cancellations." : `Only ${spotsLeft} spots remaining.`}
+                                                        <div style={styles.detailItem}>
+                                                            <Users
+                                                                size={14}
+                                                                style={{ color: "rgba(148, 163, 184, 0.6)" }}
+                                                            />
+                                                            <span>
+                                                                Spots:{" "}
+                                                                <strong>
+                                                                    {game.current_players} / {game.total_spots}
+                                                                </strong>
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Player progress-bar indicator */}
+                                                        <div
+                                                            style={{
+                                                                width: "100%",
+                                                                height: "4px",
+                                                                backgroundColor: "rgba(255,255,255,0.05)",
+                                                                borderRadius: "2px",
+                                                                overflow: "hidden",
+                                                                margin: "12px 0 6px 0",
+                                                            }}
+                                                        >
+                                                            <div
+                                                                style={{
+                                                                    width: `${(game.current_players / game.total_spots) * 100}%`,
+                                                                    height: "100%",
+                                                                    backgroundColor: isFull ? "#f87171" : "#bffe00",
+                                                                    transition: "width 0.4s ease",
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <span
+                                                            style={{
+                                                                fontSize: "11px",
+                                                                color: "rgba(148, 163, 184, 0.4)",
+                                                            }}
+                                                        >
+                                                            {isFull
+                                                                ? "Lobby is full. Join waitlist to get auto-promoted on cancellations."
+                                                                : `Only ${spotsLeft} spots remaining.`}
                                                         </span>
                                                     </div>
 
                                                     <div style={styles.cardFooterMini}>
-                                                        <span style={{ fontSize: "11px", color: "rgba(148, 163, 184, 0.4)" }}>
-                                                            {game.join_policy === "instant" ? "Instant Join ⚡" : "Requires Host Approval ⏳"}
+                                                        <span
+                                                            style={{
+                                                                fontSize: "11px",
+                                                                color: "rgba(148, 163, 184, 0.4)",
+                                                            }}
+                                                        >
+                                                            {game.join_policy === "instant"
+                                                                ? "Instant Join ⚡"
+                                                                : "Requires Host Approval ⏳"}
                                                         </span>
                                                         {isFull ? (
                                                             <button
@@ -1264,7 +1457,7 @@ export default function UserDashboard() {
                                                                 style={{
                                                                     ...styles.exploreLinkBtn,
                                                                     padding: "6px 12px",
-                                                                    fontSize: "12px"
+                                                                    fontSize: "12px",
                                                                 }}
                                                             >
                                                                 Join Waitlist
@@ -1278,10 +1471,12 @@ export default function UserDashboard() {
                                                                     backgroundColor: "#bffe00",
                                                                     color: "#0f172a",
                                                                     fontWeight: "bold",
-                                                                    borderColor: "transparent"
+                                                                    borderColor: "transparent",
                                                                 }}
                                                             >
-                                                                {joiningGameId === game.id ? "Processing..." : "Join Match"}
+                                                                {joiningGameId === game.id
+                                                                    ? "Processing..."
+                                                                    : "Join Match"}
                                                             </button>
                                                         )}
                                                     </div>
@@ -1306,7 +1501,10 @@ export default function UserDashboard() {
                             </div>
                         ) : bookings.length === 0 ? (
                             <div style={styles.emptyContainer}>
-                                <CalendarCheck size={48} style={{ color: "rgba(148, 163, 184, 0.15)", marginBottom: "16px" }} />
+                                <CalendarCheck
+                                    size={48}
+                                    style={{ color: "rgba(148, 163, 184, 0.15)", marginBottom: "16px" }}
+                                />
                                 <h3>No venue bookings found</h3>
                                 <p style={{ color: "rgba(148, 163, 184, 0.4)", fontSize: "14px", marginTop: "8px" }}>
                                     You have no active sports arena bookings.
@@ -1318,9 +1516,15 @@ export default function UserDashboard() {
                         ) : (
                             <div style={styles.list}>
                                 {bookings.map((booking) => {
-                                    const date = booking.slots && booking.slots.length > 0
-                                        ? new Date(booking.slots[0].start_time).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" })
-                                        : "Unknown Date";
+                                    const date =
+                                        booking.slots && booking.slots.length > 0
+                                            ? new Date(booking.slots[0].start_time).toLocaleDateString("en-US", {
+                                                  weekday: "long",
+                                                  month: "short",
+                                                  day: "numeric",
+                                                  year: "numeric",
+                                              })
+                                            : "Unknown Date";
 
                                     const isCancelled = booking.status === "cancelled";
                                     const isPaid = booking.payment_status === "paid" || booking.status === "confirmed";
@@ -1330,31 +1534,37 @@ export default function UserDashboard() {
                                             <div style={styles.cardHeader}>
                                                 <div style={styles.sportHeader}>
                                                     <span style={{ fontSize: "20px" }}>
-                                                        {booking.slots && booking.slots.length > 0 ? getSportEmoji(booking.slots[0].sport) : "🏆"}
+                                                        {booking.slots && booking.slots.length > 0
+                                                            ? getSportEmoji(booking.slots[0].sport)
+                                                            : "🏆"}
                                                     </span>
                                                     <span style={{ ...styles.sportLabel, marginLeft: "8px" }}>
-                                                        {booking.slots && booking.slots.length > 0 ? booking.slots[0].sport.toUpperCase() : "SPORTS"}
+                                                        {booking.slots && booking.slots.length > 0
+                                                            ? booking.slots[0].sport.toUpperCase()
+                                                            : "SPORTS"}
                                                     </span>
                                                 </div>
-                                                <div style={{
-                                                    ...styles.badge,
-                                                    backgroundColor: isCancelled 
-                                                        ? "rgba(239, 68, 68, 0.1)" 
-                                                        : isPaid 
-                                                            ? "rgba(16, 185, 129, 0.1)" 
-                                                            : "rgba(234, 179, 8, 0.1)",
-                                                    color: isCancelled 
-                                                        ? "#f87171" 
-                                                        : isPaid 
-                                                            ? "#34d399" 
-                                                            : "#fbbf24",
-                                                    borderColor: isCancelled 
-                                                        ? "rgba(239, 68, 68, 0.2)" 
-                                                        : isPaid 
-                                                            ? "rgba(16, 185, 129, 0.2)" 
-                                                            : "rgba(234, 179, 8, 0.2)",
-                                                }}>
-                                                    {isCancelled ? "CANCELLED" : isPaid ? "CONFIRMED" : "HOLDING (UNPAID)"}
+                                                <div
+                                                    style={{
+                                                        ...styles.badge,
+                                                        backgroundColor: isCancelled
+                                                            ? "rgba(239, 68, 68, 0.1)"
+                                                            : isPaid
+                                                              ? "rgba(16, 185, 129, 0.1)"
+                                                              : "rgba(234, 179, 8, 0.1)",
+                                                        color: isCancelled ? "#f87171" : isPaid ? "#34d399" : "#fbbf24",
+                                                        borderColor: isCancelled
+                                                            ? "rgba(239, 68, 68, 0.2)"
+                                                            : isPaid
+                                                              ? "rgba(16, 185, 129, 0.2)"
+                                                              : "rgba(234, 179, 8, 0.2)",
+                                                    }}
+                                                >
+                                                    {isCancelled
+                                                        ? "CANCELLED"
+                                                        : isPaid
+                                                          ? "CONFIRMED"
+                                                          : "HOLDING (UNPAID)"}
                                                 </div>
                                             </div>
 
@@ -1363,34 +1573,52 @@ export default function UserDashboard() {
                                                     <Calendar size={14} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
                                                     <span>{date}</span>
                                                 </div>
-                                                
-                                                {booking.slots && booking.slots.map((slot) => {
-                                                    const startStr = new Date(slot.start_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-                                                    const endStr = new Date(slot.end_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-                                                    return (
-                                                        <div key={slot.id} style={styles.detailItem}>
-                                                            <Clock size={14} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
-                                                            <span>{startStr} - {endStr} (₹{slot.current_price})</span>
-                                                        </div>
-                                                    );
-                                                })}
+
+                                                {booking.slots &&
+                                                    booking.slots.map((slot) => {
+                                                        const startStr = new Date(slot.start_time).toLocaleTimeString(
+                                                            [],
+                                                            { hour: "2-digit", minute: "2-digit" }
+                                                        );
+                                                        const endStr = new Date(slot.end_time).toLocaleTimeString([], {
+                                                            hour: "2-digit",
+                                                            minute: "2-digit",
+                                                        });
+                                                        return (
+                                                            <div key={slot.id} style={styles.detailItem}>
+                                                                <Clock
+                                                                    size={14}
+                                                                    style={{ color: "rgba(148, 163, 184, 0.6)" }}
+                                                                />
+                                                                <span>
+                                                                    {startStr} - {endStr} (₹{slot.current_price})
+                                                                </span>
+                                                            </div>
+                                                        );
+                                                    })}
                                             </div>
 
                                             <div style={styles.cardFooter}>
                                                 <div style={styles.metaInfo}>
-                                                    <span>Booking ID: <strong>#MK-{booking.id}</strong></span>
+                                                    <span>
+                                                        Booking ID: <strong>#MK-{booking.id}</strong>
+                                                    </span>
                                                     {booking.payment_id && (
-                                                        <span style={{ marginLeft: "16px" }}>Ref: <strong>{booking.payment_id}</strong></span>
+                                                        <span style={{ marginLeft: "16px" }}>
+                                                            Ref: <strong>{booking.payment_id}</strong>
+                                                        </span>
                                                     )}
                                                 </div>
-                                                
+
                                                 {!isCancelled && (
                                                     <button
                                                         onClick={() => handleCancelBooking(booking.id)}
                                                         disabled={cancellingId === booking.id}
                                                         style={styles.cancelBtn}
                                                     >
-                                                        {cancellingId === booking.id ? "Cancelling..." : "Cancel Reservation"}
+                                                        {cancellingId === booking.id
+                                                            ? "Cancelling..."
+                                                            : "Cancel Reservation"}
                                                     </button>
                                                 )}
 
@@ -1435,7 +1663,9 @@ const styles = {
     },
     topbar: {
         position: "fixed",
-        top: 0, left: 0, right: 0,
+        top: 0,
+        left: 0,
+        right: 0,
         height: "72px",
         display: "flex",
         alignItems: "center",

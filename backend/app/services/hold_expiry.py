@@ -24,11 +24,24 @@ class InMemoryCache:
     def delete(self, key: str):
         self.store.pop(key, None)
 
-try:
-    redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
-    redis_client.ping()
-    print("[INFO] Redis server connected successfully.")
-except Exception:
+import socket
+
+def _is_redis_running(host="127.0.0.1", port=6379, timeout=0.2):
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except Exception:
+        return False
+
+if _is_redis_running():
+    try:
+        redis_client = redis.Redis(host="127.0.0.1", port=6379, db=0, decode_responses=True, socket_connect_timeout=1.0, socket_timeout=1.0)
+        redis_client.ping()
+        print("[INFO] Redis server connected successfully.")
+    except Exception:
+        redis_client = InMemoryCache()
+        print("[WARNING] Redis connection failed after socket check. Using InMemoryCache fallback for holds.")
+else:
     redis_client = InMemoryCache()
     print("[WARNING] Redis is not running. Using InMemoryCache fallback for holds.")
 
