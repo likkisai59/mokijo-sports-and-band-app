@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 
 import { useCallback, useEffect, useState } from "react";
 import { FileText, Users, ArrowLeft, Plus, Trash2, Eye, Check, X, ShieldAlert, Sparkles } from "lucide-react";
@@ -18,7 +19,7 @@ export default function SignupFormsDashboard() {
         title: "",
         description: "",
         role: "",
-        fields: []
+        fields: [],
     });
 
     // Modals
@@ -32,7 +33,7 @@ export default function SignupFormsDashboard() {
         setLoading(true);
         setSessionError("");
         try {
-            const clubsRes = await fetch("http://127.0.0.1:8001/clubs");
+            const clubsRes = await fetch(`${API_BASE_URL}/clubs`);
             if (clubsRes.ok) {
                 const clubsData = await clubsRes.json();
                 const currentClub = clubsData.find((club) => String(club.id) === String(userId));
@@ -40,27 +41,29 @@ export default function SignupFormsDashboard() {
                     setForms([]);
                     setSubmissions([]);
                     setGroups([]);
-                    setSessionError("Your club admin session is not valid. Please log in again as the club admin, then open the onboarding queue.");
+                    setSessionError(
+                        "Your club admin session is not valid. Please log in again as the club admin, then open the onboarding queue."
+                    );
                     return;
                 }
             }
 
             // Fetch Forms
-            const formsRes = await fetch(`http://127.0.0.1:8001/signup-forms?owner_id=${userId}`);
+            const formsRes = await fetch(`${API_BASE_URL}/signup-forms?owner_id=${userId}`);
             if (formsRes.ok) {
                 const formsData = await formsRes.json();
                 setForms(formsData);
             }
 
             // Fetch Submissions
-            const subsRes = await fetch(`http://127.0.0.1:8001/signup-submissions?owner_id=${userId}`);
+            const subsRes = await fetch(`${API_BASE_URL}/signup-submissions?owner_id=${userId}`);
             if (subsRes.ok) {
                 const subsData = await subsRes.json();
                 setSubmissions(subsData);
             }
 
             // Fetch Groups for approval dropdown
-            const groupsRes = await fetch(`http://127.0.0.1:8001/groups?owner_id=${userId}`);
+            const groupsRes = await fetch(`${API_BASE_URL}/groups?owner_id=${userId}`);
             if (groupsRes.ok) {
                 const groupsData = await groupsRes.json();
                 setGroups(groupsData);
@@ -95,7 +98,7 @@ export default function SignupFormsDashboard() {
             title: form.title || "",
             description: form.description || "",
             role: form.role || "",
-            fields: parsedFields
+            fields: parsedFields,
         });
     }
 
@@ -103,7 +106,7 @@ export default function SignupFormsDashboard() {
         const updatedFields = [...editorForm.fields];
         updatedFields[index] = {
             ...updatedFields[index],
-            [key]: value
+            [key]: value,
         };
         // Update field name if label changes
         if (key === "label") {
@@ -119,11 +122,11 @@ export default function SignupFormsDashboard() {
             label: `Custom Field ${newIndex}`,
             type: "text",
             required: false,
-            placeholder: "Enter details"
+            placeholder: "Enter details",
         };
         setEditorForm({
             ...editorForm,
-            fields: [...editorForm.fields, newField]
+            fields: [...editorForm.fields, newField],
         });
     }
 
@@ -139,15 +142,15 @@ export default function SignupFormsDashboard() {
                 role: editorForm.role,
                 title: editorForm.title,
                 description: editorForm.description,
-                fields: JSON.stringify(editorForm.fields)
+                fields: JSON.stringify(editorForm.fields),
             };
 
-            const response = await fetch("http://127.0.0.1:8001/signup-forms", {
+            const response = await fetch(`${API_BASE_URL}/signup-forms`, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
                 },
-                body: JSON.stringify(body)
+                body: JSON.stringify(body),
             });
 
             if (response.ok) {
@@ -167,12 +170,12 @@ export default function SignupFormsDashboard() {
         if (!confirm("Are you sure you want to reject and delete this application?")) return;
 
         try {
-            const response = await fetch(`http://127.0.0.1:8001/signup-submissions/${id}?owner_id=${userId}`, {
-                method: "DELETE"
+            const response = await fetch(`${API_BASE_URL}/signup-submissions/${id}?owner_id=${userId}`, {
+                method: "DELETE",
             });
 
             if (response.ok) {
-                setSubmissions(submissions.filter(s => s.id !== id));
+                setSubmissions(submissions.filter((s) => s.id !== id));
                 alert("Application deleted/rejected successfully.");
             } else {
                 alert("Failed to reject application.");
@@ -185,9 +188,12 @@ export default function SignupFormsDashboard() {
     async function handleConfirmApprove() {
         try {
             const groupParam = approveGroupId ? `&group_id=${approveGroupId}` : "";
-            const response = await fetch(`http://127.0.0.1:8001/signup-submissions/${approvingSubmission.id}/approve?owner_id=${userId}${groupParam}`, {
-                method: "POST"
-            });
+            const response = await fetch(
+                `${API_BASE_URL}/signup-submissions/${approvingSubmission.id}/approve?owner_id=${userId}${groupParam}`,
+                {
+                    method: "POST",
+                }
+            );
 
             if (response.ok) {
                 alert("Applicant accepted. The member can now log in with the registered email and password.");
@@ -214,7 +220,14 @@ export default function SignupFormsDashboard() {
                         </button>
                         <div>
                             <h2>Customize Form</h2>
-                            <span style={{ fontSize: "12px", color: "#3b82f6", fontWeight: 700, textTransform: "uppercase" }}>
+                            <span
+                                style={{
+                                    fontSize: "12px",
+                                    color: "#3b82f6",
+                                    fontWeight: 700,
+                                    textTransform: "uppercase",
+                                }}
+                            >
                                 {editorForm.role} Role
                             </span>
                         </div>
@@ -289,7 +302,15 @@ export default function SignupFormsDashboard() {
                                             onChange={(e) => handleFieldChange(index, "required", e.target.checked)}
                                             id={`req-${index}`}
                                         />
-                                        <label htmlFor={`req-${index}`} style={{ margin: 0, fontSize: "11px", fontWeight: "normal", color: "#64748b" }}>
+                                        <label
+                                            htmlFor={`req-${index}`}
+                                            style={{
+                                                margin: 0,
+                                                fontSize: "11px",
+                                                fontWeight: "normal",
+                                                color: "#64748b",
+                                            }}
+                                        >
                                             Req
                                         </label>
                                     </div>
@@ -325,13 +346,16 @@ export default function SignupFormsDashboard() {
                             {editorForm.fields.map((field, idx) => (
                                 <div key={idx} className="preview-field">
                                     <label>
-                                        {field.label || "Untitled Field"} {field.required && <span style={{ color: "#ef4444" }}>*</span>}
+                                        {field.label || "Untitled Field"}{" "}
+                                        {field.required && <span style={{ color: "#ef4444" }}>*</span>}
                                     </label>
                                     {field.type === "select" ? (
                                         <select className="preview-input" disabled>
                                             <option>{field.placeholder || "Select option..."}</option>
                                             {(field.options || ["Option 1", "Option 2"]).map((opt, i) => (
-                                                <option key={i} value={opt}>{opt}</option>
+                                                <option key={i} value={opt}>
+                                                    {opt}
+                                                </option>
                                             ))}
                                         </select>
                                     ) : (
@@ -363,7 +387,7 @@ export default function SignupFormsDashboard() {
                         const isCoach = form.role.toLowerCase() === "coach";
                         const displayTitle = isCoach ? "Coaches Form" : `${form.role}s Form`;
                         const displaySubtitle = `${form.role} Registration`;
-                        
+
                         return (
                             <div key={idx} className="form-role-card" onClick={() => handleStartEdit(form)}>
                                 <div className="card-icon-wrapper">
@@ -372,7 +396,9 @@ export default function SignupFormsDashboard() {
                                 <h3>{displayTitle}</h3>
                                 <p>{displaySubtitle}</p>
                                 <div className="card-meta">
-                                    <span className={`badge ${form.is_customized ? "badge-customized" : "badge-default"}`}>
+                                    <span
+                                        className={`badge ${form.is_customized ? "badge-customized" : "badge-default"}`}
+                                    >
                                         {form.is_customized ? "Customized" : "Default Template"}
                                     </span>
                                 </div>
@@ -398,7 +424,10 @@ export default function SignupFormsDashboard() {
                     <div className="no-apps-state">
                         <FileText size={48} />
                         <h3>No candidate applications yet</h3>
-                        <p>When coaches, parents, players, or referees sign up through the public registration portal, their applications will show up here.</p>
+                        <p>
+                            When coaches, parents, players, or referees sign up through the public registration portal,
+                            their applications will show up here.
+                        </p>
                     </div>
                 ) : (
                     <div className="app-table-wrapper">
@@ -417,7 +446,10 @@ export default function SignupFormsDashboard() {
                                 {submissions.map((sub) => {
                                     let parsedData = {};
                                     try {
-                                        parsedData = typeof sub.submitted_data === "string" ? JSON.parse(sub.submitted_data) : sub.submitted_data;
+                                        parsedData =
+                                            typeof sub.submitted_data === "string"
+                                                ? JSON.parse(sub.submitted_data)
+                                                : sub.submitted_data;
                                     } catch (e) {
                                         console.error("Error parsing submitted data", e);
                                     }
@@ -426,11 +458,13 @@ export default function SignupFormsDashboard() {
                                     const lastName = parsedData.last_name || parsedData.lastName || "";
                                     const email = parsedData.email || "No email";
                                     const name = `${firstName} ${lastName}`.trim();
-                                    const dateStr = sub.created_at ? new Date(sub.created_at).toLocaleDateString("en-IN", {
-                                        day: "numeric",
-                                        month: "short",
-                                        year: "numeric"
-                                    }) : "Unknown";
+                                    const dateStr = sub.created_at
+                                        ? new Date(sub.created_at).toLocaleDateString("en-IN", {
+                                              day: "numeric",
+                                              month: "short",
+                                              year: "numeric",
+                                          })
+                                        : "Unknown";
 
                                     const roleClass = `role-${sub.role.toLowerCase()}`;
 
@@ -438,13 +472,22 @@ export default function SignupFormsDashboard() {
                                         <tr key={sub.id}>
                                             <td style={{ fontWeight: 600, color: "#0f172a" }}>{name}</td>
                                             <td>
-                                                <span className={`app-role-badge ${roleClass}`}>
-                                                    {sub.role}
-                                                </span>
+                                                <span className={`app-role-badge ${roleClass}`}>{sub.role}</span>
                                             </td>
                                             <td>{email}</td>
                                             <td>
-                                                <span style={{ display: "inline-flex", alignItems: "center", padding: "4px 10px", borderRadius: "6px", background: "#fff7ed", color: "#9a3412", fontSize: "12px", fontWeight: 700 }}>
+                                                <span
+                                                    style={{
+                                                        display: "inline-flex",
+                                                        alignItems: "center",
+                                                        padding: "4px 10px",
+                                                        borderRadius: "6px",
+                                                        background: "#fff7ed",
+                                                        color: "#9a3412",
+                                                        fontSize: "12px",
+                                                        fontWeight: 700,
+                                                    }}
+                                                >
                                                     Waiting approval
                                                 </span>
                                             </td>
@@ -487,7 +530,10 @@ export default function SignupFormsDashboard() {
 
         let parsedData = {};
         try {
-            parsedData = typeof selectedSubmission.submitted_data === "string" ? JSON.parse(selectedSubmission.submitted_data) : selectedSubmission.submitted_data;
+            parsedData =
+                typeof selectedSubmission.submitted_data === "string"
+                    ? JSON.parse(selectedSubmission.submitted_data)
+                    : selectedSubmission.submitted_data;
         } catch (e) {
             console.error("Error parsing details", e);
         }
@@ -495,7 +541,14 @@ export default function SignupFormsDashboard() {
         return (
             <div className="modal-overlay" onClick={() => setSelectedSubmission(null)}>
                 <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: "16px",
+                        }}
+                    >
                         <h3 style={{ margin: 0 }}>Candidate Profile Details</h3>
                         <button className="back-btn" onClick={() => setSelectedSubmission(null)}>
                             <X size={16} />
@@ -505,7 +558,9 @@ export default function SignupFormsDashboard() {
                     <div className="applicant-details-grid">
                         <div className="details-row">
                             <span className="details-label">Applicant Role</span>
-                            <span className="details-value" style={{ fontWeight: 700, color: "#3b82f6" }}>{selectedSubmission.role}</span>
+                            <span className="details-value" style={{ fontWeight: 700, color: "#3b82f6" }}>
+                                {selectedSubmission.role}
+                            </span>
                         </div>
                         {Object.entries(parsedData).map(([key, val]) => {
                             // Beautify keys
@@ -513,8 +568,10 @@ export default function SignupFormsDashboard() {
                                 .replace(/_/g, " ")
                                 .replace(/([A-Z])/g, " $1")
                                 .replace(/^./, (str) => str.toUpperCase());
-                            const displayValue = key.toLowerCase().includes("password") ? "Hidden" : (val?.toString() || "N/A");
-                            
+                            const displayValue = key.toLowerCase().includes("password")
+                                ? "Hidden"
+                                : val?.toString() || "N/A";
+
                             return (
                                 <div className="details-row" key={key}>
                                     <span className="details-label">{label}</span>
@@ -539,17 +596,28 @@ export default function SignupFormsDashboard() {
 
         let parsedData = {};
         try {
-            parsedData = typeof approvingSubmission.submitted_data === "string" ? JSON.parse(approvingSubmission.submitted_data) : approvingSubmission.submitted_data;
+            parsedData =
+                typeof approvingSubmission.submitted_data === "string"
+                    ? JSON.parse(approvingSubmission.submitted_data)
+                    : approvingSubmission.submitted_data;
         } catch (e) {
             console.error("Error parsing approve submission data", e);
         }
 
-        const name = `${parsedData.first_name || parsedData.firstName || "Applicant"} ${parsedData.last_name || parsedData.lastName || ""}`.trim();
+        const name =
+            `${parsedData.first_name || parsedData.firstName || "Applicant"} ${parsedData.last_name || parsedData.lastName || ""}`.trim();
 
         return (
             <div className="modal-overlay" onClick={() => setApprovingSubmission(null)}>
                 <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: "16px",
+                        }}
+                    >
                         <h3 style={{ margin: 0 }}>Accept Applicant</h3>
                         <button className="back-btn" onClick={() => setApprovingSubmission(null)}>
                             <X size={16} />
@@ -557,15 +625,30 @@ export default function SignupFormsDashboard() {
                     </div>
 
                     <p style={{ fontSize: "14px", color: "#64748b", margin: "0 0 20px 0", lineHeight: 1.5 }}>
-                        Accept <strong style={{ color: "#0f172a" }}>{name}</strong> ({approvingSubmission.role}) into the club. After you accept, they can log in with the email and password used during registration.
+                        Accept <strong style={{ color: "#0f172a" }}>{name}</strong> ({approvingSubmission.role}) into
+                        the club. After you accept, they can log in with the email and password used during
+                        registration.
                     </p>
 
                     <div className="editor-form-group">
                         <label>Select Team / Group</label>
                         {groups.length === 0 ? (
-                            <div style={{ background: "#f0fdf4", color: "#166534", padding: "12px", borderRadius: "8px", fontSize: "13px", display: "flex", gap: "8px", alignItems: "center" }}>
+                            <div
+                                style={{
+                                    background: "#f0fdf4",
+                                    color: "#166534",
+                                    padding: "12px",
+                                    borderRadius: "8px",
+                                    fontSize: "13px",
+                                    display: "flex",
+                                    gap: "8px",
+                                    alignItems: "center",
+                                }}
+                            >
                                 <ShieldAlert size={16} />
-                                <span>No groups found. The app will create an Approved Members group automatically.</span>
+                                <span>
+                                    No groups found. The app will create an Approved Members group automatically.
+                                </span>
                             </div>
                         ) : (
                             <select
@@ -601,14 +684,29 @@ export default function SignupFormsDashboard() {
 
     if (loading) {
         return (
-            <div className="signup-forms-container" style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px" }}>
+            <div
+                className="signup-forms-container"
+                style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px" }}
+            >
                 <div style={{ textAlign: "center", color: "#64748b" }}>
-                    <div style={{ width: "40px", height: "40px", border: "4px solid #cbd5e1", borderTopColor: "#2563eb", borderRadius: "50%", animation: "spin 1s linear infinite", margin: "0 auto 16px" }}></div>
+                    <div
+                        style={{
+                            width: "40px",
+                            height: "40px",
+                            border: "4px solid #cbd5e1",
+                            borderTopColor: "#2563eb",
+                            borderRadius: "50%",
+                            animation: "spin 1s linear infinite",
+                            margin: "0 auto 16px",
+                        }}
+                    ></div>
                     <p style={{ fontWeight: 600 }}>Loading custom signup config stream...</p>
                 </div>
                 <style jsx>{`
                     @keyframes spin {
-                        to { transform: rotate(360deg); }
+                        to {
+                            transform: rotate(360deg);
+                        }
                     }
                 `}</style>
             </div>
@@ -617,8 +715,21 @@ export default function SignupFormsDashboard() {
 
     if (sessionError) {
         return (
-            <div className="signup-forms-container" style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px" }}>
-                <div style={{ maxWidth: "520px", background: "#fff7ed", border: "1px solid #fed7aa", color: "#9a3412", padding: "22px", borderRadius: "8px", textAlign: "center" }}>
+            <div
+                className="signup-forms-container"
+                style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px" }}
+            >
+                <div
+                    style={{
+                        maxWidth: "520px",
+                        background: "#fff7ed",
+                        border: "1px solid #fed7aa",
+                        color: "#9a3412",
+                        padding: "22px",
+                        borderRadius: "8px",
+                        textAlign: "center",
+                    }}
+                >
                     <ShieldAlert size={28} style={{ marginBottom: "10px" }} />
                     <h2 style={{ margin: "0 0 8px", color: "#7c2d12", fontSize: "20px" }}>Admin Login Needed</h2>
                     <p style={{ margin: "0 0 18px", fontSize: "14px", lineHeight: 1.5 }}>{sessionError}</p>
@@ -643,8 +754,13 @@ export default function SignupFormsDashboard() {
             ) : (
                 <>
                     <div style={{ marginBottom: "24px" }}>
-                        <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#0f172a", margin: 0 }}>Club Signups and Forms</h1>
-                        <p style={{ fontSize: "14px", color: "#64748b", margin: "4px 0 0" }}>Configure customized onboarding forms for player squads, parent lists, coaches, and match referees.</p>
+                        <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#0f172a", margin: 0 }}>
+                            Club Signups and Forms
+                        </h1>
+                        <p style={{ fontSize: "14px", color: "#64748b", margin: "4px 0 0" }}>
+                            Configure customized onboarding forms for player squads, parent lists, coaches, and match
+                            referees.
+                        </p>
                     </div>
 
                     <div className="tabs-container">

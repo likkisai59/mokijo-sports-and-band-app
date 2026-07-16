@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 import { useState } from "react";
 import Link from "next/link";
 import styles from "../styles/login.module.css";
@@ -10,7 +11,7 @@ export default function VenueOwnerLoginPage() {
 
     const handleChange = (e) => {
         setError("");
-        setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+        setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
     const handleSubmit = async (e) => {
@@ -18,7 +19,7 @@ export default function VenueOwnerLoginPage() {
         setLoading(true);
         setError("");
         try {
-            const res = await fetch("http://127.0.0.1:8001/venue-owner/login", {
+            const res = await fetch(`${API_BASE_URL}/venue-owner/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(form),
@@ -28,8 +29,8 @@ export default function VenueOwnerLoginPage() {
                 localStorage.setItem("venueOwnerId", data.ownerId);
                 localStorage.setItem("venueOwnerName", data.ownerName);
                 localStorage.setItem("isVenueOwner", "true");
+                localStorage.setItem("accessToken", data.access_token);
                 window.location.href = "/venue-dashboard";
-
             } else {
                 setError(data.detail || "Login failed.");
             }
@@ -51,17 +52,37 @@ export default function VenueOwnerLoginPage() {
                     </div>
                     <form className={styles.form} onSubmit={handleSubmit}>
                         <div className={styles.inputGroup}>
-                            <label htmlFor="email" className={styles.label}>Email address</label>
+                            <label htmlFor="email" className={styles.label}>
+                                Email address
+                            </label>
                             <div className={styles.inputWrapper}>
-                                <input id="email" name="email" type="email" required placeholder="owner@example.com"
-                                    className={styles.input} value={form.email} onChange={handleChange} />
+                                <input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    required
+                                    placeholder="owner@example.com"
+                                    className={styles.input}
+                                    value={form.email}
+                                    onChange={handleChange}
+                                />
                             </div>
                         </div>
                         <div className={styles.inputGroup}>
-                            <label htmlFor="password" className={styles.label}>Password</label>
+                            <label htmlFor="password" className={styles.label}>
+                                Password
+                            </label>
                             <div className={styles.inputWrapper}>
-                                <input id="password" name="password" type="password" required placeholder="••••••••"
-                                    className={styles.input} value={form.password} onChange={handleChange} />
+                                <input
+                                    id="password"
+                                    name="password"
+                                    type="password"
+                                    required
+                                    placeholder="••••••••"
+                                    className={styles.input}
+                                    value={form.password}
+                                    onChange={handleChange}
+                                />
                             </div>
                         </div>
                         {error && <div className={styles.errorMsg}>{error}</div>}
@@ -69,10 +90,14 @@ export default function VenueOwnerLoginPage() {
                             {loading ? "Signing in…" : "Sign in →"}
                         </button>
                     </form>
-                    <div className={styles.divider}><span>or</span></div>
+                    <div className={styles.divider}>
+                        <span>or</span>
+                    </div>
                     <div className={styles.footer}>
                         Don&apos;t have an account?{" "}
-                        <Link href="/register-venue" className={styles.signupLink}>Register your venue</Link>
+                        <Link href="/register-venue" className={styles.signupLink}>
+                            Register your venue
+                        </Link>
                     </div>
                 </div>
             </div>

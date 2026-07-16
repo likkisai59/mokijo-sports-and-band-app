@@ -14,6 +14,7 @@ from app.api.messages.messages import MessagesRouting
 from app.api.venue_owner.venue_owner import VenueOwnerRouting
 from app.api.games.games import GamesRouting
 from app.api.matches.matches import MatchesRouting
+from app.api.venue_verification.venue_verification import VenueVerificationRouting
 
 api_router = APIRouter()
 
@@ -32,6 +33,7 @@ messages = MessagesRouting()
 venue_owner = VenueOwnerRouting()
 games = GamesRouting()
 matches = MatchesRouting()
+venue_verification = VenueVerificationRouting()
 
 # Register sub-routers
 api_router.include_router(auth.router)
@@ -48,3 +50,4 @@ api_router.include_router(messages.router)
 api_router.include_router(venue_owner.router)
 api_router.include_router(games.router)
 api_router.include_router(matches.router)
+api_router.include_router(venue_verification.router)

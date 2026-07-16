@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 
 import { useEffect, useState, Suspense, use } from "react";
 import Link from "next/link";
@@ -27,7 +28,7 @@ function CheckoutContent() {
             setLoading(true);
             try {
                 if (bookingId) {
-                    const res = await fetch(`http://127.0.0.1:8001/bookings/${bookingId}`);
+                    const res = await fetch(`${API_BASE_URL}/bookings/${bookingId}`);
                     if (res.ok) {
                         const data = await res.json();
                         setBooking(data);
@@ -48,7 +49,7 @@ function CheckoutContent() {
                         setError("Failed to load booking details.");
                     }
                 } else if (gameId) {
-                    const res = await fetch(`http://127.0.0.1:8001/games/${gameId}`);
+                    const res = await fetch(`${API_BASE_URL}/games/${gameId}`);
                     if (res.ok) {
                         const data = await res.json();
                         setBooking({
@@ -56,7 +57,7 @@ function CheckoutContent() {
                             amount_paid: Math.round(data.price_per_player * 100),
                             status: data.status,
                             court: { name: `Match Slot (${data.sport.toUpperCase()})` },
-                            slots: [{ start_time: data.slot_start, sport: data.sport }]
+                            slots: [{ start_time: data.slot_start, sport: data.sport }],
                         });
                         if (data.status === "full" || data.status === "completed") {
                             setError("Lobby registration is closed.");
@@ -101,7 +102,7 @@ function CheckoutContent() {
 
         try {
             if (bookingId) {
-                const res = await fetch("http://127.0.0.1:8001/bookings/confirm", {
+                const res = await fetch(`${API_BASE_URL}/bookings/confirm`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -119,7 +120,7 @@ function CheckoutContent() {
                     setError(errorData.detail || "Payment verification failed or slots expired.");
                 }
             } else if (gameId) {
-                const res = await fetch("http://127.0.0.1:8001/webhooks/payments/game-join", {
+                const res = await fetch(`${API_BASE_URL}/webhooks/payments/game-join`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -128,7 +129,7 @@ function CheckoutContent() {
                         event: "payment.captured",
                         payment_id: "pay_game_" + Math.random().toString(36).substring(2, 9).toUpperCase(),
                         game_id: gameId,
-                        user_id: Number(localStorage.getItem("userId") || 2)
+                        user_id: Number(localStorage.getItem("userId") || 2),
                     }),
                 });
 
@@ -165,7 +166,9 @@ function CheckoutContent() {
         return (
             <div style={styles.errorWrapper}>
                 <div style={styles.errorContainer}>{error}</div>
-                <Link href="/venues" style={styles.backLink}>Return to Arenas</Link>
+                <Link href="/venues" style={styles.backLink}>
+                    Return to Arenas
+                </Link>
             </div>
         );
     }
@@ -222,11 +225,13 @@ function CheckoutContent() {
                         {/* Left Details */}
                         <div style={styles.leftCol}>
                             {/* Alert countdown timer */}
-                            <div style={{
-                                ...styles.timerBanner,
-                                backgroundColor: expired ? "rgba(239, 68, 68, 0.1)" : "rgba(234, 179, 8, 0.08)",
-                                borderColor: expired ? "rgba(239, 68, 68, 0.2)" : "rgba(234, 179, 8, 0.2)",
-                            }}>
+                            <div
+                                style={{
+                                    ...styles.timerBanner,
+                                    backgroundColor: expired ? "rgba(239, 68, 68, 0.1)" : "rgba(234, 179, 8, 0.08)",
+                                    borderColor: expired ? "rgba(239, 68, 68, 0.2)" : "rgba(234, 179, 8, 0.2)",
+                                }}
+                            >
                                 <Clock size={20} style={{ color: expired ? "#f87171" : "#facc15" }} />
                                 <div style={styles.timerContent}>
                                     {expired ? (
@@ -236,7 +241,9 @@ function CheckoutContent() {
                                     ) : (
                                         <span>
                                             We are holding your slots for:{" "}
-                                            <strong style={{ color: "#facc15", fontFamily: "monospace", fontSize: "16px" }}>
+                                            <strong
+                                                style={{ color: "#facc15", fontFamily: "monospace", fontSize: "16px" }}
+                                            >
                                                 {formatTime(timeLeft)}
                                             </strong>
                                         </span>
@@ -248,21 +255,34 @@ function CheckoutContent() {
                             <section style={styles.section}>
                                 <h2 style={styles.sectionTitle}>Review Selected Slots</h2>
                                 <div style={styles.slotsList}>
-                                    {booking?.slots && booking.slots.map((slot) => {
-                                        const date = new Date(slot.start_time).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-                                        const startTime = new Date(slot.start_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-                                        const endTime = new Date(slot.end_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                                    {booking?.slots &&
+                                        booking.slots.map((slot) => {
+                                            const date = new Date(slot.start_time).toLocaleDateString("en-US", {
+                                                weekday: "short",
+                                                month: "short",
+                                                day: "numeric",
+                                            });
+                                            const startTime = new Date(slot.start_time).toLocaleTimeString([], {
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                            });
+                                            const endTime = new Date(slot.end_time).toLocaleTimeString([], {
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                            });
 
-                                        return (
-                                            <div key={slot.id} style={styles.slotRow}>
-                                                <div style={styles.slotDetails}>
-                                                    <span style={styles.slotSport}>{slot.sport.toUpperCase()}</span>
-                                                    <span style={styles.slotTime}>{date} | {startTime} - {endTime}</span>
+                                            return (
+                                                <div key={slot.id} style={styles.slotRow}>
+                                                    <div style={styles.slotDetails}>
+                                                        <span style={styles.slotSport}>{slot.sport.toUpperCase()}</span>
+                                                        <span style={styles.slotTime}>
+                                                            {date} | {startTime} - {endTime}
+                                                        </span>
+                                                    </div>
+                                                    <span style={styles.slotCost}>₹{slot.current_price}</span>
                                                 </div>
-                                                <span style={styles.slotCost}>₹{slot.current_price}</span>
-                                            </div>
-                                        );
-                                    })}
+                                            );
+                                        })}
                                 </div>
                             </section>
 
@@ -273,7 +293,13 @@ function CheckoutContent() {
                                     <CreditCard size={20} style={{ color: "#00f0ff" }} />
                                     <div style={{ flexGrow: 1 }}>
                                         <h3 style={{ fontSize: "14px", fontWeight: "700" }}>Mock Payment Gateway</h3>
-                                        <p style={{ fontSize: "12px", color: "rgba(148, 163, 184, 0.5)", marginTop: "4px" }}>
+                                        <p
+                                            style={{
+                                                fontSize: "12px",
+                                                color: "rgba(148, 163, 184, 0.5)",
+                                                marginTop: "4px",
+                                            }}
+                                        >
                                             Simulate successful checkout completion in one click.
                                         </p>
                                     </div>

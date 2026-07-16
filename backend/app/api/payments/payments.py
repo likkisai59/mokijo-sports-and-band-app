@@ -9,7 +9,7 @@ import json
 from app.core.config import get_settings
 from app.models import schemas
 from app.connectors.connection_service import ConnectionService
-from app.auth.authorization import check_user_authorization
+from app.auth.authorization import check_user_authorization, validate_role_and_permission
 from app.core.helpers import (
     serialize_payment,
     get_effective_payment_status,
@@ -198,6 +198,7 @@ class PaymentsLogic(ConnectionService):
     async def get_razorpay_config(self, request: Request, current_user: dict):
         try:
             with logger.time_operation("GET_RAZORPAY_CONFIG", request=request):
+                validate_role_and_permission(self.db_driver, current_user, ["admin", "team_member", "user"])
                 key_id = os.getenv("RAZORPAY_KEY_ID")
                 key_secret = os.getenv("RAZORPAY_KEY_SECRET")
                 return {
@@ -214,6 +215,7 @@ class PaymentsLogic(ConnectionService):
         try:
             with logger.time_operation("CREATE_RAZORPAY_ORDER", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member", "user"])
                 key_id, _ = get_razorpay_credentials()
                 
                 payment = db.fetch_one(
@@ -294,6 +296,7 @@ class PaymentsLogic(ConnectionService):
         try:
             with logger.time_operation("VERIFY_RAZORPAY_PAYMENT", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member", "user"])
                 payment = db.fetch_one(
                     "SELECT * FROM payments WHERE id = %s AND owner_id = %s",
                     (verification.payment_id, verification.owner_id)
@@ -365,6 +368,13 @@ class PaymentsLogic(ConnectionService):
         try:
             with logger.time_operation("GET_PAYMENTS", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member"], owner_id)
+                if current_user.get("role") == "team_member":
+                    if member_id != current_user.get("id"):
+                        raise HTTPException(
+                            status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Access denied: Team members can only view their own payments."
+                        )
                 query = "SELECT * FROM payments WHERE owner_id = %s"
                 params = [owner_id]
                 
@@ -398,6 +408,7 @@ class PaymentsLogic(ConnectionService):
         try:
             with logger.time_operation("GET_PAYMENTS_SUMMARY", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin"], owner_id)
                 payments = db.fetch_all("SELECT * FROM payments WHERE owner_id = %s", (owner_id,))
                 
                 collected = sum(p.get("amount") or 0 for p in payments if p.get("status") == "paid")
@@ -420,6 +431,8 @@ class PaymentsLogic(ConnectionService):
     async def get_payments_member_status(self, request: Request, owner_id: int, x_is_member: Optional[str], current_user: dict):
         try:
             with logger.time_operation("GET_PAYMENTS_MEMBER_STATUS", request=request):
+                db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin"], owner_id)
                 if x_is_member == "true":
                     raise HTTPException(status_code=403, detail="Members are not allowed to view payment records.")
                 
@@ -510,6 +523,7 @@ class PaymentsLogic(ConnectionService):
     async def create_payment(self, request: Request, payment: schemas.PaymentCreate, x_is_member: Optional[str], current_user: dict):
         try:
             with logger.time_operation("CREATE_PAYMENT", request=request):
+                validate_role_and_permission(self.db_driver, current_user, ["admin"], payment.owner_id)
                 if x_is_member == "true":
                     raise HTTPException(status_code=403, detail="Members are not allowed to create payments.")
                 if payment.amount <= 0:
@@ -556,6 +570,7 @@ class PaymentsLogic(ConnectionService):
     ):
         try:
             with logger.time_operation("UPDATE_PAYMENT", request=request):
+                validate_role_and_permission(self.db_driver, current_user, ["admin"], owner_id)
                 if x_is_member == "true":
                     raise HTTPException(status_code=403, detail="Members are not allowed to update payments.")
                 
@@ -616,6 +631,7 @@ class PaymentsLogic(ConnectionService):
     ):
         try:
             with logger.time_operation("DELETE_PAYMENT", request=request):
+                validate_role_and_permission(self.db_driver, current_user, ["admin"], owner_id)
                 if x_is_member == "true":
                     raise HTTPException(status_code=403, detail="Members are not allowed to delete payments.")
                 

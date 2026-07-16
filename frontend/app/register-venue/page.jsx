@@ -1,21 +1,48 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 import { useState } from "react";
 import Link from "next/link";
 import "../styles/venue-register.css";
 
 // ─── Constants ───────────────────────────────────────────────────────
-const SPORTS = ["Cricket", "Football", "Basketball", "Tennis", "Badminton", "Volleyball", "Swimming", "Table Tennis", "Boxing", "Kabaddi", "Gym", "Squash"];
+const SPORTS = [
+    "Cricket",
+    "Football",
+    "Basketball",
+    "Tennis",
+    "Badminton",
+    "Volleyball",
+    "Swimming",
+    "Table Tennis",
+    "Boxing",
+    "Kabaddi",
+    "Gym",
+    "Squash",
+];
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const AMENITIES = ["Parking", "Changing Rooms", "Showers", "Cafeteria", "First Aid", "CCTV", "Floodlights", "WiFi", "Drinking Water", "Washrooms", "Scoreboard", "Seating"];
+const AMENITIES = [
+    "Parking",
+    "Changing Rooms",
+    "Showers",
+    "Cafeteria",
+    "First Aid",
+    "CCTV",
+    "Floodlights",
+    "WiFi",
+    "Drinking Water",
+    "Washrooms",
+    "Scoreboard",
+    "Seating",
+];
 
 // ─── Empty venue template ─────────────────────────────────────────────
 const emptyVenue = () => ({
     name: "",
     location: "",
     landmark: "",
-    sports: [],       // array of sport strings
-    coverImage: null,    // base64 or null
-    photos: [],       // array of base64
+    sports: [], // array of sport strings
+    coverImage: null, // base64 or null
+    photos: [], // array of base64
     openingTime: "06:00",
     closingTime: "22:00",
     daysOpen: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
@@ -25,11 +52,11 @@ const emptyVenue = () => ({
 
 // ─── Helpers ──────────────────────────────────────────────────────────
 function toggle(arr, val) {
-    return arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val];
+    return arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val];
 }
 
 function fileToBase64(file) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result);
         reader.readAsDataURL(file);
@@ -68,31 +95,48 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
             <div className="vr-grid">
                 <div className="vr-field">
                     <label className="vr-label">Venue / Court Name *</label>
-                    <input className="vr-input" required placeholder="e.g. Green Field Arena"
-                        value={venue.name} onChange={e => update("name", e.target.value)} />
+                    <input
+                        className="vr-input"
+                        required
+                        placeholder="e.g. Green Field Arena"
+                        value={venue.name}
+                        onChange={(e) => update("name", e.target.value)}
+                    />
                 </div>
                 <div className="vr-field">
                     <label className="vr-label">Location / City *</label>
-                    <input className="vr-input" required placeholder="e.g. Bengaluru, Karnataka"
-                        value={venue.location} onChange={e => update("location", e.target.value)} />
+                    <input
+                        className="vr-input"
+                        required
+                        placeholder="e.g. Bengaluru, Karnataka"
+                        value={venue.location}
+                        onChange={(e) => update("location", e.target.value)}
+                    />
                 </div>
             </div>
 
             <div className="vr-grid cols-1" style={{ marginTop: 18 }}>
                 <div className="vr-field">
                     <label className="vr-label">Landmark</label>
-                    <input className="vr-input" placeholder="e.g. Near City Mall, Opposite Metro Station"
-                        value={venue.landmark} onChange={e => update("landmark", e.target.value)} />
+                    <input
+                        className="vr-input"
+                        placeholder="e.g. Near City Mall, Opposite Metro Station"
+                        value={venue.landmark}
+                        onChange={(e) => update("landmark", e.target.value)}
+                    />
                 </div>
             </div>
 
             {/* Sports */}
             <div className="vr-section-title">Sports Offered</div>
             <div className="vr-sports-grid">
-                {SPORTS.map(s => (
-                    <button key={s} type="button"
+                {SPORTS.map((s) => (
+                    <button
+                        key={s}
+                        type="button"
                         className={`vr-sport-chip ${venue.sports.includes(s) ? "selected" : ""}`}
-                        onClick={() => update("sports", toggle(venue.sports, s))}>
+                        onClick={() => update("sports", toggle(venue.sports, s))}
+                    >
                         {s}
                     </button>
                 ))}
@@ -106,15 +150,25 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
                     <div className="vr-upload">
                         <input type="file" accept="image/*" onChange={handleCoverImage} />
                         {venue.coverImage ? (
-                            <img src={venue.coverImage} alt="cover"
-                                style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 8 }} />
+                            <img
+                                src={venue.coverImage}
+                                alt="cover"
+                                style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 8 }}
+                            />
                         ) : (
                             <>
                                 <div className="vr-upload-icon">
-                                    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5">
-                                        <rect x="3" y="3" width="18" height="18" rx="3"/>
-                                        <circle cx="8.5" cy="8.5" r="1.5"/>
-                                        <polyline points="21 15 16 10 5 21"/>
+                                    <svg
+                                        viewBox="0 0 24 24"
+                                        width="32"
+                                        height="32"
+                                        fill="none"
+                                        stroke="rgba(255,255,255,0.3)"
+                                        strokeWidth="1.5"
+                                    >
+                                        <rect x="3" y="3" width="18" height="18" rx="3" />
+                                        <circle cx="8.5" cy="8.5" r="1.5" />
+                                        <polyline points="21 15 16 10 5 21" />
                                     </svg>
                                 </div>
                                 <div className="vr-upload-text">Click to upload cover photo</div>
@@ -128,8 +182,15 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
                     <div className="vr-upload">
                         <input type="file" accept="image/jpeg,image/jpg,image/png" multiple onChange={handlePhotos} />
                         <div className="vr-upload-icon">
-                            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5">
-                                <path d="M12 5v14M5 12h14"/>
+                            <svg
+                                viewBox="0 0 24 24"
+                                width="32"
+                                height="32"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.3)"
+                                strokeWidth="1.5"
+                            >
+                                <path d="M12 5v14M5 12h14" />
                             </svg>
                         </div>
                         <div className="vr-upload-text">Click to add photos (.jpg)</div>
@@ -140,8 +201,18 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
                             {venue.photos.map((p, i) => (
                                 <div key={i} className="vr-preview-item">
                                     <img src={p} alt="" />
-                                    <button className="vr-preview-remove" type="button"
-                                        onClick={() => update("photos", venue.photos.filter((_, j) => j !== i))}>×</button>
+                                    <button
+                                        className="vr-preview-remove"
+                                        type="button"
+                                        onClick={() =>
+                                            update(
+                                                "photos",
+                                                venue.photos.filter((_, j) => j !== i)
+                                            )
+                                        }
+                                    >
+                                        ×
+                                    </button>
                                 </div>
                             ))}
                         </div>
@@ -154,18 +225,29 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
             <div className="vr-grid cols-3">
                 <div className="vr-field">
                     <label className="vr-label">Opening Time</label>
-                    <input type="time" className="vr-input" value={venue.openingTime}
-                        onChange={e => update("openingTime", e.target.value)} />
+                    <input
+                        type="time"
+                        className="vr-input"
+                        value={venue.openingTime}
+                        onChange={(e) => update("openingTime", e.target.value)}
+                    />
                 </div>
                 <div className="vr-field">
                     <label className="vr-label">Closing Time</label>
-                    <input type="time" className="vr-input" value={venue.closingTime}
-                        onChange={e => update("closingTime", e.target.value)} />
+                    <input
+                        type="time"
+                        className="vr-input"
+                        value={venue.closingTime}
+                        onChange={(e) => update("closingTime", e.target.value)}
+                    />
                 </div>
                 <div className="vr-field">
                     <label className="vr-label">Slot Duration</label>
-                    <select className="vr-select" value={venue.slotDuration}
-                        onChange={e => update("slotDuration", Number(e.target.value))}>
+                    <select
+                        className="vr-select"
+                        value={venue.slotDuration}
+                        onChange={(e) => update("slotDuration", Number(e.target.value))}
+                    >
                         <option value={30}>30 minutes</option>
                         <option value={60}>1 hour</option>
                     </select>
@@ -175,10 +257,13 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
             {/* Days open */}
             <div className="vr-section-title">Days Open</div>
             <div className="vr-days-grid">
-                {DAYS.map(d => (
-                    <button key={d} type="button"
+                {DAYS.map((d) => (
+                    <button
+                        key={d}
+                        type="button"
                         className={`vr-day-chip ${venue.daysOpen.includes(d) ? "selected" : ""}`}
-                        onClick={() => update("daysOpen", toggle(venue.daysOpen, d))}>
+                        onClick={() => update("daysOpen", toggle(venue.daysOpen, d))}
+                    >
                         {d}
                     </button>
                 ))}
@@ -187,11 +272,14 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
             {/* Amenities */}
             <div className="vr-section-title">Amenities</div>
             <div className="vr-amenities-grid">
-                {AMENITIES.map(a => {
+                {AMENITIES.map((a) => {
                     const checked = venue.amenities.includes(a);
                     return (
-                        <label key={a} className={`vr-amenity-check ${checked ? "checked" : ""}`}
-                            onClick={() => update("amenities", toggle(venue.amenities, a))}>
+                        <label
+                            key={a}
+                            className={`vr-amenity-check ${checked ? "checked" : ""}`}
+                            onClick={() => update("amenities", toggle(venue.amenities, a))}
+                        >
                             <span className="vr-amenity-box" />
                             <span className="vr-amenity-label">{a}</span>
                         </label>
@@ -207,17 +295,23 @@ export default function RegisterVenuePage() {
     const [step, setStep] = useState(1); // 1 = venues, 2 = owner, 3 = success
     const [venues, setVenues] = useState([emptyVenue()]);
     const [owner, setOwner] = useState({
-        fullName: "", dob: "", email: "", phone: "", aadhar: "", password: "", confirmPassword: "",
+        fullName: "",
+        dob: "",
+        email: "",
+        phone: "",
+        aadhar: "",
+        password: "",
+        confirmPassword: "",
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
     // Venue handlers
     const handleVenueChange = (index, updated) => {
-        setVenues(prev => prev.map((v, i) => i === index ? updated : v));
+        setVenues((prev) => prev.map((v, i) => (i === index ? updated : v)));
     };
-    const addVenue = () => setVenues(prev => [...prev, emptyVenue()]);
-    const removeVenue = (index) => setVenues(prev => prev.filter((_, i) => i !== index));
+    const addVenue = () => setVenues((prev) => [...prev, emptyVenue()]);
+    const removeVenue = (index) => setVenues((prev) => prev.filter((_, i) => i !== index));
 
     // Step 1 validation
     const validateStep1 = () => {
@@ -254,7 +348,7 @@ export default function RegisterVenuePage() {
                 aadhar_number: owner.aadhar || null,
                 password: owner.password,
             },
-            venues: venues.map(v => ({
+            venues: venues.map((v) => ({
                 name: v.name,
                 location: v.location,
                 landmark: v.landmark || null,
@@ -270,7 +364,7 @@ export default function RegisterVenuePage() {
         };
 
         try {
-            const res = await fetch("http://127.0.0.1:8001/venue-owner/register", {
+            const res = await fetch(`${API_BASE_URL}/venue-owner/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
@@ -293,19 +387,30 @@ export default function RegisterVenuePage() {
         return (
             <div className="vr-page">
                 <div className="vr-header">
-                    <Link href="/" className="vr-logo">Mukijo</Link>
+                    <Link href="/" className="vr-logo">
+                        Mukijo
+                    </Link>
                 </div>
                 <div className="vr-card">
                     <div className="vr-success">
                         <div className="vr-success-icon">
-                            <svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="#bffe00" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="20 6 9 17 4 12"/>
+                            <svg
+                                viewBox="0 0 24 24"
+                                width="42"
+                                height="42"
+                                fill="none"
+                                stroke="#bffe00"
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+                                <polyline points="20 6 9 17 4 12" />
                             </svg>
                         </div>
                         <h2>Venue Registered Successfully!</h2>
                         <p>
-                            Your {venues.length > 1 ? `${venues.length} venues have` : "venue has"} been listed on Mukijo.
-                            You can now log in and manage your venue bookings.
+                            Your {venues.length > 1 ? `${venues.length} venues have` : "venue has"} been listed on
+                            Mukijo. You can now log in and manage your venue bookings.
                         </p>
                         <Link href="/login-venue" className="vr-success-link">
                             Sign In as Venue Owner →
@@ -320,10 +425,12 @@ export default function RegisterVenuePage() {
         <div className="vr-page">
             {/* Header */}
             <div className="vr-header">
-                <Link href="/" className="vr-logo">Mukijo</Link>
+                <Link href="/" className="vr-logo">
+                    Mukijo
+                </Link>
                 <Link href="/login-venue" className="vr-back">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="15 18 9 12 15 6"/>
+                        <polyline points="15 18 9 12 15 6" />
                     </svg>
                     Already registered? Sign in
                 </Link>
@@ -346,7 +453,9 @@ export default function RegisterVenuePage() {
             {step === 1 && (
                 <div className="vr-card">
                     <h2 className="vr-card-title">Tell us about your venue</h2>
-                    <p className="vr-card-sub">You can add multiple venues at once. All venues will be listed under your account.</p>
+                    <p className="vr-card-sub">
+                        You can add multiple venues at once. All venues will be listed under your account.
+                    </p>
 
                     {venues.map((v, i) => (
                         <VenueBlock
@@ -360,8 +469,15 @@ export default function RegisterVenuePage() {
                     ))}
 
                     <button type="button" className="vr-add-btn" onClick={addVenue}>
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M12 5v14M5 12h14"/>
+                        <svg
+                            viewBox="0 0 24 24"
+                            width="18"
+                            height="18"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                        >
+                            <path d="M12 5v14M5 12h14" />
                         </svg>
                         Add Another Venue
                     </button>
@@ -372,7 +488,9 @@ export default function RegisterVenuePage() {
                         <button
                             type="button"
                             className="vr-btn-primary"
-                            onClick={() => { if (validateStep1()) setStep(2); }}
+                            onClick={() => {
+                                if (validateStep1()) setStep(2);
+                            }}
                         >
                             Next: Owner Details →
                         </button>
@@ -389,45 +507,89 @@ export default function RegisterVenuePage() {
                     <div className="vr-grid">
                         <div className="vr-field">
                             <label className="vr-label">Full Name *</label>
-                            <input className="vr-input" required placeholder="e.g. Rahul Sharma"
-                                value={owner.fullName} onChange={e => setOwner(p => ({ ...p, fullName: e.target.value }))} />
+                            <input
+                                className="vr-input"
+                                required
+                                placeholder="e.g. Rahul Sharma"
+                                value={owner.fullName}
+                                onChange={(e) => setOwner((p) => ({ ...p, fullName: e.target.value }))}
+                            />
                         </div>
                         <div className="vr-field">
                             <label className="vr-label">Date of Birth</label>
-                            <input type="date" className="vr-input"
-                                value={owner.dob} onChange={e => setOwner(p => ({ ...p, dob: e.target.value }))} />
+                            <input
+                                type="date"
+                                className="vr-input"
+                                value={owner.dob}
+                                onChange={(e) => setOwner((p) => ({ ...p, dob: e.target.value }))}
+                            />
                         </div>
                         <div className="vr-field">
                             <label className="vr-label">Email Address *</label>
-                            <input type="email" className="vr-input" required placeholder="owner@example.com"
-                                value={owner.email} onChange={e => setOwner(p => ({ ...p, email: e.target.value }))} />
+                            <input
+                                type="email"
+                                className="vr-input"
+                                required
+                                placeholder="owner@example.com"
+                                value={owner.email}
+                                onChange={(e) => setOwner((p) => ({ ...p, email: e.target.value }))}
+                            />
                         </div>
                         <div className="vr-field">
                             <label className="vr-label">Phone Number *</label>
-                            <input type="tel" className="vr-input" required placeholder="10-digit mobile number"
-                                value={owner.phone} onChange={e => setOwner(p => ({ ...p, phone: e.target.value }))} />
+                            <input
+                                type="tel"
+                                className="vr-input"
+                                required
+                                placeholder="10-digit mobile number"
+                                value={owner.phone}
+                                onChange={(e) => setOwner((p) => ({ ...p, phone: e.target.value }))}
+                            />
                         </div>
                         <div className="vr-field">
                             <label className="vr-label">Aadhar Number</label>
-                            <input className="vr-input" placeholder="12-digit Aadhar"
-                                value={owner.aadhar} onChange={e => setOwner(p => ({ ...p, aadhar: e.target.value }))} />
+                            <input
+                                className="vr-input"
+                                placeholder="12-digit Aadhar"
+                                value={owner.aadhar}
+                                onChange={(e) => setOwner((p) => ({ ...p, aadhar: e.target.value }))}
+                            />
                         </div>
                         <div className="vr-field">
                             <label className="vr-label">Password *</label>
-                            <input type="password" className="vr-input" required placeholder="Min 8 characters"
-                                value={owner.password} onChange={e => setOwner(p => ({ ...p, password: e.target.value }))} />
+                            <input
+                                type="password"
+                                className="vr-input"
+                                required
+                                placeholder="Min 8 characters"
+                                value={owner.password}
+                                onChange={(e) => setOwner((p) => ({ ...p, password: e.target.value }))}
+                            />
                         </div>
                         <div className="vr-field">
                             <label className="vr-label">Confirm Password *</label>
-                            <input type="password" className="vr-input" required placeholder="Re-enter password"
-                                value={owner.confirmPassword} onChange={e => setOwner(p => ({ ...p, confirmPassword: e.target.value }))} />
+                            <input
+                                type="password"
+                                className="vr-input"
+                                required
+                                placeholder="Re-enter password"
+                                value={owner.confirmPassword}
+                                onChange={(e) => setOwner((p) => ({ ...p, confirmPassword: e.target.value }))}
+                            />
                         </div>
                     </div>
 
                     {error && <p style={{ color: "#f87171", fontSize: 13, marginTop: 16 }}>{error}</p>}
 
                     <div className="vr-actions">
-                        <button type="button" className="vr-btn-secondary" onClick={() => { setError(""); setStep(1); }}>
+                        <button
+                            type="button"
+                            className="vr-btn-secondary"
+                            onClick={() => {
+                                setError("");
+                                setStep(1);
+                            }}
+                        >
                             ← Back
                         </button>
                         <button type="submit" className="vr-btn-primary" disabled={loading}>

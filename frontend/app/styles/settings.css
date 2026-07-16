@@ -6,13 +6,19 @@
     max-width: 600px;
     margin: 0 auto;
     padding: 8px 24px 48px;
-    font-family: 'Outfit', 'Inter', sans-serif;
+    font-family: "Outfit", "Inter", sans-serif;
     animation: settFadeIn 0.4s ease;
 }
 
 @keyframes settFadeIn {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .settings-container h1 {
@@ -42,7 +48,9 @@
     transition: border-color 0.25s ease;
 }
 
-.settings-card:hover { border-color: rgba(255,255,255,0.12); }
+.settings-card:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+}
 
 .settings-card h2 {
     font-size: 15px;
@@ -58,7 +66,9 @@
     border: 1px solid rgba(244, 63, 94, 0.2);
     border-radius: 16px;
     padding: 28px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(244,63,94,0.05);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(244, 63, 94, 0.05);
 }
 
 .settings-danger-card h2 {
@@ -69,8 +79,12 @@
 }
 
 /* ─── Form Fields ─────────────────────────────────── */
-.form-group-settings { margin-bottom: 16px; }
-.form-group-settings:last-of-type { margin-bottom: 24px; }
+.form-group-settings {
+    margin-bottom: 16px;
+}
+.form-group-settings:last-of-type {
+    margin-bottom: 24px;
+}
 
 .form-group-settings label {
     display: block;
@@ -88,7 +102,7 @@
     border: 1.5px solid rgba(255, 255, 255, 0.08);
     border-radius: 10px;
     font-size: 14px;
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     color: #f1f5f9;
     background: rgba(255, 255, 255, 0.05);
     outline: none;
@@ -97,11 +111,13 @@
     color-scheme: dark;
 }
 
-.form-input-settings::placeholder { color: rgba(148,163,184,0.25); }
+.form-input-settings::placeholder {
+    color: rgba(148, 163, 184, 0.25);
+}
 
 .form-input-settings:hover {
-    border-color: rgba(255,255,255,0.14);
-    background: rgba(255,255,255,0.07);
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.07);
 }
 
 .form-input-settings:focus {
@@ -119,7 +135,7 @@
     padding: 11px 28px;
     font-size: 14px;
     font-weight: 700;
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
@@ -139,7 +155,7 @@
     padding: 11px 28px;
     font-size: 14px;
     font-weight: 700;
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     cursor: pointer;
     transition: all 0.2s ease;
 }
@@ -153,9 +169,23 @@
 
 /* ─── Responsive ──────────────────────────────────── */
 @media (max-width: 640px) {
-    .settings-container { padding: 0 0 24px; }
-    .settings-container h1 { font-size: 22px; }
-    .settings-subtitle { margin-bottom: 20px; }
-    .settings-card, .settings-danger-card { padding: 20px; border-radius: 14px; }
-    .save-btn, .logout-btn { width: 100%; min-height: 44px; }
+    .settings-container {
+        padding: 0 0 24px;
+    }
+    .settings-container h1 {
+        font-size: 22px;
+    }
+    .settings-subtitle {
+        margin-bottom: 20px;
+    }
+    .settings-card,
+    .settings-danger-card {
+        padding: 20px;
+        border-radius: 14px;
+    }
+    .save-btn,
+    .logout-btn {
+        width: 100%;
+        min-height: 44px;
+    }
 }

@@ -7,7 +7,7 @@ import io
 
 from app.models import schemas
 from app.connectors.connection_service import ConnectionService
-from app.auth.authorization import check_user_authorization
+from app.auth.authorization import check_user_authorization, validate_role_and_permission
 from app.logger import logger
 
 
@@ -192,6 +192,7 @@ class GroupsLogic(ConnectionService):
         try:
             with logger.time_operation("CREATE_GROUP", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin"], group.owner_id)
                 insert_data = {
                     "activity": group.activity,
                     "age_group": group.age_group,
@@ -208,6 +209,8 @@ class GroupsLogic(ConnectionService):
                     new_group["members"] = []
                     new_group["events"] = []
                 return new_group
+        except HTTPException as he:
+            raise he
         except Exception as e:
             await logger.log_error(request=request, message=f"Failed to create group: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
@@ -217,6 +220,8 @@ class GroupsLogic(ConnectionService):
             raise HTTPException(status_code=400, detail="Invalid file format. Please upload an Excel file.")
 
         try:
+            db = self.db_driver
+            validate_role_and_permission(db, current_user, ["admin"], owner_id)
             contents = await file.read()
             df = pd.read_excel(io.BytesIO(contents))
             df = df.where(pd.notnull(df), None)
@@ -277,6 +282,8 @@ class GroupsLogic(ConnectionService):
                 "groups_count": new_groups_count,
                 "members_count": new_members_count
             }
+        except HTTPException as he:
+            raise he
         except Exception as e:
             await logger.log_error(request=request, message=f"Failed importing groups: {e}")
             raise HTTPException(status_code=400, detail=f"Error processing file: {str(e)}")
@@ -285,6 +292,7 @@ class GroupsLogic(ConnectionService):
         try:
             with logger.time_operation("GET_GROUPS", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member"], owner_id)
                 groups = db.fetch_all("SELECT * FROM groups WHERE owner_id = %s", (owner_id,))
                 
                 # Fetch members and events for each group to construct GroupResponse
@@ -293,6 +301,8 @@ class GroupsLogic(ConnectionService):
                     g["members"] = db.fetch_all("SELECT * FROM members WHERE group_id = %s", (g_id,))
                     g["events"] = db.fetch_all("SELECT * FROM events WHERE group_id = %s", (g_id,))
                 return groups
+        except HTTPException as he:
+            raise he
         except Exception as e:
             await logger.log_error(request=request, message=f"Failed to get groups: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
@@ -301,6 +311,7 @@ class GroupsLogic(ConnectionService):
         try:
             with logger.time_operation("GET_GROUP", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member"], owner_id)
                 group = None
                 
                 if group_id.isdigit():
@@ -336,6 +347,7 @@ class GroupsLogic(ConnectionService):
         try:
             with logger.time_operation("DELETE_GROUP", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin"], owner_id)
                 group = db.fetch_one(
                     "SELECT * FROM groups WHERE id = %s AND owner_id = %s",
                     (group_id, owner_id)
@@ -355,6 +367,7 @@ class GroupsLogic(ConnectionService):
         try:
             with logger.time_operation("ADD_MEMBER", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin"], owner_id)
                 db_group = db.fetch_one(
                     "SELECT * FROM groups WHERE id = %s AND owner_id = %s",
                     (group_id, owner_id)
@@ -386,6 +399,7 @@ class GroupsLogic(ConnectionService):
 
         try:
             db = self.db_driver
+            validate_role_and_permission(db, current_user, ["admin"], owner_id)
             db_group = db.fetch_one(
                 "SELECT * FROM groups WHERE id = %s AND owner_id = %s",
                 (group_id, owner_id)
@@ -425,6 +439,7 @@ class GroupsLogic(ConnectionService):
         try:
             with logger.time_operation("GET_GROUP_MEMBERS", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member"], owner_id)
                 group = None
                 if group_id.isdigit():
                     group = db.fetch_one(
@@ -452,6 +467,7 @@ class GroupsLogic(ConnectionService):
         try:
             with logger.time_operation("GET_ALL_MEMBERS", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member"], owner_id)
                 members_and_groups = db.fetch_all(
                     "SELECT m.*, g.group_name FROM members m "
                     "JOIN groups g ON m.group_id = g.id WHERE g.owner_id = %s",
@@ -470,6 +486,8 @@ class GroupsLogic(ConnectionService):
                     }
                     for m in members_and_groups
                 ]
+        except HTTPException as he:
+            raise he
         except Exception as e:
             await logger.log_error(request=request, message=f"Failed to get all members: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")

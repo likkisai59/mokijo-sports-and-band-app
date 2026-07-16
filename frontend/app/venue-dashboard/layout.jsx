@@ -20,9 +20,7 @@ export default function VenueDashboardLayout({ children }) {
             <VenueTopHeader />
             <div className="vd-layout">
                 <VenueSidebar />
-                <main className="vd-main">
-                    {children}
-                </main>
+                <main className="vd-main">{children}</main>
             </div>
         </div>
     );

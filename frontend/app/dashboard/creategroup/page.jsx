@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 
 import { useState } from "react";
 import "../../styles/creategroup.css";
@@ -24,7 +25,7 @@ export default function CreateGroupPage() {
         { name: "Carrom", icon: "⚪" },
         { name: "Table Tennis", icon: "🏓" },
         { name: "Volleyball", icon: "🏐" },
-        { name: "Football", icon: "⚽" }
+        { name: "Football", icon: "⚽" },
     ];
 
     const ageGroups = ["Children", "Youth", "Adults", "Mixed"];
@@ -62,16 +63,16 @@ export default function CreateGroupPage() {
             group_name: groupName,
             sub_group: subGroup,
             description: description,
-            owner_id: userId
+            owner_id: userId,
         };
 
         try {
-            const response = await fetch("http://127.0.0.1:8001/groups", {
+            const response = await fetch(`${API_BASE_URL}/groups`, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
                 },
-                body: JSON.stringify(groupData)
+                body: JSON.stringify(groupData),
             });
 
             if (!response.ok) {
@@ -88,12 +89,11 @@ export default function CreateGroupPage() {
 
             // Show success state instead of alert
             setShowSuccess(true);
-            
+
             // Wait 2 seconds then redirect
             setTimeout(() => {
                 router.push("/dashboard");
             }, 2000);
-
         } catch (error) {
             console.log("Error:", error);
             alert("Backend is not running or API error");
@@ -101,11 +101,9 @@ export default function CreateGroupPage() {
         }
     };
 
-
     return (
         <div className="create-group-page">
             <div className="create-group-container">
-
                 {/* Progress Bar */}
                 <div className="progress-stepper">
                     <div className={`step-dot ${step >= 1 ? "active" : ""}`}>1</div>
@@ -116,7 +114,6 @@ export default function CreateGroupPage() {
                 </div>
 
                 <div className="form-card">
-
                     {step === 1 && (
                         <div className="step-content fade-in">
                             <div className="step-header">
@@ -218,19 +215,13 @@ export default function CreateGroupPage() {
                                         </div>
                                     </div>
 
-                                    <button 
-                                        className="submit-btn" 
-                                        onClick={handleCreateGroup}
-                                        disabled={isSubmitting}
-                                    >
+                                    <button className="submit-btn" onClick={handleCreateGroup} disabled={isSubmitting}>
                                         {isSubmitting ? "Creating..." : "Create Group"}
                                     </button>
                                 </>
                             )}
                         </div>
                     )}
-
-
                 </div>
             </div>
         </div>

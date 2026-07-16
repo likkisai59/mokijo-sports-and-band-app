@@ -4,6 +4,11 @@ from pydantic import BaseModel
 from typing import List, Optional
 import uuid
 import json
+from datetime import datetime, timedelta
+import secrets
+from app.core.security import hash_password, verify_password, create_access_token
+from app.services.email import send_verification_email
+
 
 from app.core.config import get_settings
 from app.models import schemas
@@ -74,11 +79,18 @@ class AuthRouting(ConnectionService):
             summary="Authenticate a club member and return their session and dashboard details.",
             tags=["Auth"]
         )
+        self.router.add_api_route(
+            path="/auth/resend-verification",
+            endpoint=self.resend_verification,
+            methods=["POST"],
+            summary="Resend email verification token.",
+            tags=["Auth"]
+        )
 
     async def register_user(self, request: Request, user: schemas.UserCreate, background_tasks: BackgroundTasks):
         await logger.log_message(request=request, message="Register user router start", step="ROUTER_START")
         logic = AuthLogic()
-        return await logic.register_user(request, user)
+        return await logic.register_user(request, user, background_tasks)
 
     async def verify_user(self, request: Request, token: str):
         await logger.log_message(request=request, message="Verify user router start", step="ROUTER_START")
@@ -95,10 +107,10 @@ class AuthRouting(ConnectionService):
         logic = AuthLogic()
         return await logic.login_standard_user(request, user_data)
 
-    async def register_standard_user(self, request: Request, payload: schemas.StandardUserRegister):
+    async def register_standard_user(self, request: Request, payload: schemas.StandardUserRegister, background_tasks: BackgroundTasks):
         await logger.log_message(request=request, message="Register standard user router start", step="ROUTER_START")
         logic = AuthLogic()
-        return await logic.register_standard_user(request, payload)
+        return await logic.register_standard_user(request, payload, background_tasks)
 
     async def get_clubs(self, request: Request):
         await logger.log_message(request=request, message="Get clubs router start", step="ROUTER_START")
@@ -110,13 +122,18 @@ class AuthRouting(ConnectionService):
         logic = AuthLogic()
         return await logic.login_member(request, req)
 
+    async def resend_verification(self, request: Request, payload: schemas.ResendVerificationPayload, background_tasks: BackgroundTasks):
+        await logger.log_message(request=request, message="Resend verification router start", step="ROUTER_START")
+        logic = AuthLogic()
+        return await logic.resend_verification(request, payload, background_tasks)
+
 
 class AuthLogic(ConnectionService):
     def __init__(self) -> None:
         super().__init__()
         logger.log_message_sync(message="AuthLogic instance created")
 
-    async def register_user(self, request: Request, user: schemas.UserCreate):
+    async def register_user(self, request: Request, user: schemas.UserCreate, background_tasks: BackgroundTasks):
         try:
             with logger.time_operation("REGISTER_USER", request=request):
                 db = self.db_driver
@@ -125,6 +142,10 @@ class AuthLogic(ConnectionService):
                 existing = db.fetch_one("SELECT id FROM users WHERE LOWER(email) = %s LIMIT 1", (email_clean,))
                 if existing:
                     raise HTTPException(status_code=400, detail="Email already registered")
+
+                hashed_password = hash_password(user.password.strip())
+                token = secrets.token_urlsafe(32)
+                expires_at = datetime.utcnow() + timedelta(hours=24)
 
                 insert_data = {
                     "club_name": user.clubName,
@@ -135,16 +156,21 @@ class AuthLogic(ConnectionService):
                     "first_name": user.firstName,
                     "last_name": user.lastName,
                     "email": email_clean,
-                    "password": user.password.strip() if user.password else "",
+                    "password": hashed_password,
                     "phone": user.phone,
                     "aadhar_number": user.aadharNumber,
                     "hear_about": user.hearAbout,
-                    "is_verified": True,
-                    "verification_token": None
+                    "is_verified": False,
+                    "verification_token": token,
+                    "is_email_verified": False,
+                    "email_verification_token": token,
+                    "email_verification_token_expires_at": expires_at
                 }
                 
                 user_id = db.insert("users", insert_data)
                 new_user = db.fetch_one("SELECT * FROM users WHERE id = %s", (user_id,))
+                
+                background_tasks.add_task(send_verification_email, email_clean, token)
                 return new_user
         except HTTPException as he:
             raise he
@@ -156,15 +182,20 @@ class AuthLogic(ConnectionService):
         try:
             with logger.time_operation("VERIFY_USER", request=request):
                 db = self.db_driver
-                user = db.fetch_one("SELECT * FROM users WHERE verification_token = %s LIMIT 1", (token,))
+                # Check email_verification_token or fallback verification_token
+                user = db.fetch_one("SELECT * FROM users WHERE email_verification_token = %s OR verification_token = %s LIMIT 1", (token, token))
                 if not user:
-                    raise HTTPException(status_code=400, detail="Invalid verification token")
+                    raise HTTPException(status_code=400, detail="Invalid verification link.")
+
+                expires_at = user.get("email_verification_token_expires_at")
+                if expires_at and expires_at < datetime.utcnow():
+                    raise HTTPException(status_code=400, detail="Verification link has expired. Please request a new verification email.")
 
                 db.execute_query(
-                    "UPDATE users SET is_verified = TRUE, verification_token = NULL WHERE id = %s",
+                    "UPDATE users SET is_verified = TRUE, verification_token = NULL, is_email_verified = TRUE, email_verification_token = NULL, email_verification_token_expires_at = NULL WHERE id = %s",
                     (user.get("id"),)
                 )
-                return RedirectResponse(url=f"{settings.FRONTEND_URL}/dashboard?verified=true")
+                return {"message": "Your email has been successfully verified!"}
         except HTTPException as he:
             raise he
         except Exception as e:
@@ -179,14 +210,34 @@ class AuthLogic(ConnectionService):
                 password_clean = user_data.password.strip() if user_data.password else ""
                 
                 user = db.fetch_one("SELECT * FROM users WHERE LOWER(email) = %s LIMIT 1", (email_clean,))
-                if not user or user.get("password") != password_clean:
+                if not user or not verify_password(password_clean, user.get("password")):
                     raise HTTPException(status_code=400, detail="Invalid email or password")
+
+                # Migrate plain text password to hashed format if needed
+                current_pw = user.get("password") or ""
+                if not (current_pw.startswith("$2b$") or current_pw.startswith("$2a$")):
+                    hashed = hash_password(password_clean)
+                    db.execute_query("UPDATE users SET password = %s WHERE id = %s", (hashed, user.get("id")))
+
+                # Check if email is verified
+                if not user.get("is_email_verified"):
+                    raise HTTPException(status_code=403, detail="Your email is not verified. Please verify your email first.")
+
+                sub_claim = json.dumps({
+                    "id": user.get("id"),
+                    "userId": user.get("id"),
+                    "username": user.get("first_name"),
+                    "role": "admin"
+                })
+                token_data = {"sub": sub_claim}
+                access_token = create_access_token(data=token_data)
 
                 return {
                     "message": "Login successful",
                     "userName": user.get("first_name"),
                     "userId": user.get("id"),
-                    "clubName": user.get("club_name")
+                    "clubName": user.get("club_name"),
+                    "accessToken": access_token
                 }
         except HTTPException as he:
             raise he
@@ -204,20 +255,36 @@ class AuthLogic(ConnectionService):
                 user = db.fetch_one("SELECT * FROM users WHERE LOWER(email) = %s LIMIT 1", (email_clean,))
                 logger.log_message_sync(f"Standard user login attempt for email: '{email_clean}'")
                 
-                if not user:
-                    logger.log_warning_sync(f"User not found for email: '{email_clean}'")
+                if not user or not verify_password(password_clean, user.get("password")):
+                    logger.log_warning_sync(f"Invalid credentials for standard user: '{email_clean}'")
                     raise HTTPException(status_code=400, detail="Invalid email or password")
 
-                if user.get("password") != password_clean:
-                    logger.log_warning_sync(f"Password mismatch for user email: '{email_clean}'")
-                    raise HTTPException(status_code=400, detail="Invalid email or password")
+                # Migrate plain text password to hashed format if needed
+                current_pw = user.get("password") or ""
+                if not (current_pw.startswith("$2b$") or current_pw.startswith("$2a$")):
+                    hashed = hash_password(password_clean)
+                    db.execute_query("UPDATE users SET password = %s WHERE id = %s", (hashed, user.get("id")))
+
+                # Check if email is verified
+                if not user.get("is_email_verified"):
+                    raise HTTPException(status_code=403, detail="Your email is not verified. Please verify your email first.")
+
+                sub_claim = json.dumps({
+                    "id": user.get("id"),
+                    "userId": user.get("id"),
+                    "username": user.get("first_name"),
+                    "role": "user"
+                })
+                token_data = {"sub": sub_claim}
+                access_token = create_access_token(data=token_data)
 
                 return {
                     "message": "Login successful",
                     "userName": user.get("first_name"),
                     "userId": user.get("id"),
                     "userEmail": user.get("email"),
-                    "clubName": user.get("club_name")
+                    "clubName": user.get("club_name"),
+                    "accessToken": access_token
                 }
         except HTTPException as he:
             raise he
@@ -225,7 +292,7 @@ class AuthLogic(ConnectionService):
             await logger.log_error(request=request, message=f"Failed standard login: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
 
-    async def register_standard_user(self, request: Request, payload: schemas.StandardUserRegister):
+    async def register_standard_user(self, request: Request, payload: schemas.StandardUserRegister, background_tasks: BackgroundTasks):
         try:
             with logger.time_operation("REGISTER_STANDARD_USER", request=request):
                 db = self.db_driver
@@ -235,24 +302,64 @@ class AuthLogic(ConnectionService):
                 if existing:
                     raise HTTPException(status_code=400, detail="Email already registered")
 
+                hashed_password = hash_password(payload.password.strip())
+                token = secrets.token_urlsafe(32)
+                expires_at = datetime.utcnow() + timedelta(hours=24)
+
                 insert_data = {
                     "first_name": payload.firstName,
                     "last_name": payload.lastName,
                     "dob": payload.dob,
                     "email": email_clean,
-                    "password": payload.password.strip() if payload.password else "",
+                    "password": hashed_password,
                     "phone": payload.phone,
                     "aadhar_number": payload.aadharNumber,
-                    "is_verified": True
+                    "is_verified": False,
+                    "verification_token": token,
+                    "is_email_verified": False,
+                    "email_verification_token": token,
+                    "email_verification_token_expires_at": expires_at
                 }
                 
                 user_id = db.insert("users", insert_data)
+                
+                background_tasks.add_task(send_verification_email, email_clean, token)
                 return {"message": "User registered successfully", "userId": user_id}
         except HTTPException as he:
             raise he
         except Exception as e:
             await logger.log_error(request=request, message=f"Failed to register standard user: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
+
+    async def resend_verification(self, request: Request, payload: schemas.ResendVerificationPayload, background_tasks: BackgroundTasks):
+        try:
+            with logger.time_operation("RESEND_VERIFICATION", request=request):
+                db = self.db_driver
+                email_clean = payload.email.replace(" ", "").lower() if payload.email else ""
+                
+                user = db.fetch_one("SELECT * FROM users WHERE LOWER(email) = %s LIMIT 1", (email_clean,))
+                if not user:
+                    return {"message": "If the email is registered, a new verification link has been sent."}
+
+                if user.get("is_email_verified"):
+                    return {"message": "This email is already verified. Please sign in."}
+
+                token = secrets.token_urlsafe(32)
+                expires_at = datetime.utcnow() + timedelta(hours=24)
+
+                db.execute_query(
+                    "UPDATE users SET verification_token = %s, email_verification_token = %s, email_verification_token_expires_at = %s WHERE id = %s",
+                    (token, token, expires_at, user.get("id"))
+                )
+
+                background_tasks.add_task(send_verification_email, email_clean, token)
+                return {"message": "A new verification link has been sent to your email."}
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            await logger.log_error(request=request, message=f"Failed to resend verification email: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+
 
     async def get_clubs(self, request: Request):
         try:
@@ -294,8 +401,17 @@ class AuthLogic(ConnectionService):
 
                 # Password verification
                 if member.get("password"):
-                    if member.get("password") != password_clean:
-                        raise HTTPException(status_code=401, detail="Incorrect password. Please try again.")
+                    current_pw = member.get("password")
+                    is_hashed = current_pw.startswith("$2b$") or current_pw.startswith("$2a$")
+                    if is_hashed:
+                        if not verify_password(password_clean, current_pw):
+                            raise HTTPException(status_code=401, detail="Incorrect password. Please try again.")
+                    else:
+                        if current_pw != password_clean:
+                            raise HTTPException(status_code=401, detail="Incorrect password. Please try again.")
+                        # Migrate plain text password to hashed format
+                        hashed = hash_password(password_clean)
+                        db.execute_query("UPDATE members SET password = %s WHERE id = %s", (hashed, member.get("id")))
                 else:
                     # Fallback default password
                     if member.get("phone") and member.get("phone") != password_clean:
@@ -309,6 +425,15 @@ class AuthLogic(ConnectionService):
                 if not owner:
                     raise HTTPException(status_code=400, detail="Associated club owner not found.")
 
+                sub_claim = json.dumps({
+                    "id": member.get("id"),
+                    "userId": owner.get("id"),
+                    "username": f"{member.get('first_name')} {member.get('last_name')}",
+                    "role": "team_member"
+                })
+                token_data = {"sub": sub_claim}
+                access_token = create_access_token(data=token_data)
+
                 return {
                     "userName": f"{member.get('first_name')} {member.get('last_name')}",
                     "userId": owner.get("id"),
@@ -319,7 +444,8 @@ class AuthLogic(ConnectionService):
                     "userEmail": member.get("email"),
                     "userPhone": member.get("phone") or "",
                     "groupName": group.get("group_name"),
-                    "approvalStatus": "accepted"
+                    "approvalStatus": "accepted",
+                    "accessToken": access_token
                 }
         except HTTPException as he:
             raise he

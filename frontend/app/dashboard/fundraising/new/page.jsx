@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -30,15 +31,15 @@ export default function NewCampaignPage() {
 
         setLoading(true);
         try {
-            const res = await fetch("http://127.0.0.1:8001/fundraising", {
+            const res = await fetch(`${API_BASE_URL}/fundraising`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     ...form,
                     group_name: form.group,
                     owner_id: parseInt(userId),
-                    goal: parseInt(form.goal)
-                })
+                    goal: parseInt(form.goal),
+                }),
             });
 
             if (res.ok) {
@@ -59,7 +60,10 @@ export default function NewCampaignPage() {
         <div className="new-campaign-page">
             <div className="new-campaign-header">
                 <Link href="/dashboard/fundraising" className="back-link">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M19 12H5" />
+                        <path d="m12 19-7-7 7-7" />
+                    </svg>
                     Back to Fundraising
                 </Link>
                 <h1 className="page-title">New Campaign</h1>
@@ -71,28 +75,70 @@ export default function NewCampaignPage() {
                 <form onSubmit={handleSubmit} className="campaign-form">
                     <div>
                         <label className="form-label">Campaign Title *</label>
-                        <input className="form-input" name="title" value={form.title} onChange={handleChange} placeholder="e.g. Summer Tournament Fund" required />
+                        <input
+                            className="form-input"
+                            name="title"
+                            value={form.title}
+                            onChange={handleChange}
+                            placeholder="e.g. Summer Tournament Fund"
+                            required
+                        />
                     </div>
 
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
+                    <div
+                        style={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                            gap: "16px",
+                        }}
+                    >
                         <div>
                             <label className="form-label">Goal Amount (INR) *</label>
-                            <input className="form-input" name="goal" type="number" value={form.goal} onChange={handleChange} placeholder="50000" required min="1" />
+                            <input
+                                className="form-input"
+                                name="goal"
+                                type="number"
+                                value={form.goal}
+                                onChange={handleChange}
+                                placeholder="50000"
+                                required
+                                min="1"
+                            />
                         </div>
                         <div>
                             <label className="form-label">Deadline</label>
-                            <input className="form-input" name="deadline" type="date" value={form.deadline} onChange={handleChange} />
+                            <input
+                                className="form-input"
+                                name="deadline"
+                                type="date"
+                                value={form.deadline}
+                                onChange={handleChange}
+                            />
                         </div>
                     </div>
 
                     <div>
                         <label className="form-label">Group (optional)</label>
-                        <input className="form-input" name="group" value={form.group} onChange={handleChange} placeholder="e.g. Weekend Warriors" />
+                        <input
+                            className="form-input"
+                            name="group"
+                            value={form.group}
+                            onChange={handleChange}
+                            placeholder="e.g. Weekend Warriors"
+                        />
                     </div>
 
                     <div>
                         <label className="form-label">Description</label>
-                        <textarea className="form-input" name="description" value={form.description} onChange={handleChange} placeholder="What is this campaign for?" rows={5} style={{ resize: "vertical", minHeight: "120px" }} />
+                        <textarea
+                            className="form-input"
+                            name="description"
+                            value={form.description}
+                            onChange={handleChange}
+                            placeholder="What is this campaign for?"
+                            rows={5}
+                            style={{ resize: "vertical", minHeight: "120px" }}
+                        />
                     </div>
 
                     <div className="form-actions">

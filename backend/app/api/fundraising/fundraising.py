@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from app.models import schemas
 from app.connectors.connection_service import ConnectionService
-from app.auth.authorization import check_user_authorization
+from app.auth.authorization import check_user_authorization, validate_role_and_permission
 from app.logger import logger
 
 
@@ -137,6 +137,7 @@ class FundraisingLogic(ConnectionService):
         try:
             with logger.time_operation("GET_CAMPAIGNS", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member"], owner_id)
                 campaigns = db.fetch_all(
                     "SELECT * FROM fundraising_campaigns WHERE owner_id = %s",
                     (owner_id,)
@@ -150,6 +151,7 @@ class FundraisingLogic(ConnectionService):
         try:
             with logger.time_operation("CREATE_CAMPAIGN", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin"], campaign.owner_id)
                 insert_data = {
                     "owner_id": campaign.owner_id,
                     "title": campaign.title,
@@ -172,6 +174,7 @@ class FundraisingLogic(ConnectionService):
         try:
             with logger.time_operation("DELETE_CAMPAIGN", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin"], owner_id)
                 campaign = db.fetch_one(
                     "SELECT * FROM fundraising_campaigns WHERE id = %s AND owner_id = %s",
                     (campaign_id, owner_id)
@@ -194,6 +197,7 @@ class FundraisingLogic(ConnectionService):
         try:
             with logger.time_operation("RECORD_DONATION", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member", "user"])
                 campaign = db.fetch_one(
                     "SELECT * FROM fundraising_campaigns WHERE id = %s",
                     (campaign_id,)
@@ -221,6 +225,7 @@ class FundraisingLogic(ConnectionService):
         try:
             with logger.time_operation("INITIATE_DONATION", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member", "user"])
                 campaign = db.fetch_one(
                     "SELECT * FROM fundraising_campaigns WHERE id = %s",
                     (campaign_id,)
@@ -249,6 +254,7 @@ class FundraisingLogic(ConnectionService):
         try:
             with logger.time_operation("COMPLETE_DONATION", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member", "user"])
                 campaign = db.fetch_one(
                     "SELECT * FROM fundraising_campaigns WHERE id = %s",
                     (campaign_id,)

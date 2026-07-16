@@ -4,8 +4,14 @@ import { countries, indianStates, memberOptions, sportsOptions } from "./constan
 
 export default function Step1({ formData, onChange, onNext }) {
     function handleNext() {
-        if (!formData.clubName || !formData.country || !formData.state ||
-            !formData.memberCount || !formData.sport || (Array.isArray(formData.sport) && formData.sport.length === 0)) {
+        if (
+            !formData.clubName ||
+            !formData.country ||
+            !formData.state ||
+            !formData.memberCount ||
+            !formData.sport ||
+            (Array.isArray(formData.sport) && formData.sport.length === 0)
+        ) {
             alert("Please fill in all fields before continuing.");
             return;
         }
@@ -43,7 +49,9 @@ export default function Step1({ formData, onChange, onNext }) {
                 >
                     <option value="">-- Select Country --</option>
                     {countries.map((country) => (
-                        <option key={country} value={country}>{country}</option>
+                        <option key={country} value={country}>
+                            {country}
+                        </option>
                     ))}
                 </select>
             </div>
@@ -57,7 +65,9 @@ export default function Step1({ formData, onChange, onNext }) {
                 >
                     <option value="">-- Select State --</option>
                     {indianStates.map((state) => (
-                        <option key={state} value={state}>{state}</option>
+                        <option key={state} value={state}>
+                            {state}
+                        </option>
                     ))}
                 </select>
             </div>
@@ -71,29 +81,43 @@ export default function Step1({ formData, onChange, onNext }) {
                 >
                     <option value="">-- Select Member Range --</option>
                     {memberOptions.map((option) => (
-                        <option key={option} value={option}>{option}</option>
+                        <option key={option} value={option}>
+                            {option}
+                        </option>
                     ))}
                 </select>
             </div>
 
             <div className={styles.fieldGroup}>
                 <label className={styles.label}>Sports / Activities * (Select all that apply)</label>
-                <div style={{
-                    maxHeight: "180px",
-                    overflowY: "auto",
-                    border: "1.5px solid rgba(255, 255, 255, 0.08)",
-                    borderRadius: "10px",
-                    padding: "12px 14px",
-                    background: "rgba(255, 255, 255, 0.05)",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "8px"
-                }}>
+                <div
+                    style={{
+                        maxHeight: "180px",
+                        overflowY: "auto",
+                        border: "1.5px solid rgba(255, 255, 255, 0.08)",
+                        borderRadius: "10px",
+                        padding: "12px 14px",
+                        background: "rgba(255, 255, 255, 0.05)",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "8px",
+                    }}
+                >
                     {sportsOptions.map((sport) => {
                         const selectedSports = Array.isArray(formData.sport) ? formData.sport : [];
                         const isChecked = selectedSports.includes(sport);
                         return (
-                            <label key={sport} style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", fontSize: "14px", color: "#f1f5f9" }}>
+                            <label
+                                key={sport}
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "10px",
+                                    cursor: "pointer",
+                                    fontSize: "14px",
+                                    color: "#f1f5f9",
+                                }}
+                            >
                                 <input
                                     type="checkbox"
                                     checked={isChecked}
@@ -102,7 +126,7 @@ export default function Step1({ formData, onChange, onNext }) {
                                         if (e.target.checked) {
                                             updated = [...selectedSports, sport];
                                         } else {
-                                            updated = selectedSports.filter(s => s !== sport);
+                                            updated = selectedSports.filter((s) => s !== sport);
                                         }
                                         onChange("sport", updated);
                                     }}

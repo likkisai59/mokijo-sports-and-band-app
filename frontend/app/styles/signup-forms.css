@@ -5,7 +5,11 @@
     max-width: 100% !important;
     width: auto !important;
     margin: 0 -48px -48px -48px !important;
-    font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
+    font-family:
+        "Outfit",
+        "Inter",
+        -apple-system,
+        sans-serif;
     color: #1e293b;
     background-color: #f8fafc;
     min-height: 100vh;
@@ -14,8 +18,14 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Header Area */
@@ -79,7 +89,9 @@
 .tab-btn.active {
     background: #ffffff;
     color: #1e3a8a;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.05),
+        0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 /* Cards Grid */
@@ -114,14 +126,18 @@
     box-sizing: border-box;
     position: relative;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.05),
+        0 2px 4px -2px rgba(0, 0, 0, 0.05);
     cursor: pointer;
 }
 
 .form-role-card:hover {
     transform: translateY(-4px);
     border-color: #3b82f6;
-    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.1), 0 4px 6px -4px rgba(59, 130, 246, 0.1);
+    box-shadow:
+        0 10px 15px -3px rgba(59, 130, 246, 0.1),
+        0 4px 6px -4px rgba(59, 130, 246, 0.1);
 }
 
 .card-icon-wrapper {
@@ -479,7 +495,9 @@
     border: 1px solid #e2e8f0;
     border-radius: 16px;
     padding: 28px 24px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.05),
+        0 2px 4px -2px rgba(0, 0, 0, 0.05);
     width: 100%;
     box-sizing: border-box;
 }
@@ -551,10 +569,22 @@
     font-weight: 600;
 }
 
-.role-coach { background: #fee2e2; color: #991b1b; }
-.role-parent { background: #fef9c3; color: #854d0e; }
-.role-player { background: #dbeafe; color: #1e40af; }
-.role-referee { background: #f3e8ff; color: #6b21a8; }
+.role-coach {
+    background: #fee2e2;
+    color: #991b1b;
+}
+.role-parent {
+    background: #fef9c3;
+    color: #854d0e;
+}
+.role-player {
+    background: #dbeafe;
+    color: #1e40af;
+}
+.role-referee {
+    background: #f3e8ff;
+    color: #6b21a8;
+}
 
 .app-action-btn {
     padding: 8px 14px;
@@ -629,14 +659,22 @@
     padding: 24px;
     width: 100%;
     max-width: 500px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow:
+        0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04);
     border: 1px solid #e2e8f0;
     animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @keyframes scaleUp {
-    from { transform: scale(0.95); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .modal-content h3 {

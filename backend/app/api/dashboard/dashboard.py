@@ -4,7 +4,7 @@ from datetime import date, datetime
 
 from app.models import schemas
 from app.connectors.connection_service import ConnectionService
-from app.auth.authorization import check_user_authorization
+from app.auth.authorization import check_user_authorization, validate_role_and_permission
 from app.logger import logger
 
 
@@ -75,6 +75,7 @@ class DashboardLogic(ConnectionService):
         try:
             with logger.time_operation("GET_DASHBOARD_OVERVIEW", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member"], owner_id)
                 
                 # Retrieve groups
                 groups = db.fetch_all("SELECT * FROM groups WHERE owner_id = %s", (owner_id,))
@@ -165,6 +166,7 @@ class DashboardLogic(ConnectionService):
         try:
             with logger.time_operation("GET_COACH_DASHBOARD", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member"], owner_id)
                 
                 coach = db.fetch_one(
                     "SELECT m.* FROM members m JOIN groups g ON m.group_id = g.id "
@@ -255,6 +257,7 @@ class DashboardLogic(ConnectionService):
         try:
             with logger.time_operation("DEBUG_OVERVIEW", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin"], owner_id)
                 groups = db.fetch_all("SELECT * FROM groups WHERE owner_id = %s", (owner_id,))
                 group_ids = [g.get("id") for g in groups]
                 

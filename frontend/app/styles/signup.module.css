@@ -2,7 +2,7 @@
    MUKIJO SIGNUP — PREMIUM DARK DESIGN
    ═══════════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap");
 
 /* ─── Page Background ─────────────────────────────── */
 .pageWrapper {
@@ -18,12 +18,15 @@
     align-items: center;
     justify-content: center;
     padding: 24px 16px;
-    font-family: 'Outfit', -apple-system, sans-serif;
+    font-family:
+        "Outfit",
+        -apple-system,
+        sans-serif;
     position: relative;
 }
 
 .pageWrapper::before {
-    content: '';
+    content: "";
     position: fixed;
     inset: 0;
     background:
@@ -52,12 +55,20 @@
 
 .card:hover {
     border-color: rgba(191, 254, 0, 0.25);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(191, 254, 0, 0.08);
+    box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.8),
+        0 0 30px rgba(191, 254, 0, 0.08);
 }
 
 @keyframes slideUpCard {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ─── Brand Area ─────────────────────────────────── */
@@ -100,7 +111,8 @@
 }
 
 .stepDot {
-    width: 34px; height: 34px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -124,12 +136,14 @@
 .stepLine {
     height: 2px;
     width: 80px;
-    background: rgba(255,255,255,0.07);
+    background: rgba(255, 255, 255, 0.07);
     margin: 0 8px;
 }
 
 /* ─── Step Container ─────────────────────────────── */
-.stepContainer { display: block; }
+.stepContainer {
+    display: block;
+}
 
 .stepTitle {
     font-size: 20px;
@@ -147,7 +161,9 @@
 }
 
 /* ─── Form Fields ─────────────────────────────────── */
-.fieldGroup { margin-bottom: 16px; }
+.fieldGroup {
+    margin-bottom: 16px;
+}
 
 .label {
     display: block;
@@ -167,13 +183,15 @@
     border-radius: 10px;
     font-size: 14px;
     color: #f1f5f9;
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     outline: none;
     box-sizing: border-box;
     transition: all 0.2s ease;
 }
 
-.input::placeholder { color: rgba(148, 163, 184, 0.25); }
+.input::placeholder {
+    color: rgba(148, 163, 184, 0.25);
+}
 
 .input:hover {
     border-color: rgba(255, 255, 255, 0.14);
@@ -195,7 +213,7 @@
     border-radius: 10px;
     font-size: 14px;
     color: #f1f5f9;
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     outline: none;
     box-sizing: border-box;
     cursor: pointer;
@@ -206,7 +224,7 @@
 
 .select option {
     background-color: #0c0c14; /* Dark background for dropdown options */
-    color: #f1f5f9;            /* Light gray text color for options */
+    color: #f1f5f9; /* Light gray text color for options */
 }
 
 .select option[value=""] {
@@ -227,7 +245,9 @@
 }
 
 @media (max-width: 480px) {
-    .twoColumns { grid-template-columns: 1fr; }
+    .twoColumns {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Terms */
@@ -261,7 +281,7 @@
     font-weight: 800;
     font-style: italic;
     text-transform: uppercase;
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     cursor: pointer;
     transition: all 0.2s ease;
     margin-left: auto;
@@ -275,7 +295,9 @@
     background: linear-gradient(135deg, var(--brand-hover), #00d8e6);
 }
 
-.nextButton:active { transform: scale(0.97) skewX(-6deg); }
+.nextButton:active {
+    transform: scale(0.97) skewX(-6deg);
+}
 
 .prevButton {
     background: transparent;
@@ -287,7 +309,7 @@
     font-weight: 800;
     font-style: italic;
     text-transform: uppercase;
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     cursor: pointer;
     transition: all 0.2s ease;
     transform: skewX(-6deg);
@@ -298,7 +320,9 @@
     border-color: rgba(0, 240, 255, 0.5);
 }
 
-.prevButton:active { transform: scale(0.97) skewX(-6deg); }
+.prevButton:active {
+    transform: scale(0.97) skewX(-6deg);
+}
 
 /* Submit Button */
 .submitButton {
@@ -311,7 +335,7 @@
     font-weight: 800;
     font-style: italic;
     text-transform: uppercase;
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 4px 16px rgba(191, 254, 0, 0.25);
@@ -324,7 +348,9 @@
     background: linear-gradient(135deg, var(--brand-hover), #00d8e6);
 }
 
-.submitButton:active { transform: scale(0.97) skewX(-6deg); }
+.submitButton:active {
+    transform: scale(0.97) skewX(-6deg);
+}
 
 /* ─── Success Screen ─────────────────────────────── */
 .successContainer {
@@ -333,7 +359,8 @@
 }
 
 .successIcon {
-    width: 64px; height: 64px;
+    width: 64px;
+    height: 64px;
     background: linear-gradient(135deg, #10b981, #059669);
     color: #fff;
     font-size: 26px;
@@ -361,6 +388,11 @@
 
 /* ─── Responsive ──────────────────────────────────── */
 @media (max-width: 480px) {
-    .card { padding: 28px 20px; border-radius: 18px; }
-    .brandName { font-size: 24px; }
+    .card {
+        padding: 28px 20px;
+        border-radius: 18px;
+    }
+    .brandName {
+        font-size: 24px;
+    }
 }

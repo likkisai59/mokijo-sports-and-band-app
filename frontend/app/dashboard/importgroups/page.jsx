@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -20,7 +21,7 @@ export default function ImportGroupsPage() {
 
     const downloadTemplate = () => {
         const wb = XLSX.utils.book_new();
-        
+
         const ws = XLSX.utils.json_to_sheet([
             {
                 group_name: "Weekend Warriors",
@@ -32,7 +33,7 @@ export default function ImportGroupsPage() {
                 last_name: "Doe",
                 email: "john@example.com",
                 phone: "1234567890",
-                role: "Member"
+                role: "Member",
             },
             {
                 group_name: "Weekend Warriors",
@@ -44,8 +45,8 @@ export default function ImportGroupsPage() {
                 last_name: "Smith",
                 email: "jane@example.com",
                 phone: "0987654321",
-                role: "Captain"
-            }
+                role: "Captain",
+            },
         ]);
         XLSX.utils.book_append_sheet(wb, ws, "Groups And Members");
 
@@ -72,7 +73,7 @@ export default function ImportGroupsPage() {
         formData.append("owner_id", userId);
 
         try {
-            const response = await fetch(`http://127.0.0.1:8001/groups/import`, {
+            const response = await fetch(`${API_BASE_URL}/groups/import`, {
                 method: "POST",
                 body: formData,
             });
@@ -81,7 +82,7 @@ export default function ImportGroupsPage() {
                 const data = await response.json();
                 setResult({ success: true, message: data.message });
                 window.dispatchEvent(new Event("groupsUpdated")); // Refresh sidebar
-                
+
                 // Redirect after short delay
                 setTimeout(() => {
                     router.push("/dashboard");
@@ -115,12 +116,7 @@ export default function ImportGroupsPage() {
                 <div className="upload-section">
                     <h4>2. Upload File</h4>
                     <div className="file-input-wrapper">
-                        <input 
-                            type="file" 
-                            accept=".xlsx, .xls" 
-                            onChange={handleFileChange}
-                            id="file-upload"
-                        />
+                        <input type="file" accept=".xlsx, .xls" onChange={handleFileChange} id="file-upload" />
                         <label htmlFor="file-upload" className="file-label">
                             {file ? file.name : "Choose Excel file"}
                         </label>
@@ -128,23 +124,14 @@ export default function ImportGroupsPage() {
                 </div>
 
                 {result && (
-                    <div className={`result-message ${result.success ? 'success' : 'error'}`}>
-                        {result.message}
-                    </div>
+                    <div className={`result-message ${result.success ? "success" : "error"}`}>{result.message}</div>
                 )}
 
                 <div className="actions">
-                    <button 
-                        className="cancel-btn"
-                        onClick={() => router.push("/dashboard")}
-                    >
+                    <button className="cancel-btn" onClick={() => router.push("/dashboard")}>
                         Cancel
                     </button>
-                    <button 
-                        className="import-btn"
-                        onClick={handleImport}
-                        disabled={!file || loading}
-                    >
+                    <button className="import-btn" onClick={handleImport} disabled={!file || loading}>
                         {loading ? "Importing..." : "Start Import"}
                     </button>
                 </div>

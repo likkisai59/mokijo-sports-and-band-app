@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════
    MUKIJO PAYMENTS — PREMIUM DARK DESIGN
    ═══════════════════════════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap");
 
 .payments-container {
     width: 100%;
@@ -9,13 +9,19 @@
     margin: 0 auto;
     padding: 8px 0 48px;
     color: #f1f5f9;
-    font-family: 'Outfit', 'Inter', sans-serif;
+    font-family: "Outfit", "Inter", sans-serif;
     animation: payFadeIn 0.45s ease;
 }
 
 @keyframes payFadeIn {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ─── Header ─────────────────────────────────────── */
@@ -85,17 +91,19 @@
     border: 1.5px solid rgba(255, 255, 255, 0.08);
     border-radius: 10px;
     font-size: 14px;
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     outline: none;
     transition: all 0.2s ease;
     color-scheme: dark;
 }
 
-.search-input::placeholder { color: rgba(148,163,184,0.25); }
+.search-input::placeholder {
+    color: rgba(148, 163, 184, 0.25);
+}
 
 .search-input:hover {
-    border-color: rgba(255,255,255,0.14);
-    background: rgba(255,255,255,0.07);
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.07);
 }
 
 .search-input:focus {
@@ -169,9 +177,13 @@
     vertical-align: middle;
 }
 
-.payments-table tr:last-child td { border-bottom: none; }
+.payments-table tr:last-child td {
+    border-bottom: none;
+}
 
-.payments-table tbody tr { transition: background 0.15s ease; }
+.payments-table tbody tr {
+    transition: background 0.15s ease;
+}
 
 .payments-table tbody tr:hover td {
     background: rgba(99, 102, 241, 0.06);
@@ -179,8 +191,14 @@
 }
 
 /* ─── Cell Styles ────────────────────────────────── */
-.member-name { color: #f1f5f9; font-weight: 800; }
-.member-email { color: rgba(148,163,184,0.5); font-size: 12px; }
+.member-name {
+    color: #f1f5f9;
+    font-weight: 800;
+}
+.member-email {
+    color: rgba(148, 163, 184, 0.5);
+    font-size: 12px;
+}
 
 .role-badge,
 .sport-badge,
@@ -198,27 +216,39 @@
 }
 
 .role-badge {
-    color: rgba(148,163,184,0.7);
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(148, 163, 184, 0.7);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.sport-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
-.sport-cell small { color: rgba(148,163,184,0.4); font-size: 11px; font-weight: 600; }
+.sport-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+.sport-cell small {
+    color: rgba(148, 163, 184, 0.4);
+    font-size: 11px;
+    font-weight: 600;
+}
 
 .sport-badge {
     color: #2dd4bf;
     background: rgba(45, 212, 191, 0.1);
-    border: 1px solid rgba(45,212,191,0.2);
+    border: 1px solid rgba(45, 212, 191, 0.2);
 }
 
 .group-badge {
     color: #818cf8;
     background: rgba(99, 102, 241, 0.1);
-    border: 1px solid rgba(99,102,241,0.2);
+    border: 1px solid rgba(99, 102, 241, 0.2);
 }
 
-.payment-title { color: rgba(241,245,249,0.8); font-weight: 700; }
+.payment-title {
+    color: rgba(241, 245, 249, 0.8);
+    font-weight: 700;
+}
 
 .amount-text {
     color: #f1f5f9;
@@ -244,14 +274,14 @@
 .status-pill.status-paid {
     color: #34d399;
     background: rgba(16, 185, 129, 0.15);
-    border: 1px solid rgba(16,185,129,0.3);
-    box-shadow: 0 0 10px rgba(16,185,129,0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.1);
 }
 
 .status-pill.status-unpaid {
     color: #fbbf24;
     background: rgba(245, 158, 11, 0.12);
-    border: 1px solid rgba(245,158,11,0.25);
+    border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
 /* ─── Loading & Empty States ─────────────────────── */
@@ -264,38 +294,59 @@
     min-height: 260px;
     padding: 48px 32px;
     text-align: center;
-    background: rgba(15,15,26,0.85);
+    background: rgba(15, 15, 26, 0.85);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,0.07);
+    border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .spinner {
-    width: 36px; height: 36px;
+    width: 36px;
+    height: 36px;
     margin-bottom: 16px;
-    border: 3px solid rgba(255,255,255,0.07);
+    border: 3px solid rgba(255, 255, 255, 0.07);
     border-top-color: #818cf8;
     border-radius: 999px;
     animation: payments-spin 0.8s linear infinite;
 }
 
-@keyframes payments-spin { to { transform: rotate(360deg); } }
+@keyframes payments-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
 
 .loading-text {
     margin: 0;
-    color: rgba(148,163,184,0.55);
+    color: rgba(148, 163, 184, 0.55);
     font-size: 14px;
     font-weight: 600;
 }
 
-.empty-state h3 { margin: 0 0 7px; color: #f1f5f9; font-size: 18px; font-weight: 700; }
-.empty-state p  { margin: 0; color: rgba(148,163,184,0.55); font-size: 14px; }
+.empty-state h3 {
+    margin: 0 0 7px;
+    color: #f1f5f9;
+    font-size: 18px;
+    font-weight: 700;
+}
+.empty-state p {
+    margin: 0;
+    color: rgba(148, 163, 184, 0.55);
+    font-size: 14px;
+}
 
 /* ─── Responsive ─────────────────────────────────── */
 @media (max-width: 720px) {
-    .payments-container { padding: 0 0 24px; }
+    .payments-container {
+        padding: 0 0 24px;
+    }
     .payments-header,
-    .payments-table-toolbar { align-items: stretch; flex-direction: column; }
-    .search-wrapper { width: 100%; }
+    .payments-table-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+    .search-wrapper {
+        width: 100%;
+    }
 }

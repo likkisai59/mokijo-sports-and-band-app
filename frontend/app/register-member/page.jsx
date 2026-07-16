@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -56,7 +57,7 @@ export default function RegisterMemberPage() {
             setClubError("");
 
             try {
-                const response = await fetch("http://127.0.0.1:8001/clubs");
+                const response = await fetch(`${API_BASE_URL}/clubs`);
                 if (!response.ok) {
                     throw new Error("Could not load clubs.");
                 }
@@ -132,12 +133,25 @@ export default function RegisterMemberPage() {
                         <p className={styles.stepSubtitle}>Choose your club before continuing registration.</p>
 
                         {clubError && (
-                            <div style={{ background: "#fef2f2", color: "#ef4444", padding: "10px", borderRadius: "6px", fontSize: "13px", marginBottom: "16px", textAlign: "center" }}>
+                            <div
+                                style={{
+                                    background: "#fef2f2",
+                                    color: "#ef4444",
+                                    padding: "10px",
+                                    borderRadius: "6px",
+                                    fontSize: "13px",
+                                    marginBottom: "16px",
+                                    textAlign: "center",
+                                }}
+                            >
                                 {clubError}
                             </div>
                         )}
 
-                        <form onSubmit={handleClubSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                        <form
+                            onSubmit={handleClubSubmit}
+                            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+                        >
                             <div className={styles.fieldGroup}>
                                 <label className={styles.label}>
                                     Club <span style={{ color: "#ef4444" }}>*</span>
@@ -169,7 +183,8 @@ export default function RegisterMemberPage() {
                                         <span>
                                             {loadingClubs
                                                 ? "Loading clubs..."
-                                                : clubs.find((club) => club.id === Number(pendingClubId))?.club_name || "Choose your club..."}
+                                                : clubs.find((club) => club.id === Number(pendingClubId))?.club_name ||
+                                                  "Choose your club..."}
                                         </span>
                                         <span style={{ color: "#2563eb", fontWeight: 800 }}>v</span>
                                     </button>
@@ -203,7 +218,8 @@ export default function RegisterMemberPage() {
                                                         padding: "11px 14px",
                                                         border: "none",
                                                         borderBottom: "1px solid #f1f5f9",
-                                                        background: Number(pendingClubId) === club.id ? "#eff6ff" : "#ffffff",
+                                                        background:
+                                                            Number(pendingClubId) === club.id ? "#eff6ff" : "#ffffff",
                                                         color: "#0f172a",
                                                         cursor: "pointer",
                                                         textAlign: "left",
@@ -238,7 +254,12 @@ export default function RegisterMemberPage() {
                     </div>
                 ) : selectedRole === null ? (
                     <div className={styles.stepContainer} style={{ display: "flex", flexDirection: "column" }}>
-                        <button type="button" className={styles.prevButton} onClick={resetToClubStep} style={{ alignSelf: "flex-start", marginBottom: "16px" }}>
+                        <button
+                            type="button"
+                            className={styles.prevButton}
+                            onClick={resetToClubStep}
+                            style={{ alignSelf: "flex-start", marginBottom: "16px" }}
+                        >
                             &lt;- Back to Clubs
                         </button>
 
@@ -265,8 +286,19 @@ export default function RegisterMemberPage() {
                                         event.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.02)";
                                     }}
                                 >
-                                    <strong style={{ color: "#0f172a", fontSize: "16px", display: "block" }}>{role.title}</strong>
-                                    <span style={{ fontSize: "13px", color: "#475569", marginTop: "4px", display: "block" }}>{role.description}</span>
+                                    <strong style={{ color: "#0f172a", fontSize: "16px", display: "block" }}>
+                                        {role.title}
+                                    </strong>
+                                    <span
+                                        style={{
+                                            fontSize: "13px",
+                                            color: "#475569",
+                                            marginTop: "4px",
+                                            display: "block",
+                                        }}
+                                    >
+                                        {role.description}
+                                    </span>
                                 </button>
                             ))}
                         </div>

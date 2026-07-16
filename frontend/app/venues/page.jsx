@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 
 import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
@@ -65,7 +66,7 @@ function VenueSearchContent() {
                     }
                 }
 
-                const response = await fetch(`http://127.0.0.1:8001/venues?${queryParams.toString()}`);
+                const response = await fetch(`${API_BASE_URL}/venues?${queryParams.toString()}`);
                 if (response.ok) {
                     const data = await response.json();
                     setVenues(data || []);
@@ -116,7 +117,8 @@ function VenueSearchContent() {
 
     // Filter venues on client side for searchTerm (name / location text)
     const filteredVenues = venues.filter((venue) => {
-        const matchesSearch = venue.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        const matchesSearch =
+            venue.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             venue.location.toLowerCase().includes(searchTerm.toLowerCase());
         return matchesSearch;
     });
@@ -278,7 +280,9 @@ function VenueSearchContent() {
                 {loading ? (
                     <div style={styles.loadingContainer}>
                         <Loader2 className="animate-spin" size={32} style={{ color: "#bffe00" }} />
-                        <p style={{ marginTop: "16px", color: "rgba(148, 163, 184, 0.6)" }}>Searching sports arenas nearby...</p>
+                        <p style={{ marginTop: "16px", color: "rgba(148, 163, 184, 0.6)" }}>
+                            Searching sports arenas nearby...
+                        </p>
                     </div>
                 ) : error ? (
                     <div style={styles.errorContainer}>{error}</div>
@@ -298,7 +302,10 @@ function VenueSearchContent() {
                                 {/* Image cover */}
                                 <div style={styles.cardImageWrapper}>
                                     <img
-                                        src={venue.cover_image || "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?q=80&w=600&auto=format&fit=crop"}
+                                        src={
+                                            venue.cover_image ||
+                                            "https://images.unsplash.com/photo-1541252260730-0412e8e2108e?q=80&w=600&auto=format&fit=crop"
+                                        }
                                         alt={venue.name}
                                         style={styles.cardImage}
                                     />

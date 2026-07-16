@@ -4,6 +4,12 @@ import { useRouter } from "next/navigation";
 
 export default function VenueDashboardRoot() {
     const router = useRouter();
-    useEffect(() => { router.replace("/venue-dashboard/overview"); }, [router]);
-    return <div className="vd-loading"><div className="vd-spinner" /></div>;
+    useEffect(() => {
+        router.replace("/venue-dashboard/overview");
+    }, [router]);
+    return (
+        <div className="vd-loading">
+            <div className="vd-spinner" />
+        </div>
+    );
 }

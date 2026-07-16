@@ -120,7 +120,13 @@ class VenueOwnerLogic(ConnectionService):
                         "closing_time": v.closing_time,
                         "days_open": v.days_open,
                         "slot_duration": v.slot_duration or 60,
-                        "rating": 5.0
+                        "rating": 5.0,
+                        "verification_status": "DRAFT",
+                        "contact_phone": v.contact_phone,
+                        "contact_email": v.contact_email,
+                        "city": v.city,
+                        "state_name": v.state_name,
+                        "postal_code": v.postal_code,
                     }
                     db.insert("venues", insert_venue)
                     created_venues_count += 1
@@ -194,7 +200,16 @@ class VenueOwnerLogic(ConnectionService):
                         "closing_time": v.get("closing_time"),
                         "days_open": v.get("days_open"),
                         "slot_duration": v.get("slot_duration"),
-                        "rating": v.get("rating")
+                        "rating": v.get("rating"),
+                        "verification_status": v.get("verification_status", "DRAFT"),
+                        "is_verified": v.get("verification_status") == "VERIFIED",
+                        "rejection_reason": v.get("rejection_reason"),
+                        "verification_notes": v.get("verification_notes"),
+                        "contact_phone": v.get("contact_phone"),
+                        "contact_email": v.get("contact_email"),
+                        "city": v.get("city"),
+                        "state_name": v.get("state_name"),
+                        "postal_code": v.get("postal_code"),
                     }
                     for v in venues
                 ]
@@ -207,16 +222,22 @@ class VenueOwnerLogic(ConnectionService):
             with logger.time_operation("UPDATE_VENUE", request=request):
                 db = self.db_driver
                 venue = db.fetch_one(
-                    "SELECT id FROM venues WHERE id = %s AND venue_owner_id = %s LIMIT 1",
+                    "SELECT * FROM venues WHERE id = %s AND venue_owner_id = %s LIMIT 1",
                     (venue_id, owner_id)
                 )
                 if not venue:
                     raise HTTPException(status_code=404, detail="Venue not found or access denied.")
 
+                current_status = venue.get("verification_status", "DRAFT")
+                new_status = current_status
+                if current_status in ["MORE_INFO_REQUIRED", "REJECTED"]:
+                    new_status = "DRAFT"
+
                 db.execute_query(
                     "UPDATE venues SET name = %s, location = %s, landmark = %s, sports_supported = %s, "
                     "amenities = %s, cover_image = %s, venue_images = %s, opening_time = %s, "
-                    "closing_time = %s, days_open = %s, slot_duration = %s WHERE id = %s",
+                    "closing_time = %s, days_open = %s, slot_duration = %s, verification_status = %s, "
+                    "contact_phone = %s, contact_email = %s, city = %s, state_name = %s, postal_code = %s WHERE id = %s",
                     (
                         data.name.strip(),
                         data.location.strip(),
@@ -229,11 +250,17 @@ class VenueOwnerLogic(ConnectionService):
                         data.closing_time,
                         data.days_open,
                         data.slot_duration or 60,
+                        new_status,
+                        data.contact_phone,
+                        data.contact_email,
+                        data.city,
+                        data.state_name,
+                        data.postal_code,
                         venue_id
                     )
                 )
 
-                return {"message": "Venue updated successfully.", "id": venue_id}
+                return {"message": "Venue updated successfully.", "id": venue_id, "verification_status": new_status}
         except HTTPException as he:
             raise he
         except Exception as e:

@@ -7,11 +7,15 @@
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
+    font-family:
+        "Outfit",
+        "Inter",
+        -apple-system,
+        sans-serif;
 }
 
 .create-group-page::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     background:
@@ -85,7 +89,9 @@
 
 .form-card:hover {
     border-color: rgba(191, 254, 0, 0.2);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(191, 254, 0, 0.04);
+    box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.8),
+        0 0 30px rgba(191, 254, 0, 0.04);
 }
 
 .step-header {
@@ -233,7 +239,7 @@
     margin-bottom: 8px;
 }
 
-.input-group input, 
+.input-group input,
 .input-group textarea {
     width: 100%;
     padding: 14px 18px;
@@ -246,7 +252,7 @@
     outline: none;
 }
 
-.input-group input:focus, 
+.input-group input:focus,
 .input-group textarea:focus {
     border-color: #bffe00;
     background: rgba(191, 254, 0, 0.04);
@@ -259,7 +265,8 @@
 }
 
 /* Buttons */
-.next-btn, .submit-btn {
+.next-btn,
+.submit-btn {
     width: 100%;
     padding: 16px;
     border-radius: 14px;
@@ -303,8 +310,14 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Responsive */
@@ -373,6 +386,12 @@
 }
 
 @keyframes successScale {
-    0% { transform: scale(0.8); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }

@@ -1,20 +1,26 @@
 /* ═══════════════════════════════════════════════════════════════════
    MUKIJO GAMES HUB — PREMIUM SPORTY DARK DESIGN
    ═══════════════════════════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap");
 
 .activities-container {
     padding: 24px 0 48px;
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
-    font-family: 'Outfit', 'Inter', sans-serif;
+    font-family: "Outfit", "Inter", sans-serif;
     animation: actFadeIn 0.5s ease-out;
 }
 
 @keyframes actFadeIn {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Header Section */
@@ -59,7 +65,7 @@
     font-weight: 800;
     font-style: italic;
     text-transform: uppercase;
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     text-decoration: none;
     cursor: pointer;
     box-shadow: 0 4px 20px rgba(191, 254, 0, 0.3);
@@ -90,7 +96,7 @@
     color: #e2e8f0;
     font-size: 14px;
     font-weight: 600;
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     text-decoration: none;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -130,7 +136,7 @@
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 10px;
     color: #f1f5f9;
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     outline: none;
     transition: all 0.2s;
 }
@@ -204,7 +210,9 @@
 .game-card:hover {
     transform: translateY(-5px);
     border-color: var(--brand-secondary);
-    box-shadow: 0 20px 40px rgba(0, 240, 255, 0.1), 0 0 30px rgba(191, 254, 0, 0.05);
+    box-shadow:
+        0 20px 40px rgba(0, 240, 255, 0.1),
+        0 0 30px rgba(191, 254, 0, 0.05);
 }
 
 .game-card-header {
@@ -392,8 +400,12 @@
 }
 
 @keyframes modFadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 .modal-content {
@@ -409,8 +421,14 @@
 }
 
 @keyframes modalSlideUp {
-    from { transform: translateY(24px) scale(0.96); opacity: 0; }
-    to   { transform: translateY(0) scale(1); opacity: 1; }
+    from {
+        transform: translateY(24px) scale(0.96);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
 }
 
 .modal-close {
@@ -595,7 +613,7 @@
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 12px;
     color: #f1f5f9;
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     outline: none;
     transition: all 0.2s;
 }
@@ -612,7 +630,7 @@
     border-radius: 12px;
     font-weight: 700;
     cursor: pointer;
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     transition: all 0.2s;
 }
 

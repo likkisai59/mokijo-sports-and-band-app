@@ -2,16 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import {
-    ArrowLeft,
-    CalendarDays,
-    Check,
-    CreditCard,
-    MapPin,
-    Trash2,
-    UserPlus,
-    X,
-} from "lucide-react";
+import { ArrowLeft, CalendarDays, Check, CreditCard, MapPin, Trash2, UserPlus, X } from "lucide-react";
 import api from "../../../../lib/api";
 import "../../../styles/course-registration.css";
 
@@ -76,7 +67,7 @@ export default function CourseDetailPage() {
 
     const myRegistration = useMemo(() => {
         if (!userEmail) return null;
-        return registrations.find(r => r.participant_email?.toLowerCase() === userEmail.toLowerCase());
+        return registrations.find((r) => r.participant_email?.toLowerCase() === userEmail.toLowerCase());
     }, [registrations, userEmail]);
 
     const isRegistrationPaid = myRegistration?.payment_status === "paid";
@@ -143,7 +134,9 @@ export default function CourseDetailPage() {
             const existingScript = document.querySelector("script[src='https://checkout.razorpay.com/v1/checkout.js']");
             if (existingScript) {
                 existingScript.addEventListener("load", resolve, { once: true });
-                existingScript.addEventListener("error", () => reject(new Error("Could not load Razorpay Checkout.")), { once: true });
+                existingScript.addEventListener("error", () => reject(new Error("Could not load Razorpay Checkout.")), {
+                    once: true,
+                });
                 return;
             }
 
@@ -214,7 +207,10 @@ export default function CourseDetailPage() {
                         alert("Payment successful. Your course fee is now paid.");
                     } catch (verifyError) {
                         console.error("Razorpay verification failed:", verifyError);
-                        setError(verifyError?.response?.data?.detail || "Payment verification failed. Please contact support.");
+                        setError(
+                            verifyError?.response?.data?.detail ||
+                                "Payment verification failed. Please contact support."
+                        );
                     } finally {
                         setPayingRegistrationId(null);
                     }
@@ -315,7 +311,7 @@ export default function CourseDetailPage() {
             // Reload registrations and course data
             const [courseRes, registrationsRes] = await Promise.all([
                 api.get(`/courses/${id}`, { params: { owner_id: userId } }),
-                api.get(`/courses/${id}/registrations`, { params: { owner_id: userId } })
+                api.get(`/courses/${id}/registrations`, { params: { owner_id: userId } }),
             ]);
             setCourse(courseRes.data);
             setRegistrations(registrationsRes.data || []);
@@ -345,7 +341,7 @@ export default function CourseDetailPage() {
             // Reload data
             const [courseRes, registrationsRes] = await Promise.all([
                 api.get(`/courses/${id}`, { params: { owner_id: userId } }),
-                api.get(`/courses/${id}/registrations`, { params: { owner_id: userId } })
+                api.get(`/courses/${id}/registrations`, { params: { owner_id: userId } }),
             ]);
             setCourse(courseRes.data);
             setRegistrations(registrationsRes.data || []);
@@ -366,7 +362,7 @@ export default function CourseDetailPage() {
             // Reload data
             const [courseRes, registrationsRes] = await Promise.all([
                 api.get(`/courses/${id}`, { params: { owner_id: userId } }),
-                api.get(`/courses/${id}/registrations`, { params: { owner_id: userId } })
+                api.get(`/courses/${id}/registrations`, { params: { owner_id: userId } }),
             ]);
             setCourse(courseRes.data);
             setRegistrations(registrationsRes.data || []);
@@ -398,7 +394,17 @@ export default function CourseDetailPage() {
     if (!course) {
         return (
             <div className="courses-page" style={{ padding: "24px" }}>
-                <button className="courses-secondary-btn" onClick={() => router.push("/dashboard/courses")} style={{ alignSelf: "flex-start", marginBottom: "16px", display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                <button
+                    className="courses-secondary-btn"
+                    onClick={() => router.push("/dashboard/courses")}
+                    style={{
+                        alignSelf: "flex-start",
+                        marginBottom: "16px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                    }}
+                >
                     <ArrowLeft size={16} /> Back to Courses
                 </button>
                 <div className="courses-error">{error || "Course not found"}</div>
@@ -409,7 +415,11 @@ export default function CourseDetailPage() {
     return (
         <div className="courses-page" style={{ padding: "24px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                <button className="courses-secondary-btn" onClick={() => router.push("/dashboard/courses")} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                <button
+                    className="courses-secondary-btn"
+                    onClick={() => router.push("/dashboard/courses")}
+                    style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: "8px" }}
+                >
                     <ArrowLeft size={16} /> Back to Courses
                 </button>
 
@@ -426,18 +436,21 @@ export default function CourseDetailPage() {
                             {isMember ? (
                                 myRegistration ? (
                                     <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                                        <span style={{ 
-                                            display: "inline-flex", 
-                                            alignItems: "center", 
-                                            gap: "6px", 
-                                            background: isRegistrationPaid ? "#dcfce7" : "#fef3c7", 
-                                            color: isRegistrationPaid ? "#16a34a" : "#d97706", 
-                                            fontWeight: "700", 
-                                            padding: "10px 20px", 
-                                            borderRadius: "12px", 
-                                            fontSize: "14px" 
-                                        }}>
-                                            {isRegistrationPaid ? <Check size={16} /> : <X size={16} />} {isRegistrationPaid ? "Registered" : "Unregistered"}
+                                        <span
+                                            style={{
+                                                display: "inline-flex",
+                                                alignItems: "center",
+                                                gap: "6px",
+                                                background: isRegistrationPaid ? "#dcfce7" : "#fef3c7",
+                                                color: isRegistrationPaid ? "#16a34a" : "#d97706",
+                                                fontWeight: "700",
+                                                padding: "10px 20px",
+                                                borderRadius: "12px",
+                                                fontSize: "14px",
+                                            }}
+                                        >
+                                            {isRegistrationPaid ? <Check size={16} /> : <X size={16} />}{" "}
+                                            {isRegistrationPaid ? "Registered" : "Unregistered"}
                                         </span>
                                         {!isRegistrationPaid && Number(course.fee || 0) > 0 && (
                                             <button
@@ -446,43 +459,57 @@ export default function CourseDetailPage() {
                                                 onClick={() => payCourseFee(myRegistration)}
                                             >
                                                 <CreditCard size={16} />
-                                                {payingRegistrationId === myRegistration.id ? "Opening Razorpay..." : "Buy Course"}
+                                                {payingRegistrationId === myRegistration.id
+                                                    ? "Opening Razorpay..."
+                                                    : "Buy Course"}
                                             </button>
                                         )}
                                     </div>
                                 ) : course.status === "full" ? (
-                                    <span style={{ 
-                                        display: "inline-flex", 
-                                        alignItems: "center", 
-                                        background: "#fee2e2", 
-                                        color: "#ef4444", 
-                                        fontWeight: "700", 
-                                        padding: "10px 20px", 
-                                        borderRadius: "12px", 
-                                        fontSize: "14px" 
-                                    }}>
+                                    <span
+                                        style={{
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            background: "#fee2e2",
+                                            color: "#ef4444",
+                                            fontWeight: "700",
+                                            padding: "10px 20px",
+                                            borderRadius: "12px",
+                                            fontSize: "14px",
+                                        }}
+                                    >
                                         Course Full
                                     </span>
                                 ) : course.status !== "open" ? (
-                                    <span style={{ 
-                                        display: "inline-flex", 
-                                        alignItems: "center", 
-                                        background: "#f1f5f9", 
-                                        color: "#64748b", 
-                                        fontWeight: "700", 
-                                        padding: "10px 20px", 
-                                        borderRadius: "12px", 
-                                        fontSize: "14px" 
-                                    }}>
+                                    <span
+                                        style={{
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            background: "#f1f5f9",
+                                            color: "#64748b",
+                                            fontWeight: "700",
+                                            padding: "10px 20px",
+                                            borderRadius: "12px",
+                                            fontSize: "14px",
+                                        }}
+                                    >
                                         Closed
                                     </span>
                                 ) : Number(course.fee || 0) > 0 ? (
-                                    <button className="courses-primary-btn course-buy-btn" onClick={buyCourse} disabled={saving || isBuying}>
+                                    <button
+                                        className="courses-primary-btn course-buy-btn"
+                                        onClick={buyCourse}
+                                        disabled={saving || isBuying}
+                                    >
                                         <CreditCard size={16} />
                                         {isBuying ? "Opening Razorpay..." : "Buy Course"}
                                     </button>
                                 ) : (
-                                    <button className="courses-primary-btn" onClick={handleSelfRegister} disabled={saving}>
+                                    <button
+                                        className="courses-primary-btn"
+                                        onClick={handleSelfRegister}
+                                        disabled={saving}
+                                    >
                                         <UserPlus size={16} />
                                         Confirm Registration
                                     </button>
@@ -496,66 +523,166 @@ export default function CourseDetailPage() {
                     </div>
 
                     <div className="course-detail-grid">
-                        <div><span>Instructor</span><strong>{course.instructor || "Not assigned"}</strong></div>
-                        <div><span>Schedule</span><strong>{course.schedule || "Not scheduled"}</strong></div>
-                        <div><span>Dates</span><strong>{dateText(course.start_date)} - {dateText(course.end_date)}</strong></div>
-                        <div><span>Seats Left</span><strong>{course.available_seats}</strong></div>
+                        <div>
+                            <span>Instructor</span>
+                            <strong>{course.instructor || "Not assigned"}</strong>
+                        </div>
+                        <div>
+                            <span>Schedule</span>
+                            <strong>{course.schedule || "Not scheduled"}</strong>
+                        </div>
+                        <div>
+                            <span>Dates</span>
+                            <strong>
+                                {dateText(course.start_date)} - {dateText(course.end_date)}
+                            </strong>
+                        </div>
+                        <div>
+                            <span>Seats Left</span>
+                            <strong>{course.available_seats}</strong>
+                        </div>
                     </div>
 
                     {/* Secure Registration Panels */}
                     {isMember ? (
-                        <div className="registrations-panel" style={{ background: "#f8fafc", padding: "24px", borderRadius: "20px", border: "1px solid #e2e8f0", marginTop: "24px" }}>
-                            <h3 style={{ margin: "0 0 6px 0", fontSize: "16px", color: "#1e293b", fontWeight: "800" }}>Your Enrollment Status</h3>
-                            <p style={{ margin: "0 0 20px 0", fontSize: "12px", color: "#64748b" }}>Manage your registration and payment status for this cricket batch.</p>
-                            
+                        <div
+                            className="registrations-panel"
+                            style={{
+                                background: "#f8fafc",
+                                padding: "24px",
+                                borderRadius: "20px",
+                                border: "1px solid #e2e8f0",
+                                marginTop: "24px",
+                            }}
+                        >
+                            <h3 style={{ margin: "0 0 6px 0", fontSize: "16px", color: "#1e293b", fontWeight: "800" }}>
+                                Your Enrollment Status
+                            </h3>
+                            <p style={{ margin: "0 0 20px 0", fontSize: "12px", color: "#64748b" }}>
+                                Manage your registration and payment status for this cricket batch.
+                            </p>
+
                             {myRegistration ? (
                                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px", background: "white", borderRadius: "12px", border: "1px solid #f1f5f9" }}>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center",
+                                            padding: "14px 18px",
+                                            background: "white",
+                                            borderRadius: "12px",
+                                            border: "1px solid #f1f5f9",
+                                        }}
+                                    >
                                         <div>
-                                            <span style={{ fontSize: "11px", color: "#94a3b8", fontWeight: "600", textTransform: "uppercase" }}>Registration Status</span>
-                                            <strong style={{ display: "block", fontSize: "14px", color: isRegistrationPaid ? "#16a34a" : "#d97706", marginTop: "3px" }}>
+                                            <span
+                                                style={{
+                                                    fontSize: "11px",
+                                                    color: "#94a3b8",
+                                                    fontWeight: "600",
+                                                    textTransform: "uppercase",
+                                                }}
+                                            >
+                                                Registration Status
+                                            </span>
+                                            <strong
+                                                style={{
+                                                    display: "block",
+                                                    fontSize: "14px",
+                                                    color: isRegistrationPaid ? "#16a34a" : "#d97706",
+                                                    marginTop: "3px",
+                                                }}
+                                            >
                                                 {isRegistrationPaid ? "Registered & Confirmed" : "Unregistered"}
                                             </strong>
                                         </div>
-                                        <span style={{ 
-                                            fontSize: "12px", 
-                                            fontWeight: "700", 
-                                            padding: "6px 14px", 
-                                            background: isRegistrationPaid ? "#dcfce7" : "#fef3c7", 
-                                            color: isRegistrationPaid ? "#16a34a" : "#d97706", 
-                                            borderRadius: "20px" 
-                                        }}>
+                                        <span
+                                            style={{
+                                                fontSize: "12px",
+                                                fontWeight: "700",
+                                                padding: "6px 14px",
+                                                background: isRegistrationPaid ? "#dcfce7" : "#fef3c7",
+                                                color: isRegistrationPaid ? "#16a34a" : "#d97706",
+                                                borderRadius: "20px",
+                                            }}
+                                        >
                                             {isRegistrationPaid ? "ACTIVE" : "UNREGISTERED"}
                                         </span>
                                     </div>
-                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px", background: "white", borderRadius: "12px", border: "1px solid #f1f5f9" }}>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center",
+                                            padding: "14px 18px",
+                                            background: "white",
+                                            borderRadius: "12px",
+                                            border: "1px solid #f1f5f9",
+                                        }}
+                                    >
                                         <div>
-                                            <span style={{ fontSize: "11px", color: "#94a3b8", fontWeight: "600", textTransform: "uppercase" }}>Fee Payment Status</span>
-                                            <strong style={{ display: "block", fontSize: "14px", color: myRegistration.payment_status === "paid" ? "#16a34a" : "#d97706", marginTop: "3px" }}>
-                                                {myRegistration.payment_status === "paid" ? "Paid" : "Pending Payment / Unpaid"}
+                                            <span
+                                                style={{
+                                                    fontSize: "11px",
+                                                    color: "#94a3b8",
+                                                    fontWeight: "600",
+                                                    textTransform: "uppercase",
+                                                }}
+                                            >
+                                                Fee Payment Status
+                                            </span>
+                                            <strong
+                                                style={{
+                                                    display: "block",
+                                                    fontSize: "14px",
+                                                    color:
+                                                        myRegistration.payment_status === "paid"
+                                                            ? "#16a34a"
+                                                            : "#d97706",
+                                                    marginTop: "3px",
+                                                }}
+                                            >
+                                                {myRegistration.payment_status === "paid"
+                                                    ? "Paid"
+                                                    : "Pending Payment / Unpaid"}
                                             </strong>
                                         </div>
-                                        <span style={{ 
-                                            fontSize: "12px", 
-                                            fontWeight: "700", 
-                                            padding: "6px 14px", 
-                                            background: myRegistration.payment_status === "paid" ? "#dcfce7" : "#fef3c7", 
-                                            color: myRegistration.payment_status === "paid" ? "#16a34a" : "#d97706", 
-                                            borderRadius: "20px" 
-                                        }}>
+                                        <span
+                                            style={{
+                                                fontSize: "12px",
+                                                fontWeight: "700",
+                                                padding: "6px 14px",
+                                                background:
+                                                    myRegistration.payment_status === "paid" ? "#dcfce7" : "#fef3c7",
+                                                color: myRegistration.payment_status === "paid" ? "#16a34a" : "#d97706",
+                                                borderRadius: "20px",
+                                            }}
+                                        >
                                             {myRegistration.payment_status.toUpperCase()}
                                         </span>
                                     </div>
                                     {myRegistration.notes && (
-                                        <div style={{ padding: "14px 18px", background: "#f8fafc", borderRadius: "12px", border: "1px dashed #e2e8f0", fontSize: "13px", color: "#64748b" }}>
+                                        <div
+                                            style={{
+                                                padding: "14px 18px",
+                                                background: "#f8fafc",
+                                                borderRadius: "12px",
+                                                border: "1px dashed #e2e8f0",
+                                                fontSize: "13px",
+                                                color: "#64748b",
+                                            }}
+                                        >
                                             <strong>Note:</strong> {myRegistration.notes}
                                         </div>
                                     )}
-
                                 </div>
                             ) : (
                                 <div style={{ textAlign: "center", padding: "30px 10px" }}>
-                                    <p style={{ margin: "0", fontSize: "13px", color: "#64748b" }}>You are not enrolled in this course yet. Use the button at the top of the page to enroll.</p>
+                                    <p style={{ margin: "0", fontSize: "13px", color: "#64748b" }}>
+                                        You are not enrolled in this course yet. Use the button at the top of the page
+                                        to enroll.
+                                    </p>
                                 </div>
                             )}
                         </div>
@@ -570,14 +697,23 @@ export default function CourseDetailPage() {
                                         <div className="registration-row" key={registration.id}>
                                             <div>
                                                 <strong>{registration.participant_name}</strong>
-                                                <span>{registration.participant_email || "No email"} · {statusLabels[registration.status] || registration.status}</span>
+                                                <span>
+                                                    {registration.participant_email || "No email"} ·{" "}
+                                                    {statusLabels[registration.status] || registration.status}
+                                                </span>
                                             </div>
                                             <div className="registration-actions">
                                                 <span className={`mini-pill ${registration.payment_status}`}>
-                                                    {statusLabels[registration.payment_status] || registration.payment_status}
+                                                    {statusLabels[registration.payment_status] ||
+                                                        registration.payment_status}
                                                 </span>
                                                 {registration.status !== "cancelled" && (
-                                                    <button className="courses-icon-btn" onClick={() => updateRegistration(registration, { status: "cancelled" })}>
+                                                    <button
+                                                        className="courses-icon-btn"
+                                                        onClick={() =>
+                                                            updateRegistration(registration, { status: "cancelled" })
+                                                        }
+                                                    >
                                                         <X size={15} />
                                                     </button>
                                                 )}
@@ -601,19 +737,80 @@ export default function CourseDetailPage() {
                                 <h2>Register Participant</h2>
                                 <p>{course.title}</p>
                             </div>
-                            <button type="button" className="courses-icon-btn" onClick={() => setShowRegisterModal(false)}><X size={18} /></button>
+                            <button
+                                type="button"
+                                className="courses-icon-btn"
+                                onClick={() => setShowRegisterModal(false)}
+                            >
+                                <X size={18} />
+                            </button>
                         </div>
                         <div className="courses-form-grid single">
-                            <label>Existing Member<select value={registrationForm.member_id} onChange={(e) => updateRegistrationField("member_id", e.target.value)}><option value="">Register by name instead</option>{memberOptions.map((member) => <option key={member.id} value={member.id}>{member.first_name} {member.last_name} - {member.group_name}</option>)}</select></label>
-                            <label>Participant Name<input value={registrationForm.participant_name} onChange={(e) => updateRegistrationField("participant_name", e.target.value)} placeholder="Required for non-members" disabled={Boolean(registrationForm.member_id)} /></label>
-                            <label>Email<input value={registrationForm.participant_email} onChange={(e) => updateRegistrationField("participant_email", e.target.value)} placeholder="participant@example.com" disabled={Boolean(registrationForm.member_id)} /></label>
-                            <label>Phone<input value={registrationForm.participant_phone} onChange={(e) => updateRegistrationField("participant_phone", e.target.value)} placeholder="Phone number" disabled={Boolean(registrationForm.member_id)} /></label>
-                            <label>Payment<input value="Unpaid until member pays online" disabled /></label>
-                            <label>Notes<textarea value={registrationForm.notes} onChange={(e) => updateRegistrationField("notes", e.target.value)} placeholder="Optional registration note" /></label>
+                            <label>
+                                Existing Member
+                                <select
+                                    value={registrationForm.member_id}
+                                    onChange={(e) => updateRegistrationField("member_id", e.target.value)}
+                                >
+                                    <option value="">Register by name instead</option>
+                                    {memberOptions.map((member) => (
+                                        <option key={member.id} value={member.id}>
+                                            {member.first_name} {member.last_name} - {member.group_name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label>
+                                Participant Name
+                                <input
+                                    value={registrationForm.participant_name}
+                                    onChange={(e) => updateRegistrationField("participant_name", e.target.value)}
+                                    placeholder="Required for non-members"
+                                    disabled={Boolean(registrationForm.member_id)}
+                                />
+                            </label>
+                            <label>
+                                Email
+                                <input
+                                    value={registrationForm.participant_email}
+                                    onChange={(e) => updateRegistrationField("participant_email", e.target.value)}
+                                    placeholder="participant@example.com"
+                                    disabled={Boolean(registrationForm.member_id)}
+                                />
+                            </label>
+                            <label>
+                                Phone
+                                <input
+                                    value={registrationForm.participant_phone}
+                                    onChange={(e) => updateRegistrationField("participant_phone", e.target.value)}
+                                    placeholder="Phone number"
+                                    disabled={Boolean(registrationForm.member_id)}
+                                />
+                            </label>
+                            <label>
+                                Payment
+                                <input value="Unpaid until member pays online" disabled />
+                            </label>
+                            <label>
+                                Notes
+                                <textarea
+                                    value={registrationForm.notes}
+                                    onChange={(e) => updateRegistrationField("notes", e.target.value)}
+                                    placeholder="Optional registration note"
+                                />
+                            </label>
                         </div>
                         <div className="courses-modal-actions">
-                            <button type="button" className="courses-secondary-btn" onClick={() => setShowRegisterModal(false)}>Cancel</button>
-                            <button type="submit" className="courses-primary-btn" disabled={saving}>{saving ? "Registering..." : "Register"}</button>
+                            <button
+                                type="button"
+                                className="courses-secondary-btn"
+                                onClick={() => setShowRegisterModal(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button type="submit" className="courses-primary-btn" disabled={saving}>
+                                {saving ? "Registering..." : "Register"}
+                            </button>
                         </div>
                     </form>
                 </div>

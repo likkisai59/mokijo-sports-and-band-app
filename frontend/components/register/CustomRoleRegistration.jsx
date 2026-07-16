@@ -1,9 +1,14 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import styles from "../../app/styles/signup.module.css";
 
 export default function CustomRoleRegistration({ role, selectedClub, onBack, onComplete, backLabel = "<- Back" }) {
+    const router = useRouter();
+    const redirectedRef = useRef(false);
     const [formConfig, setFormConfig] = useState(null);
     const [formData, setFormData] = useState({});
     const [errors, setErrors] = useState({});
@@ -21,7 +26,9 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
             setLoading(true);
             setFormConfig(null);
             try {
-                const res = await fetch(`http://127.0.0.1:8001/signup-forms/${role.toLowerCase()}?owner_id=${selectedClub.id}`);
+                const res = await fetch(
+                    `${API_BASE_URL}/signup-forms/${role.toLowerCase()}?owner_id=${selectedClub.id}`
+                );
                 if (res.ok) {
                     const data = await res.json();
                     let parsedFields = [];
@@ -34,7 +41,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
 
                     // Initialise formData state with empty values
                     const initialData = {};
-                    parsedFields.forEach(f => {
+                    parsedFields.forEach((f) => {
                         initialData[f.name] = "";
                     });
                     setFormData(initialData);
@@ -50,14 +57,14 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
     }, [selectedClub, role]);
 
     function handleFieldChange(name, value) {
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
-            [name]: value
+            [name]: value,
         }));
         if (errors[name]) {
-            setErrors(prev => ({
+            setErrors((prev) => ({
                 ...prev,
-                [name]: null
+                [name]: null,
             }));
         }
     }
@@ -69,7 +76,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
         // Simple validation
         const newErrors = {};
         if (formConfig && formConfig.fields) {
-            formConfig.fields.forEach(field => {
+            formConfig.fields.forEach((field) => {
                 if (field.required && !String(formData[field.name] || "").trim()) {
                     newErrors[field.name] = `${field.label} is required`;
                 }
@@ -77,7 +84,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
         }
 
         // Validate password if email field exists
-        const hasEmail = formConfig?.fields?.some(f => f.name.toLowerCase() === "email");
+        const hasEmail = formConfig?.fields?.some((f) => f.name.toLowerCase() === "email");
         if (hasEmail && !String(formData["password"] || "").trim()) {
             newErrors["password"] = "Password is required";
         }
@@ -98,26 +105,38 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                 ...formData,
                 sports: formData["sports"] || [],
                 sport: formData["sports"] ? formData["sports"].join(", ") : "",
-                email: String(formData.email || "").trim().toLowerCase(),
-                password: String(formData.password || "").trim()
+                email: String(formData.email || "")
+                    .trim()
+                    .toLowerCase(),
+                password: String(formData.password || "").trim(),
             };
 
-            const response = await fetch("http://127.0.0.1:8001/signup-submissions", {
+            const response = await fetch(`${API_BASE_URL}/signup-submissions`, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
                     owner_id: selectedClub.id,
                     role: role,
-                    submitted_data: JSON.stringify(submittedData)
-                })
+                    submitted_data: JSON.stringify(submittedData),
+                }),
             });
 
             if (response.ok) {
-                const data = await response.json().catch(() => ({}));
-                alert(data.message || "Club admin has to approve your application before you can log in.");
+                // Prevent duplicate redirect triggers
+                if (redirectedRef.current) return;
+                redirectedRef.current = true;
+
+                toast.success(
+                    "Registration successful! Please check your email to verify your account.",
+                    { duration: 4000 }
+                );
                 onComplete();
+                // Redirect to Landing Page after the toast is visible
+                setTimeout(() => {
+                    router.push("/");
+                }, 1500);
             } else {
                 const errorData = await response.json().catch(() => ({}));
                 setSubmitError(errorData.detail || "Failed to submit application. Please check details.");
@@ -133,10 +152,24 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
     if (loading && !formConfig) {
         return (
             <div style={{ textAlign: "center", padding: "40px" }}>
-                <div style={{ width: "30px", height: "30px", border: "3px solid #cbd5e1", borderTopColor: "#2563eb", borderRadius: "50%", animation: "spin 1s linear infinite", margin: "0 auto 12px" }}></div>
+                <div
+                    style={{
+                        width: "30px",
+                        height: "30px",
+                        border: "3px solid #cbd5e1",
+                        borderTopColor: "#2563eb",
+                        borderRadius: "50%",
+                        animation: "spin 1s linear infinite",
+                        margin: "0 auto 12px",
+                    }}
+                ></div>
                 <p style={{ color: "#64748b", fontSize: "14px" }}>Fetching customized form configuration...</p>
                 <style jsx>{`
-                    @keyframes spin { to { transform: rotate(360deg); } }
+                    @keyframes spin {
+                        to {
+                            transform: rotate(360deg);
+                        }
+                    }
                 `}</style>
             </div>
         );
@@ -151,7 +184,17 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
             </div>
 
             {submitError && (
-                <div style={{ background: "#fef2f2", color: "#ef4444", padding: "10px", borderRadius: "6px", fontSize: "13px", marginBottom: "16px", textAlign: "center" }}>
+                <div
+                    style={{
+                        background: "#fef2f2",
+                        color: "#ef4444",
+                        padding: "10px",
+                        borderRadius: "6px",
+                        fontSize: "13px",
+                        marginBottom: "16px",
+                        textAlign: "center",
+                    }}
+                >
                     {submitError}
                 </div>
             )}
@@ -164,103 +207,149 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
 
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                 {/* Customized Club Onboarding Fields */}
-                {formConfig?.fields.filter(field => !field.name.toLowerCase().includes("password")).map((field) => {
-                    const isEmailField = field.name.toLowerCase() === "email";
-                    return (
-                        <div key={field.name} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                            <div className={styles.fieldGroup}>
-                                <label className={styles.label}>
-                                    {field.label} {field.required && <span style={{ color: "#ef4444" }}>*</span>}
-                                </label>
-                                {field.type === "select" ? (
-                                    <select
-                                        className={styles.select}
-                                        value={formData[field.name] || ""}
-                                        onChange={(e) => handleFieldChange(field.name, e.target.value)}
-                                    >
-                                        <option value="">{field.placeholder || "Select option..."}</option>
-                                        {(field.options || ["Father", "Mother", "Guardian", "Male", "Female", "Other"]).map((opt) => (
-                                            <option key={opt} value={opt}>{opt}</option>
-                                        ))}
-                                    </select>
-                                ) : (
-                                    <input
-                                        type={field.type}
-                                        className={styles.input}
-                                        placeholder={field.placeholder || ""}
-                                        value={formData[field.name] || ""}
-                                        onChange={(e) => handleFieldChange(field.name, e.target.value)}
-                                    />
-                                )}
-                                {errors[field.name] && (
-                                    <span style={{ color: "#ef4444", fontSize: "12px", marginTop: "4px", display: "block" }}>
-                                        {errors[field.name]}
-                                    </span>
-                                )}
-                            </div>
-                            {isEmailField && (
+                {formConfig?.fields
+                    .filter((field) => !field.name.toLowerCase().includes("password"))
+                    .map((field) => {
+                        const isEmailField = field.name.toLowerCase() === "email";
+                        return (
+                            <div key={field.name} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                                 <div className={styles.fieldGroup}>
                                     <label className={styles.label}>
-                                        Create Password <span style={{ color: "#ef4444" }}>*</span>
+                                        {field.label} {field.required && <span style={{ color: "#ef4444" }}>*</span>}
                                     </label>
-                                    <input
-                                        type="password"
-                                        className={styles.input}
-                                        placeholder="Choose a password for your account"
-                                        value={formData["password"] || ""}
-                                        onChange={(e) => handleFieldChange("password", e.target.value)}
-                                        required
-                                    />
-                                    {errors["password"] && (
-                                        <span style={{ color: "#ef4444", fontSize: "12px", marginTop: "4px", display: "block" }}>
-                                            {errors["password"]}
+                                    {field.type === "select" ? (
+                                        <select
+                                            className={styles.select}
+                                            value={formData[field.name] || ""}
+                                            onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                                        >
+                                            <option value="">{field.placeholder || "Select option..."}</option>
+                                            {(
+                                                field.options || [
+                                                    "Father",
+                                                    "Mother",
+                                                    "Guardian",
+                                                    "Male",
+                                                    "Female",
+                                                    "Other",
+                                                ]
+                                            ).map((opt) => (
+                                                <option key={opt} value={opt}>
+                                                    {opt}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <input
+                                            type={field.type}
+                                            className={styles.input}
+                                            placeholder={field.placeholder || ""}
+                                            value={formData[field.name] || ""}
+                                            onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                                        />
+                                    )}
+                                    {errors[field.name] && (
+                                        <span
+                                            style={{
+                                                color: "#ef4444",
+                                                fontSize: "12px",
+                                                marginTop: "4px",
+                                                display: "block",
+                                            }}
+                                        >
+                                            {errors[field.name]}
                                         </span>
                                     )}
                                 </div>
-                            )}
-                        </div>
-                    );
-                })}
+                                {isEmailField && (
+                                    <div className={styles.fieldGroup}>
+                                        <label className={styles.label}>
+                                            Create Password <span style={{ color: "#ef4444" }}>*</span>
+                                        </label>
+                                        <input
+                                            type="password"
+                                            className={styles.input}
+                                            placeholder="Choose a password for your account"
+                                            value={formData["password"] || ""}
+                                            onChange={(e) => handleFieldChange("password", e.target.value)}
+                                            required
+                                        />
+                                        {errors["password"] && (
+                                            <span
+                                                style={{
+                                                    color: "#ef4444",
+                                                    fontSize: "12px",
+                                                    marginTop: "4px",
+                                                    display: "block",
+                                                }}
+                                            >
+                                                {errors["password"]}
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
 
                 <div className={styles.fieldGroup}>
                     <label className={styles.label}>
                         Interested Sports <span style={{ color: "#ef4444" }}>*</span> (Select all that apply)
                     </label>
-                    <div style={{
-                        maxHeight: "180px",
-                        overflowY: "auto",
-                        border: "1.5px solid rgba(255, 255, 255, 0.08)",
-                        borderRadius: "10px",
-                        padding: "12px 14px",
-                        background: "rgba(255, 255, 255, 0.05)",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "8px",
-                        marginTop: "8px"
-                    }}>
-                        {["Tennis", "Cricket", "Football (Soccer)", "Basketball", "Badminton", "Swimming"].map(sport => {
-                            const selectedSports = formData["sports"] || [];
-                            const isChecked = selectedSports.includes(sport);
-                            return (
-                                <label key={sport} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#f1f5f9' }}>
-                                    <input 
-                                        type="checkbox" 
-                                        checked={isChecked}
-                                        onChange={(e) => {
-                                            let updated;
-                                            if (e.target.checked) {
-                                                updated = [...selectedSports, sport];
-                                            } else {
-                                                updated = selectedSports.filter(s => s !== sport);
-                                            }
-                                            handleFieldChange("sports", updated);
+                    <div
+                        style={{
+                            maxHeight: "180px",
+                            overflowY: "auto",
+                            border: "1.5px solid rgba(255, 255, 255, 0.08)",
+                            borderRadius: "10px",
+                            padding: "12px 14px",
+                            background: "rgba(255, 255, 255, 0.05)",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "8px",
+                            marginTop: "8px",
+                        }}
+                    >
+                        {["Tennis", "Cricket", "Football (Soccer)", "Basketball", "Badminton", "Swimming"].map(
+                            (sport) => {
+                                const selectedSports = formData["sports"] || [];
+                                const isChecked = selectedSports.includes(sport);
+                                return (
+                                    <label
+                                        key={sport}
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "8px",
+                                            cursor: "pointer",
+                                            fontSize: "14px",
+                                            color: "#f1f5f9",
                                         }}
-                                        style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: '#bffe00' }}
-                                    />
-                                    <span>{sport}</span>
-                                </label>
-                            );
-                        })}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={isChecked}
+                                            onChange={(e) => {
+                                                let updated;
+                                                if (e.target.checked) {
+                                                    updated = [...selectedSports, sport];
+                                                } else {
+                                                    updated = selectedSports.filter((s) => s !== sport);
+                                                }
+                                                handleFieldChange("sports", updated);
+                                            }}
+                                            style={{
+                                                cursor: "pointer",
+                                                width: "16px",
+                                                height: "16px",
+                                                accentColor: "#bffe00",
+                                            }}
+                                        />
+                                        <span>{sport}</span>
+                                    </label>
+                                );
+                            }
+                        )}
                     </div>
                     {errors["sports"] && (
                         <span style={{ color: "#ef4444", fontSize: "12px", marginTop: "4px", display: "block" }}>
@@ -273,7 +362,12 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                     type="submit"
                     className={styles.submitButton}
                     disabled={loading}
-                    style={{ width: "100%", marginTop: "10px", opacity: loading ? 0.7 : 1, cursor: loading ? "not-allowed" : "pointer" }}
+                    style={{
+                        width: "100%",
+                        marginTop: "10px",
+                        opacity: loading ? 0.7 : 1,
+                        cursor: loading ? "not-allowed" : "pointer",
+                    }}
                 >
                     {loading ? "Submitting Application..." : "Submit Application"}
                 </button>

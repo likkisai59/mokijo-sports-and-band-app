@@ -1,13 +1,14 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 import { useEffect, useState } from "react";
 
-const API = "http://127.0.0.1:8001";
+const API = API_BASE_URL;
 
 export default function SlotsPage() {
-    const [venues, setVenues]   = useState([]);
+    const [venues, setVenues] = useState([]);
     const [selVenue, setSelVenue] = useState(null);
-    const [date, setDate]       = useState(() => new Date().toISOString().split("T")[0]);
-    const [slots, setSlots]     = useState([]);
+    const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
+    const [slots, setSlots] = useState([]);
     const [loading, setLoading] = useState(false);
     const [actionMsg, setActionMsg] = useState("");
 
@@ -15,15 +16,18 @@ export default function SlotsPage() {
         const ownerId = localStorage.getItem("venueOwnerId");
         if (!ownerId) return;
         fetch(`${API}/venue-owner/${ownerId}/venues`)
-            .then(r => r.ok ? r.json() : [])
-            .then(data => { setVenues(data); if (data.length > 0) setSelVenue(data[0].id); });
+            .then((r) => (r.ok ? r.json() : []))
+            .then((data) => {
+                setVenues(data);
+                if (data.length > 0) setSelVenue(data[0].id);
+            });
     }, []);
 
     useEffect(() => {
         if (!selVenue) return;
         setLoading(true);
         fetch(`${API}/venues/${selVenue}/slots?date_str=${date}`)
-            .then(r => r.ok ? r.json() : [])
+            .then((r) => (r.ok ? r.json() : []))
             .then(setSlots)
             .catch(() => setSlots([]))
             .finally(() => setLoading(false));
@@ -54,16 +58,38 @@ export default function SlotsPage() {
             <p className="vd-page-sub">View and manage time slots for each venue</p>
 
             <div className="vd-controls">
-                <select className="vd-select" value={selVenue || ""} onChange={e => setSelVenue(Number(e.target.value))}>
-                    {venues.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                <select
+                    className="vd-select"
+                    value={selVenue || ""}
+                    onChange={(e) => setSelVenue(Number(e.target.value))}
+                >
+                    {venues.map((v) => (
+                        <option key={v.id} value={v.id}>
+                            {v.name}
+                        </option>
+                    ))}
                 </select>
-                <input type="date" className="vd-input-sm" value={date} onChange={e => setDate(e.target.value)} />
-                <button className="vd-btn-primary" style={{ background: "rgba(239,68,68,0.15)", color: "#f87171", border: "1px solid rgba(239,68,68,0.3)" }}
-                    onClick={() => blockAction("block")}>
+                <input type="date" className="vd-input-sm" value={date} onChange={(e) => setDate(e.target.value)} />
+                <button
+                    className="vd-btn-primary"
+                    style={{
+                        background: "rgba(239,68,68,0.15)",
+                        color: "#f87171",
+                        border: "1px solid rgba(239,68,68,0.3)",
+                    }}
+                    onClick={() => blockAction("block")}
+                >
                     Block All Day
                 </button>
-                <button className="vd-btn-primary" style={{ background: "rgba(34,197,94,0.1)", color: "#4ade80", border: "1px solid rgba(34,197,94,0.3)" }}
-                    onClick={() => blockAction("unblock")}>
+                <button
+                    className="vd-btn-primary"
+                    style={{
+                        background: "rgba(34,197,94,0.1)",
+                        color: "#4ade80",
+                        border: "1px solid rgba(34,197,94,0.3)",
+                    }}
+                    onClick={() => blockAction("unblock")}
+                >
                     Unblock All Day
                 </button>
             </div>
@@ -71,7 +97,9 @@ export default function SlotsPage() {
             {actionMsg && <p style={{ color: "#bffe00", fontSize: 13, marginBottom: 14 }}>{actionMsg}</p>}
 
             {loading ? (
-                <div className="vd-loading"><div className="vd-spinner" /> Loading slots…</div>
+                <div className="vd-loading">
+                    <div className="vd-spinner" /> Loading slots…
+                </div>
             ) : slots.length === 0 ? (
                 <div className="vd-card">
                     <div className="vd-empty">
@@ -82,14 +110,21 @@ export default function SlotsPage() {
                 </div>
             ) : (
                 <div className="vd-slot-grid">
-                    {slots.map(slot => {
+                    {slots.map((slot) => {
                         const status = slot.is_blocked ? "blocked" : "available";
                         return (
                             <div key={slot.id} className={`vd-slot-tile ${status}`}>
-                                <div className="vd-slot-time">{fmt(slot.start_time)} – {fmt(slot.end_time)}</div>
-                                <div className="vd-slot-sport" style={{ textTransform: "capitalize" }}>{slot.sport}</div>
+                                <div className="vd-slot-time">
+                                    {fmt(slot.start_time)} – {fmt(slot.end_time)}
+                                </div>
+                                <div className="vd-slot-sport" style={{ textTransform: "capitalize" }}>
+                                    {slot.sport}
+                                </div>
                                 <div className="vd-slot-price">₹{slot.base_price}</div>
-                                <span className={`vd-badge ${status === "blocked" ? "red" : "green"}`} style={{ fontSize: 10, padding: "2px 8px" }}>
+                                <span
+                                    className={`vd-badge ${status === "blocked" ? "red" : "green"}`}
+                                    style={{ fontSize: 10, padding: "2px 8px" }}
+                                >
                                     {status}
                                 </span>
                             </div>

@@ -5,6 +5,18 @@ from sqlalchemy import Column, DateTime, Integer, String, Text, Boolean, Foreign
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 
+
+class MukijoAdmin(Base):
+    """Platform-level Mukijo Admin — separate from Club Admin (User)."""
+    __tablename__ = "mukijo_admins"
+
+    id = Column(Integer, primary_key=True, index=True)
+    full_name = Column(String, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    password = Column(String, nullable=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
 class Group(Base):
     __tablename__ = "groups"
 
@@ -117,6 +129,10 @@ class User(Base):
     hear_about = Column(String)
     is_verified = Column(Boolean, default=False)
     verification_token = Column(String, nullable=True)
+    is_email_verified = Column(Boolean, default=False)
+    email_verification_token = Column(String, nullable=True)
+    email_verification_token_expires_at = Column(DateTime, nullable=True)
+
 
     groups = relationship("Group", back_populates="owner")
     events = relationship("Event", back_populates="owner")
@@ -308,11 +324,34 @@ class Venue(Base):
     slot_duration = Column(Integer, default=60)      # minutes: 30 or 60
     base_price_per_hour = Column(Integer, default=0)
 
+    # ── Venue Verification Lifecycle Fields ────────────────────────────
+    verification_status = Column(String, default="DRAFT", nullable=False, server_default="DRAFT")
+    # Statuses: DRAFT | PENDING_VERIFICATION | UNDER_REVIEW | MORE_INFO_REQUIRED | VERIFIED | REJECTED | SUSPENDED
+    verification_submitted_at = Column(DateTime, nullable=True)
+    verified_at = Column(DateTime, nullable=True)
+    verified_by = Column(Integer, nullable=True)     # MukijoAdmin.id — set by backend only, never from client
+    rejection_reason = Column(Text, nullable=True)
+    verification_notes = Column(Text, nullable=True) # Admin notes / more-info request text
+    admin_checklist = Column(Text, nullable=True)    # JSON — admin decision-support checklist flags
+    location_verified = Column(Boolean, default=False)
+    gps_latitude = Column(Float, nullable=True)      # GPS-captured lat — separate from address lat
+    gps_longitude = Column(Float, nullable=True)     # GPS-captured lon
+    gps_captured_at = Column(DateTime, nullable=True)
+    documents_submitted = Column(Boolean, default=False)
+    # ── Extended Contact & Address Fields ──────────────────────────────
+    contact_phone = Column(String, nullable=True)
+    contact_email = Column(String, nullable=True)
+    city = Column(String, nullable=True)
+    state_name = Column(String, nullable=True)
+    postal_code = Column(String, nullable=True)
+
     owner = relationship("User", back_populates="venues")
     venue_owner = relationship("VenueOwner", back_populates="venues", foreign_keys=[venue_owner_id])
     slots = relationship("Slot", back_populates="venue", cascade="all, delete-orphan")
     courts = relationship("Court", back_populates="venue", cascade="all, delete-orphan")
     reviews = relationship("Review", back_populates="venue", cascade="all, delete-orphan")
+    verification_logs = relationship("VenueVerificationLog", back_populates="venue", cascade="all, delete-orphan")
+    documents = relationship("VenueDocument", back_populates="venue", cascade="all, delete-orphan")
 
 class Court(Base):
     __tablename__ = "courts"
@@ -603,3 +642,36 @@ class MatchEvent(Base):
     team = relationship("MatchTeam")
 
 
+class VenueVerificationLog(Base):
+    """Audit trail for every verification status change on a venue."""
+    __tablename__ = "venue_verification_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    venue_id = Column(Integer, ForeignKey("venues.id"), nullable=False)
+    action = Column(String, nullable=False)      # SUBMITTED | REVIEW_STARTED | APPROVED | REJECTED | MORE_INFO_REQUESTED | RESUBMITTED | SUSPENDED
+    actor_id = Column(Integer, nullable=True)    # ID of person who took the action
+    actor_role = Column(String, nullable=True)   # venue_owner | mukijo_admin
+    actor_name = Column(String, nullable=True)   # Display name for log
+    reason = Column(Text, nullable=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    venue = relationship("Venue", back_populates="verification_logs")
+
+
+class VenueDocument(Base):
+    """Tracks verification documents uploaded by venue owners."""
+    __tablename__ = "venue_documents"
+
+    id = Column(Integer, primary_key=True, index=True)
+    venue_id = Column(Integer, ForeignKey("venues.id"), nullable=False)
+    document_type = Column(String, nullable=False)   # ownership_proof | lease_agreement | business_registration | other
+    document_label = Column(String, nullable=True)   # Human-readable label
+    file_path = Column(Text, nullable=True)          # Storage path or base64 (follows existing arch)
+    original_filename = Column(String, nullable=True)
+    file_size = Column(Integer, nullable=True)       # in bytes
+    mime_type = Column(String, nullable=True)
+    is_confidential = Column(Boolean, default=True)  # Documents are NOT publicly accessible
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
+
+    venue = relationship("Venue", back_populates="documents")

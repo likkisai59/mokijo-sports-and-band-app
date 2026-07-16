@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
@@ -26,7 +27,7 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
         time: "",
         location: "",
         venue_id: "",
-        slot_id: ""
+        slot_id: "",
     });
 
     // Message board state
@@ -44,7 +45,7 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
 
     const fetchVenues = async () => {
         try {
-            const response = await fetch("http://127.0.0.1:8001/venues");
+            const response = await fetch(`${API_BASE_URL}/venues`);
             if (response.ok) {
                 const data = await response.json();
                 setVenues(data);
@@ -57,10 +58,10 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
     const fetchSlotsForVenue = async (venueId) => {
         if (!venueId) return;
         try {
-            const response = await fetch(`http://127.0.0.1:8001/venues/${venueId}/slots`);
+            const response = await fetch(`${API_BASE_URL}/venues/${venueId}/slots`);
             if (response.ok) {
                 const data = await response.json();
-                setSlots(data.filter(s => !s.is_blocked));
+                setSlots(data.filter((s) => !s.is_blocked));
             }
         } catch (error) {
             console.error("Error fetching slots:", error);
@@ -76,7 +77,7 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
                     time: activity.time || "",
                     location: activity.location || "",
                     venue_id: activity.venue_id || "",
-                    slot_id: activity.slot_id || ""
+                    slot_id: activity.slot_id || "",
                 });
                 setUseCustomLocation(!activity.venue_id);
                 if (activity.venue_id) {
@@ -88,21 +89,21 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
 
     const handleVenueChange = (e) => {
         const venueId = e.target.value;
-        setRescheduleData(prev => ({
+        setRescheduleData((prev) => ({
             ...prev,
             venue_id: venueId,
             slot_id: "",
-            location: ""
+            location: "",
         }));
         setSlots([]);
         if (venueId) {
             fetchSlotsForVenue(venueId);
-            const venue = venues.find(v => v.id === parseInt(venueId));
+            const venue = venues.find((v) => v.id === parseInt(venueId));
             if (venue) {
-                setRescheduleData(prev => ({
+                setRescheduleData((prev) => ({
                     ...prev,
                     venue_id: venueId,
-                    location: `${venue.name}, ${venue.location}`
+                    location: `${venue.name}, ${venue.location}`,
                 }));
             }
         }
@@ -111,21 +112,21 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
     const handleSlotChange = (e) => {
         const slotId = e.target.value;
         if (!slotId) {
-            setRescheduleData(prev => ({ ...prev, slot_id: "", date: "", time: "" }));
+            setRescheduleData((prev) => ({ ...prev, slot_id: "", date: "", time: "" }));
             return;
         }
 
-        const slot = slots.find(s => s.id === parseInt(slotId));
+        const slot = slots.find((s) => s.id === parseInt(slotId));
         if (slot) {
             const dt = new Date(slot.start_time);
             const dateStr = dt.toISOString().split("T")[0];
             const timeStr = dt.toTimeString().split(" ")[0].slice(0, 5); // HH:MM
 
-            setRescheduleData(prev => ({
+            setRescheduleData((prev) => ({
                 ...prev,
                 slot_id: slotId,
                 date: dateStr,
-                time: timeStr
+                time: timeStr,
             }));
         }
     };
@@ -133,9 +134,9 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
     const handleCancelGame = async () => {
         if (!confirm("Are you sure you want to cancel this game?")) return;
         try {
-            const response = await fetch(`http://127.0.0.1:8001/activities/${activityId}/cancel`, {
+            const response = await fetch(`${API_BASE_URL}/activities/${activityId}/cancel`, {
                 method: "POST",
-                headers: { "X-Is-Member": "false" }
+                headers: { "X-Is-Member": "false" },
             });
             if (response.ok) {
                 fetchActivity();
@@ -154,17 +155,17 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
             date: rescheduleData.date,
             time: rescheduleData.time,
             location: rescheduleData.location || "Custom Location",
-            venue_id: useCustomLocation ? null : (rescheduleData.venue_id ? parseInt(rescheduleData.venue_id) : null),
-            slot_id: useCustomLocation ? null : (rescheduleData.slot_id ? parseInt(rescheduleData.slot_id) : null)
+            venue_id: useCustomLocation ? null : rescheduleData.venue_id ? parseInt(rescheduleData.venue_id) : null,
+            slot_id: useCustomLocation ? null : rescheduleData.slot_id ? parseInt(rescheduleData.slot_id) : null,
         };
         try {
-            const response = await fetch(`http://127.0.0.1:8001/activities/${activityId}`, {
+            const response = await fetch(`${API_BASE_URL}/activities/${activityId}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-Is-Member": "false"
+                    "X-Is-Member": "false",
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
             });
             if (response.ok) {
                 setIsRescheduleModalOpen(false);
@@ -180,10 +181,10 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
 
     const fetchActivity = async () => {
         try {
-            const response = await fetch("http://127.0.0.1:8001/activities");
+            const response = await fetch(`${API_BASE_URL}/activities`);
             if (response.ok) {
                 const data = await response.json();
-                const current = data.find(a => a.id === activityId);
+                const current = data.find((a) => a.id === activityId);
                 if (current) {
                     setActivity(current);
                 } else {
@@ -199,7 +200,7 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
 
     useEffect(() => {
         fetchActivity();
-        
+
         // Load discussion board messages from localStorage
         const stored = localStorage.getItem(`mukijo_activity_chat_${activityId}`);
         if (stored) {
@@ -207,8 +208,20 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
         } else {
             // Seed mock comments for visual excellence
             const mock = [
-                { id: 1, senderName: "Praveen Kumar", text: "I can bring the tennis balls! Anyone up for doubles?", time: "2 hours ago", senderId: 99 },
-                { id: 2, senderName: "Anjali Singh", text: "Awesome, I'm intermediate level, see you there!", time: "1 hour ago", senderId: 100 }
+                {
+                    id: 1,
+                    senderName: "Praveen Kumar",
+                    text: "I can bring the tennis balls! Anyone up for doubles?",
+                    time: "2 hours ago",
+                    senderId: 99,
+                },
+                {
+                    id: 2,
+                    senderName: "Anjali Singh",
+                    text: "Awesome, I'm intermediate level, see you there!",
+                    time: "1 hour ago",
+                    senderId: 100,
+                },
             ];
             setMessages(mock);
             localStorage.setItem(`mukijo_activity_chat_${activityId}`, JSON.stringify(mock));
@@ -218,10 +231,10 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
     const handleJoinGame = async () => {
         if (!userId) return;
         try {
-            const response = await fetch(`http://127.0.0.1:8001/activities/${activityId}/rsvp`, {
+            const response = await fetch(`${API_BASE_URL}/activities/${activityId}/rsvp`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ user_id: userId, status: "confirmed" })
+                body: JSON.stringify({ user_id: userId, status: "confirmed" }),
             });
 
             if (response.ok) {
@@ -238,8 +251,8 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
     const handleCancelRSVP = async () => {
         if (!userId) return;
         try {
-            const response = await fetch(`http://127.0.0.1:8001/activities/${activityId}/cancel-rsvp?user_id=${userId}`, {
-                method: "POST"
+            const response = await fetch(`${API_BASE_URL}/activities/${activityId}/cancel-rsvp?user_id=${userId}`, {
+                method: "POST",
             });
 
             if (response.ok) {
@@ -262,7 +275,7 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
             senderName: userName,
             senderId: userId,
             text: newMessage,
-            time: "Just now"
+            time: "Just now",
         };
 
         const updated = [...messages, newMsgObj];
@@ -293,9 +306,9 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
         );
     }
 
-    const confirmedRSVPs = activity.rsvps.filter(r => r.status === "confirmed");
-    const waitlistedRSVPs = activity.rsvps.filter(r => r.status === "waitlisted");
-    const userRSVP = activity.rsvps.find(r => r.user_id === userId);
+    const confirmedRSVPs = activity.rsvps.filter((r) => r.status === "confirmed");
+    const waitlistedRSVPs = activity.rsvps.filter((r) => r.status === "waitlisted");
+    const userRSVP = activity.rsvps.find((r) => r.user_id === userId);
     const isJoined = !!userRSVP;
     const userStatus = userRSVP ? userRSVP.status : null;
     const isFull = confirmedRSVPs.length >= activity.max_players;
@@ -303,7 +316,9 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
     return (
         <div className="activities-container">
             {/* Header Navigation */}
-            <div style={{ marginBottom: "24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div
+                style={{ marginBottom: "24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+            >
                 <Link href="/dashboard/activities" className="secondary-sporty-btn" style={{ textDecoration: "none" }}>
                     ← Back to Games Hub
                 </Link>
@@ -313,7 +328,11 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
                         <button className="secondary-sporty-btn" onClick={() => setIsRescheduleModalOpen(true)}>
                             Reschedule Game
                         </button>
-                        <button className="sporty-btn" style={{ background: "linear-gradient(135deg, #ef4444, #dc2626)" }} onClick={handleCancelGame}>
+                        <button
+                            className="sporty-btn"
+                            style={{ background: "linear-gradient(135deg, #ef4444, #dc2626)" }}
+                            onClick={handleCancelGame}
+                        >
                             <span>Cancel Game</span>
                         </button>
                     </div>
@@ -325,7 +344,13 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
                     <span className="game-sport-badge" style={{ marginBottom: "12px", display: "inline-block" }}>
                         {activity.sport}
                     </span>
-                    <h1 style={{ background: "linear-gradient(90deg, #ffffff, var(--brand-secondary))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                    <h1
+                        style={{
+                            background: "linear-gradient(90deg, #ffffff, var(--brand-secondary))",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                        }}
+                    >
                         {activity.description || `${activity.sport.toUpperCase()} pickup match`}
                     </h1>
                     <p>{activity.location}</p>
@@ -334,32 +359,43 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
                 {isMember && (
                     <div className="game-card-actions" style={{ minWidth: "180px" }}>
                         {activity.status === "cancelled" ? (
-                            <div style={{
-                                textAlign: "center",
-                                padding: "12px",
-                                borderRadius: "8px",
-                                fontSize: "14px",
-                                fontWeight: "700",
-                                textTransform: "uppercase",
-                                border: "1px solid rgba(239, 68, 68, 0.4)",
-                                color: "#ef4444",
-                                background: "rgba(239, 68, 68, 0.08)"
-                            }}>
+                            <div
+                                style={{
+                                    textAlign: "center",
+                                    padding: "12px",
+                                    borderRadius: "8px",
+                                    fontSize: "14px",
+                                    fontWeight: "700",
+                                    textTransform: "uppercase",
+                                    border: "1px solid rgba(239, 68, 68, 0.4)",
+                                    color: "#ef4444",
+                                    background: "rgba(239, 68, 68, 0.08)",
+                                }}
+                            >
                                 Game Cancelled
                             </div>
                         ) : isJoined ? (
                             <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "100%" }}>
-                                <div style={{ 
-                                    textAlign: "center", 
-                                    padding: "8px", 
-                                    borderRadius: "8px", 
-                                    fontSize: "12px", 
-                                    fontWeight: "700",
-                                    textTransform: "uppercase",
-                                    border: userStatus === "confirmed" ? "1px solid rgba(16, 185, 129, 0.4)" : "1px solid rgba(245, 158, 11, 0.4)",
-                                    color: userStatus === "confirmed" ? "var(--brand-emerald)" : "var(--brand-amber)",
-                                    background: userStatus === "confirmed" ? "rgba(16, 185, 129, 0.08)" : "rgba(245, 158, 11, 0.08)"
-                                }}>
+                                <div
+                                    style={{
+                                        textAlign: "center",
+                                        padding: "8px",
+                                        borderRadius: "8px",
+                                        fontSize: "12px",
+                                        fontWeight: "700",
+                                        textTransform: "uppercase",
+                                        border:
+                                            userStatus === "confirmed"
+                                                ? "1px solid rgba(16, 185, 129, 0.4)"
+                                                : "1px solid rgba(245, 158, 11, 0.4)",
+                                        color:
+                                            userStatus === "confirmed" ? "var(--brand-emerald)" : "var(--brand-amber)",
+                                        background:
+                                            userStatus === "confirmed"
+                                                ? "rgba(16, 185, 129, 0.08)"
+                                                : "rgba(245, 158, 11, 0.08)",
+                                    }}
+                                >
                                     You are {userStatus.toUpperCase()}
                                 </div>
                                 <button className="waitlist-btn" onClick={handleCancelRSVP} style={{ width: "100%" }}>
@@ -371,7 +407,11 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
                                 Join Waitlist
                             </button>
                         ) : (
-                            <button className="join-btn" onClick={handleJoinGame} style={{ width: "100%", padding: "14px" }}>
+                            <button
+                                className="join-btn"
+                                onClick={handleJoinGame}
+                                style={{ width: "100%", padding: "14px" }}
+                            >
                                 <span>Join Game</span>
                             </button>
                         )}
@@ -384,43 +424,111 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
                 <div className="detail-main">
                     <div className="detail-card">
                         <h2>Match Overview</h2>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px", marginTop: "16px" }}>
+                        <div
+                            style={{
+                                display: "grid",
+                                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                                gap: "20px",
+                                marginTop: "16px",
+                            }}
+                        >
                             <div>
-                                <label style={{ fontSize: "11px", textTransform: "uppercase", color: "rgba(148,163,184,0.5)", fontWeight: "700" }}>Date & Time</label>
+                                <label
+                                    style={{
+                                        fontSize: "11px",
+                                        textTransform: "uppercase",
+                                        color: "rgba(148,163,184,0.5)",
+                                        fontWeight: "700",
+                                    }}
+                                >
+                                    Date & Time
+                                </label>
                                 <p style={{ color: "#ffffff", fontSize: "16px", fontWeight: "600", marginTop: "4px" }}>
                                     {activity.date} @ {activity.time}
                                 </p>
                             </div>
                             <div>
-                                <label style={{ fontSize: "11px", textTransform: "uppercase", color: "rgba(148,163,184,0.5)", fontWeight: "700" }}>Skill Level Needed</label>
+                                <label
+                                    style={{
+                                        fontSize: "11px",
+                                        textTransform: "uppercase",
+                                        color: "rgba(148,163,184,0.5)",
+                                        fontWeight: "700",
+                                    }}
+                                >
+                                    Skill Level Needed
+                                </label>
                                 <p style={{ color: "#ffffff", fontSize: "16px", fontWeight: "600", marginTop: "4px" }}>
                                     {activity.skill_level}
                                 </p>
                             </div>
                             <div>
-                                <label style={{ fontSize: "11px", textTransform: "uppercase", color: "rgba(148,163,184,0.5)", fontWeight: "700" }}>Slots Capacity</label>
+                                <label
+                                    style={{
+                                        fontSize: "11px",
+                                        textTransform: "uppercase",
+                                        color: "rgba(148,163,184,0.5)",
+                                        fontWeight: "700",
+                                    }}
+                                >
+                                    Slots Capacity
+                                </label>
                                 <p style={{ color: "#ffffff", fontSize: "16px", fontWeight: "600", marginTop: "4px" }}>
                                     {confirmedRSVPs.length} / {activity.max_players} Filled
                                 </p>
                             </div>
                             <div>
-                                <label style={{ fontSize: "11px", textTransform: "uppercase", color: "rgba(148,163,184,0.5)", fontWeight: "700" }}>Status</label>
-                                <p style={{ 
-                                    color: activity.status === "open" ? "var(--brand-emerald)" : "var(--brand-accent)", 
-                                    fontSize: "16px", 
-                                    fontWeight: "700", 
-                                    marginTop: "4px",
-                                    textTransform: "uppercase" 
-                                }}>
+                                <label
+                                    style={{
+                                        fontSize: "11px",
+                                        textTransform: "uppercase",
+                                        color: "rgba(148,163,184,0.5)",
+                                        fontWeight: "700",
+                                    }}
+                                >
+                                    Status
+                                </label>
+                                <p
+                                    style={{
+                                        color:
+                                            activity.status === "open" ? "var(--brand-emerald)" : "var(--brand-accent)",
+                                        fontSize: "16px",
+                                        fontWeight: "700",
+                                        marginTop: "4px",
+                                        textTransform: "uppercase",
+                                    }}
+                                >
                                     {activity.status}
                                 </p>
                             </div>
                         </div>
 
                         {activity.description && (
-                            <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                                <label style={{ fontSize: "11px", textTransform: "uppercase", color: "rgba(148,163,184,0.5)", fontWeight: "700" }}>Description / Rules</label>
-                                <p style={{ color: "rgba(241, 245, 249, 0.8)", fontSize: "14px", marginTop: "8px", lineHeight: "1.6" }}>
+                            <div
+                                style={{
+                                    marginTop: "24px",
+                                    paddingTop: "20px",
+                                    borderTop: "1px solid rgba(255,255,255,0.06)",
+                                }}
+                            >
+                                <label
+                                    style={{
+                                        fontSize: "11px",
+                                        textTransform: "uppercase",
+                                        color: "rgba(148,163,184,0.5)",
+                                        fontWeight: "700",
+                                    }}
+                                >
+                                    Description / Rules
+                                </label>
+                                <p
+                                    style={{
+                                        color: "rgba(241, 245, 249, 0.8)",
+                                        fontSize: "14px",
+                                        marginTop: "8px",
+                                        lineHeight: "1.6",
+                                    }}
+                                >
                                     {activity.description}
                                 </p>
                             </div>
@@ -434,7 +542,10 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
                             <div className="chat-container">
                                 {messages.length > 0 ? (
                                     messages.map((msg) => (
-                                        <div key={msg.id} className={`chat-bubble ${msg.senderId === userId ? "me" : ""}`}>
+                                        <div
+                                            key={msg.id}
+                                            className={`chat-bubble ${msg.senderId === userId ? "me" : ""}`}
+                                        >
                                             <div className="chat-meta">
                                                 <span>{msg.senderName}</span>
                                                 <span style={{ marginLeft: "12px", opacity: 0.6 }}>{msg.time}</span>
@@ -443,7 +554,15 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
                                         </div>
                                     ))
                                 ) : (
-                                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "160px", color: "rgba(148,163,184,0.4)" }}>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            height: "160px",
+                                            color: "rgba(148,163,184,0.4)",
+                                        }}
+                                    >
                                         No messages posted yet. Start the coordination!
                                     </div>
                                 )}
@@ -477,7 +596,9 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
                                             </div>
                                             <div>
                                                 <div className="player-name">
-                                                    {rsvp.user_id === userId ? `${userName} (You)` : `Player #${rsvp.user_id}`}
+                                                    {rsvp.user_id === userId
+                                                        ? `${userName} (You)`
+                                                        : `Player #${rsvp.user_id}`}
                                                 </div>
                                                 <div className="player-role">
                                                     {rsvp.user_id === activity.owner_id ? "Host Creator" : "Confirmed"}
@@ -487,7 +608,14 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
                                     </div>
                                 ))
                             ) : (
-                                <p style={{ color: "rgba(148,163,184,0.4)", fontSize: "13px", textAlign: "center", padding: "12px" }}>
+                                <p
+                                    style={{
+                                        color: "rgba(148,163,184,0.4)",
+                                        fontSize: "13px",
+                                        textAlign: "center",
+                                        padding: "12px",
+                                    }}
+                                >
                                     No players confirmed.
                                 </p>
                             )}
@@ -501,15 +629,24 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
                                 waitlistedRSVPs.map((rsvp, idx) => (
                                     <div className="player-item" key={rsvp.id}>
                                         <div className="player-info">
-                                            <div className="player-avatar" style={{ background: "linear-gradient(135deg, var(--brand-amber), var(--brand-accent))" }}>
+                                            <div
+                                                className="player-avatar"
+                                                style={{
+                                                    background:
+                                                        "linear-gradient(135deg, var(--brand-amber), var(--brand-accent))",
+                                                }}
+                                            >
                                                 #{idx + 1}
                                             </div>
                                             <div>
                                                 <div className="player-name">
-                                                    {rsvp.user_id === userId ? `${userName} (You)` : `Player #${rsvp.user_id}`}
+                                                    {rsvp.user_id === userId
+                                                        ? `${userName} (You)`
+                                                        : `Player #${rsvp.user_id}`}
                                                 </div>
                                                 <div className="player-role">
-                                                    Joined waitlist {new Date(rsvp.joined_at).toLocaleTimeString().slice(0,5)}
+                                                    Joined waitlist{" "}
+                                                    {new Date(rsvp.joined_at).toLocaleTimeString().slice(0, 5)}
                                                 </div>
                                             </div>
                                         </div>
@@ -517,7 +654,14 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
                                     </div>
                                 ))
                             ) : (
-                                <p style={{ color: "rgba(148,163,184,0.4)", fontSize: "13px", textAlign: "center", padding: "12px" }}>
+                                <p
+                                    style={{
+                                        color: "rgba(148,163,184,0.4)",
+                                        fontSize: "13px",
+                                        textAlign: "center",
+                                        padding: "12px",
+                                    }}
+                                >
                                     Waitlist queue is empty.
                                 </p>
                             )}
@@ -530,23 +674,37 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
             {isRescheduleModalOpen && (
                 <div className="modal-overlay">
                     <div className="modal-content">
-                        <button className="modal-close" onClick={() => setIsRescheduleModalOpen(false)}>×</button>
-                        <h2 style={{ fontSize: "22px", fontWeight: "800", color: "#ffffff", marginBottom: "20px" }}>Reschedule Game</h2>
-                        
+                        <button className="modal-close" onClick={() => setIsRescheduleModalOpen(false)}>
+                            ×
+                        </button>
+                        <h2 style={{ fontSize: "22px", fontWeight: "800", color: "#ffffff", marginBottom: "20px" }}>
+                            Reschedule Game
+                        </h2>
+
                         <form onSubmit={handleRescheduleSubmit}>
                             <div style={{ display: "flex", gap: "16px", marginBottom: "18px" }}>
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     className={`secondary-sporty-btn ${useCustomLocation ? "active" : ""}`}
-                                    style={{ flex: 1, borderColor: useCustomLocation ? "var(--brand-primary)" : "rgba(255,255,255,0.1)" }}
+                                    style={{
+                                        flex: 1,
+                                        borderColor: useCustomLocation
+                                            ? "var(--brand-primary)"
+                                            : "rgba(255,255,255,0.1)",
+                                    }}
                                     onClick={() => setUseCustomLocation(true)}
                                 >
                                     Custom Location
                                 </button>
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     className={`secondary-sporty-btn ${!useCustomLocation ? "active" : ""}`}
-                                    style={{ flex: 1, borderColor: !useCustomLocation ? "var(--brand-primary)" : "rgba(255,255,255,0.1)" }}
+                                    style={{
+                                        flex: 1,
+                                        borderColor: !useCustomLocation
+                                            ? "var(--brand-primary)"
+                                            : "rgba(255,255,255,0.1)",
+                                    }}
                                     onClick={() => setUseCustomLocation(false)}
                                 >
                                     Booked Venue/Slot
@@ -556,41 +714,54 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
                             {useCustomLocation ? (
                                 <div className="form-group" style={{ marginBottom: "18px" }}>
                                     <label>Location Name</label>
-                                    <input 
-                                        type="text" 
-                                        placeholder="e.g. Community Ground B, Gachibowli" 
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. Community Ground B, Gachibowli"
                                         required
                                         value={rescheduleData.location}
-                                        onChange={(e) => setRescheduleData({ ...rescheduleData, location: e.target.value })}
+                                        onChange={(e) =>
+                                            setRescheduleData({ ...rescheduleData, location: e.target.value })
+                                        }
                                     />
                                 </div>
                             ) : (
-                                <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginBottom: "18px" }}>
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: "14px",
+                                        marginBottom: "18px",
+                                    }}
+                                >
                                     <div className="form-group" style={{ margin: 0 }}>
                                         <label>Select Venue</label>
-                                        <select 
-                                            value={rescheduleData.venue_id} 
+                                        <select
+                                            value={rescheduleData.venue_id}
                                             onChange={handleVenueChange}
                                             required={!useCustomLocation}
                                         >
                                             <option value="">-- Choose Venue --</option>
-                                            {venues.map(v => (
-                                                <option key={v.id} value={v.id}>{v.name} ({v.location})</option>
+                                            {venues.map((v) => (
+                                                <option key={v.id} value={v.id}>
+                                                    {v.name} ({v.location})
+                                                </option>
                                             ))}
                                         </select>
                                     </div>
                                     <div className="form-group" style={{ margin: 0 }}>
                                         <label>Select Slot Inventory</label>
-                                        <select 
-                                            value={rescheduleData.slot_id} 
+                                        <select
+                                            value={rescheduleData.slot_id}
                                             onChange={handleSlotChange}
                                             required={!useCustomLocation}
                                             disabled={!rescheduleData.venue_id}
                                         >
                                             <option value="">-- Choose Time Slot --</option>
-                                            {slots.map(s => (
+                                            {slots.map((s) => (
                                                 <option key={s.id} value={s.id}>
-                                                    {s.start_time.split("T")[0]} ({s.sport.toUpperCase()}): {s.start_time.split("T")[1].slice(0,5)} to {s.end_time.split("T")[1].slice(0,5)} - ₹{s.current_price}
+                                                    {s.start_time.split("T")[0]} ({s.sport.toUpperCase()}):{" "}
+                                                    {s.start_time.split("T")[1].slice(0, 5)} to{" "}
+                                                    {s.end_time.split("T")[1].slice(0, 5)} - ₹{s.current_price}
                                                 </option>
                                             ))}
                                         </select>
@@ -601,8 +772,8 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
                             <div style={{ display: "flex", gap: "16px", marginBottom: "24px" }}>
                                 <div className="form-group" style={{ margin: 0, flex: 1 }}>
                                     <label>Date</label>
-                                    <input 
-                                        type="date" 
+                                    <input
+                                        type="date"
                                         required
                                         disabled={!useCustomLocation && rescheduleData.slot_id}
                                         value={rescheduleData.date}
@@ -611,8 +782,8 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
                                 </div>
                                 <div className="form-group" style={{ margin: 0, flex: 1 }}>
                                     <label>Time</label>
-                                    <input 
-                                        type="time" 
+                                    <input
+                                        type="time"
                                         required
                                         disabled={!useCustomLocation && rescheduleData.slot_id}
                                         value={rescheduleData.time}
@@ -622,7 +793,11 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
                             </div>
 
                             <div style={{ display: "flex", gap: "14px", justifyContent: "flex-end" }}>
-                                <button type="button" className="secondary-sporty-btn" onClick={() => setIsRescheduleModalOpen(false)}>
+                                <button
+                                    type="button"
+                                    className="secondary-sporty-btn"
+                                    onClick={() => setIsRescheduleModalOpen(false)}
+                                >
                                     Cancel
                                 </button>
                                 <button type="submit" className="sporty-btn">

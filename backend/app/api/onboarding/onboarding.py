@@ -14,6 +14,7 @@ from app.core.helpers import (
     parse_submission_data
 )
 from app.logger import logger
+from app.core.security import hash_password
 
 
 def get_default_fields(role: str):
@@ -158,12 +159,11 @@ class OnboardingRouting(ConnectionService):
     async def create_signup_submission(
         self,
         request: Request,
-        submission: schemas.SignupSubmissionCreate,
-        current_user: dict = Depends(check_user_authorization)
+        submission: schemas.SignupSubmissionCreate
     ):
-        await logger.log_message(request=request, message="Create signup submission router start", step="ROUTER_START", user_info=current_user)
+        await logger.log_message(request=request, message="Create signup submission router start", step="ROUTER_START")
         logic = OnboardingLogic()
-        return await logic.create_signup_submission(request, submission, current_user)
+        return await logic.create_signup_submission(request, submission)
 
     async def get_signup_submissions(
         self,
@@ -304,7 +304,7 @@ class OnboardingLogic(ConnectionService):
             await logger.log_error(request=request, message=f"Failed to upsert signup form: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
 
-    async def create_signup_submission(self, request: Request, submission: schemas.SignupSubmissionCreate, current_user: dict):
+    async def create_signup_submission(self, request: Request, submission: schemas.SignupSubmissionCreate):
         try:
             with logger.time_operation("CREATE_SIGNUP_SUBMISSION", request=request):
                 db = self.db_driver
@@ -456,13 +456,14 @@ class OnboardingLogic(ConnectionService):
                 if find_approved_member_by_email(db, email, owner_id):
                     raise HTTPException(status_code=400, detail="This applicant is already an approved club member.")
 
+                hashed_password = hash_password(password.strip()) if password else ""
                 insert_member = {
                     "group_id": group.get("id"),
                     "first_name": first_name,
                     "last_name": last_name,
                     "email": email,
                     "phone": phone,
-                    "password": password,
+                    "password": hashed_password,
                     "role": submission.get("role")
                 }
                 member_id = db.insert("members", insert_member)

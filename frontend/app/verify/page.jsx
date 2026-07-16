@@ -1,4 +1,5 @@
 "use client";
+import { API_BASE_URL } from "@/lib/api";
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
@@ -19,7 +20,7 @@ function VerifyContent() {
 
         const verifyToken = async () => {
             try {
-                const response = await fetch(`http://127.0.0.1:8001/verify?token=${token}`);
+                const response = await fetch(`${API_BASE_URL}/verify?token=${token}`);
                 const data = await response.json();
 
                 if (response.ok) {
@@ -41,21 +42,27 @@ function VerifyContent() {
 
     return (
         <div style={styles.container}>
+            <style>{`
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `}</style>
             <div style={styles.card}>
                 <div style={styles.iconContainer}>
                     {status === "verifying" && <div style={styles.spinner}></div>}
                     {status === "success" && <div style={styles.successIcon}>✓</div>}
                     {status === "error" && <div style={styles.errorIcon}>✕</div>}
                 </div>
-                
+
                 <h1 style={styles.title}>
-                    {status === "verifying" && "Verifying Email..."}
+                    {status === "verifying" && "Verifying..."}
                     {status === "success" && "Verified!"}
-                    {status === "error" && "Verification Failed"}
+                    {status === "error" && "Failed"}
                 </h1>
-                
+
                 <p style={styles.message}>{message}</p>
-                
+
                 {(status === "success" || status === "error") && (
                     <Link href="/login" style={styles.button}>
                         {status === "success" ? "Go to Login" : "Try Again"}
@@ -68,7 +75,7 @@ function VerifyContent() {
 
 export default function VerifyPage() {
     return (
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div style={{ color: "#ffffff", backgroundColor: "#050508", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>Loading...</div>}>
             <VerifyContent />
         </Suspense>
     );
@@ -80,73 +87,85 @@ const styles = {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#f4f7fa",
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+        backgroundColor: "#050508",
+        fontFamily: "'Inter', sans-serif",
     },
     card: {
-        backgroundColor: "#ffffff",
+        backgroundColor: "#0c0c14",
         padding: "48px 40px",
         borderRadius: "16px",
-        boxShadow: "0 10px 25px rgba(0,0,0,0.05)",
+        border: "1px solid rgba(0, 240, 255, 0.15)",
+        boxShadow: "0 20px 40px rgba(0,0,0,0.6)",
         textAlign: "center",
         maxWidth: "400px",
         width: "100%",
     },
     iconContainer: {
-        marginBottom: "24px",
+        marginBottom: "28px",
         display: "flex",
         justifyContent: "center",
     },
     spinner: {
-        width: "50px",
-        height: "50px",
-        border: "5px solid #f3f3f3",
-        borderTop: "5px solid #3498db",
+        width: "60px",
+        height: "60px",
+        border: "4px solid rgba(0, 240, 255, 0.1)",
+        borderTop: "4px solid #00f0ff",
         borderRadius: "50%",
         animation: "spin 1s linear infinite",
     },
     successIcon: {
-        width: "64px",
-        height: "64px",
-        backgroundColor: "#2ecc71",
-        color: "white",
-        fontSize: "32px",
+        width: "68px",
+        height: "68px",
+        backgroundColor: "rgba(191, 254, 0, 0.15)",
+        border: "2px solid #bffe00",
+        color: "#bffe00",
+        fontSize: "36px",
         borderRadius: "50%",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        boxShadow: "0 0 20px rgba(191, 254, 0, 0.2)",
     },
     errorIcon: {
-        width: "64px",
-        height: "64px",
-        backgroundColor: "#e74c3c",
-        color: "white",
-        fontSize: "32px",
+        width: "68px",
+        height: "68px",
+        backgroundColor: "rgba(239, 68, 68, 0.15)",
+        border: "2px solid #ef4444",
+        color: "#ef4444",
+        fontSize: "36px",
         borderRadius: "50%",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        boxShadow: "0 0 20px rgba(239, 68, 68, 0.2)",
     },
     title: {
-        fontSize: "24px",
-        fontWeight: "700",
-        color: "#2c3e50",
+        fontFamily: "'Outfit', sans-serif",
+        fontSize: "28px",
+        fontWeight: "800",
+        color: "#ffffff",
+        textTransform: "uppercase",
+        letterSpacing: "1px",
         marginBottom: "16px",
     },
     message: {
-        fontSize: "16px",
-        color: "#7f8c8d",
-        lineHeight: "1.5",
+        fontSize: "15px",
+        color: "#94a3b8",
+        lineHeight: "1.6",
         marginBottom: "32px",
     },
     button: {
         display: "inline-block",
-        padding: "12px 32px",
-        backgroundColor: "#3498db",
-        color: "white",
+        padding: "14px 36px",
+        backgroundColor: "#bffe00",
+        color: "#050508",
         textDecoration: "none",
         borderRadius: "8px",
-        fontWeight: "600",
-        transition: "background-color 0.2s",
+        fontWeight: "700",
+        textTransform: "uppercase",
+        fontSize: "14px",
+        letterSpacing: "0.5px",
+        boxShadow: "0 4px 15px rgba(191, 254, 0, 0.3)",
+        transition: "transform 0.2s, box-shadow 0.2s",
     },
 };
