@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function FetchInterceptor() {
   useEffect(() => {
@@ -16,7 +17,7 @@ export default function FetchInterceptor() {
         url = input.url;
       }
 
-      const isBackendCall = url.includes("8001") || url.startsWith("/api");
+      const isBackendCall = url.includes(API_BASE_URL) || url.startsWith("/api");
 
       if (isBackendCall) {
         const token = localStorage.getItem("accessToken");
