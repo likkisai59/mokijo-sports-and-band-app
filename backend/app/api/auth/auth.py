@@ -188,8 +188,10 @@ class AuthLogic(ConnectionService):
                     raise HTTPException(status_code=400, detail="Invalid verification link.")
 
                 expires_at = user.get("email_verification_token_expires_at")
-                if expires_at and expires_at < datetime.utcnow():
-                    raise HTTPException(status_code=400, detail="Verification link has expired. Please request a new verification email.")
+                if expires_at:
+                    now = datetime.now(expires_at.tzinfo) if expires_at.tzinfo else datetime.utcnow()
+                    if expires_at < now:
+                        raise HTTPException(status_code=400, detail="Verification link has expired. Please request a new verification email.")
 
                 db.execute_query(
                     "UPDATE users SET is_verified = TRUE, verification_token = NULL, is_email_verified = TRUE, email_verification_token = NULL, email_verification_token_expires_at = NULL WHERE id = %s",
