@@ -811,3 +811,23 @@
         padding: 20px 16px 60px;
     }
 }
+
+/* Hide green/custom scrollbars on venue dashboard surfaces */
+.vd-root,
+.vd-sidebar,
+.vd-main,
+.vd-layout,
+* {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    scrollbar-color: transparent transparent !important;
+}
+.vd-root::-webkit-scrollbar,
+.vd-sidebar::-webkit-scrollbar,
+.vd-main::-webkit-scrollbar,
+.vd-layout::-webkit-scrollbar,
+*::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+}

@@ -3,11 +3,18 @@ import { API_BASE_URL } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Plus, X } from "lucide-react";
+import { ArrowLeft, Save } from "lucide-react";
 import "../../../styles/matches.css";
 
 const API = API_BASE_URL;
 const SPORTS_LIST = ["Football", "Cricket", "Basketball", "Tennis", "Badminton", "Volleyball", "Kabaddi", "Squash"];
+const DEFAULT_TEAM_A_COLOR = "#bffe00";
+const DEFAULT_TEAM_B_COLOR = "#00f0ff";
+
+function memberDisplayName(m) {
+    const name = `${m.first_name || ""} ${m.last_name || ""}`.trim();
+    return name || m.email || "Member";
+}
 
 export default function MatchCreatePage() {
     const router = useRouter();
@@ -16,23 +23,23 @@ export default function MatchCreatePage() {
 
     const ownerId = typeof window !== "undefined" ? localStorage.getItem("venueOwnerId") : null;
 
-    // Form states
     const [title, setTitle] = useState("");
     const [sport, setSport] = useState("Football");
-    const [matchType, setMatchType] = useState("intra_club"); // intra_club | inter_club
+    const [matchType, setMatchType] = useState("intra_club");
     const [venue, setVenue] = useState("");
     const [scheduledDate, setScheduledDate] = useState("");
     const [scheduledTime, setScheduledTime] = useState("");
 
-    // Team states
     const [teamASelectedGroup, setTeamASelectedGroup] = useState("");
     const [teamAName, setTeamAName] = useState("");
-    const [teamAColor, setTeamAColor] = useState("#bffe00");
+    const [teamAMembers, setTeamAMembers] = useState([]);
+    const [loadingTeamAMembers, setLoadingTeamAMembers] = useState(false);
 
     const [teamBSelectedGroup, setTeamBSelectedGroup] = useState("");
     const [teamBName, setTeamBName] = useState("");
     const [teamBClub, setTeamBClub] = useState("");
-    const [teamBColor, setTeamBColor] = useState("#00f0ff");
+    const [teamBMembers, setTeamBMembers] = useState([]);
+    const [loadingTeamBMembers, setLoadingTeamBMembers] = useState(false);
 
     const [saving, setSaving] = useState(false);
 
@@ -54,19 +61,35 @@ export default function MatchCreatePage() {
         loadGroups();
     }, [ownerId]);
 
-    // Handle Team A group selection change
-    const handleTeamAGroupChange = (groupId) => {
+    const fetchGroupMembers = async (groupId) => {
+        if (!ownerId || !groupId) return [];
+        try {
+            const r = await fetch(`${API}/groups/${groupId}/members?owner_id=${ownerId}`);
+            if (r.ok) {
+                return (await r.json()) || [];
+            }
+        } catch (err) {
+            console.error("Error loading group members:", err);
+        }
+        return [];
+    };
+
+    const handleTeamAGroupChange = async (groupId) => {
         setTeamASelectedGroup(groupId);
         if (groupId) {
             const grp = groups.find((g) => g.id === Number(groupId));
             if (grp) setTeamAName(grp.group_name);
+            setLoadingTeamAMembers(true);
+            const members = await fetchGroupMembers(groupId);
+            setTeamAMembers(members);
+            setLoadingTeamAMembers(false);
         } else {
             setTeamAName("");
+            setTeamAMembers([]);
         }
     };
 
-    // Handle Team B group selection change (Intra-Club only)
-    const handleTeamBGroupChange = (groupId) => {
+    const handleTeamBGroupChange = async (groupId) => {
         setTeamBSelectedGroup(groupId);
         if (groupId) {
             const grp = groups.find((g) => g.id === Number(groupId));
@@ -74,20 +97,30 @@ export default function MatchCreatePage() {
                 setTeamBName(grp.group_name);
                 setTeamBClub("");
             }
+            setLoadingTeamBMembers(true);
+            const members = await fetchGroupMembers(groupId);
+            setTeamBMembers(members);
+            setLoadingTeamBMembers(false);
         } else {
             setTeamBName("");
+            setTeamBMembers([]);
         }
     };
 
     const handleSave = async (e) => {
         e.preventDefault();
 
-        // Validation
         const finalTeamAName = teamAName.trim();
-        const finalTeamBName = teamBName.trim();
+        const finalTeamBName =
+            matchType === "inter_club"
+                ? (teamBName.trim() || teamBClub.trim() || "Guest Club")
+                : teamBName.trim();
 
         if (!title.trim()) return alert("Please enter a match title.");
+        if (matchType === "intra_club" && !teamASelectedGroup) return alert("Please select Team A group.");
+        if (matchType === "intra_club" && !teamBSelectedGroup) return alert("Please select Team B group.");
         if (!finalTeamAName) return alert("Please specify Team A.");
+        if (matchType === "inter_club" && !teamBClub.trim()) return alert("Please enter opponent club name.");
         if (!finalTeamBName) return alert("Please specify Team B.");
         if (matchType === "intra_club" && teamASelectedGroup && teamASelectedGroup === teamBSelectedGroup) {
             return alert("Team A and Team B cannot be the same group.");
@@ -114,13 +147,13 @@ export default function MatchCreatePage() {
                     team_name: finalTeamAName,
                     group_id: matchType === "intra_club" && teamASelectedGroup ? Number(teamASelectedGroup) : null,
                     club_name: null,
-                    color: teamAColor,
+                    color: DEFAULT_TEAM_A_COLOR,
                 },
                 {
                     team_name: finalTeamBName,
                     group_id: matchType === "intra_club" && teamBSelectedGroup ? Number(teamBSelectedGroup) : null,
                     club_name: matchType === "inter_club" ? teamBClub.trim() || "Guest Club" : null,
-                    color: teamBColor,
+                    color: DEFAULT_TEAM_B_COLOR,
                 },
             ],
         };
@@ -146,6 +179,35 @@ export default function MatchCreatePage() {
         }
     };
 
+    const renderMemberPreview = (members, loading) => (
+        <div className="m-input-group">
+            <label className="m-label">Selected Team</label>
+            {loading ? (
+                <p style={{ fontSize: "13px", color: "var(--vd-muted)", margin: 0 }}>Loading members...</p>
+            ) : members.length === 0 ? (
+                <p style={{ fontSize: "13px", color: "var(--vd-muted)", margin: 0 }}>No members in this group</p>
+            ) : (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                    {members.map((m, idx) => (
+                        <span
+                            key={m.id || idx}
+                            style={{
+                                fontSize: "12px",
+                                padding: "4px 10px",
+                                borderRadius: "999px",
+                                background: "rgba(255,255,255,0.06)",
+                                border: "1px solid var(--vd-border)",
+                                color: "#e2e8f0",
+                            }}
+                        >
+                            {memberDisplayName(m)}
+                        </span>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+
     return (
         <>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
@@ -165,7 +227,6 @@ export default function MatchCreatePage() {
 
             <div className="m-form-container">
                 <form onSubmit={handleSave}>
-                    {/* SECTION 1: MATCH METADATA */}
                     <div className="m-form-section">
                         <div className="m-section-title">1. Match Details</div>
                         <div className="m-input-group">
@@ -199,10 +260,10 @@ export default function MatchCreatePage() {
                                     value={matchType}
                                     onChange={(e) => {
                                         setMatchType(e.target.value);
-                                        // Reset team B fields
                                         setTeamBSelectedGroup("");
                                         setTeamBName("");
                                         setTeamBClub("");
+                                        setTeamBMembers([]);
                                     }}
                                 >
                                     <option value="intra_club">Intra-Club (Between Club Groups)</option>
@@ -245,12 +306,10 @@ export default function MatchCreatePage() {
                         </div>
                     </div>
 
-                    {/* SECTION 2: TEAM SETUP */}
                     <div className="m-form-section">
                         <div className="m-section-title">2. Team Configuration</div>
 
                         <div className="m-grid-2">
-                            {/* TEAM A (Home Team/Group) */}
                             <div
                                 style={{
                                     background: "rgba(255,255,255,0.01)",
@@ -265,20 +324,8 @@ export default function MatchCreatePage() {
                                         fontWeight: "700",
                                         color: "#fff",
                                         marginBottom: "12px",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "8px",
                                     }}
                                 >
-                                    <span
-                                        style={{
-                                            display: "inline-block",
-                                            width: "10px",
-                                            height: "10px",
-                                            borderRadius: "50%",
-                                            backgroundColor: teamAColor,
-                                        }}
-                                    />
                                     Team A (Home)
                                 </h3>
 
@@ -298,48 +345,9 @@ export default function MatchCreatePage() {
                                     </select>
                                 </div>
 
-                                <div className="m-input-group">
-                                    <label className="m-label">Team Display Name *</label>
-                                    <input
-                                        type="text"
-                                        className="m-input m-input-team"
-                                        placeholder="Enter display name"
-                                        value={teamAName}
-                                        onChange={(e) => setTeamAName(e.target.value)}
-                                        required
-                                    />
-                                </div>
-
-                                <div className="m-input-group">
-                                    <label className="m-label">Jersey / Team Color</label>
-                                    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                                        <input
-                                            type="color"
-                                            value={teamAColor}
-                                            onChange={(e) => setTeamAColor(e.target.value)}
-                                            style={{
-                                                width: "40px",
-                                                height: "40px",
-                                                padding: 0,
-                                                border: "none",
-                                                background: "transparent",
-                                                cursor: "pointer",
-                                            }}
-                                        />
-                                        <span
-                                            style={{
-                                                fontSize: "12px",
-                                                color: "var(--vd-muted)",
-                                                fontFamily: "monospace",
-                                            }}
-                                        >
-                                            {teamAColor.toUpperCase()}
-                                        </span>
-                                    </div>
-                                </div>
+                                {teamASelectedGroup && renderMemberPreview(teamAMembers, loadingTeamAMembers)}
                             </div>
 
-                            {/* TEAM B (Opponent Team/Group) */}
                             <div
                                 style={{
                                     background: "rgba(255,255,255,0.01)",
@@ -354,20 +362,8 @@ export default function MatchCreatePage() {
                                         fontWeight: "700",
                                         color: "#fff",
                                         marginBottom: "12px",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "8px",
                                     }}
                                 >
-                                    <span
-                                        style={{
-                                            display: "inline-block",
-                                            width: "10px",
-                                            height: "10px",
-                                            borderRadius: "50%",
-                                            backgroundColor: teamBColor,
-                                        }}
-                                    />
                                     Team B (Opponent)
                                 </h3>
 
@@ -389,77 +385,28 @@ export default function MatchCreatePage() {
                                             </select>
                                         </div>
 
-                                        <div className="m-input-group">
-                                            <label className="m-label">Team Display Name *</label>
-                                            <input
-                                                type="text"
-                                                className="m-input m-input-team-b"
-                                                placeholder="Enter display name"
-                                                value={teamBName}
-                                                onChange={(e) => setTeamBName(e.target.value)}
-                                                required
-                                            />
-                                        </div>
+                                        {teamBSelectedGroup && renderMemberPreview(teamBMembers, loadingTeamBMembers)}
                                     </>
                                 ) : (
-                                    <>
-                                        <div className="m-input-group">
-                                            <label className="m-label">Opponent Club Name</label>
-                                            <input
-                                                type="text"
-                                                className="m-input"
-                                                placeholder="e.g. City Lions Club"
-                                                value={teamBClub}
-                                                onChange={(e) => setTeamBClub(e.target.value)}
-                                            />
-                                        </div>
-
-                                        <div className="m-input-group">
-                                            <label className="m-label">Team Display Name *</label>
-                                            <input
-                                                type="text"
-                                                className="m-input m-input-team-b"
-                                                placeholder="e.g. Lions FC, Under 19s"
-                                                value={teamBName}
-                                                onChange={(e) => setTeamBName(e.target.value)}
-                                                required
-                                            />
-                                        </div>
-                                    </>
-                                )}
-
-                                <div className="m-input-group">
-                                    <label className="m-label">Jersey / Team Color</label>
-                                    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                                    <div className="m-input-group">
+                                        <label className="m-label">Opponent Club Name *</label>
                                         <input
-                                            type="color"
-                                            value={teamBColor}
-                                            onChange={(e) => setTeamBColor(e.target.value)}
-                                            style={{
-                                                width: "40px",
-                                                height: "40px",
-                                                padding: 0,
-                                                border: "none",
-                                                background: "transparent",
-                                                cursor: "pointer",
+                                            type="text"
+                                            className="m-input"
+                                            placeholder="e.g. City Lions Club"
+                                            value={teamBClub}
+                                            onChange={(e) => {
+                                                setTeamBClub(e.target.value);
+                                                setTeamBName(e.target.value);
                                             }}
+                                            required
                                         />
-                                        <span
-                                            style={{
-                                                fontSize: "12px",
-                                                color: "var(--vd-muted)",
-                                                fontFamily: "monospace",
-                                            }}
-                                        >
-                                            {teamBColor.toUpperCase()}
-                                        </span>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </div>
                     </div>
 
-                    {/* SAVE BUTTON */}
                     <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "24px" }}>
                         <Link
                             href="/venue-dashboard/matches"
@@ -470,7 +417,7 @@ export default function MatchCreatePage() {
                         </Link>
                         <button
                             type="submit"
-                            disabled={saving}
+                            disabled={saving || loadingGroups}
                             className="m-btn primary"
                             style={{
                                 flex: "0 0 auto",

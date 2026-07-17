@@ -231,11 +231,15 @@ class VenuesRouting(ConnectionService):
         max_distance: Optional[float] = None,
         date: Optional[str] = None,
         only_available: Optional[bool] = False,
+        registered: Optional[bool] = False,
         current_user: dict = Depends(check_user_authorization)
     ):
         await logger.log_message(request=request, message="Get venues router start", step="ROUTER_START", user_info=current_user)
         logic = VenuesLogic()
-        return await logic.get_venues(request, sport, location, min_price, max_price, min_rating, latitude, longitude, max_distance, date, only_available, current_user)
+        return await logic.get_venues(
+            request, sport, location, min_price, max_price, min_rating, latitude, longitude,
+            max_distance, date, only_available, current_user, registered=registered
+        )
 
     async def create_venue_slots(self, request: Request, venue_id: int, slots: List[schemas.SlotCreate], current_user: dict = Depends(check_user_authorization)):
         await logger.log_message(request=request, message="Create venue slots router start", step="ROUTER_START", user_info=current_user)
@@ -355,19 +359,25 @@ class VenuesLogic(ConnectionService):
         max_distance: Optional[float],
         date_str: Optional[str],
         only_available: Optional[bool],
-        current_user: dict
+        current_user: dict,
+        registered: Optional[bool] = False,
     ):
         try:
             with logger.time_operation("GET_VENUES", request=request):
                 db = self.db_driver
-                query = "SELECT * FROM venues WHERE venue_owner_id IS NOT NULL AND verification_status = 'VERIFIED'"
+                # Club admin / discovery of owner-registered venues vs public verified-only list
+                if registered:
+                    query = "SELECT * FROM venues WHERE venue_owner_id IS NOT NULL"
+                else:
+                    query = "SELECT * FROM venues WHERE venue_owner_id IS NOT NULL AND verification_status = 'VERIFIED'"
                 params = []
 
                 if sport and sport != "all":
                     query += " AND sports_supported LIKE %s"
                     params.append(f"%{sport}%")
                 if location:
-                    query += " AND location LIKE %s"
+                    query += " AND (location LIKE %s OR name LIKE %s)"
+                    params.append(f"%{location}%")
                     params.append(f"%{location}%")
                 if min_price is not None:
                     query += " AND base_price_per_hour >= %s"

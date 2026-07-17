@@ -1,14 +1,18 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Menu, X, LogOut } from "lucide-react";
+import NotificationBell from "./NotificationBell";
 
 export default function TopHeader({ isMobileMenuOpen = false, onMenuToggle }) {
     const [userName, setUserName] = useState("User");
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [isMember, setIsMember] = useState(false);
 
     useEffect(() => {
         const storedName = localStorage.getItem("userName") || "Admin";
         setUserName(storedName);
+        const role = (localStorage.getItem("userRole") || "").toLowerCase();
+        setIsMember(localStorage.getItem("isMember") === "true" || role === "team_member");
     }, []);
 
     useEffect(() => {
@@ -46,6 +50,7 @@ export default function TopHeader({ isMobileMenuOpen = false, onMenuToggle }) {
             </div>
 
             <div className="user-box" style={{ position: "relative" }}>
+                <NotificationBell mode={isMember ? "empty" : "admin"} />
                 <div
                     className="user-profile-trigger"
                     onClick={(e) => {

@@ -224,6 +224,14 @@ export default function OverviewPage() {
                         </svg>
                         Create New Group
                     </Link>
+                    <Link href="/dashboard/importgroups" className={styles.actionButton}>
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        Import Groups
+                    </Link>
                     <Link href="/dashboard/events/new" className={styles.actionButton}>
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none">
                             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -285,6 +293,74 @@ export default function OverviewPage() {
                         })}
                     </div>
                 </div>
+
+                {/* Registered Venues */}
+                <div className={styles.sectionHeader}>
+                    <h2 className={styles.sectionTitle}>Registered Venues</h2>
+                    <p className={styles.sectionSubtitle}>Venues registered by owners on the platform</p>
+                </div>
+
+                {loading ? (
+                    <div className={styles.venuesGrid}>
+                        {[1, 2, 3].map((n) => (
+                            <div key={n} className={styles.venueCard} style={{ minHeight: 260 }}>
+                                <div className={styles.skeletonRow} style={{ height: 140, borderRadius: '16px 16px 0 0' }} />
+                                <div className={styles.venueCardContent}>
+                                    <div className={styles.skeletonRow} style={{ width: "60%", height: 20 }} />
+                                    <div className={styles.skeletonRow} style={{ width: "80%", height: 15 }} />
+                                    <div className={styles.skeletonRow} style={{ width: "40%", height: 15 }} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : adminData?.venues && adminData.venues.length > 0 ? (
+                    <div className={styles.venuesGrid}>
+                        {adminData.venues.map((venue) => (
+                            <div key={venue.id} className={styles.venueCard}>
+                                {venue.cover_image ? (
+                                    <img src={venue.cover_image} alt={venue.name} className={styles.venueImage} />
+                                ) : (
+                                    <div className={styles.venuePlaceholderImage}>
+                                        <span>No Cover Image</span>
+                                    </div>
+                                )}
+                                <div className={styles.venueCardContent}>
+                                    <div className={styles.venueCardHeader}>
+                                        <h3 className={styles.venueName}>{venue.name}</h3>
+                                        <span className={`${styles.statusBadge} ${styles[venue.verification_status?.toLowerCase() || "draft"]}`}>
+                                            {venue.verification_status || "DRAFT"}
+                                        </span>
+                                    </div>
+                                    <p className={styles.venueLocation}>
+                                        <strong>Location:</strong> {venue.location}
+                                    </p>
+                                    {venue.sports_supported && (
+                                        <p className={styles.venueSports}>
+                                            <strong>Sports:</strong> {(() => {
+                                                try {
+                                                    const parsed = JSON.parse(venue.sports_supported);
+                                                    if (Array.isArray(parsed)) {
+                                                        return parsed.join(", ");
+                                                    }
+                                                } catch (e) {}
+                                                return venue.sports_supported.replace(/[\[\]"]/g, "");
+                                            })()}
+                                        </p>
+                                    )}
+                                    <div className={styles.venueOwnerInfo}>
+                                        <p><strong>Owner:</strong> {venue.owner_name}</p>
+                                        {venue.contact_email && <p><strong>Email:</strong> {venue.contact_email}</p>}
+                                        {venue.contact_phone && <p><strong>Phone:</strong> {venue.contact_phone}</p>}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className={styles.emptyVenues}>
+                        <p>No registered venues found.</p>
+                    </div>
+                )}
 
                 {/* Stat Cards */}
                 <div className={styles.statsGrid}>

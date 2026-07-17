@@ -147,6 +147,25 @@ class DashboardLogic(ConnectionService):
                 )
                 total_courses = courses_res.get("count", 0) if courses_res else 0
                 
+                # Retrieve venues registered by venue owners (exclude orphan/demo rows)
+                venues = db.fetch_all(
+                    "SELECT v.*, vo.full_name as owner_name, vo.email as owner_email "
+                    "FROM venues v LEFT JOIN venue_owners vo ON vo.id = v.venue_owner_id "
+                    "WHERE v.venue_owner_id IS NOT NULL "
+                    "ORDER BY v.id DESC"
+                )
+                venues_list = [{
+                    "id": v.get("id"),
+                    "name": v.get("name"),
+                    "location": v.get("location"),
+                    "sports_supported": v.get("sports_supported"),
+                    "verification_status": v.get("verification_status"),
+                    "owner_name": v.get("owner_name") or v.get("contact_email") or "Unknown Owner",
+                    "contact_phone": v.get("contact_phone"),
+                    "contact_email": v.get("contact_email"),
+                    "cover_image": v.get("cover_image")
+                } for v in venues] if venues else []
+
                 return {
                     "total_members": total_members,
                     "total_groups": total_groups,
@@ -156,7 +175,8 @@ class DashboardLogic(ConnectionService):
                     "fundraising_total": fundraising_total,
                     "recent_registrations": recent_list,
                     "upcoming_events": upcoming_list,
-                    "groups": [{"id": g.get("id"), "group_name": g.get("group_name"), "activity": g.get("activity")} for g in groups]
+                    "groups": [{"id": g.get("id"), "group_name": g.get("group_name"), "activity": g.get("activity")} for g in groups],
+                    "venues": venues_list
                 }
         except Exception as e:
             await logger.log_error(request=request, message=f"Failed to get dashboard overview: {e}")
