@@ -207,8 +207,8 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
 
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                 {/* Customized Club Onboarding Fields */}
-                {formConfig?.fields
-                    .filter((field) => !field.name.toLowerCase().includes("password"))
+                {formConfig?.fields?.
+                    filter((field) => !field.name.toLowerCase().includes("password"))
                     .map((field) => {
                         const isEmailField = field.name.toLowerCase() === "email";
                         return (
