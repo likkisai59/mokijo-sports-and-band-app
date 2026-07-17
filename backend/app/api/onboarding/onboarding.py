@@ -441,7 +441,7 @@ class OnboardingLogic(ConnectionService):
                         group_id_val = db.insert("groups", insert_group)
                         group = db.fetch_one("SELECT * FROM groups WHERE id = %s", (group_id_val,))
 
-                data = parse_submission_data(submission)
+                data = parse_submission_data(submission.get("submitted_data"))
                 first_name = normalize_text(data.get("first_name") or data.get("firstName")) or "Applicant"
                 last_name = normalize_text(data.get("last_name") or data.get("lastName")) or f"#{submission.id}"
                 email = get_submission_email(data)

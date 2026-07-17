@@ -584,7 +584,7 @@ class ActivityRSVPResponse(BaseModel):
     activity_id: int
     user_id: int
     status: str
-    joined_at: datetime
+    joined_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -636,8 +636,9 @@ class ActivityResponse(BaseModel):
     status: str
     privacy_type: str
     description: Optional[str]
-    created_at: datetime
+    created_at: Optional[datetime] = None
     rsvps: List[ActivityRSVPResponse] = []
+
 
     class Config:
         from_attributes = True
