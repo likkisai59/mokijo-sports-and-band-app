@@ -125,7 +125,10 @@ export default function OverviewPage() {
 
                     if (eventsRes && eventsRes.ok) {
                         const evs = await eventsRes.json();
-                        setRealEvents(evs);
+                        const visibleEvents = Array.isArray(evs)
+                            ? evs.filter((event) => event.visible_to_member !== false)
+                            : [];
+                        setRealEvents(visibleEvents);
                     }
                     if (membersRes && membersRes.ok) {
                         const mems = await membersRes.json();
@@ -392,7 +395,42 @@ export default function OverviewPage() {
                             </svg>
                         }
                     />
+                    <StatCard
+                        loading={loading}
+                        color="cyan"
+                        label="Live Matches"
+                        value={adminData?.live_matches_count ?? 0}
+                        sub="Currently in play"
+                        href="/dashboard/scoreboard"
+                        icon={
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="12" cy="12" r="9" />
+                                <path d="M12 7v5l3 2" />
+                            </svg>
+                        }
+                    />
                 </div>
+
+                {(adminData?.live_matches?.length ?? 0) > 0 && (
+                    <div className={styles.sectionCard} style={{ marginTop: "24px" }}>
+                        <div className={styles.sectionHeader}>
+                            <h2 className={styles.sectionTitle}>Live Matches</h2>
+                            <Link href="/dashboard/scoreboard" className={styles.viewAllLink}>View scoreboard</Link>
+                        </div>
+                        <div className={styles.eventList}>
+                            {adminData.live_matches.map((match) => (
+                                <div key={match.id} className={styles.eventCard}>
+                                    <div className={styles.eventMeta}>
+                                        <span className={styles.eventTypeBadge}>{match.sport || "Match"}</span>
+                                        <span className={styles.eventDate}>{match.status || "Live"}</span>
+                                    </div>
+                                    <div className={styles.eventTitle}>{match.title || match.summary || "Live match"}</div>
+                                    <div className={styles.eventLocation}>{match.summary || match.teams?.join(" vs ") || "In progress"}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         );
     };

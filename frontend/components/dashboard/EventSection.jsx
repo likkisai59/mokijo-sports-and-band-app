@@ -20,7 +20,10 @@ export default function EventSection() {
                 const response = await fetch(`${API_BASE_URL}/events?owner_id=${userId}`);
                 if (response.ok) {
                     const data = await response.json();
-                    setEvents(data);
+                    const visibleEvents = Array.isArray(data)
+                        ? data.filter((event) => event.visible_to_member !== false)
+                        : [];
+                    setEvents(visibleEvents);
                 }
             } catch (error) {
                 console.error("Failed to fetch all events:", error);

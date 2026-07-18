@@ -382,6 +382,36 @@ class EventsLogic(ConnectionService):
             with logger.time_operation("GET_ALL_EVENTS", request=request):
                 db = self.db_driver
                 validate_role_and_permission(db, current_user, ["admin", "team_member"], owner_id)
+                role = (current_user.get("role") or "").lower()
+
+                if role == "team_member":
+                    member = None
+                    if member_email:
+                        email_clean = member_email.replace(" ", "").lower()
+                        member = db.fetch_one("SELECT id, email, role, group_id FROM members WHERE LOWER(email) = %s LIMIT 1", (email_clean,))
+                    else:
+                        member = db.fetch_one(
+                            "SELECT id, email, role, group_id FROM members WHERE id = %s LIMIT 1",
+                            (current_user.get("id"),)
+                        )
+
+                    if not member:
+                        return []
+
+                    events = db.fetch_all("SELECT * FROM events WHERE owner_id = %s", (owner_id,))
+                    visible_events = []
+                    for event in events:
+                        registration = db.fetch_one(
+                            "SELECT id FROM event_registrations WHERE event_id = %s AND member_id = %s LIMIT 1",
+                            (event.get("id"), member.get("id"))
+                        )
+                        if registration:
+                            event_payload = dict(event)
+                            event_payload["visible_to_member"] = True
+                            visible_events.append(event_payload)
+
+                    return [serialize_event(e, db) for e in visible_events]
+
                 if member_email:
                     email_clean = member_email.replace(" ", "").lower()
                     registrations = db.fetch_all(
@@ -443,6 +473,22 @@ class EventsLogic(ConnectionService):
                         (event.get("group_id"), owner_id)
                     )
                     if not group:
+                        raise HTTPException(status_code=403, detail="Access denied to event")
+
+                role = (current_user.get("role") or "").lower()
+                if role == "team_member":
+                    member = db.fetch_one(
+                        "SELECT id FROM members WHERE id = %s LIMIT 1",
+                        (current_user.get("id"),)
+                    )
+                    if not member:
+                        raise HTTPException(status_code=403, detail="Access denied to event")
+
+                    registration = db.fetch_one(
+                        "SELECT id FROM event_registrations WHERE event_id = %s AND member_id = %s LIMIT 1",
+                        (event_id, member.get("id"))
+                    )
+                    if not registration:
                         raise HTTPException(status_code=403, detail="Access denied to event")
 
                 return serialize_event(event, db)

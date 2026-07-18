@@ -125,6 +125,25 @@ class DashboardLogic(ConnectionService):
                     "end_time": str(e.get("end_time")) if e.get("end_time") else None,
                     "location": e.get("location")
                 } for e in upcoming_events_sorted[:5]]
+
+                live_matches = db.fetch_all(
+                    "SELECT * FROM matches WHERE owner_id = %s AND UPPER(status) IN ('LIVE', 'LIVE NOW', 'IN_PROGRESS', 'IN PROGRESS') ORDER BY scheduled_at DESC, created_at DESC",
+                    (owner_id,)
+                )
+                live_match_items = []
+                for match in live_matches[:5]:
+                    teams = db.fetch_all("SELECT * FROM match_teams WHERE match_id = %s", (match.get("id"),))
+                    team_names = [team.get("team_name") for team in teams if team.get("team_name")]
+                    live_match_items.append({
+                        "id": match.get("id"),
+                        "title": match.get("title"),
+                        "sport": match.get("sport"),
+                        "status": match.get("status"),
+                        "venue": match.get("venue"),
+                        "scheduled_at": str(match.get("scheduled_at")) if match.get("scheduled_at") else None,
+                        "teams": team_names,
+                        "summary": " vs ".join(team_names) if team_names else match.get("title")
+                    })
                 
                 # Fundraising total raised
                 fundraising_campaigns = db.fetch_all(
@@ -156,6 +175,8 @@ class DashboardLogic(ConnectionService):
                     "fundraising_total": fundraising_total,
                     "recent_registrations": recent_list,
                     "upcoming_events": upcoming_list,
+                    "live_matches_count": len(live_matches),
+                    "live_matches": live_match_items,
                     "groups": [{"id": g.get("id"), "group_name": g.get("group_name"), "activity": g.get("activity")} for g in groups]
                 }
         except Exception as e:

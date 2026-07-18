@@ -12,6 +12,9 @@ export default function Sidebar() {
     const [userRole, setUserRole] = useState("");
     const pathname = usePathname();
 
+    const normalizedRole = (userRole || "").toLowerCase().trim();
+    const isClubAdminRole = !isMember && ["admin", "club_admin", "club-admin", "clubadmin", "owner", "club_owner", "club-owner", "manager", "club_manager", "club-manager"].includes(normalizedRole);
+
     const [isGroupsExpanded, setIsGroupsExpanded] = useState(() => {
         return pathname.startsWith("/dashboard/group/");
     });
@@ -257,23 +260,25 @@ export default function Sidebar() {
                             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                         </svg>
                     </span>
-                    <span>Members</span>
+                    <span>Team Members</span>
                 </Link>
             )}
 
-            <Link
-                href="/dashboard/courses"
-                className={`menu-item ${pathname.startsWith("/dashboard/courses") ? "active" : ""}`}
-                style={{ textDecoration: "none" }}
-            >
-                <span className="icon">
-                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2" fill="none">
-                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                        <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"></path>
-                    </svg>
-                </span>
-                <span>Training</span>
-            </Link>
+            {!isClubAdminRole && (
+                <Link
+                    href="/dashboard/courses"
+                    className={`menu-item ${pathname.startsWith("/dashboard/courses") ? "active" : ""}`}
+                    style={{ textDecoration: "none" }}
+                >
+                    <span className="icon">
+                        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2" fill="none">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"></path>
+                        </svg>
+                    </span>
+                    <span>Training</span>
+                </Link>
+            )}
 
             <Link
                 href="/dashboard/fundraising"
