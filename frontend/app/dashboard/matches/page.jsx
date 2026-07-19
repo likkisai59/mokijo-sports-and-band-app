@@ -73,10 +73,16 @@ export default function DashboardMatchesPage() {
     const finishMatch = async (matchId) => {
         if (!confirm("Are you sure you want to complete this match? This will lock the score and declare the winner."))
             return;
+
+        const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+
         try {
             const r = await fetch(`${API}/matches/${matchId}`, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
                 body: JSON.stringify({ status: "completed" }),
             });
             if (r.ok) {

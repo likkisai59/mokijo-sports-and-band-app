@@ -119,6 +119,14 @@ class VenuesRouting(ConnectionService):
             tags=["Venues"]
         )
         self.router.add_api_route(
+            path="/bookings/request-approval",
+            endpoint=self.request_booking_approval,
+            methods=["POST"],
+            response_model=schemas.BookingResponse,
+            summary="Create a booking request that requires venue owner approval.",
+            tags=["Venues"]
+        )
+        self.router.add_api_route(
             path="/venues/owner/{owner_id}",
             endpoint=self.get_owner_venues,
             methods=["GET"],
@@ -189,6 +197,22 @@ class VenuesRouting(ConnectionService):
             tags=["Venues"]
         )
         self.router.add_api_route(
+            path="/bookings/{booking_id}/approve",
+            endpoint=self.approve_booking,
+            methods=["POST"],
+            response_model=schemas.BookingResponse,
+            summary="Approve a pending booking request for a venue owner.",
+            tags=["Venues"]
+        )
+        self.router.add_api_route(
+            path="/bookings/{booking_id}/reject",
+            endpoint=self.reject_booking,
+            methods=["POST"],
+            response_model=schemas.BookingResponse,
+            summary="Reject a pending booking request for a venue owner.",
+            tags=["Venues"]
+        )
+        self.router.add_api_route(
             path="/bookings/{booking_id}/cancel",
             endpoint=self.cancel_booking,
             methods=["POST"],
@@ -256,6 +280,15 @@ class VenuesRouting(ConnectionService):
         logic = VenuesLogic()
         return await logic.create_booking(request, booking, current_user)
 
+    async def request_booking_approval(self, request: Request, booking: schemas.BookingCreate, current_user: dict = Depends(check_user_authorization)):
+        await logger.log_message(request=request, message="Request booking approval router start", step="ROUTER_START", user_info=current_user)
+        if not booking.status:
+            booking.status = "pending_approval"
+        if not booking.payment_status:
+            booking.payment_status = "pending"
+        logic = VenuesLogic()
+        return await logic.create_booking(request, booking, current_user)
+
     async def get_owner_venues(self, request: Request, owner_id: int, current_user: dict = Depends(check_user_authorization)):
         await logger.log_message(request=request, message="Get owner venues router start", step="ROUTER_START", user_info=current_user)
         logic = VenuesLogic()
@@ -300,6 +333,16 @@ class VenuesRouting(ConnectionService):
         await logger.log_message(request=request, message="Confirm booking router start", step="ROUTER_START", user_info=current_user)
         logic = VenuesLogic()
         return await logic.confirm_booking(request, req, current_user)
+
+    async def approve_booking(self, request: Request, booking_id: int, current_user: dict = Depends(check_user_authorization)):
+        await logger.log_message(request=request, message="Approve booking router start", step="ROUTER_START", user_info=current_user)
+        logic = VenuesLogic()
+        return await logic.approve_booking(request, booking_id, current_user)
+
+    async def reject_booking(self, request: Request, booking_id: int, current_user: dict = Depends(check_user_authorization)):
+        await logger.log_message(request=request, message="Reject booking router start", step="ROUTER_START", user_info=current_user)
+        logic = VenuesLogic()
+        return await logic.reject_booking(request, booking_id, current_user)
 
     async def cancel_booking(self, request: Request, booking_id: int, reason: Optional[str] = "User cancelled", current_user: dict = Depends(check_user_authorization)):
         await logger.log_message(request=request, message="Cancel booking router start", step="ROUTER_START", user_info=current_user)
@@ -522,6 +565,19 @@ class VenuesLogic(ConnectionService):
                 if not venue:
                     raise HTTPException(status_code=404, detail="Venue not found")
 
+                now = datetime.utcnow()
+                expired_held = db.fetch_all(
+                    "SELECT id FROM slots WHERE venue_id = %s AND DATE(start_time) = %s AND status = 'HELD' AND held_until < %s",
+                    (venue_id, target_date, now)
+                )
+                if expired_held:
+                    expired_ids = [s.get("id") for s in expired_held]
+                    placeholders = ", ".join(["%s"] * len(expired_ids))
+                    db.execute_query(
+                        f"UPDATE slots SET status = 'AVAILABLE', held_until = NULL, held_by_user_id = NULL WHERE id IN ({placeholders})",
+                        tuple(expired_ids)
+                    )
+
                 slots_count_res = db.fetch_one(
                     "SELECT COUNT(*) as count FROM slots WHERE venue_id = %s AND DATE(start_time) = %s",
                     (venue_id, target_date)
@@ -617,29 +673,58 @@ class VenuesLogic(ConnectionService):
                 if len(slots) != len(booking.slot_ids):
                     raise HTTPException(status_code=404, detail="One or more slots not found.")
 
+                now = datetime.utcnow()
                 for slot in slots:
                     if slot.get("is_blocked"):
                         raise HTTPException(status_code=400, detail=f"Slot ID {slot.get('id')} is blocked.")
+
                     if slot.get("status") == "BOOKED":
                         raise HTTPException(status_code=409, detail=f"Slot ID {slot.get('id')} is already booked.")
 
+                    if slot.get("status") == "HELD":
+                        held_until = slot.get("held_until")
+                        if held_until and held_until < now:
+                            db.execute_query(
+                                "UPDATE slots SET status = 'AVAILABLE', held_until = NULL, held_by_user_id = NULL WHERE id = %s",
+                                (slot.get("id"),)
+                            )
+                            slot["status"] = "AVAILABLE"
+                            slot["held_until"] = None
+                            slot["held_by_user_id"] = None
+                        elif slot.get("held_by_user_id") != booking.user_id:
+                            raise HTTPException(status_code=409, detail=f"Slot ID {slot.get('id')} is currently held by another user.")
+
+                status_val = booking.status or "reserved"
+                user_id = booking.user_id
                 total_amount = booking.amount_paid or sum(slot.get("current_price") or 0 for slot in slots)
 
                 insert_booking = {
-                    "user_id": booking.user_id,
+                    "user_id": user_id,
                     "court_id": booking.court_id,
                     "amount_paid": total_amount,
                     "payment_status": booking.payment_status or "pending",
-                    "status": "reserved",
+                    "status": status_val,
                     "booking_date": datetime.utcnow()
                 }
                 b_id = db.insert("bookings", insert_booking)
 
+                held_expiry = None
+                if status_val == "pending_approval":
+                    held_expiry = datetime.utcnow() + timedelta(minutes=30)
+
                 for slot in slots:
                     db.insert("booking_slots", {"booking_id": b_id, "slot_id": slot.get("id")})
-                    db.execute_query("UPDATE slots SET status = 'BOOKED' WHERE id = %s", (slot.get("id"),))
+                    if status_val == "pending_approval":
+                        db.execute_query(
+                            "UPDATE slots SET status = 'HELD', held_until = %s, held_by_user_id = %s WHERE id = %s",
+                            (held_expiry, user_id, slot.get("id"))
+                        )
+                    else:
+                        db.execute_query("UPDATE slots SET status = 'BOOKED' WHERE id = %s", (slot.get("id"),))
 
                 new_booking = db.fetch_one("SELECT * FROM bookings WHERE id = %s", (b_id,))
+                if status_val == "pending_approval":
+                    self._send_booking_notification(db, current_user, slots, b_id, "request")
                 return serialize_booking(new_booking, db)
         except HTTPException as he:
             raise he
@@ -1130,6 +1215,146 @@ class VenuesLogic(ConnectionService):
         except Exception as e:
             await logger.log_error(request=request, message=f"Failed getting user bookings: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
+
+    async def approve_booking(self, request: Request, booking_id: int, current_user: dict):
+        try:
+            with logger.time_operation("APPROVE_BOOKING", request=request):
+                db = self.db_driver
+                booking = db.fetch_one("SELECT * FROM bookings WHERE id = %s FOR UPDATE", (booking_id,))
+                if not booking:
+                    raise HTTPException(status_code=404, detail="Booking not found")
+                if booking.get("status") != "pending_approval":
+                    raise HTTPException(status_code=400, detail="Only pending approval bookings can be approved.")
+
+                slots = db.fetch_all(
+                    "SELECT s.* FROM slots s JOIN booking_slots bs ON s.id = bs.slot_id WHERE bs.booking_id = %s",
+                    (booking_id,)
+                )
+
+                if not slots:
+                    raise HTTPException(status_code=400, detail="Booking has no slots attached.")
+
+                venue_id = slots[0].get("venue_id")
+                venue = db.fetch_one("SELECT * FROM venues WHERE id = %s LIMIT 1", (venue_id,))
+                if not venue or venue.get("venue_owner_id") != current_user.get("id"):
+                    raise HTTPException(status_code=403, detail="Access denied.")
+
+                for s in slots:
+                    if s.get("status") == "HELD" and s.get("held_by_user_id") == booking.get("user_id"):
+                        db.execute_query(
+                            "UPDATE slots SET status = 'BOOKED', held_until = NULL, held_by_user_id = NULL WHERE id = %s",
+                            (s.get("id"),)
+                        )
+                    elif s.get("status") == "BOOKED":
+                        continue
+                    else:
+                        raise HTTPException(status_code=409, detail="Requested slot is no longer available.")
+
+                db.execute_query(
+                    "UPDATE bookings SET status = 'confirmed' WHERE id = %s",
+                    (booking_id,)
+                )
+
+                self._send_booking_notification(db, current_user, slots, booking_id, "approved", booking)
+
+                updated = db.fetch_one("SELECT * FROM bookings WHERE id = %s", (booking_id,))
+                return serialize_booking(updated, db)
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            await logger.log_error(request=request, message=f"Failed approving booking: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+
+    async def reject_booking(self, request: Request, booking_id: int, current_user: dict):
+        try:
+            with logger.time_operation("REJECT_BOOKING", request=request):
+                db = self.db_driver
+                booking = db.fetch_one("SELECT * FROM bookings WHERE id = %s FOR UPDATE", (booking_id,))
+                if not booking:
+                    raise HTTPException(status_code=404, detail="Booking not found")
+                if booking.get("status") != "pending_approval":
+                    raise HTTPException(status_code=400, detail="Only pending approval bookings can be rejected.")
+
+                slots = db.fetch_all(
+                    "SELECT s.* FROM slots s JOIN booking_slots bs ON s.id = bs.slot_id WHERE bs.booking_id = %s",
+                    (booking_id,)
+                )
+
+                if not slots:
+                    raise HTTPException(status_code=400, detail="Booking has no slots attached.")
+
+                venue_id = slots[0].get("venue_id")
+                venue = db.fetch_one("SELECT * FROM venues WHERE id = %s LIMIT 1", (venue_id,))
+                if not venue or venue.get("venue_owner_id") != current_user.get("id"):
+                    raise HTTPException(status_code=403, detail="Access denied.")
+
+                for s in slots:
+                    if s.get("status") == "HELD" and s.get("held_by_user_id") == booking.get("user_id"):
+                        db.execute_query(
+                            "UPDATE slots SET status = 'AVAILABLE', held_until = NULL, held_by_user_id = NULL WHERE id = %s",
+                            (s.get("id"),)
+                        )
+
+                db.execute_query(
+                    "UPDATE bookings SET status = 'rejected', payment_status = 'cancelled' WHERE id = %s",
+                    (booking_id,)
+                )
+
+                self._send_booking_notification(db, current_user, slots, booking_id, "rejected", booking)
+
+                updated = db.fetch_one("SELECT * FROM bookings WHERE id = %s", (booking_id,))
+                return serialize_booking(updated, db)
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            await logger.log_error(request=request, message=f"Failed rejecting booking: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+
+    def _send_booking_notification(self, db, current_user: dict, slots: list, booking_id: int, action: str, booking: Optional[dict] = None):
+        try:
+            if not slots:
+                return
+            venue_id = slots[0].get("venue_id")
+            venue = db.fetch_one("SELECT * FROM venues WHERE id = %s", (venue_id,))
+            if not venue:
+                return
+
+            content = ""
+            recipient_id = None
+            recipient_type = None
+
+            if action == "request":
+                venue_owner_id = venue.get("venue_owner_id")
+                if not venue_owner_id:
+                    return
+                recipient_id = venue_owner_id
+                recipient_type = "venue_owner"
+                content = f"New booking request #{booking_id} for {venue.get('name')} needs your approval."
+            else:
+                if not booking:
+                    booking = db.fetch_one("SELECT * FROM bookings WHERE id = %s", (booking_id,))
+                if not booking:
+                    return
+                recipient_id = booking.get("user_id")
+                recipient_type = "admin"
+                content = f"Your booking request #{booking_id} has been {action}."
+
+            if not recipient_id:
+                return
+
+            insert_data = {
+                "sender_id": current_user.get("id"),
+                "sender_type": current_user.get("role", "admin"),
+                "sender_name": current_user.get("username") or current_user.get("name") or "Mukijo",
+                "group_id": None,
+                "channel": "notifications",
+                "recipient_id": recipient_id,
+                "recipient_type": recipient_type,
+                "content": content,
+            }
+            db.insert("messages", insert_data)
+        except Exception:
+            pass
 
     async def get_booking_by_id(self, request: Request, booking_id: int, current_user: dict):
         try:

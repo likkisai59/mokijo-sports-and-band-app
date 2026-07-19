@@ -4,7 +4,7 @@ from datetime import date, datetime
 
 from app.models import schemas
 from app.connectors.connection_service import ConnectionService
-from app.auth.authorization import check_user_authorization
+from app.auth.authorization import check_user_authorization, validate_role_and_permission
 from app.core.security import hash_password, verify_password, create_access_token
 from app.logger import logger
 
@@ -185,6 +185,7 @@ class VenueOwnerLogic(ConnectionService):
         try:
             with logger.time_operation("GET_OWNER_VENUES", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["venue_owner"], owner_id)
                 venues = db.fetch_all("SELECT * FROM venues WHERE venue_owner_id = %s", (owner_id,))
                 return [
                     {
@@ -271,6 +272,7 @@ class VenueOwnerLogic(ConnectionService):
         try:
             with logger.time_operation("GET_BOOKINGS_VENUE_OWNER", request=request):
                 db = self.db_driver
+                validate_role_and_permission(db, current_user, ["venue_owner"], owner_id)
                 venues = db.fetch_all("SELECT id, name FROM venues WHERE venue_owner_id = %s", (owner_id,))
                 venue_ids = [v.get("id") for v in venues]
                 venue_map = {v.get("id"): v.get("name") for v in venues}

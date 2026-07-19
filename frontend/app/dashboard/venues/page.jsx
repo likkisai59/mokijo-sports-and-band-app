@@ -92,32 +92,41 @@ export default function VenuesPage() {
         setBookingStatus("loading");
 
         try {
-            const userId = localStorage.getItem("userId") || 9;
-            const response = await fetch(`${API_BASE_URL}/bookings`, {
+            const userId = localStorage.getItem("userId");
+            if (!userId) {
+                setBookingStatus("error");
+                setBookingMessage("Please log in to request a booking.");
+                return;
+            }
+
+            const response = await fetch(`${API_BASE_URL}/bookings/request-approval`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    user_id: parseInt(userId),
-                    slot_id: selectedSlot.id,
+                    user_id: parseInt(userId, 10),
+                    slot_ids: [selectedSlot.id],
                     amount_paid: selectedSlot.current_price,
-                    payment_status: "paid",
+                    status: "pending_approval",
+                    payment_status: "pending",
                 }),
             });
 
             const data = await response.json();
             if (response.ok) {
                 setBookingStatus("success");
-                setBookingMessage(`Successfully booked slot ID: ${data.slot_id} for ₹${data.amount_paid}!`);
+                setBookingMessage(
+                    `Booking request sent. Venue owner has been notified and will approve it shortly.`
+                );
                 fetchSlots(selectedVenue.id);
                 setSelectedSlot(null);
             } else {
                 setBookingStatus("error");
-                setBookingMessage(data.detail || "This slot was already booked in a concurrent request.");
+                setBookingMessage(data.detail || "This slot could not be requested. Please try another time.");
             }
         } catch (error) {
             setBookingStatus("error");
-            setBookingMessage("Network error occurred during checkout.");
-            console.error("Booking error:", error);
+            setBookingMessage("Network error occurred while sending the booking request.");
+            console.error("Booking request error:", error);
         }
     };
 
@@ -374,16 +383,19 @@ export default function VenuesPage() {
                         <div className="slots-grid">
                             {slots.map((slot) => {
                                 const isSelected = selectedSlot?.id === slot.id;
+                                const isHeld = slot.status === "HELD";
+                                const isBooked = slot.is_blocked || slot.status === "BOOKED";
+                                const isUnavailable = isBooked || isHeld;
                                 return (
                                     <div
                                         key={slot.id}
-                                        className={`slot-item ${slot.is_blocked ? "blocked" : ""} ${isSelected ? "selected" : ""}`}
-                                        onClick={() => !slot.is_blocked && setSelectedSlot(slot)}
+                                        className={`slot-item ${isUnavailable ? "blocked" : ""} ${isSelected ? "selected" : ""}`}
+                                        onClick={() => !isUnavailable && setSelectedSlot(slot)}
                                     >
                                         <span className="slot-time">{formatTime(slot.start_time)}</span>
                                         <span className="slot-sport">{slot.sport}</span>
                                         <span className="slot-price">
-                                            {slot.is_blocked ? "Booked" : `₹${slot.current_price}`}
+                                            {isBooked ? "Booked" : isHeld ? "Pending" : `₹${slot.current_price}`}
                                         </span>
                                     </div>
                                 );
@@ -413,7 +425,7 @@ export default function VenuesPage() {
                                 disabled={!selectedSlot}
                                 onClick={handleConfirmBooking}
                             >
-                                Confirm instant booking
+                                Request booking approval
                             </button>
                         </div>
                     </div>

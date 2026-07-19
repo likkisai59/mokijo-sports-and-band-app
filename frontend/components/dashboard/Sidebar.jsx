@@ -17,6 +17,7 @@ export default function Sidebar() {
 
     const normalizedRole = (userRole || "").toLowerCase().trim();
     const isClubAdminRole = !isMember && ["admin", "club_admin", "club-admin", "clubadmin", "owner", "club_owner", "club-owner", "manager", "club_manager", "club-manager"].includes(normalizedRole);
+    const isParentGuardianRole = !isMember && ["parent", "guardian", "parent_guardian", "parentguardian", "caregiver", "parent/guardian"].includes(normalizedRole);
 
     const [isGroupsExpanded, setIsGroupsExpanded] = useState(() => {
         return pathname.startsWith("/dashboard/group/");
@@ -373,10 +374,28 @@ export default function Sidebar() {
                 </Link>
             )}
 
+            {isParentGuardianRole && (
+                <Link
+                    href="/dashboard/trainers"
+                    className={`menu-item ${pathname.startsWith("/dashboard/trainers") || pathname.startsWith("/dashboard/courses") ? "active" : ""}`}
+                    style={{ textDecoration: "none" }}
+                >
+                    <span className="icon">
+                        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2" fill="none">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9.5" cy="7" r="3"></circle>
+                            <path d="M20 8l2 2-2 2"></path>
+                            <path d="M17 11l-2 2 2 2"></path>
+                        </svg>
+                    </span>
+                    <span>Trainer</span>
+                </Link>
+            )}
+
             {!isClubAdminRole && (
                 <Link
                     href="/dashboard/courses"
-                    className={`menu-item ${pathname.startsWith("/dashboard/courses") ? "active" : ""}`}
+                    className={`menu-item ${pathname.startsWith("/dashboard/courses") || pathname.startsWith("/dashboard/trainers") ? "active" : ""}`}
                     style={{ textDecoration: "none" }}
                 >
                     <span className="icon">

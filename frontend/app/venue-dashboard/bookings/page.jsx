@@ -16,19 +16,49 @@ export default function BookingsPage() {
     const [venueFilter, setVenueFilter] = useState("all");
     const [statusFilter, setStatusFilter] = useState("all");
     const [search, setSearch] = useState("");
+    const [actionLoading, setActionLoading] = useState(null);
 
-    useEffect(() => {
+    const fetchOwnerBookings = async () => {
         const ownerId = localStorage.getItem("venueOwnerId");
         if (!ownerId) return;
-        fetch(`${API}/bookings/venue-owner/${ownerId}`)
-            .then((r) => (r.ok ? r.json() : []))
-            .then((data) => {
+        setLoading(true);
+        try {
+            const res = await fetch(`${API}/bookings/venue-owner/${ownerId}`);
+            if (res.ok) {
+                const data = await res.json();
                 setBookings(data);
                 setFiltered(data);
-            })
-            .catch(() => {})
-            .finally(() => setLoading(false));
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchOwnerBookings();
     }, []);
+
+    const handleBookingAction = async (bookingId, action) => {
+        setActionLoading(bookingId);
+        try {
+            const res = await fetch(`${API}/bookings/${bookingId}/${action}`, {
+                method: "POST",
+            });
+            if (res.ok) {
+                await fetchOwnerBookings();
+            } else {
+                const data = await res.json().catch(() => ({}));
+                alert(data.detail || `Failed to ${action} booking.`);
+            }
+        } catch (err) {
+            console.error(err);
+            alert(`Network error: could not ${action} booking.`);
+        } finally {
+            setActionLoading(null);
+        }
+    };
 
     useEffect(() => {
         let data = bookings;
@@ -114,6 +144,7 @@ export default function BookingsPage() {
                                     <th>Amount</th>
                                     <th>Payment</th>
                                     <th>Status</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -137,6 +168,30 @@ export default function BookingsPage() {
                                         <td style={{ color: "#bffe00", fontWeight: 600 }}>₹{b.amount_paid}</td>
                                         <td>{statusBadge(b.payment_status)}</td>
                                         <td>{statusBadge(b.booking_status)}</td>
+                                        <td style={{ whiteSpace: "nowrap" }}>
+                                            {b.booking_status === "pending_approval" ? (
+                                                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                                                    <button
+                                                        className="vd-action-btn vd-action-approve"
+                                                        onClick={() => handleBookingAction(b.booking_id, "approve")}
+                                                        disabled={actionLoading === b.booking_id}
+                                                    >
+                                                        {actionLoading === b.booking_id ? "Processing…" : "Approve"}
+                                                    </button>
+                                                    <button
+                                                        className="vd-action-btn vd-action-reject"
+                                                        onClick={() => handleBookingAction(b.booking_id, "reject")}
+                                                        disabled={actionLoading === b.booking_id}
+                                                    >
+                                                        {actionLoading === b.booking_id ? "Processing…" : "Reject"}
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <span style={{ color: "rgba(255,255,255,0.65)" }}>
+                                                    No action
+                                                </span>
+                                            )}
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

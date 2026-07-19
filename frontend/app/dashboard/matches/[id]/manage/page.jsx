@@ -191,10 +191,16 @@ export default function DashboardMatchManagePage() {
             )
         )
             return;
+
+        const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+
         try {
             const r = await fetch(`${API}/matches/${matchId}`, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
                 body: JSON.stringify({ status: "completed" }),
             });
 
