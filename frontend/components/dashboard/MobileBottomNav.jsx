@@ -13,7 +13,7 @@ const navItems = [
     },
     {
         href: "/dashboard/members",
-        label: "Members",
+        label: "Team Members",
         icon: Users,
         match: (path) => path.startsWith("/dashboard/members"),
     },

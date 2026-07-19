@@ -11,6 +11,13 @@ export default function Sidebar() {
     const [isMember, setIsMember] = useState(false);
     const [userRole, setUserRole] = useState("");
     const pathname = usePathname();
+    const [expandedGroupId, setExpandedGroupId] = useState(null);
+    const [groupMembers, setGroupMembers] = useState({});
+    const [loadingMembersFor, setLoadingMembersFor] = useState(null);
+
+    const normalizedRole = (userRole || "").toLowerCase().trim();
+    const isClubAdminRole = !isMember && ["admin", "club_admin", "club-admin", "clubadmin", "owner", "club_owner", "club-owner", "manager", "club_manager", "club-manager"].includes(normalizedRole);
+    const isParentGuardianRole = !isMember && ["parent", "guardian", "parent_guardian", "parentguardian", "caregiver", "parent/guardian"].includes(normalizedRole);
 
     const [isGroupsExpanded, setIsGroupsExpanded] = useState(() => {
         return pathname.startsWith("/dashboard/group/");
@@ -46,10 +53,43 @@ export default function Sidebar() {
 
         fetchGroups();
 
-        // Listen for groups updates to refresh the list
         window.addEventListener("groupsUpdated", fetchGroups);
         return () => window.removeEventListener("groupsUpdated", fetchGroups);
     }, []);
+
+    const toggleGroupMembers = async (groupId, e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (expandedGroupId === groupId) {
+            setExpandedGroupId(null);
+            return;
+        }
+        setExpandedGroupId(groupId);
+        if (groupMembers[groupId]) return;
+
+        const userId = localStorage.getItem("userId");
+        if (!userId) return;
+        setLoadingMembersFor(groupId);
+        try {
+            const response = await fetch(`${API_BASE_URL}/groups/${groupId}/members?owner_id=${userId}`);
+            if (response.ok) {
+                const data = await response.json();
+                setGroupMembers((prev) => ({ ...prev, [groupId]: data || [] }));
+            } else {
+                setGroupMembers((prev) => ({ ...prev, [groupId]: [] }));
+            }
+        } catch (error) {
+            console.error("Error fetching group members:", error);
+            setGroupMembers((prev) => ({ ...prev, [groupId]: [] }));
+        } finally {
+            setLoadingMembersFor(null);
+        }
+    };
+
+    const memberName = (m) => {
+        const name = `${m.first_name || ""} ${m.last_name || ""}`.trim();
+        return name || m.email || "Member";
+    };
 
     return (
         <aside className="sidebar">
@@ -73,17 +113,6 @@ export default function Sidebar() {
                 <span>Dashboard</span>
             </Link>
 
-            {!isMember && (
-                <Link href="/dashboard" className={`menu-item ${pathname === "/dashboard" ? "active" : ""}`}>
-                    <span className="icon">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                        </svg>
-                    </span>
-                    <span>Home</span>
-                </Link>
-            )}
 
             {!isMember && (
                 <Link
@@ -180,28 +209,112 @@ export default function Sidebar() {
                             {groups.length > 0 ? (
                                 groups.map((group) => {
                                     const isActive = pathname === `/dashboard/group/${group.id}`;
+                                    const isMembersOpen = expandedGroupId === group.id;
+                                    const members = groupMembers[group.id] || [];
                                     return (
-                                        <Link
-                                            key={group.id}
-                                            href={`/dashboard/group/${group.id}`}
-                                            className={`sidebar-group-link ${isActive ? "active" : ""}`}
-                                            style={{ textDecoration: "none" }}
-                                        >
-                                            <svg
-                                                viewBox="0 0 24 24"
-                                                width="14"
-                                                height="14"
-                                                stroke="currentColor"
-                                                strokeWidth="2"
-                                                fill="none"
+                                        <div key={group.id} style={{ display: "flex", flexDirection: "column" }}>
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: "4px",
+                                                }}
                                             >
-                                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                                <circle cx="9" cy="7" r="4"></circle>
-                                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                                            </svg>
-                                            {group.group_name}
-                                        </Link>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => toggleGroupMembers(group.id, e)}
+                                                    className={`sidebar-group-link ${isActive ? "active" : ""}`}
+                                                    style={{
+                                                        textDecoration: "none",
+                                                        flex: 1,
+                                                        background: "transparent",
+                                                        border: "none",
+                                                        cursor: "pointer",
+                                                        textAlign: "left",
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        gap: "8px",
+                                                        color: "inherit",
+                                                        font: "inherit",
+                                                        padding: 0,
+                                                    }}
+                                                >
+                                                    <svg
+                                                        viewBox="0 0 24 24"
+                                                        width="14"
+                                                        height="14"
+                                                        stroke="currentColor"
+                                                        strokeWidth="2"
+                                                        fill="none"
+                                                    >
+                                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                                        <circle cx="9" cy="7" r="4"></circle>
+                                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                                    </svg>
+                                                    {group.group_name}
+                                                </button>
+                                                <Link
+                                                    href={`/dashboard/group/${group.id}`}
+                                                    title="Open group"
+                                                    style={{
+                                                        color: "rgba(255,255,255,0.45)",
+                                                        padding: "4px",
+                                                        display: "inline-flex",
+                                                        textDecoration: "none",
+                                                        fontSize: "11px",
+                                                    }}
+                                                >
+                                                    →
+                                                </Link>
+                                            </div>
+                                            {isMembersOpen && (
+                                                <div
+                                                    style={{
+                                                        paddingLeft: "18px",
+                                                        paddingBottom: "6px",
+                                                        display: "flex",
+                                                        flexDirection: "column",
+                                                        gap: "2px",
+                                                    }}
+                                                >
+                                                    {loadingMembersFor === group.id ? (
+                                                        <span
+                                                            style={{
+                                                                fontSize: "11px",
+                                                                color: "rgba(255,255,255,0.4)",
+                                                                padding: "4px 8px",
+                                                            }}
+                                                        >
+                                                            Loading...
+                                                        </span>
+                                                    ) : members.length === 0 ? (
+                                                        <span
+                                                            style={{
+                                                                fontSize: "11px",
+                                                                color: "rgba(255,255,255,0.4)",
+                                                                padding: "4px 8px",
+                                                            }}
+                                                        >
+                                                            No members
+                                                        </span>
+                                                    ) : (
+                                                        members.map((m) => (
+                                                            <span
+                                                                key={m.id}
+                                                                style={{
+                                                                    fontSize: "12px",
+                                                                    color: "rgba(226,232,240,0.75)",
+                                                                    padding: "3px 8px",
+                                                                }}
+                                                            >
+                                                                {memberName(m)}
+                                                            </span>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                     );
                                 })
                             ) : (
@@ -260,23 +373,43 @@ export default function Sidebar() {
                             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                         </svg>
                     </span>
-                    <span>Members</span>
+                    <span>Team Members</span>
                 </Link>
             )}
 
-            <Link
-                href="/dashboard/courses"
-                className={`menu-item ${pathname.startsWith("/dashboard/courses") ? "active" : ""}`}
-                style={{ textDecoration: "none" }}
-            >
-                <span className="icon">
-                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2" fill="none">
-                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                        <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"></path>
-                    </svg>
-                </span>
-                <span>Training</span>
-            </Link>
+            {isParentGuardianRole && (
+                <Link
+                    href="/dashboard/trainers"
+                    className={`menu-item ${pathname.startsWith("/dashboard/trainers") || pathname.startsWith("/dashboard/courses") ? "active" : ""}`}
+                    style={{ textDecoration: "none" }}
+                >
+                    <span className="icon">
+                        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2" fill="none">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9.5" cy="7" r="3"></circle>
+                            <path d="M20 8l2 2-2 2"></path>
+                            <path d="M17 11l-2 2 2 2"></path>
+                        </svg>
+                    </span>
+                    <span>Trainer</span>
+                </Link>
+            )}
+
+            {!isClubAdminRole && (
+                <Link
+                    href="/dashboard/courses"
+                    className={`menu-item ${pathname.startsWith("/dashboard/courses") || pathname.startsWith("/dashboard/trainers") ? "active" : ""}`}
+                    style={{ textDecoration: "none" }}
+                >
+                    <span className="icon">
+                        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2" fill="none">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"></path>
+                        </svg>
+                    </span>
+                    <span>Training</span>
+                </Link>
+            )}
 
             <Link
                 href="/dashboard/fundraising"

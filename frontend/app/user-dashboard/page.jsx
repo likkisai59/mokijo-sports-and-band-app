@@ -11,7 +11,6 @@ import {
     Award,
     MapPin,
     Activity,
-    Bell,
     Compass,
     Clock,
     Search,
@@ -36,6 +35,7 @@ import {
     CalendarCheck,
     Locate,
 } from "lucide-react";
+import NotificationBell from "../../components/dashboard/NotificationBell";
 
 export default function UserDashboard() {
     const router = useRouter();
@@ -577,8 +577,9 @@ export default function UserDashboard() {
                     </button>
                 </div>
 
-                {/* Right: User Profile & Log Out Dropdown */}
-                <div style={{ ...styles.userNav, position: "relative" }}>
+                {/* Right: Notifications, User Profile & Log Out Dropdown */}
+                <div style={{ ...styles.userNav, position: "relative", gap: "12px" }}>
+                    <NotificationBell mode="empty" />
                     <div
                         style={{ ...styles.userInfoClickable, cursor: "pointer" }}
                         onClick={(e) => {

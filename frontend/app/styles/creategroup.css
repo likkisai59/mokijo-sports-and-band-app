@@ -139,13 +139,15 @@
     padding-right: 5px;
 }
 
-/* Custom Scrollbar for list */
-.activity-list::-webkit-scrollbar {
-    width: 6px;
+/* Custom Scrollbar for list — hidden */
+.activity-list {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
-.activity-list::-webkit-scrollbar-thumb {
-    background: rgba(191, 254, 0, 0.2);
-    border-radius: 10px;
+.activity-list::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
 }
 
 .choice-card-row {

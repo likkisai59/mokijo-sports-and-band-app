@@ -203,7 +203,8 @@ def serialize_event(event: dict, db_driver):
         "permission_forms": event.get("permission_forms"),
         "match_fixtures": event.get("match_fixtures"),
         "event_posters": event.get("event_posters"),
-        "group_name": group_name
+        "group_name": group_name,
+        "visible_to_member": event.get("visible_to_member", True)
     }
 
 def normalize_phone(value: str | None):

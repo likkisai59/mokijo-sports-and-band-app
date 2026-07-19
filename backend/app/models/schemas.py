@@ -561,6 +561,7 @@ class BookingCreate(BaseModel):
     court_id: Optional[int] = None
     slot_ids: List[int]
     amount_paid: Optional[int] = 0
+    status: Optional[str] = "reserved"
     payment_status: Optional[str] = "pending"
 
 class BookingResponse(BaseModel):
