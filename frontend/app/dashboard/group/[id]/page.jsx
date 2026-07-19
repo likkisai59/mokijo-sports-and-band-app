@@ -2,6 +2,7 @@
 import { API_BASE_URL } from "@/lib/api";
 
 import { useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import "../../../styles/groupprofile.css";
@@ -58,14 +59,14 @@ export default function GroupProfilePage() {
                     phone: "",
                     role: "Player",
                 });
-                alert("Member added successfully!");
+                toast.success("Member added successfully! 🎉");
             } else {
                 const errData = await response.json();
-                alert(`Failed to add member: ${errData.detail || "Unknown error"}`);
+                toast.error(`Failed to add member: ${errData.detail || "Unknown error"}`);
             }
         } catch (error) {
             console.error("Error adding member:", error);
-            alert("Connection error while adding member.");
+            toast.error("Connection error while adding member.");
         }
     };
 
@@ -511,14 +512,6 @@ export default function GroupProfilePage() {
                                     id="role"
                                     value={memberForm.role}
                                     onChange={(e) => setMemberForm((prev) => ({ ...prev, role: e.target.value }))}
-                                    style={{
-                                        padding: "12px",
-                                        border: "1px solid #e2e8f0",
-                                        borderRadius: "8px",
-                                        fontSize: "0.95rem",
-                                        outline: "none",
-                                        background: "white",
-                                    }}
                                 >
                                     <option value="Player">Player</option>
                                     <option value="Parent">Parent</option>

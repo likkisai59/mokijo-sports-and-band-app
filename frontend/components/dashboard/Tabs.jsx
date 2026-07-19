@@ -1,7 +1,7 @@
 "use client";
 
 export default function Tabs({ activeTab, setActiveTab }) {
-    const tabs = ["Events", "Posts", "Payments", "Polls"];
+    const tabs = ["Events", "Posts", "Polls"];
 
     return (
         <div className="tabs">

@@ -303,132 +303,19 @@ export default function FundraisingPage() {
 
     return (
         <div className="fr-container">
-            <div className="fr-header">
+            {/* Header section (Simple overall title) */}
+            <div className="fr-header" style={{ marginBottom: "32px" }}>
                 <div>
-                    <h1 className="fr-title">Fundraising</h1>
+                    <h1 className="fr-title">Fundraising & Payments</h1>
                     <p className="fr-subtitle">
-                        {isMember
-                            ? "Support your sports academy campaigns and track total club contributions"
-                            : "Manage campaigns and track money raised for your club"}
+                        Manage your club's campaigns, donations, and group member payments in one place.
                     </p>
-                </div>
-                <div className="fr-header-actions" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                    <div
-                        className="fr-filter-tabs"
-                        style={{
-                            display: "flex",
-                            gap: "4px",
-                            background: "rgba(255,255,255,0.04)",
-                            border: "1px solid rgba(255,255,255,0.07)",
-                            padding: "4px",
-                            borderRadius: "10px",
-                        }}
-                    >
-                        {["all", "active", "paused", "completed"].map((f) => (
-                            <button
-                                key={f}
-                                onClick={() => setFilter(f)}
-                                style={{
-                                    border: "none",
-                                    background: filter === f ? "rgba(99,102,241,0.2)" : "transparent",
-                                    color: filter === f ? "#a5b4fc" : "rgba(148,163,184,0.55)",
-                                    boxShadow: filter === f ? "0 0 12px rgba(99,102,241,0.15)" : "none",
-                                    borderRadius: "7px",
-                                    padding: "6px 14px",
-                                    fontSize: "13px",
-                                    fontWeight: "600",
-                                    cursor: "pointer",
-                                    transition: "all .2s",
-                                    fontFamily: "'Outfit', sans-serif",
-                                }}
-                            >
-                                {f.charAt(0).toUpperCase() + f.slice(1)}
-                            </button>
-                        ))}
-                    </div>
-                    {!isMember && (
-                        <Link href="/dashboard/fundraising/new" className="btn-primary">
-                            <svg
-                                viewBox="0 0 24 24"
-                                width="16"
-                                height="16"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2.5"
-                            >
-                                <line x1="12" y1="5" x2="12" y2="19" />
-                                <line x1="5" y1="12" x2="19" y2="12" />
-                            </svg>
-                            New Campaign
-                        </Link>
-                    )}
                 </div>
             </div>
 
-            <div style={{ marginBottom: "24px" }}>
-                <h2 style={{ margin: 0, fontSize: "17px", fontWeight: "700", color: "#f1f5f9" }}>
-                    {filtered.length} Campaign{filtered.length !== 1 ? "s" : ""}
-                </h2>
-            </div>
-
-            {loading ? (
-                <div
-                    style={{
-                        padding: "80px 40px",
-                        textAlign: "center",
-                        background: "rgba(15,15,26,0.85)",
-                        border: "1px solid rgba(255,255,255,0.07)",
-                        borderRadius: "20px",
-                        backdropFilter: "blur(12px)",
-                    }}
-                >
-                    <h3 style={{ margin: "0 0 8px", fontSize: "20px", fontWeight: "700", color: "#f1f5f9" }}>
-                        Loading campaigns...
-                    </h3>
-                </div>
-            ) : filtered.length > 0 ? (
-                <div
-                    className="campaign-grid"
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
-                        gap: "24px",
-                    }}
-                >
-                    {filtered.map((c) => (
-                        <CampaignCard key={c.id} c={c} onDelete={handleDelete} />
-                    ))}
-                </div>
-            ) : (
-                <div
-                    style={{
-                        padding: "80px 40px",
-                        textAlign: "center",
-                        background: "rgba(15,15,26,0.85)",
-                        border: "1.5px dashed rgba(255,255,255,0.08)",
-                        borderRadius: "20px",
-                        backdropFilter: "blur(12px)",
-                    }}
-                >
-                    <h3 style={{ margin: "0 0 8px", fontSize: "20px", fontWeight: "700", color: "#f1f5f9" }}>
-                        No campaigns yet
-                    </h3>
-                    <p style={{ margin: "0 0 28px", fontSize: "14px", color: "rgba(148,163,184,0.55)" }}>
-                        {isMember
-                            ? "There are currently no active fundraising campaigns scheduled. Check back soon!"
-                            : "Launch your first fundraising campaign today."}
-                    </p>
-                    {!isMember && (
-                        <Link href="/dashboard/fundraising/new" className="btn-primary">
-                            + Create First Campaign
-                        </Link>
-                    )}
-                </div>
-            )}
-
-            {/* Payments Section merged inside Fundraising */}
+            {/* Payments Section (Moved to top) */}
             {!isMember && (
-                <div className="payments-container" style={{ marginTop: "48px", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "40px" }}>
+                <div className="payments-container" style={{ marginBottom: "48px", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "40px" }}>
                     <div className="payments-header" style={{ marginBottom: "20px" }}>
                         <div>
                             <h2 style={{ margin: "0 0 4px", fontSize: "20px", fontWeight: "700", color: "#f1f5f9" }}>Member Payments</h2>
@@ -536,6 +423,133 @@ export default function FundraisingPage() {
                     )}
                 </div>
             )}
+
+            {/* Fundraising Campaigns Section (Moved to bottom) */}
+            <div style={{ marginTop: "24px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px", marginBottom: "24px" }}>
+                    <div>
+                        <h2 style={{ margin: "0 0 4px", fontSize: "20px", fontWeight: "700", color: "#f1f5f9" }}>Fundraising Campaigns</h2>
+                        <p style={{ margin: 0, fontSize: "14px", color: "rgba(148,163,184,0.55)" }}>
+                            {isMember
+                                ? "Support your sports academy campaigns and track total club contributions"
+                                : "Manage campaigns and track money raised for your club"}
+                        </p>
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <div
+                            className="fr-filter-tabs"
+                            style={{
+                                display: "flex",
+                                gap: "4px",
+                                background: "rgba(255,255,255,0.04)",
+                                border: "1px solid rgba(255,255,255,0.07)",
+                                padding: "4px",
+                                borderRadius: "10px",
+                            }}
+                        >
+                            {["all", "active", "paused", "completed"].map((f) => (
+                                <button
+                                    key={f}
+                                    onClick={() => setFilter(f)}
+                                    style={{
+                                        border: "none",
+                                        background: filter === f ? "rgba(99,102,241,0.2)" : "transparent",
+                                        color: filter === f ? "#a5b4fc" : "rgba(148,163,184,0.55)",
+                                        boxShadow: filter === f ? "0 0 12px rgba(99,102,241,0.15)" : "none",
+                                        borderRadius: "7px",
+                                        padding: "6px 14px",
+                                        fontSize: "13px",
+                                        fontWeight: "600",
+                                        cursor: "pointer",
+                                        transition: "all .2s",
+                                        fontFamily: "'Outfit', sans-serif",
+                                    }}
+                                >
+                                    {f.charAt(0).toUpperCase() + f.slice(1)}
+                                </button>
+                            ))}
+                        </div>
+                        {!isMember && (
+                            <Link href="/dashboard/fundraising/new" className="btn-primary">
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    width="16"
+                                    height="16"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                >
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                </svg>
+                                New Campaign
+                            </Link>
+                        )}
+                    </div>
+                </div>
+
+                <div style={{ marginBottom: "20px" }}>
+                    <span style={{ fontSize: "14px", color: "rgba(148, 163, 184, 0.55)" }}>
+                        {filtered.length} Campaign{filtered.length !== 1 ? "s" : ""} found
+                    </span>
+                </div>
+
+                {loading ? (
+                    <div
+                        style={{
+                            padding: "80px 40px",
+                            textAlign: "center",
+                            background: "rgba(15,15,26,0.85)",
+                            border: "1px solid rgba(255,255,255,0.07)",
+                            borderRadius: "20px",
+                            backdropFilter: "blur(12px)",
+                        }}
+                    >
+                        <h3 style={{ margin: "0 0 8px", fontSize: "20px", fontWeight: "700", color: "#f1f5f9" }}>
+                            Loading campaigns...
+                        </h3>
+                    </div>
+                ) : filtered.length > 0 ? (
+                    <div
+                        className="campaign-grid"
+                        style={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+                            gap: "24px",
+                        }}
+                    >
+                        {filtered.map((c) => (
+                            <CampaignCard key={c.id} c={c} onDelete={handleDelete} />
+                        ))}
+                    </div>
+                ) : (
+                    <div
+                        style={{
+                            padding: "80px 40px",
+                            textAlign: "center",
+                            background: "rgba(15,15,26,0.85)",
+                            border: "1.5px dashed rgba(255,255,255,0.08)",
+                            borderRadius: "20px",
+                            backdropFilter: "blur(12px)",
+                        }}
+                    >
+                        <h3 style={{ margin: "0 0 8px", fontSize: "20px", fontWeight: "700", color: "#f1f5f9" }}>
+                            No campaigns yet
+                        </h3>
+                        <p style={{ margin: "0 0 28px", fontSize: "14px", color: "rgba(148,163,184,0.55)" }}>
+                            {isMember
+                                ? "There are currently no active fundraising campaigns scheduled. Check back soon!"
+                                : "Launch your first fundraising campaign today."}
+                        </p>
+                        {!isMember && (
+                            <Link href="/dashboard/fundraising/new" className="btn-primary">
+                                + Create First Campaign
+                            </Link>
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

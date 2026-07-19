@@ -94,7 +94,7 @@ async def broadcast_match_update(match_id: int, db):
     if not match_db:
         return
     try:
-        teams = db.fetch_all("SELECT * FROM match_teams WHERE match_id = %s", (match_id,))
+        teams = db.fetch_all("SELECT * FROM match_teams WHERE match_id = %s ORDER BY id ASC", (match_id,))
         events = db.fetch_all("SELECT * FROM match_events WHERE match_id = %s ORDER BY created_at DESC", (match_id,))
         match_data = serialize_match(match_db, teams, events)
         await manager.broadcast(match_id, match_data)
@@ -232,7 +232,7 @@ class MatchesRouting(ConnectionService):
         await manager.connect(match_id, websocket)
 
         try:
-            teams = db.fetch_all("SELECT * FROM match_teams WHERE match_id = %s", (match_id,))
+            teams = db.fetch_all("SELECT * FROM match_teams WHERE match_id = %s ORDER BY id ASC", (match_id,))
             events = db.fetch_all("SELECT * FROM match_events WHERE match_id = %s ORDER BY created_at DESC", (match_id,))
             match_data = serialize_match(db_match, teams, events)
             await websocket.send_json(match_data)
@@ -288,7 +288,7 @@ class MatchesLogic(ConnectionService):
                     db.insert("match_teams", insert_team)
 
                 db_match = db.fetch_one("SELECT * FROM matches WHERE id = %s", (match_id,))
-                teams = db.fetch_all("SELECT * FROM match_teams WHERE match_id = %s", (match_id,))
+                teams = db.fetch_all("SELECT * FROM match_teams WHERE match_id = %s ORDER BY id ASC", (match_id,))
                 return serialize_match(db_match, teams)
         except HTTPException as he:
             raise he
@@ -317,7 +317,7 @@ class MatchesLogic(ConnectionService):
                 matches = db.fetch_all(query, tuple(params))
                 res = []
                 for m in matches:
-                    teams = db.fetch_all("SELECT * FROM match_teams WHERE match_id = %s", (m.get("id"),))
+                    teams = db.fetch_all("SELECT * FROM match_teams WHERE match_id = %s ORDER BY id ASC", (m.get("id"),))
                     res.append(serialize_match(m, teams))
                 return res
         except Exception as e:
@@ -331,7 +331,7 @@ class MatchesLogic(ConnectionService):
                 db_match = db.fetch_one("SELECT * FROM matches WHERE id = %s", (match_id,))
                 if not db_match:
                     raise HTTPException(status_code=404, detail="Match not found")
-                teams = db.fetch_all("SELECT * FROM match_teams WHERE match_id = %s", (match_id,))
+                teams = db.fetch_all("SELECT * FROM match_teams WHERE match_id = %s ORDER BY id ASC", (match_id,))
                 events = db.fetch_all("SELECT * FROM match_events WHERE match_id = %s ORDER BY created_at DESC", (match_id,))
                 return serialize_match(db_match, teams, events)
         except HTTPException as he:
@@ -365,7 +365,7 @@ class MatchesLogic(ConnectionService):
 
                 # Re-fetch match to get updated fields
                 db_match = db.fetch_one("SELECT * FROM matches WHERE id = %s", (match_id,))
-                teams = db.fetch_all("SELECT * FROM match_teams WHERE match_id = %s", (match_id,))
+                teams = db.fetch_all("SELECT * FROM match_teams WHERE match_id = %s ORDER BY id ASC", (match_id,))
 
                 # Automatically log key status transitions as MatchEvents
                 if "status" in update_data and update_data["status"] != old_status:
@@ -448,7 +448,7 @@ class MatchesLogic(ConnectionService):
                 )
 
                 # Re-fetch teams
-                teams = db.fetch_all("SELECT * FROM match_teams WHERE match_id = %s", (match_id,))
+                teams = db.fetch_all("SELECT * FROM match_teams WHERE match_id = %s ORDER BY id ASC", (match_id,))
                 score_snapshot = "0 - 0"
                 if len(teams) == 2:
                     score_snapshot = f"{teams[0].get('score') or 0} - {teams[1].get('score') or 0}"
@@ -481,7 +481,7 @@ class MatchesLogic(ConnectionService):
                 if not db_match:
                     raise HTTPException(status_code=404, detail="Match not found")
 
-                teams = db.fetch_all("SELECT * FROM match_teams WHERE match_id = %s", (match_id,))
+                teams = db.fetch_all("SELECT * FROM match_teams WHERE match_id = %s ORDER BY id ASC", (match_id,))
                 score_snapshot = "0 - 0"
                 if len(teams) == 2:
                     score_snapshot = f"{teams[0].get('score') or 0} - {teams[1].get('score') or 0}"

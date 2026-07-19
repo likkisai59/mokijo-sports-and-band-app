@@ -15,6 +15,8 @@ export default function PublicScoreboardPage() {
     const [match, setMatch] = useState(null);
     const [loading, setLoading] = useState(true);
     const [wsConnected, setWsConnected] = useState(false);
+    const [teamAMembers, setTeamAMembers] = useState([]);
+    const [teamBMembers, setTeamBMembers] = useState([]);
 
     const wsRef = useRef(null);
     const reconnectTimerRef = useRef(null);
@@ -92,6 +94,42 @@ export default function PublicScoreboardPage() {
             }
         };
     }, [matchId]);
+
+    useEffect(() => {
+        if (!match) return;
+
+        const loadTeamMembers = async () => {
+            const tA = match.teams[0];
+            const tB = match.teams[1];
+            const owner = match.owner_id;
+
+            if (tA && tA.group_id) {
+                try {
+                    const r = await fetch(`${API}/groups/${tA.group_id}/members?owner_id=${owner}`);
+                    if (r.ok) {
+                        const data = await r.json();
+                        setTeamAMembers(data || []);
+                    }
+                } catch (e) {
+                    console.error("Error loading Team A members:", e);
+                }
+            }
+
+            if (tB && tB.group_id) {
+                try {
+                    const r = await fetch(`${API}/groups/${tB.group_id}/members?owner_id=${owner}`);
+                    if (r.ok) {
+                        const data = await r.json();
+                        setTeamBMembers(data || []);
+                    }
+                } catch (e) {
+                    console.error("Error loading Team B members:", e);
+                }
+            }
+        };
+
+        loadTeamMembers();
+    }, [match?.id]);
 
     if (loading) {
         return (
@@ -336,6 +374,60 @@ export default function PublicScoreboardPage() {
                         )}
                     </div>
                 </div>
+
+                {/* Team Squads Panel */}
+                {(teamAMembers.length > 0 || teamBMembers.length > 0) && (
+                    <div className="pub-timeline" style={{ background: "rgba(15, 15, 26, 0.4)", border: "1px solid rgba(255, 255, 255, 0.05)" }}>
+                        <h2 style={{ fontSize: "16px", fontWeight: "800", color: "#fff", marginBottom: "20px", textAlign: "center", letterSpacing: "1px" }}>
+                            TEAM SQUADS & PLAYER ROSTERS
+                        </h2>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
+                            {/* Team A Roster */}
+                            <div>
+                                <h3 style={{ fontSize: "14px", fontWeight: "700", color: teamA.color || "var(--vd-brand)", borderBottom: "1px solid rgba(255, 255, 255, 0.08)", paddingBottom: "8px", marginBottom: "12px" }}>
+                                    {teamA.team_name} Squad
+                                </h3>
+                                {teamAMembers.length > 0 ? (
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                        {teamAMembers.map((m) => (
+                                            <div key={m.id} style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(255, 255, 255, 0.02)", padding: "8px 12px", borderRadius: "8px" }}>
+                                                <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: teamA.color || "var(--vd-brand)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "800" }}>
+                                                    {m.first_name[0].toUpperCase()}
+                                                </div>
+                                                <span style={{ fontSize: "13px", fontWeight: "500", color: "#e2e8f0" }}>{m.first_name} {m.last_name || ""}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <span style={{ fontSize: "12px", color: "var(--vd-muted)" }}>No players registered in this team.</span>
+                                )}
+                            </div>
+
+                            {/* Team B Roster */}
+                            <div>
+                                <h3 style={{ fontSize: "14px", fontWeight: "700", color: teamB.color || "var(--vd-cyan)", borderBottom: "1px solid rgba(255, 255, 255, 0.08)", paddingBottom: "8px", marginBottom: "12px" }}>
+                                    {teamB.team_name} Squad
+                                </h3>
+                                {teamBMembers.length > 0 ? (
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                        {teamBMembers.map((m) => (
+                                            <div key={m.id} style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(255, 255, 255, 0.02)", padding: "8px 12px", borderRadius: "8px" }}>
+                                                <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: teamB.color || "var(--vd-cyan)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "800" }}>
+                                                    {m.first_name[0].toUpperCase()}
+                                                </div>
+                                                <span style={{ fontSize: "13px", fontWeight: "500", color: "#e2e8f0" }}>{m.first_name} {m.last_name || ""}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <span style={{ fontSize: "12px", color: "var(--vd-muted)" }}>
+                                        {teamB.club_name ? "Squad list unavailable (Guest Team)" : "No players registered in this team."}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

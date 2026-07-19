@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Tabs from "../../components/dashboard/Tabs";
 import EventSection from "../../components/dashboard/EventSection";
 import PostSection from "../../components/dashboard/PostSection";
-import PaymentSection from "../../components/dashboard/PaymentSection";
 import PollSection from "../../components/dashboard/PollSection";
 import InfoCard from "../../components/dashboard/InfoCard";
 
@@ -29,8 +28,6 @@ export default function DashboardPage() {
                 return <EventSection />;
             case "Posts":
                 return <PostSection />;
-            case "Payments":
-                return <PaymentSection />;
             case "Polls":
                 return <PollSection />;
             default:

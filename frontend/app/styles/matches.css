@@ -2,6 +2,14 @@
    MUKIJO LIVE MATCH SCOREBOARD SYSTEM — STYLING
    ═══════════════════════════════════════════════════════════════════ */
 
+:root {
+    --vd-brand: var(--brand, #bffe00);
+    --vd-surface: var(--bg-surface, #0c0c14);
+    --vd-border: var(--border, rgba(255, 255, 255, 0.06));
+    --vd-muted: var(--text-secondary, #94a3b8);
+    --vd-cyan: var(--cyan, #00f0ff);
+}
+
 /* --- OVERVIEW CARDS --- */
 .m-stats-grid {
     display: grid;

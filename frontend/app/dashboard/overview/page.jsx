@@ -66,6 +66,7 @@ export default function OverviewPage() {
     const [responses, setResponses] = useState({});
 
     const [campaigns, setCampaigns] = useState([]);
+    const [liveMatches, setLiveMatches] = useState([]);
 
     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
 
@@ -97,6 +98,17 @@ export default function OverviewPage() {
                     }
                 } catch (e) {
                     console.error("Error fetching campaigns on overview:", e);
+                }
+
+                // Fetch live matches
+                try {
+                    const matchesRes = await fetch(`${API_BASE_URL}/matches?owner_id=${userId || 1}&status=live`);
+                    if (matchesRes.ok) {
+                        const mData = await matchesRes.json();
+                        setLiveMatches(mData || []);
+                    }
+                } catch (e) {
+                    console.error("Error fetching live matches on overview:", e);
                 }
 
                 if (!storedIsMember) {
@@ -145,6 +157,40 @@ export default function OverviewPage() {
             setLoading(false);
         }
     }, [userId]);
+
+    useEffect(() => {
+        if (liveMatches.length === 0) return;
+
+        const sockets = liveMatches.map((match) => {
+            const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+            let wsHost = window.location.host;
+            if (API_BASE_URL.startsWith("http")) {
+                const urlObj = new URL(API_BASE_URL);
+                wsHost = urlObj.host;
+            }
+            const wsUrl = `${wsProtocol}//${wsHost}/ws/scoreboard/${match.id}`;
+            const ws = new WebSocket(wsUrl);
+
+            ws.onmessage = (event) => {
+                try {
+                    const updatedMatch = JSON.parse(event.data);
+                    setLiveMatches((prevMatches) =>
+                        prevMatches.map((m) => (m.id === updatedMatch.id ? updatedMatch : m))
+                    );
+                } catch (err) {
+                    console.error("Error parsing WebSocket message:", err);
+                }
+            };
+
+            ws.onerror = (err) => console.error("Scoreboard WS error:", err);
+
+            return ws;
+        });
+
+        return () => {
+            sockets.forEach((ws) => ws.close());
+        };
+    }, [liveMatches.length]);
 
     // Handle interactive player response
     const handlePlayerResponse = async (eventId, responseType) => {
@@ -497,6 +543,7 @@ export default function OverviewPage() {
 
                 {/* Content Panels */}
                 <div className={styles.panels}>
+                    {renderLiveMatchesWidget()}
                     <div className={styles.panel}>
                         <ul className={styles.memberList}>
                             {(myPlayers.length > 0
@@ -757,6 +804,65 @@ export default function OverviewPage() {
         );
     };
 
+    // Reusable Live Scoreboard widget for members
+    const renderLiveMatchesWidget = () => {
+        if (liveMatches.length === 0) return null;
+        return (
+            <div className={styles.panel} style={{ gridColumn: "span 2", background: "linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: "16px", padding: "20px", marginBottom: "24px" }}>
+                <div className={styles.panelHeader} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "12px", marginBottom: "16px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <span className={styles.liveDot}></span>
+                        <h3 className={styles.panelTitle} style={{ color: "#ef4444", margin: 0, fontWeight: "800", fontSize: "16px" }}>LIVE MATCH SCORES</h3>
+                    </div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                    {liveMatches.map((match) => (
+                        <div key={match.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(255,255,255,0.03)", padding: "16px 20px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.05)" }}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                                <span style={{ fontSize: "15px", fontWeight: "700", color: "#f8fafc" }}>{match.title}</span>
+                                <span style={{ fontSize: "12px", color: "rgba(148, 163, 184, 0.6)" }}>{match.sport} • {match.venue}</span>
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
+                                {match.teams && match.teams.length === 2 ? (
+                                    <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                                        <div style={{ textAlign: "right" }}>
+                                            <span style={{ fontSize: "14px", fontWeight: "700", color: "#e2e8f0" }}>{match.teams[0].team_name}</span>
+                                        </div>
+                                        <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(239, 68, 68, 0.1)", padding: "6px 16px", borderRadius: "8px", border: "1px solid rgba(239, 68, 68, 0.2)" }}>
+                                            <span style={{ fontSize: "18px", fontWeight: "800", color: "#f8fafc" }}>{match.teams[0].score ?? 0}</span>
+                                            <span style={{ color: "rgba(148,163,184,0.4)" }}>:</span>
+                                            <span style={{ fontSize: "18px", fontWeight: "800", color: "#f8fafc" }}>{match.teams[1].score ?? 0}</span>
+                                        </div>
+                                        <div>
+                                            <span style={{ fontSize: "14px", fontWeight: "700", color: "#e2e8f0" }}>{match.teams[1].team_name}</span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <span style={{ color: "#64748b" }}>No team data</span>
+                                )}
+                                <Link
+                                    href={`/scoreboard/${match.id}`}
+                                    className="m-btn primary"
+                                    style={{
+                                        padding: "6px 12px",
+                                        borderRadius: "6px",
+                                        fontSize: "12px",
+                                        textDecoration: "none",
+                                        background: "var(--brand, #bffe00)",
+                                        color: "#000",
+                                        fontWeight: "700"
+                                    }}
+                                >
+                                    View Scoreboard
+                                </Link>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
     // Render 3: Player Dashboard
     const renderPlayerDashboard = () => {
         return (
@@ -856,6 +962,7 @@ export default function OverviewPage() {
 
                 {/* Content Panels */}
                 <div className={styles.panels}>
+                    {renderLiveMatchesWidget()}
                     <div className={styles.panel} style={{ gridColumn: "span 2" }}>
                         <div className={styles.panelHeader}>
                             <h3 className={styles.panelTitle}>Respond to Invited Matches & Practices</h3>
@@ -1142,7 +1249,10 @@ export default function OverviewPage() {
                 </div>
 
                 {/* Content Panels */}
-                <div className={styles.panels}>{renderActiveCampaignsPanel()}</div>
+                <div className={styles.panels}>
+                    {renderLiveMatchesWidget()}
+                    {renderActiveCampaignsPanel()}
+                </div>
             </div>
         );
     };
@@ -1285,7 +1395,10 @@ export default function OverviewPage() {
                 </div>
 
                 {/* Content Panels */}
-                <div className={styles.panels}>{renderActiveCampaignsPanel()}</div>
+                <div className={styles.panels}>
+                    {renderLiveMatchesWidget()}
+                    {renderActiveCampaignsPanel()}
+                </div>
             </div>
         );
     };

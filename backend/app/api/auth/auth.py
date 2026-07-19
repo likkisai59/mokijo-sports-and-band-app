@@ -416,8 +416,22 @@ class AuthLogic(ConnectionService):
                         db.execute_query("UPDATE members SET password = %s WHERE id = %s", (hashed, member.get("id")))
                 else:
                     # Fallback default password
-                    if member.get("phone") and member.get("phone") != password_clean:
-                        raise HTTPException(status_code=401, detail="Incorrect password. Please use your registered phone number if you have not set a password.")
+                    db_phone = member.get("phone") or ""
+                    db_phone_digits = "".join(c for c in db_phone if c.isdigit())
+                    input_phone_digits = "".join(c for c in password_clean if c.isdigit())
+
+                    is_match = False
+                    if db_phone_digits and input_phone_digits:
+                        if db_phone_digits == input_phone_digits:
+                            is_match = True
+                        elif len(db_phone_digits) >= 10 and len(input_phone_digits) >= 10:
+                            is_match = db_phone_digits[-10:] == input_phone_digits[-10:]
+
+                    if not is_match:
+                        raise HTTPException(
+                            status_code=401,
+                            detail="Incorrect password. Please use your registered phone number if you have not set a password."
+                        )
 
                 group = db.fetch_one("SELECT * FROM groups WHERE id = %s", (member.get("group_id"),))
                 if not group:

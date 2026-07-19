@@ -24,6 +24,7 @@ export default function DashboardMatchesPage() {
     const [stats, setStats] = useState({ total: 0, live: 0, scheduled: 0, completed: 0 });
 
     const ownerId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
+    const isMember = typeof window !== "undefined" ? localStorage.getItem("isMember") === "true" : false;
 
     const loadMatches = async () => {
         if (!ownerId) return;
@@ -135,19 +136,21 @@ export default function DashboardMatchesPage() {
                         Create, schedule, and score matches for teams in real time
                     </p>
                 </div>
-                <Link
-                    href="/dashboard/matches/create"
-                    className="m-create-btn"
-                    style={{
-                        textDecoration: "none",
-                        backgroundColor: "#10b981",
-                        color: "#fff",
-                        boxShadow: "0 4px 14px rgba(16, 185, 129, 0.3)",
-                    }}
-                >
-                    <Plus size={16} />
-                    New Match
-                </Link>
+                {!isMember && (
+                    <Link
+                        href="/dashboard/matches/create"
+                        className="m-create-btn"
+                        style={{
+                            textDecoration: "none",
+                            backgroundColor: "#10b981",
+                            color: "#fff",
+                            boxShadow: "0 4px 14px rgba(16, 185, 129, 0.3)",
+                        }}
+                    >
+                        <Plus size={16} />
+                        New Match
+                    </Link>
+                )}
             </div>
 
             {/* Overview Stats */}
@@ -320,13 +323,15 @@ export default function DashboardMatchesPage() {
                                                 <Play size={14} />
                                                 Start Match
                                             </button>
-                                            <button
-                                                onClick={() => deleteMatch(match.id)}
-                                                className="m-btn danger"
-                                                style={{ flex: "0 0 44px" }}
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
+                                            {!isMember && (
+                                                <button
+                                                    onClick={() => deleteMatch(match.id)}
+                                                    className="m-btn danger"
+                                                    style={{ flex: "0 0 44px" }}
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            )}
                                         </>
                                     )}
 
@@ -355,13 +360,15 @@ export default function DashboardMatchesPage() {
                                             >
                                                 Finished
                                             </span>
-                                            <button
-                                                onClick={() => deleteMatch(match.id)}
-                                                className="m-btn danger"
-                                                style={{ flex: "0 0 44px" }}
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
+                                            {!isMember && (
+                                                <button
+                                                    onClick={() => deleteMatch(match.id)}
+                                                    className="m-btn danger"
+                                                    style={{ flex: "0 0 44px" }}
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            )}
                                         </div>
                                     )}
 

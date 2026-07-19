@@ -599,6 +599,25 @@
     outline: none;
 }
 
+.form-group select {
+    padding: 11px 12px;
+    border: 1.5px solid rgba(255, 255, 255, 0.08);
+    border-radius: 9px;
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #f1f5f9;
+    font-family: "Outfit", sans-serif;
+    color-scheme: dark;
+    transition: border-color 0.2s;
+    outline: none;
+    cursor: pointer;
+}
+
+.form-group select option {
+    background: #0e0e18;
+    color: #f1f5f9;
+}
+
 .form-group input::placeholder {
     color: rgba(148, 163, 184, 0.25);
 }
@@ -676,92 +695,7 @@
     background: #f1f5f9;
 }
 
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
 
-.modal-card {
-    background: white;
-    width: 100%;
-    max-width: 500px;
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow:
-        0 20px 25px -5px rgba(0, 0, 0, 0.1),
-        0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-}
-
-.modal-header h2 {
-    margin: 0;
-    font-size: 1.5rem;
-    color: #1e293b;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: #64748b;
-    cursor: pointer;
-}
-
-.form-group-modal {
-    margin-bottom: 20px;
-}
-
-.form-group-modal label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #475569;
-    font-size: 0.9rem;
-}
-
-.form-input-modal {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    background: white;
-    color: #1e293b;
-    outline: none;
-    font-size: 1rem;
-    transition: all 0.2s;
-}
-
-.form-input-modal:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.success-message-modal {
-    background: #ecfdf5;
-    color: #059669;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    border: 1px solid #d1fae5;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
 
 .delete-group-btn {
     display: flex;

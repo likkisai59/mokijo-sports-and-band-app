@@ -22,10 +22,13 @@ export default function Sidebar() {
         }
     }, [pathname]);
 
+    const [memberRole, setMemberRole] = useState("");
+
     useEffect(() => {
         setIsMember(localStorage.getItem("isMember") === "true");
         setClubName(localStorage.getItem("clubName") || "My Club");
         setUserRole(localStorage.getItem("userRole") || "");
+        setMemberRole(localStorage.getItem("memberRole") || "");
         const fetchGroups = async () => {
             const userId = localStorage.getItem("userId");
             if (!userId) return;
@@ -313,7 +316,7 @@ export default function Sidebar() {
                 <span>Events</span>
             </Link>
 
-            {!isMember && (
+            {(!isMember || memberRole === "Referee" || memberRole === "Coach") && (
                 <Link
                     href="/dashboard/matches"
                     className={`menu-item ${pathname.startsWith("/dashboard/matches") ? "active" : ""}`}

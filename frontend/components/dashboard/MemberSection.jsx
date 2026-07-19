@@ -108,10 +108,10 @@ export default function MemberSection() {
                         display: "flex",
                         alignItems: "center",
                         gap: "8px",
-                        backgroundColor: "#f1f5f9",
+                        backgroundColor: "rgba(255, 255, 255, 0.05)",
                         borderRadius: "10px",
                         padding: "8px 14px",
-                        border: "1px solid #e2e8f0",
+                        border: "1px solid var(--border)",
                     }}
                 >
                     <svg viewBox="0 0 24 24" width="16" height="16" stroke="#94a3b8" strokeWidth="2" fill="none">
@@ -128,7 +128,7 @@ export default function MemberSection() {
                             outline: "none",
                             background: "transparent",
                             fontSize: "14px",
-                            color: "#0f172a",
+                            color: "var(--text-primary)",
                             width: "220px",
                         }}
                     />
@@ -148,7 +148,7 @@ export default function MemberSection() {
                     style={{
                         marginTop: "15px",
                         width: "100%",
-                        backgroundColor: "white",
+                        backgroundColor: "var(--bg-surface)",
                         borderRadius: "12px",
                         border: "1px solid var(--border)",
                         overflow: "visible",
@@ -157,26 +157,26 @@ export default function MemberSection() {
                     <table style={{ width: "100%", textAlign: "left", borderCollapse: "collapse" }}>
                         <thead
                             style={{
-                                backgroundColor: "#f8fafc",
+                                backgroundColor: "rgba(255, 255, 255, 0.03)",
                                 borderBottom: "1px solid var(--border)",
                                 borderTopLeftRadius: "12px",
                                 borderTopRightRadius: "12px",
                             }}
                         >
                             <tr>
-                                <th style={{ padding: "16px", fontWeight: "600", color: "#475569", fontSize: "14px" }}>
+                                <th style={{ padding: "16px", fontWeight: "600", color: "var(--text-secondary)", fontSize: "14px" }}>
                                     First Name
                                 </th>
-                                <th style={{ padding: "16px", fontWeight: "600", color: "#475569", fontSize: "14px" }}>
+                                <th style={{ padding: "16px", fontWeight: "600", color: "var(--text-secondary)", fontSize: "14px" }}>
                                     Last Name
                                 </th>
-                                <th style={{ padding: "16px", fontWeight: "600", color: "#475569", fontSize: "14px" }}>
+                                <th style={{ padding: "16px", fontWeight: "600", color: "var(--text-secondary)", fontSize: "14px" }}>
                                     Email
                                 </th>
-                                <th style={{ padding: "16px", fontWeight: "600", color: "#475569", fontSize: "14px" }}>
+                                <th style={{ padding: "16px", fontWeight: "600", color: "var(--text-secondary)", fontSize: "14px" }}>
                                     Phone Number
                                 </th>
-                                <th style={{ padding: "16px", fontWeight: "600", color: "#475569", fontSize: "14px" }}>
+                                <th style={{ padding: "16px", fontWeight: "600", color: "var(--text-secondary)", fontSize: "14px" }}>
                                     Group
                                 </th>
                                 {!isMember && (
@@ -184,7 +184,7 @@ export default function MemberSection() {
                                         style={{
                                             padding: "16px",
                                             fontWeight: "600",
-                                            color: "#475569",
+                                            color: "var(--text-secondary)",
                                             fontSize: "14px",
                                             textAlign: "center",
                                         }}
@@ -198,7 +198,7 @@ export default function MemberSection() {
                             {filteredMembers.map((member, index) => (
                                 <tr
                                     key={index}
-                                    style={{ borderBottom: "1px solid var(--border)", backgroundColor: "white" }}
+                                    style={{ borderBottom: "1px solid var(--border)", backgroundColor: "transparent" }}
                                 >
                                     <td
                                         style={{
@@ -225,9 +225,9 @@ export default function MemberSection() {
                                                 fontSize: "13px",
                                                 padding: "4px 10px",
                                                 backgroundColor:
-                                                    member.role === "Club Admin" ? "#eff6ff" : "var(--bg-secondary)",
+                                                    member.role === "Club Admin" ? "rgba(59, 130, 246, 0.15)" : "rgba(255, 255, 255, 0.05)",
                                                 color:
-                                                    member.role === "Club Admin" ? "#3b82f6" : "var(--text-secondary)",
+                                                    member.role === "Club Admin" ? "#60a5fa" : "var(--text-secondary)",
                                                 borderRadius: "12px",
                                                 fontWeight: "500",
                                             }}
