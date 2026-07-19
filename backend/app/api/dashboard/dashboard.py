@@ -131,7 +131,8 @@ class DashboardLogic(ConnectionService):
                     (owner_id,)
                 )
                 live_match_items = []
-                for match in live_matches[:5]:
+                active_team_activity = []
+                for match in live_matches[:8]:
                     teams = db.fetch_all("SELECT * FROM match_teams WHERE match_id = %s", (match.get("id"),))
                     team_names = [team.get("team_name") for team in teams if team.get("team_name")]
                     live_match_items.append({
@@ -144,6 +145,29 @@ class DashboardLogic(ConnectionService):
                         "teams": team_names,
                         "summary": " vs ".join(team_names) if team_names else match.get("title")
                     })
+
+                    for team in teams:
+                        group_id = team.get("group_id")
+                        if not group_id:
+                            continue
+                        team_members = db.fetch_all(
+                            "SELECT * FROM members WHERE group_id = %s ORDER BY id ASC",
+                            (group_id,)
+                        )
+                        for member in team_members[:4]:
+                            full_name = " ".join(
+                                part for part in [member.get("first_name"), member.get("last_name")] if part
+                            ).strip()
+                            member_name = full_name or member.get("email") or "Team member"
+                            active_team_activity.append({
+                                "member_name": member_name,
+                                "match_title": match.get("title") or "Live match",
+                                "venue": match.get("venue") or "TBA",
+                                "timing": "Live now",
+                                "team_name": team.get("team_name") or "Team",
+                                "match_id": match.get("id"),
+                                "group_id": group_id,
+                            })
                 
                 # Fundraising total raised
                 fundraising_campaigns = db.fetch_all(
@@ -166,6 +190,25 @@ class DashboardLogic(ConnectionService):
                 )
                 total_courses = courses_res.get("count", 0) if courses_res else 0
                 
+                # Retrieve venues registered by venue owners (exclude orphan/demo rows)
+                venues = db.fetch_all(
+                    "SELECT v.*, vo.full_name as owner_name, vo.email as owner_email "
+                    "FROM venues v LEFT JOIN venue_owners vo ON vo.id = v.venue_owner_id "
+                    "WHERE v.venue_owner_id IS NOT NULL "
+                    "ORDER BY v.id DESC"
+                )
+                venues_list = [{
+                    "id": v.get("id"),
+                    "name": v.get("name"),
+                    "location": v.get("location"),
+                    "sports_supported": v.get("sports_supported"),
+                    "verification_status": v.get("verification_status"),
+                    "owner_name": v.get("owner_name") or v.get("contact_email") or "Unknown Owner",
+                    "contact_phone": v.get("contact_phone"),
+                    "contact_email": v.get("contact_email"),
+                    "cover_image": v.get("cover_image")
+                } for v in venues] if venues else []
+
                 return {
                     "total_members": total_members,
                     "total_groups": total_groups,
@@ -177,7 +220,12 @@ class DashboardLogic(ConnectionService):
                     "upcoming_events": upcoming_list,
                     "live_matches_count": len(live_matches),
                     "live_matches": live_match_items,
-                    "groups": [{"id": g.get("id"), "group_name": g.get("group_name"), "activity": g.get("activity")} for g in groups]
+                    "active_team_activity": active_team_activity,
+                    "groups": [
+                        {"id": g.get("id"), "group_name": g.get("group_name"), "activity": g.get("activity")}
+                        for g in groups
+                    ],
+                    "venues": venues_list,
                 }
         except Exception as e:
             await logger.log_error(request=request, message=f"Failed to get dashboard overview: {e}")

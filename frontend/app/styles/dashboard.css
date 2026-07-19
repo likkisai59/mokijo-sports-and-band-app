@@ -240,13 +240,12 @@ body {
     height: 34px;
     background: linear-gradient(135deg, var(--brand), var(--violet));
     color: #050508;
-    border-radius: 6px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 900;
     font-size: 16px;
-    transform: skewX(-6deg);
     box-shadow: 0 4px 12px rgba(191, 254, 0, 0.3);
 }
 
@@ -1403,4 +1402,26 @@ body {
     .members-table-container td:nth-child(6)::before {
         content: "Actions";
     }
+}
+
+/* Hide green/custom scrollbars on dashboard surfaces */
+.sidebar,
+.main-content,
+.dashboard-layout,
+.profile-content,
+.profile-tabs,
+* {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    scrollbar-color: transparent transparent !important;
+}
+.sidebar::-webkit-scrollbar,
+.main-content::-webkit-scrollbar,
+.dashboard-layout::-webkit-scrollbar,
+.profile-content::-webkit-scrollbar,
+.profile-tabs::-webkit-scrollbar,
+*::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
 }

@@ -4,7 +4,29 @@ import { API_BASE_URL } from "@/lib/api";
 import { useEffect, useState } from "react";
 import "../../styles/venues.css";
 
-const SPORTS = ["all", "football", "badminton", "cricket", "tennis", "pickleball"];
+function parseJsonList(value) {
+    if (!value) return [];
+    if (Array.isArray(value)) return value;
+    try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+}
+
+function statusBadgeStyle(status) {
+    if (status === "VERIFIED") {
+        return { background: "rgba(34, 197, 94, 0.15)", color: "#4ade80" };
+    }
+    if (status === "PENDING_VERIFICATION" || status === "UNDER_REVIEW" || status === "MORE_INFO_REQUIRED") {
+        return { background: "rgba(234, 179, 8, 0.15)", color: "#facc15" };
+    }
+    if (status === "REJECTED" || status === "SUSPENDED") {
+        return { background: "rgba(239, 68, 68, 0.15)", color: "#f87171" };
+    }
+    return { background: "rgba(148, 163, 184, 0.15)", color: "#94a3b8" };
+}
 
 export default function VenuesPage() {
     const [venues, setVenues] = useState([]);
@@ -13,29 +35,27 @@ export default function VenuesPage() {
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
     const [searchQuery, setSearchQuery] = useState("");
-    const [sportFilter, setSportFilter] = useState("all");
     const [loading, setLoading] = useState(false);
-    const [bookingStatus, setBookingStatus] = useState(null); // null, 'loading', 'success', 'error'
+    const [bookingStatus, setBookingStatus] = useState(null);
     const [bookingMessage, setBookingMessage] = useState("");
 
     const fetchVenues = async () => {
         setLoading(true);
         try {
-            let url = `${API_BASE_URL}/venues`;
-            const params = [];
-            if (sportFilter !== "all") params.push(`sport=${sportFilter}`);
-            if (searchQuery) params.push(`location=${searchQuery}`);
-            if (params.length > 0) {
-                url += "?" + params.join("&");
+            const params = new URLSearchParams({ registered: "true" });
+            if (searchQuery.trim()) {
+                params.set("location", searchQuery.trim());
             }
-
-            const response = await fetch(url);
+            const response = await fetch(`${API_BASE_URL}/venues?${params.toString()}`);
             if (response.ok) {
                 const data = await response.json();
-                setVenues(data);
+                setVenues(Array.isArray(data) ? data : []);
+            } else {
+                setVenues([]);
             }
         } catch (error) {
             console.error("Error fetching venues:", error);
+            setVenues([]);
         } finally {
             setLoading(false);
         }
@@ -46,16 +66,19 @@ export default function VenuesPage() {
             const response = await fetch(`${API_BASE_URL}/venues/${venueId}/slots?date_str=${date}`);
             if (response.ok) {
                 const data = await response.json();
-                setSlots(data);
+                setSlots(Array.isArray(data) ? data : []);
+            } else {
+                setSlots([]);
             }
         } catch (error) {
             console.error("Error fetching slots:", error);
+            setSlots([]);
         }
     };
 
     useEffect(() => {
         fetchVenues();
-    }, [sportFilter, searchQuery]);
+    }, [searchQuery]);
 
     useEffect(() => {
         if (selectedVenue) {
@@ -63,101 +86,6 @@ export default function VenuesPage() {
             setSelectedSlot(null);
         }
     }, [selectedVenue, date]);
-
-    const handleCreateDemoData = async () => {
-        setLoading(true);
-        try {
-            const userId = localStorage.getItem("userId") || 9; // Fallback to test user ID
-
-            // Onboard 3 Venues
-            const demoVenues = [
-                {
-                    owner_id: userId,
-                    name: "Camp Nou Arena",
-                    location: "Sector 62, Noida",
-                    latitude: 28.62,
-                    longitude: 77.37,
-                    sports_supported: '["football", "tennis"]',
-                    amenities: '["Free Parking", "Showers", "Drinking Water"]',
-                    rating: 4.8,
-                },
-                {
-                    owner_id: userId,
-                    name: "Smash Badminton Center",
-                    location: "Gachibowli, Hyderabad",
-                    latitude: 17.44,
-                    longitude: 78.34,
-                    sports_supported: '["badminton", "pickleball"]',
-                    amenities: '["AC Courts", "Pro Shop", "Locker Room"]',
-                    rating: 4.9,
-                },
-                {
-                    owner_id: userId,
-                    name: "Wankhede Cricket Turf",
-                    location: "Bandra West, Mumbai",
-                    latitude: 19.05,
-                    longitude: 72.82,
-                    sports_supported: '["cricket", "football"]',
-                    amenities: '["Floodlights", "Cafeteria", "Coaching Equipment"]',
-                    rating: 4.7,
-                },
-            ];
-
-            for (const dv of demoVenues) {
-                const vRes = await fetch(`${API_BASE_URL}/venues`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(dv),
-                });
-
-                if (vRes.ok) {
-                    const venue = await vRes.json();
-
-                    // Generate 4 slots for this venue starting on today, tomorrow, and day after
-                    const mockSlots = [];
-                    const sports = JSON.parse(venue.sports_supported);
-
-                    for (let dayOffset = 0; dayOffset < 3; dayOffset++) {
-                        const baseDate = new Date();
-                        baseDate.setDate(baseDate.getDate() + dayOffset);
-                        const datePart = baseDate.toISOString().split("T")[0];
-
-                        // Time slots
-                        const times = [
-                            { start: "07:00", end: "08:00", price: 1200 },
-                            { start: "09:00", end: "10:00", price: 1000 },
-                            { start: "17:00", end: "18:00", price: 1500 },
-                            { start: "19:00", end: "20:00", price: 1800 },
-                        ];
-
-                        times.forEach((t, i) => {
-                            mockSlots.push({
-                                venue_id: venue.id,
-                                sport: sports[i % sports.length],
-                                start_time: `${datePart}T${t.start}:00`,
-                                end_time: `${datePart}T${t.end}:00`,
-                                base_price: t.price,
-                                current_price: t.price,
-                                is_blocked: false,
-                            });
-                        });
-                    }
-
-                    await fetch(`${API_BASE_URL}/venues/${venue.id}/slots`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(mockSlots),
-                    });
-                }
-            }
-
-            await fetchVenues();
-        } catch (error) {
-            console.error("Error creating demo data:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleConfirmBooking = async () => {
         if (!selectedSlot) return;
@@ -204,27 +132,15 @@ export default function VenuesPage() {
 
     return (
         <div className="venues-container">
-            {/* Header */}
             <header className="venues-header">
                 <div>
                     <h1>Venues & Arenas</h1>
-                    <p>Discover hyperlocal turfs, courts, and book your sports slots instantly.</p>
+                    <p>Browse venues registered by venue owners and book available slots.</p>
                 </div>
-                {venues.length === 0 && !loading && (
-                    <button
-                        onClick={handleCreateDemoData}
-                        className="sport-filter-btn active"
-                        style={{ transform: "skewX(-8deg)" }}
-                    >
-                        Pre-populate Demo Arenas
-                    </button>
-                )}
             </header>
 
-            {/* Main view switcher */}
             {!selectedVenue ? (
                 <>
-                    {/* Filters Toolbar */}
                     <div className="venues-toolbar">
                         <div className="search-box">
                             <svg
@@ -240,60 +156,86 @@ export default function VenuesPage() {
                             </svg>
                             <input
                                 type="text"
-                                placeholder="Search location or arena name..."
+                                placeholder="Search venues..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
-
-                        <div className="sport-filters">
-                            {SPORTS.map((sport) => (
-                                <button
-                                    key={sport}
-                                    className={`sport-filter-btn ${sportFilter === sport ? "active" : ""}`}
-                                    onClick={() => setSportFilter(sport)}
-                                >
-                                    {sport}
-                                </button>
-                            ))}
-                        </div>
                     </div>
 
-                    {/* Loading State */}
                     {loading && (
                         <div style={{ textAlign: "center", padding: "40px 0", color: "#64748b" }}>
                             <p>Loading sports venues...</p>
                         </div>
                     )}
 
-                    {/* Grid List */}
                     {!loading && (
                         <div className="venues-grid">
                             {venues.map((venue) => {
-                                const sports = venue.sports_supported ? JSON.parse(venue.sports_supported) : [];
+                                const sports = parseJsonList(venue.sports_supported);
+                                const status = venue.verification_status || "DRAFT";
+                                const rating =
+                                    typeof venue.rating === "number" ? venue.rating.toFixed(1) : "5.0";
                                 return (
-                                    <div key={venue.id} className="venue-card" onClick={() => setSelectedVenue(venue)}>
+                                    <div
+                                        key={venue.id}
+                                        className="venue-card"
+                                        onClick={() => setSelectedVenue(venue)}
+                                    >
                                         <div className="venue-cover">
-                                            <svg
-                                                viewBox="0 0 24 24"
-                                                width="48"
-                                                height="48"
-                                                stroke="currentColor"
-                                                strokeWidth="1"
-                                                fill="none"
-                                            >
-                                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                                                <circle cx="12" cy="10" r="3"></circle>
-                                            </svg>
+                                            {venue.cover_image ? (
+                                                <img
+                                                    src={venue.cover_image}
+                                                    alt={venue.name}
+                                                    style={{
+                                                        width: "100%",
+                                                        height: "100%",
+                                                        objectFit: "cover",
+                                                        display: "block",
+                                                    }}
+                                                />
+                                            ) : (
+                                                <svg
+                                                    viewBox="0 0 24 24"
+                                                    width="48"
+                                                    height="48"
+                                                    stroke="currentColor"
+                                                    strokeWidth="1"
+                                                    fill="none"
+                                                >
+                                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                                    <circle cx="12" cy="10" r="3"></circle>
+                                                </svg>
+                                            )}
                                         </div>
                                         <div className="venue-body">
-                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                                <h3 className="venue-title" style={{ margin: 0 }}>{venue.name}</h3>
-                                                {venue.verification_status === "VERIFIED" && (
-                                                    <span style={{ fontSize: 10, background: "rgba(34, 197, 94, 0.15)", color: "#4ade80", padding: "2px 8px", borderRadius: 4, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                                                        ✓ Verified
-                                                    </span>
-                                                )}
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    justifyContent: "space-between",
+                                                    alignItems: "center",
+                                                    gap: 8,
+                                                }}
+                                            >
+                                                <h3 className="venue-title" style={{ margin: 0 }}>
+                                                    {venue.name}
+                                                </h3>
+                                                <span
+                                                    style={{
+                                                        fontSize: 10,
+                                                        padding: "2px 8px",
+                                                        borderRadius: 4,
+                                                        fontWeight: 700,
+                                                        textTransform: "uppercase",
+                                                        letterSpacing: "0.5px",
+                                                        whiteSpace: "nowrap",
+                                                        ...statusBadgeStyle(status),
+                                                    }}
+                                                >
+                                                    {status === "VERIFIED"
+                                                        ? "✓ Verified"
+                                                        : status.replace(/_/g, " ")}
+                                                </span>
                                             </div>
                                             <div className="venue-location">
                                                 <svg
@@ -318,9 +260,9 @@ export default function VenuesPage() {
                                             </div>
                                             <div className="venue-footer">
                                                 <div className="venue-rating">
-                                                    ★ <span>{venue.rating.toFixed(1)}</span>
+                                                    ★ <span>{rating}</span>
                                                 </div>
-                                                <span className="book-now-text">Instantly Book →</span>
+                                                <span className="book-now-text">View slots →</span>
                                             </div>
                                         </div>
                                     </div>
@@ -328,27 +270,30 @@ export default function VenuesPage() {
                             })}
                             {venues.length === 0 && (
                                 <div className="empty-slots-box" style={{ gridColumn: "1 / -1", padding: "60px" }}>
-                                    <p>
-                                        No venues found. Please click &quot;Pre-populate Demo Arenas&quot; to load mock
-                                        sports facilities.
-                                    </p>
+                                    <p>No registered venues yet.</p>
                                 </div>
                             )}
                         </div>
                     )}
                 </>
             ) : (
-                /* Details & Slots View */
                 <div className="venue-details-grid">
-                    {/* Left Info Bar */}
                     <div className="venue-info-sidebar">
                         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: "14px" }}>
                             <h2 style={{ margin: 0 }}>{selectedVenue.name}</h2>
-                            {selectedVenue.verification_status === "VERIFIED" && (
-                                <span style={{ fontSize: 11, background: "rgba(34, 197, 94, 0.15)", color: "#4ade80", padding: "2px 8px", borderRadius: 4, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                                    ✓ Verified
-                                </span>
-                            )}
+                            <span
+                                style={{
+                                    fontSize: 11,
+                                    padding: "2px 8px",
+                                    borderRadius: 4,
+                                    fontWeight: 700,
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.5px",
+                                    ...statusBadgeStyle(selectedVenue.verification_status || "DRAFT"),
+                                }}
+                            >
+                                {(selectedVenue.verification_status || "DRAFT").replace(/_/g, " ")}
+                            </span>
                         </div>
                         <div className="venue-location" style={{ marginBottom: "14px" }}>
                             <svg
@@ -365,7 +310,13 @@ export default function VenuesPage() {
                             <span>{selectedVenue.location}</span>
                         </div>
                         <div className="venue-rating" style={{ marginBottom: "20px" }}>
-                            ★ <span>{selectedVenue.rating.toFixed(1)} Rating</span>
+                            ★{" "}
+                            <span>
+                                {typeof selectedVenue.rating === "number"
+                                    ? selectedVenue.rating.toFixed(1)
+                                    : "5.0"}{" "}
+                                Rating
+                            </span>
                         </div>
                         <p>
                             This arena offers premium quality playing surfaces, changing room facilities, and is highly
@@ -383,7 +334,7 @@ export default function VenuesPage() {
                             >
                                 Amenities
                             </h4>
-                            {(selectedVenue.amenities ? JSON.parse(selectedVenue.amenities) : []).map((amenity) => (
+                            {parseJsonList(selectedVenue.amenities).map((amenity) => (
                                 <div key={amenity} className="amenity-item">
                                     <svg
                                         viewBox="0 0 24 24"
@@ -409,7 +360,6 @@ export default function VenuesPage() {
                         </button>
                     </div>
 
-                    {/* Right Slots Panel */}
                     <div className="slots-panel">
                         <div className="slots-header">
                             <h3>Available Time Slots</h3>
@@ -457,7 +407,6 @@ export default function VenuesPage() {
                             )}
                         </div>
 
-                        {/* Confirmation Box */}
                         <div className="confirm-booking-box">
                             <button
                                 className="confirm-booking-btn"
@@ -471,7 +420,6 @@ export default function VenuesPage() {
                 </div>
             )}
 
-            {/* Confirmation Overlay Modal */}
             {bookingStatus && bookingStatus !== "loading" && (
                 <div className="modal-overlay" onClick={() => setBookingStatus(null)}>
                     <div

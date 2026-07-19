@@ -29,24 +29,25 @@
 
 .support-title {
     font-size: 24px;
-    color: #1e293b;
+    color: #f1f5f9;
     margin-bottom: 8px;
 }
 
 .support-subtitle {
-    color: #64748b;
+    color: rgba(148, 163, 184, 0.7);
 }
 
 .donation-form-card {
-    background: white;
+    background: rgba(15, 15, 26, 0.85);
     padding: 32px;
     border-radius: 20px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
     width: 100%;
     max-width: 600px;
-    border: 1px solid #f1f5f9;
+    border: 1px solid rgba(255, 255, 255, 0.07);
     position: relative;
     overflow: hidden;
+    backdrop-filter: blur(12px);
 }
 
 .card-accent {
@@ -84,10 +85,10 @@
 }
 
 .progress-summary {
-    background: #f8fafc;
+    background: rgba(255, 255, 255, 0.03);
     padding: 16px;
     border-radius: 12px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.06);
     margin-top: 8px;
     display: flex;
     flex-direction: column;
@@ -101,12 +102,12 @@
 }
 
 .summary-label {
-    color: #64748b;
+    color: rgba(148, 163, 184, 0.6);
 }
 
 .summary-value {
     font-weight: 700;
-    color: #0f172a;
+    color: #f1f5f9;
 }
 
 .summary-value.progress {

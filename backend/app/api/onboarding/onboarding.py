@@ -139,12 +139,11 @@ class OnboardingRouting(ConnectionService):
         self,
         request: Request,
         role: str,
-        owner_id: int,
-        current_user: dict = Depends(check_user_authorization)
+        owner_id: int
     ):
-        await logger.log_message(request=request, message="Get signup form by role router start", step="ROUTER_START", user_info=current_user)
+        await logger.log_message(request=request, message="Get signup form by role router start", step="ROUTER_START")
         logic = OnboardingLogic()
-        return await logic.get_signup_form_by_role(request, role, owner_id, current_user)
+        return await logic.get_signup_form_by_role(request, role, owner_id)
 
     async def upsert_signup_form(
         self,
@@ -240,7 +239,7 @@ class OnboardingLogic(ConnectionService):
             await logger.log_error(request=request, message=f"Failed getting signup forms: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
 
-    async def get_signup_form_by_role(self, request: Request, role: str, owner_id: int, current_user: dict):
+    async def get_signup_form_by_role(self, request: Request, role: str, owner_id: int, current_user: dict = None):
         try:
             with logger.time_operation("GET_SIGNUP_FORM_BY_ROLE", request=request):
                 db = self.db_driver

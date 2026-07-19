@@ -26,23 +26,20 @@ export default function MemberSection() {
                     const data = await response.json();
 
                     if (isMember) {
-                        // For a member, only show teammates in their assigned squad group!
                         const currentMember = data.find((m) => m.email?.toLowerCase() === userEmail?.toLowerCase());
                         if (currentMember && currentMember.group_id) {
                             const teammates = data.filter((m) => m.group_id === currentMember.group_id);
                             setMembers(teammates);
                         } else {
-                            // fallback: show other members but exclude admin
                             setMembers(data);
                         }
                     } else {
-                        // Add admin explicitly as a member for context
                         const storedName = localStorage.getItem("userName") || "Admin";
                         const adminMember = {
                             id: "admin",
                             first_name: storedName.split(" ")[0] || storedName,
                             last_name: storedName.split(" ")[1] || "",
-                            email: "Admin Email", // Placeholder
+                            email: "Admin Email",
                             role: "Club Admin",
                             group_name: "All Groups",
                         };
@@ -99,6 +96,7 @@ export default function MemberSection() {
                 boxShadow: "none",
                 padding: "32px 48px",
                 minHeight: "calc(100vh - 96px)",
+                background: "transparent",
             }}
         >
             <div className="event-top">
@@ -108,10 +106,10 @@ export default function MemberSection() {
                         display: "flex",
                         alignItems: "center",
                         gap: "8px",
-                        backgroundColor: "#f1f5f9",
+                        backgroundColor: "rgba(255, 255, 255, 0.04)",
                         borderRadius: "10px",
                         padding: "8px 14px",
-                        border: "1px solid #e2e8f0",
+                        border: "1px solid rgba(255, 255, 255, 0.08)",
                     }}
                 >
                     <svg viewBox="0 0 24 24" width="16" height="16" stroke="#94a3b8" strokeWidth="2" fill="none">
@@ -128,7 +126,7 @@ export default function MemberSection() {
                             outline: "none",
                             background: "transparent",
                             fontSize: "14px",
-                            color: "#0f172a",
+                            color: "#f1f5f9",
                             width: "220px",
                         }}
                     />
@@ -148,35 +146,35 @@ export default function MemberSection() {
                     style={{
                         marginTop: "15px",
                         width: "100%",
-                        backgroundColor: "white",
+                        backgroundColor: "rgba(15, 15, 26, 0.85)",
                         borderRadius: "12px",
-                        border: "1px solid var(--border)",
+                        border: "1px solid rgba(255, 255, 255, 0.07)",
                         overflow: "visible",
                     }}
                 >
                     <table style={{ width: "100%", textAlign: "left", borderCollapse: "collapse" }}>
                         <thead
                             style={{
-                                backgroundColor: "#f8fafc",
-                                borderBottom: "1px solid var(--border)",
+                                backgroundColor: "rgba(255, 255, 255, 0.04)",
+                                borderBottom: "1px solid rgba(255, 255, 255, 0.07)",
                                 borderTopLeftRadius: "12px",
                                 borderTopRightRadius: "12px",
                             }}
                         >
                             <tr>
-                                <th style={{ padding: "16px", fontWeight: "600", color: "#475569", fontSize: "14px" }}>
+                                <th style={{ padding: "16px", fontWeight: "600", color: "#94a3b8", fontSize: "14px" }}>
                                     First Name
                                 </th>
-                                <th style={{ padding: "16px", fontWeight: "600", color: "#475569", fontSize: "14px" }}>
+                                <th style={{ padding: "16px", fontWeight: "600", color: "#94a3b8", fontSize: "14px" }}>
                                     Last Name
                                 </th>
-                                <th style={{ padding: "16px", fontWeight: "600", color: "#475569", fontSize: "14px" }}>
+                                <th style={{ padding: "16px", fontWeight: "600", color: "#94a3b8", fontSize: "14px" }}>
                                     Email
                                 </th>
-                                <th style={{ padding: "16px", fontWeight: "600", color: "#475569", fontSize: "14px" }}>
+                                <th style={{ padding: "16px", fontWeight: "600", color: "#94a3b8", fontSize: "14px" }}>
                                     Phone Number
                                 </th>
-                                <th style={{ padding: "16px", fontWeight: "600", color: "#475569", fontSize: "14px" }}>
+                                <th style={{ padding: "16px", fontWeight: "600", color: "#94a3b8", fontSize: "14px" }}>
                                     Group
                                 </th>
                                 {!isMember && (
@@ -184,7 +182,7 @@ export default function MemberSection() {
                                         style={{
                                             padding: "16px",
                                             fontWeight: "600",
-                                            color: "#475569",
+                                            color: "#94a3b8",
                                             fontSize: "14px",
                                             textAlign: "center",
                                         }}
@@ -198,25 +196,28 @@ export default function MemberSection() {
                             {filteredMembers.map((member, index) => (
                                 <tr
                                     key={index}
-                                    style={{ borderBottom: "1px solid var(--border)", backgroundColor: "white" }}
+                                    style={{
+                                        borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
+                                        backgroundColor: "transparent",
+                                    }}
                                 >
                                     <td
                                         style={{
                                             padding: "16px",
-                                            color: "var(--text-primary)",
+                                            color: "#f1f5f9",
                                             fontSize: "15px",
                                             fontWeight: "500",
                                         }}
                                     >
                                         {member.first_name}
                                     </td>
-                                    <td style={{ padding: "16px", color: "var(--text-primary)", fontSize: "15px" }}>
+                                    <td style={{ padding: "16px", color: "#f1f5f9", fontSize: "15px" }}>
                                         {member.last_name || "-"}
                                     </td>
-                                    <td style={{ padding: "16px", color: "var(--text-secondary)", fontSize: "15px" }}>
+                                    <td style={{ padding: "16px", color: "#94a3b8", fontSize: "15px" }}>
                                         {member.email || "-"}
                                     </td>
-                                    <td style={{ padding: "16px", color: "var(--text-secondary)", fontSize: "15px" }}>
+                                    <td style={{ padding: "16px", color: "#94a3b8", fontSize: "15px" }}>
                                         {member.phone || "-"}
                                     </td>
                                     <td style={{ padding: "16px" }}>
@@ -225,9 +226,11 @@ export default function MemberSection() {
                                                 fontSize: "13px",
                                                 padding: "4px 10px",
                                                 backgroundColor:
-                                                    member.role === "Club Admin" ? "#eff6ff" : "var(--bg-secondary)",
+                                                    member.role === "Club Admin"
+                                                        ? "rgba(191, 254, 0, 0.12)"
+                                                        : "rgba(255, 255, 255, 0.06)",
                                                 color:
-                                                    member.role === "Club Admin" ? "#3b82f6" : "var(--text-secondary)",
+                                                    member.role === "Club Admin" ? "#bffe00" : "#94a3b8",
                                                 borderRadius: "12px",
                                                 fontWeight: "500",
                                             }}
@@ -254,7 +257,7 @@ export default function MemberSection() {
                                                             background: "none",
                                                             border: "none",
                                                             cursor: "pointer",
-                                                            color: "#64748b",
+                                                            color: "#94a3b8",
                                                             padding: "6px",
                                                             borderRadius: "6px",
                                                             display: "inline-flex",
@@ -264,11 +267,12 @@ export default function MemberSection() {
                                                         }}
                                                         title="Edit Member"
                                                         onMouseOver={(e) => {
-                                                            e.currentTarget.style.color = "#3b82f6";
-                                                            e.currentTarget.style.backgroundColor = "#eff6ff";
+                                                            e.currentTarget.style.color = "#bffe00";
+                                                            e.currentTarget.style.backgroundColor =
+                                                                "rgba(191, 254, 0, 0.1)";
                                                         }}
                                                         onMouseOut={(e) => {
-                                                            e.currentTarget.style.color = "#64748b";
+                                                            e.currentTarget.style.color = "#94a3b8";
                                                             e.currentTarget.style.backgroundColor = "transparent";
                                                         }}
                                                     >
@@ -285,7 +289,7 @@ export default function MemberSection() {
                                                             background: "none",
                                                             border: "none",
                                                             cursor: "pointer",
-                                                            color: "#64748b",
+                                                            color: "#94a3b8",
                                                             padding: "6px",
                                                             borderRadius: "6px",
                                                             display: "inline-flex",
@@ -296,10 +300,11 @@ export default function MemberSection() {
                                                         title="Delete Member"
                                                         onMouseOver={(e) => {
                                                             e.currentTarget.style.color = "#ef4444";
-                                                            e.currentTarget.style.backgroundColor = "#fef2f2";
+                                                            e.currentTarget.style.backgroundColor =
+                                                                "rgba(239, 68, 68, 0.12)";
                                                         }}
                                                         onMouseOut={(e) => {
-                                                            e.currentTarget.style.color = "#64748b";
+                                                            e.currentTarget.style.color = "#94a3b8";
                                                             e.currentTarget.style.backgroundColor = "transparent";
                                                         }}
                                                     >

@@ -99,7 +99,7 @@ export default function VenueSidebar() {
                     <div className="vd-sidebar-section">{section.label}</div>
                     {section.items.map((item) => (
                         <Link
-                            key={item.href}
+                            key={item.label}
                             href={item.href}
                             className={`vd-nav-item ${pathname === item.href ? "active" : ""}`}
                         >

@@ -470,7 +470,7 @@ export default function SignupFormsDashboard() {
 
                                     return (
                                         <tr key={sub.id}>
-                                            <td style={{ fontWeight: 600, color: "#0f172a" }}>{name}</td>
+                                            <td style={{ fontWeight: 600, color: "var(--text-primary, #f1f5f9)" }}>{name}</td>
                                             <td>
                                                 <span className={`app-role-badge ${roleClass}`}>{sub.role}</span>
                                             </td>
@@ -482,8 +482,8 @@ export default function SignupFormsDashboard() {
                                                         alignItems: "center",
                                                         padding: "4px 10px",
                                                         borderRadius: "6px",
-                                                        background: "#fff7ed",
-                                                        color: "#9a3412",
+                                                        background: "rgba(234, 179, 8, 0.15)",
+                                                        color: "#facc15",
                                                         fontSize: "12px",
                                                         fontWeight: 700,
                                                     }}
@@ -625,7 +625,7 @@ export default function SignupFormsDashboard() {
                     </div>
 
                     <p style={{ fontSize: "14px", color: "#64748b", margin: "0 0 20px 0", lineHeight: 1.5 }}>
-                        Accept <strong style={{ color: "#0f172a" }}>{name}</strong> ({approvingSubmission.role}) into
+                        Accept <strong style={{ color: "var(--text-primary, #f1f5f9)" }}>{name}</strong> ({approvingSubmission.role}) into
                         the club. After you accept, they can log in with the email and password used during
                         registration.
                     </p>
@@ -722,16 +722,16 @@ export default function SignupFormsDashboard() {
                 <div
                     style={{
                         maxWidth: "520px",
-                        background: "#fff7ed",
-                        border: "1px solid #fed7aa",
-                        color: "#9a3412",
+                        background: "rgba(234, 179, 8, 0.12)",
+                        border: "1px solid rgba(234, 179, 8, 0.35)",
+                        color: "#facc15",
                         padding: "22px",
                         borderRadius: "8px",
                         textAlign: "center",
                     }}
                 >
                     <ShieldAlert size={28} style={{ marginBottom: "10px" }} />
-                    <h2 style={{ margin: "0 0 8px", color: "#7c2d12", fontSize: "20px" }}>Admin Login Needed</h2>
+                    <h2 style={{ margin: "0 0 8px", color: "#fde68a", fontSize: "20px" }}>Admin Login Needed</h2>
                     <p style={{ margin: "0 0 18px", fontSize: "14px", lineHeight: 1.5 }}>{sessionError}</p>
                     <button
                         className="save-btn"
@@ -754,7 +754,7 @@ export default function SignupFormsDashboard() {
             ) : (
                 <>
                     <div style={{ marginBottom: "24px" }}>
-                        <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#0f172a", margin: 0 }}>
+                        <h1 style={{ fontSize: "28px", fontWeight: 700, color: "var(--text-primary, #f1f5f9)", margin: 0 }}>
                             Club Signups and Forms
                         </h1>
                         <p style={{ fontSize: "14px", color: "#64748b", margin: "4px 0 0" }}>

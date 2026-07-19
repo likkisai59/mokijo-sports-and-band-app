@@ -304,7 +304,7 @@ export default function MatchesPage() {
                                 <div className="m-card-actions">
                                     {match.status === "scheduled" && (
                                         <>
-                                            <button onClick={() => startMatch(match.id)} className="m-btn primary">
+                                            <button onClick={() => startMatch(match.id)} className="m-btn start">
                                                 <Play size={14} />
                                                 Start Match
                                             </button>

@@ -315,6 +315,18 @@
     opacity: 0.9;
 }
 
+.m-btn.start {
+    background: #16a34a;
+    color: #ffffff;
+    border: 1px solid #22c55e;
+    box-shadow: 0 4px 14px rgba(22, 163, 74, 0.45);
+    font-weight: 800;
+}
+.m-btn.start:hover {
+    background: #15803d;
+    opacity: 1;
+}
+
 .m-btn.secondary {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--vd-border);

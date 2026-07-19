@@ -305,7 +305,6 @@ export default function DonationFormPage() {
                             onChange={handleChange}
                             style={{
                                 width: "100%",
-                                background: "#fff",
                                 cursor: "pointer",
                                 height: "46px",
                                 appearance: "auto",

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
+import NotificationBell from "../dashboard/NotificationBell";
 
 export default function VenueTopHeader() {
     const [ownerName, setOwnerName] = useState("Venue Owner");
@@ -36,7 +37,8 @@ export default function VenueTopHeader() {
         <header className="vd-header">
             <span className="vd-header-logo">Mukijo</span>
             <span className="vd-header-title">Venue Partner Dashboard</span>
-            <div className="vd-header-right" style={{ position: "relative" }}>
+            <div className="vd-header-right" style={{ position: "relative", display: "flex", alignItems: "center", gap: "12px" }}>
+                <NotificationBell mode="empty" />
                 <div
                     className="vd-owner-badge"
                     onClick={(e) => {
