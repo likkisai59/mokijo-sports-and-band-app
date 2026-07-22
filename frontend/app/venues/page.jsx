@@ -134,7 +134,7 @@ function VenueSearchContent() {
                     <span>Back to Dashboard</span>
                 </Link>
                 <div style={styles.brand}>
-                    <Compass size={24} style={{ color: "#bffe00" }} />
+                    <Compass size={24} style={{ color: "#c6ff3d" }} />
                     <h1 style={styles.brandTitle}>Discover Venues</h1>
                 </div>
             </header>
@@ -162,9 +162,9 @@ function VenueSearchContent() {
                                 onClick={() => setSelectedSport(sport)}
                                 style={{
                                     ...styles.sportChip,
-                                    backgroundColor: selectedSport === sport ? "#bffe00" : "rgba(255, 255, 255, 0.04)",
-                                    color: selectedSport === sport ? "#050508" : "rgba(241, 245, 249, 0.7)",
-                                    borderColor: selectedSport === sport ? "#bffe00" : "rgba(255, 255, 255, 0.08)",
+                                    backgroundColor: selectedSport === sport ? "#c6ff3d" : "rgba(255, 255, 255, 0.04)",
+                                    color: selectedSport === sport ? "#08080f" : "rgba(244, 244, 245, 0.7)",
+                                    borderColor: selectedSport === sport ? "#c6ff3d" : "rgba(255, 255, 255, 0.08)",
                                 }}
                             >
                                 {sport.toUpperCase()}
@@ -279,7 +279,7 @@ function VenueSearchContent() {
                 {/* Loading state */}
                 {loading ? (
                     <div style={styles.loadingContainer}>
-                        <Loader2 className="animate-spin" size={32} style={{ color: "#bffe00" }} />
+                        <Loader2 className="animate-spin" size={32} style={{ color: "#c6ff3d" }} />
                         <p style={{ marginTop: "16px", color: "rgba(148, 163, 184, 0.6)" }}>
                             Searching sports arenas nearby...
                         </p>
@@ -315,7 +315,7 @@ function VenueSearchContent() {
                                     </div>
                                     {venue.distance !== undefined && venue.distance !== null && (
                                         <div style={styles.distanceBadge}>
-                                            <MapPin size={12} style={{ color: "#00f0ff" }} />
+                                            <MapPin size={12} style={{ color: "#d9ff6e" }} />
                                             <span>{venue.distance} km</span>
                                         </div>
                                     )}
@@ -374,7 +374,7 @@ const styles = {
     container: {
         minHeight: "100vh",
         backgroundColor: "#08080f",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         fontFamily: "'Outfit', sans-serif",
         paddingBottom: "80px",
     },
@@ -383,7 +383,7 @@ const styles = {
         justifyContent: "space-between",
         alignItems: "center",
         padding: "20px 40px",
-        background: "rgba(15, 15, 26, 0.8)",
+        background: "rgba(20, 20, 31, 0.8)",
         backdropFilter: "blur(12px)",
         borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
         position: "sticky",
@@ -394,7 +394,7 @@ const styles = {
         display: "flex",
         alignItems: "center",
         gap: "8px",
-        color: "#00f0ff",
+        color: "#d9ff6e",
         textDecoration: "none",
         fontSize: "14px",
         fontWeight: "600",
@@ -418,7 +418,7 @@ const styles = {
         padding: "40px",
     },
     filterSection: {
-        background: "linear-gradient(135deg, rgba(15, 15, 26, 0.9) 0%, rgba(20, 20, 35, 0.7) 100%)",
+        background: "linear-gradient(135deg, rgba(20, 20, 31, 0.9) 0%, rgba(20, 20, 35, 0.7) 100%)",
         border: "1px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "16px",
         padding: "30px",
@@ -446,7 +446,7 @@ const styles = {
         border: "1.5px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "12px",
         fontSize: "15px",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         outline: "none",
         transition: "all 0.25s ease",
         fontFamily: "'Outfit', sans-serif",
@@ -493,7 +493,7 @@ const styles = {
         gap: "30px",
     },
     card: {
-        background: "rgba(15, 15, 26, 0.6)",
+        background: "rgba(20, 20, 31, 0.6)",
         border: "1px solid rgba(255, 255, 255, 0.05)",
         borderRadius: "16px",
         overflow: "hidden",
@@ -518,7 +518,7 @@ const styles = {
         position: "absolute",
         top: "12px",
         right: "12px",
-        background: "rgba(15, 15, 26, 0.8)",
+        background: "rgba(20, 20, 31, 0.8)",
         backdropFilter: "blur(4px)",
         borderRadius: "8px",
         padding: "4px 8px",
@@ -559,11 +559,11 @@ const styles = {
     cardSportChip: {
         fontSize: "10px",
         fontWeight: "700",
-        color: "#00f0ff",
-        background: "rgba(0, 240, 255, 0.06)",
+        color: "#d9ff6e",
+        background: "rgba(217, 255, 110, 0.06)",
         padding: "3px 8px",
         borderRadius: "4px",
-        border: "1px solid rgba(0, 240, 255, 0.12)",
+        border: "1px solid rgba(217, 255, 110, 0.12)",
         textTransform: "uppercase",
     },
     cardFooter: {
@@ -588,8 +588,8 @@ const styles = {
         color: "rgba(148, 163, 184, 0.4)",
     },
     bookBtn: {
-        background: "linear-gradient(135deg, #bffe00, #00f0ff)",
-        color: "#050508",
+        background: "linear-gradient(135deg, #c6ff3d, #d9ff6e)",
+        color: "#08080f",
         border: "none",
         padding: "8px 18px",
         borderRadius: "8px",
@@ -601,13 +601,13 @@ const styles = {
         cursor: "pointer",
         transition: "all 0.25s ease",
         transform: "skewX(-6deg)",
-        boxShadow: "0 4px 12px rgba(191, 254, 0, 0.2)",
+        boxShadow: "0 4px 12px rgba(198, 255, 61, 0.2)",
     },
     distanceBadge: {
         position: "absolute",
         top: "12px",
         left: "12px",
-        background: "rgba(15, 15, 26, 0.8)",
+        background: "rgba(20, 20, 31, 0.8)",
         backdropFilter: "blur(4px)",
         borderRadius: "8px",
         padding: "4px 8px",
@@ -616,7 +616,7 @@ const styles = {
         gap: "4px",
         fontSize: "12px",
         fontWeight: "700",
-        color: "#00f0ff",
+        color: "#d9ff6e",
         border: "1px solid rgba(255, 255, 255, 0.08)",
     },
     filtersGrid: {
@@ -635,7 +635,7 @@ const styles = {
     filterLabel: {
         fontSize: "12px",
         fontWeight: "700",
-        color: "rgba(241, 245, 249, 0.5)",
+        color: "rgba(244, 244, 245, 0.5)",
         textTransform: "uppercase",
         letterSpacing: "0.05em",
     },
@@ -646,7 +646,7 @@ const styles = {
         border: "1px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "8px",
         fontSize: "13px",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         outline: "none",
         cursor: "pointer",
         transition: "all 0.2s ease",
@@ -664,10 +664,10 @@ const styles = {
         justifyContent: "center",
         gap: "8px",
         padding: "10px 14px",
-        background: "rgba(0, 240, 255, 0.06)",
-        border: "1px solid rgba(0, 240, 255, 0.15)",
+        background: "rgba(217, 255, 110, 0.06)",
+        border: "1px solid rgba(217, 255, 110, 0.15)",
         borderRadius: "8px",
-        color: "#00f0ff",
+        color: "#d9ff6e",
         fontSize: "13px",
         fontWeight: "700",
         cursor: "pointer",
@@ -708,7 +708,7 @@ const styles = {
         border: "1px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "8px",
         fontSize: "13px",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         outline: "none",
         fontFamily: "'Outfit', sans-serif",
         colorScheme: "dark",
@@ -719,14 +719,14 @@ const styles = {
         gap: "8px",
         fontSize: "12px",
         fontWeight: "700",
-        color: "rgba(241, 245, 249, 0.8)",
+        color: "rgba(244, 244, 245, 0.8)",
         cursor: "pointer",
         userSelect: "none",
     },
     toggleCheckbox: {
         width: "16px",
         height: "16px",
-        accentColor: "#bffe00",
+        accentColor: "#c6ff3d",
         cursor: "pointer",
     },
 };

@@ -223,7 +223,7 @@ export default function SignupFormsDashboard() {
                             <span
                                 style={{
                                     fontSize: "12px",
-                                    color: "#3b82f6",
+                                    color: "#c6ff3d",
                                     fontWeight: 700,
                                     textTransform: "uppercase",
                                 }}
@@ -470,7 +470,7 @@ export default function SignupFormsDashboard() {
 
                                     return (
                                         <tr key={sub.id}>
-                                            <td style={{ fontWeight: 600, color: "var(--text-primary, #f1f5f9)" }}>{name}</td>
+                                            <td style={{ fontWeight: 600, color: "var(--text-primary, #f4f4f5)" }}>{name}</td>
                                             <td>
                                                 <span className={`app-role-badge ${roleClass}`}>{sub.role}</span>
                                             </td>
@@ -558,7 +558,7 @@ export default function SignupFormsDashboard() {
                     <div className="applicant-details-grid">
                         <div className="details-row">
                             <span className="details-label">Applicant Role</span>
-                            <span className="details-value" style={{ fontWeight: 700, color: "#3b82f6" }}>
+                            <span className="details-value" style={{ fontWeight: 700, color: "#c6ff3d" }}>
                                 {selectedSubmission.role}
                             </span>
                         </div>
@@ -625,7 +625,7 @@ export default function SignupFormsDashboard() {
                     </div>
 
                     <p style={{ fontSize: "14px", color: "#64748b", margin: "0 0 20px 0", lineHeight: 1.5 }}>
-                        Accept <strong style={{ color: "var(--text-primary, #f1f5f9)" }}>{name}</strong> ({approvingSubmission.role}) into
+                        Accept <strong style={{ color: "var(--text-primary, #f4f4f5)" }}>{name}</strong> ({approvingSubmission.role}) into
                         the club. After you accept, they can log in with the email and password used during
                         registration.
                     </p>
@@ -694,7 +694,7 @@ export default function SignupFormsDashboard() {
                             width: "40px",
                             height: "40px",
                             border: "4px solid #cbd5e1",
-                            borderTopColor: "#2563eb",
+                            borderTopColor: "#c6ff3d",
                             borderRadius: "50%",
                             animation: "spin 1s linear infinite",
                             margin: "0 auto 16px",
@@ -754,7 +754,7 @@ export default function SignupFormsDashboard() {
             ) : (
                 <>
                     <div style={{ marginBottom: "24px" }}>
-                        <h1 style={{ fontSize: "28px", fontWeight: 700, color: "var(--text-primary, #f1f5f9)", margin: 0 }}>
+                        <h1 style={{ fontSize: "28px", fontWeight: 700, color: "var(--text-primary, #f4f4f5)", margin: 0 }}>
                             Club Signups and Forms
                         </h1>
                         <p style={{ fontSize: "14px", color: "#64748b", margin: "4px 0 0" }}>

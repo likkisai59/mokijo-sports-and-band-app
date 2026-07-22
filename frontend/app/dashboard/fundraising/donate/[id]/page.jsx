@@ -162,7 +162,7 @@ export default function DonationFormPage() {
                     email: form.donor_email || "",
                 },
                 theme: {
-                    color: "#2563eb",
+                    color: "#c6ff3d",
                 },
                 handler: async (response) => {
                     setLoading(true);

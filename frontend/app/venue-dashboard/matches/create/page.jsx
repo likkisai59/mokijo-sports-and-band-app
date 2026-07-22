@@ -8,8 +8,8 @@ import "../../../styles/matches.css";
 
 const API = API_BASE_URL;
 const SPORTS_LIST = ["Football", "Cricket", "Basketball", "Tennis", "Badminton", "Volleyball", "Kabaddi", "Squash"];
-const DEFAULT_TEAM_A_COLOR = "#bffe00";
-const DEFAULT_TEAM_B_COLOR = "#00f0ff";
+const DEFAULT_TEAM_A_COLOR = "#c6ff3d";
+const DEFAULT_TEAM_B_COLOR = "#d9ff6e";
 
 function memberDisplayName(m) {
     const name = `${m.first_name || ""} ${m.last_name || ""}`.trim();

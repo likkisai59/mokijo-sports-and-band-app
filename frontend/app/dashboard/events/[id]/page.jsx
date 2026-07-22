@@ -422,15 +422,15 @@ export default function EventDetailPage() {
         Match: "linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)",
         Training: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
         Meeting: "linear-gradient(135deg, #4b5563 0%, #1f2937 100%)",
-        Social: "linear-gradient(135deg, #ec4899 0%, #be185d 100%)",
-        Tournament: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
+        Social: "linear-gradient(135deg, #ff2e93 0%, #e6007a 100%)",
+        Tournament: "linear-gradient(135deg, #c6ff3d 0%, #9fcc1f 100%)",
         Ceremony: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
     };
 
     const coverBg =
         event.cover_image && event.cover_image.startsWith("linear")
             ? event.cover_image
-            : coverPresets[event.type] || "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)";
+            : coverPresets[event.type] || "linear-gradient(135deg, #c6ff3d 0%, #9fcc1f 100%)";
 
     // Find the logged-in member's response status
     const memberReg = registrations.find((r) => r.participant_email?.toLowerCase() === userEmail?.toLowerCase());
@@ -552,14 +552,14 @@ export default function EventDetailPage() {
                             <span className="meta-icon">👥</span>
                             <div>
                                 <strong style={{ display: "block", color: "#334155" }}>Target Group</strong>
-                                <span style={{ color: "#6366f1", fontWeight: "600" }}>
+                                <span style={{ color: "#c6ff3d", fontWeight: "600" }}>
                                     {event.group_name || "Club-Wide"}
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px solid #f1f5f9" }}>
+                    <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px solid #f4f4f5" }}>
                         <strong style={{ display: "block", color: "#0f172a", marginBottom: "8px", fontSize: "14px" }}>
                             About the Event
                         </strong>
@@ -569,7 +569,7 @@ export default function EventDetailPage() {
                     </div>
 
                     {/* EVENT SETTINGS badge-display */}
-                    <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px solid #f1f5f9" }}>
+                    <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px solid #f4f4f5" }}>
                         <strong style={{ display: "block", color: "#0f172a", marginBottom: "10px", fontSize: "14px" }}>
                             Event Rules & Settings
                         </strong>
@@ -627,7 +627,7 @@ export default function EventDetailPage() {
                                         background: "#f8fafc",
                                         borderRadius: "12px",
                                         padding: "16px 20px",
-                                        border: "1px solid #f1f5f9",
+                                        border: "1px solid #f4f4f5",
                                         display: "flex",
                                         justifyContent: "space-between",
                                         alignItems: "center",
@@ -685,7 +685,7 @@ export default function EventDetailPage() {
                                                 memberResponseStatus === "accepted"
                                                     ? "linear-gradient(135deg, #10b981 0%, #059669 100%)"
                                                     : "#eff6ff",
-                                            color: memberResponseStatus === "accepted" ? "white" : "#2563eb",
+                                            color: memberResponseStatus === "accepted" ? "white" : "#c6ff3d",
                                             border: "none",
                                             borderRadius: "12px",
                                             fontSize: "14px",
@@ -815,7 +815,7 @@ export default function EventDetailPage() {
                                                 background:
                                                     payingEventFee || eventFee <= 0 || !gatewayConfig?.configured
                                                         ? "#94a3b8"
-                                                        : "#2563eb",
+                                                        : "#c6ff3d",
                                                 color: "white",
                                                 border: "none",
                                                 borderRadius: "10px",
@@ -962,7 +962,7 @@ export default function EventDetailPage() {
                                                             padding: "10px 14px",
                                                             background: "#f8fafc",
                                                             borderRadius: "10px",
-                                                            border: "1px solid #f1f5f9",
+                                                            border: "1px solid #f4f4f5",
                                                         }}
                                                     >
                                                         <div>
@@ -1257,7 +1257,7 @@ export default function EventDetailPage() {
                                                         filteredRegistrations.map((reg) => (
                                                             <tr
                                                                 key={reg.id}
-                                                                style={{ borderBottom: "1px solid #f1f5f9" }}
+                                                                style={{ borderBottom: "1px solid #f4f4f5" }}
                                                             >
                                                                 <td
                                                                     style={{
@@ -1319,7 +1319,7 @@ export default function EventDetailPage() {
                                                 style={{
                                                     marginTop: "24px",
                                                     paddingTop: "20px",
-                                                    borderTop: "1px solid #f1f5f9",
+                                                    borderTop: "1px solid #f4f4f5",
                                                 }}
                                             >
                                                 <h4
@@ -1427,7 +1427,7 @@ export default function EventDetailPage() {
                                             <tbody>
                                                 {activeConfirmed.length > 0 ? (
                                                     activeConfirmed.map((reg) => (
-                                                        <tr key={reg.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                                                        <tr key={reg.id} style={{ borderBottom: "1px solid #f4f4f5" }}>
                                                             <td
                                                                 style={{
                                                                     padding: "12px",
@@ -1553,7 +1553,7 @@ export default function EventDetailPage() {
                                                 type="submit"
                                                 className="primary-btn"
                                                 disabled={broadcastStatus === "sending"}
-                                                style={{ background: "#4f46e5", padding: "10px 24px" }}
+                                                style={{ background: "#9fcc1f", padding: "10px 24px" }}
                                             >
                                                 {broadcastStatus === "sending"
                                                     ? "Sending Broadcast..."
@@ -1585,7 +1585,7 @@ export default function EventDetailPage() {
                                             >
                                                 Dispatch Automatic Reminders
                                             </h4>
-                                            <p style={{ margin: "0", fontSize: "12px", color: "#6d28d9" }}>
+                                            <p style={{ margin: "0", fontSize: "12px", color: "#9fcc1f" }}>
                                                 Simulate dispatching automated email/SMS reminders to all pending
                                                 invitees
                                             </p>
@@ -1593,7 +1593,7 @@ export default function EventDetailPage() {
                                         <button
                                             onClick={handleTriggerReminder}
                                             className="primary-btn"
-                                            style={{ background: "#7c3aed", padding: "10px 20px" }}
+                                            style={{ background: "#e6007a", padding: "10px 20px" }}
                                         >
                                             Trigger Reminders 🔔
                                         </button>
@@ -1641,7 +1641,7 @@ export default function EventDetailPage() {
                                                     margin: "10px 0",
                                                 }}
                                             >
-                                                <span style={{ fontSize: "36px", fontWeight: "900", color: "#6366f1" }}>
+                                                <span style={{ fontSize: "36px", fontWeight: "900", color: "#c6ff3d" }}>
                                                     {presenceRate}%
                                                 </span>
                                                 <span style={{ color: "#64748b", fontSize: "13px" }}>
@@ -1863,7 +1863,7 @@ export default function EventDetailPage() {
                                                         display: "block",
                                                         fontSize: "20px",
                                                         fontWeight: "800",
-                                                        color: "#6b21a8",
+                                                        color: "#e6007a",
                                                         marginTop: "4px",
                                                     }}
                                                 >

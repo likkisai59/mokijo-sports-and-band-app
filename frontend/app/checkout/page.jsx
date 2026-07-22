@@ -189,7 +189,7 @@ function CheckoutContent() {
                 {paid ? (
                     /* Success screen */
                     <div style={styles.successCard}>
-                        <CheckCircle2 size={56} style={{ color: "#bffe00", marginBottom: "16px" }} />
+                        <CheckCircle2 size={56} style={{ color: "#c6ff3d", marginBottom: "16px" }} />
                         <h1 style={styles.successTitle}>Booking Confirmed!</h1>
                         <p style={styles.successSubtitle}>
                             Your slots are successfully reserved. Get ready for your game!
@@ -202,7 +202,7 @@ function CheckoutContent() {
                             </div>
                             <div style={styles.receiptRow}>
                                 <span style={styles.receiptLabel}>Amount Paid</span>
-                                <span style={{ ...styles.receiptVal, color: "#bffe00" }}>₹{booking?.amount_paid}</span>
+                                <span style={{ ...styles.receiptVal, color: "#c6ff3d" }}>₹{booking?.amount_paid}</span>
                             </div>
                             <div style={styles.receiptRow}>
                                 <span style={styles.receiptLabel}>Payment Reference</span>
@@ -290,7 +290,7 @@ function CheckoutContent() {
                             <section style={styles.section}>
                                 <h2 style={styles.sectionTitle}>Payment Method</h2>
                                 <div style={styles.paymentCard}>
-                                    <CreditCard size={20} style={{ color: "#00f0ff" }} />
+                                    <CreditCard size={20} style={{ color: "#d9ff6e" }} />
                                     <div style={{ flexGrow: 1 }}>
                                         <h3 style={{ fontSize: "14px", fontWeight: "700" }}>Mock Payment Gateway</h3>
                                         <p
@@ -303,7 +303,7 @@ function CheckoutContent() {
                                             Simulate successful checkout completion in one click.
                                         </p>
                                     </div>
-                                    <CheckCircle2 size={20} style={{ color: "#bffe00" }} />
+                                    <CheckCircle2 size={20} style={{ color: "#c6ff3d" }} />
                                 </div>
                             </section>
                         </div>
@@ -373,7 +373,7 @@ const styles = {
     container: {
         minHeight: "100vh",
         backgroundColor: "#08080f",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         fontFamily: "'Outfit', sans-serif",
         paddingBottom: "80px",
     },
@@ -382,7 +382,7 @@ const styles = {
         justifyContent: "space-between",
         alignItems: "center",
         padding: "16px 40px",
-        background: "rgba(15, 15, 26, 0.8)",
+        background: "rgba(20, 20, 31, 0.8)",
         backdropFilter: "blur(12px)",
         borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
         position: "sticky",
@@ -424,7 +424,7 @@ const styles = {
         width: "40px",
         height: "40px",
         border: "4px solid rgba(255,255,255,0.1)",
-        borderTopColor: "#bffe00",
+        borderTopColor: "#c6ff3d",
         borderRadius: "50%",
         animation: "spin 1s linear infinite",
         marginBottom: "16px",
@@ -446,12 +446,12 @@ const styles = {
         textAlign: "center",
     },
     backLink: {
-        color: "#00f0ff",
+        color: "#d9ff6e",
         fontWeight: "600",
         textDecoration: "none",
     },
     successCard: {
-        background: "rgba(15, 15, 26, 0.9)",
+        background: "rgba(20, 20, 31, 0.9)",
         border: "1px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "16px",
         padding: "40px",
@@ -499,8 +499,8 @@ const styles = {
         color: "#ffffff",
     },
     primaryBtn: {
-        background: "linear-gradient(135deg, #bffe00, #00f0ff)",
-        color: "#050508",
+        background: "linear-gradient(135deg, #c6ff3d, #d9ff6e)",
+        color: "#08080f",
         border: "none",
         padding: "12px 24px",
         borderRadius: "8px",
@@ -510,12 +510,12 @@ const styles = {
         textTransform: "uppercase",
         textDecoration: "none",
         transform: "skewX(-6deg)",
-        boxShadow: "0 4px 12px rgba(191, 254, 0, 0.2)",
+        boxShadow: "0 4px 12px rgba(198, 255, 61, 0.2)",
     },
     secondaryBtn: {
         background: "transparent",
-        color: "#00f0ff",
-        border: "1.5px solid rgba(0, 240, 255, 0.3)",
+        color: "#d9ff6e",
+        border: "1.5px solid rgba(217, 255, 110, 0.3)",
         padding: "11px 24px",
         borderRadius: "8px",
         fontSize: "13px",
@@ -558,11 +558,11 @@ const styles = {
     sectionTitle: {
         fontSize: "16px",
         fontWeight: "700",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         marginBottom: "16px",
         textTransform: "uppercase",
         letterSpacing: "0.05em",
-        borderLeft: "3px solid #bffe00",
+        borderLeft: "3px solid #c6ff3d",
         paddingLeft: "8px",
     },
     slotsList: {
@@ -587,7 +587,7 @@ const styles = {
     slotSport: {
         fontSize: "11px",
         fontWeight: "700",
-        color: "#00f0ff",
+        color: "#d9ff6e",
         letterSpacing: "0.05em",
     },
     slotTime: {
@@ -598,11 +598,11 @@ const styles = {
     slotCost: {
         fontSize: "15px",
         fontWeight: "700",
-        color: "#bffe00",
+        color: "#c6ff3d",
     },
     paymentCard: {
         background: "rgba(255, 255, 255, 0.03)",
-        border: "1px solid rgba(0, 240, 255, 0.15)",
+        border: "1px solid rgba(217, 255, 110, 0.15)",
         borderRadius: "12px",
         padding: "20px",
         display: "flex",
@@ -624,7 +624,7 @@ const styles = {
         fontSize: "15px",
         fontWeight: "700",
         textTransform: "uppercase",
-        color: "rgba(241, 245, 249, 0.6)",
+        color: "rgba(244, 244, 245, 0.6)",
         marginBottom: "20px",
         letterSpacing: "0.05em",
     },
@@ -647,12 +647,12 @@ const styles = {
         alignItems: "center",
         fontSize: "18px",
         fontWeight: "800",
-        color: "#bffe00",
+        color: "#c6ff3d",
         marginBottom: "24px",
     },
     payBtn: {
-        background: "linear-gradient(135deg, #bffe00, #00f0ff)",
-        color: "#050508",
+        background: "linear-gradient(135deg, #c6ff3d, #d9ff6e)",
+        color: "#08080f",
         border: "none",
         padding: "14px",
         borderRadius: "10px",
@@ -663,13 +663,13 @@ const styles = {
         width: "100%",
         transition: "all 0.25s ease",
         transform: "skewX(-6deg)",
-        boxShadow: "0 6px 20px rgba(191, 254, 0, 0.25)",
+        boxShadow: "0 6px 20px rgba(198, 255, 61, 0.25)",
     },
     rebookBtn: {
         display: "block",
         textAlign: "center",
         marginTop: "12px",
-        color: "#00f0ff",
+        color: "#d9ff6e",
         fontSize: "13px",
         fontWeight: "700",
         textDecoration: "none",

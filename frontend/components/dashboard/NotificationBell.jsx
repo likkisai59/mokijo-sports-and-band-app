@@ -178,7 +178,7 @@ export default function NotificationBell({
                             marginBottom: 6,
                         }}
                     >
-                        <span style={{ fontSize: 13, fontWeight: 700, color: "#f1f5f9" }}>Notifications</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: "#f4f4f5" }}>Notifications</span>
                         {isAdmin && (
                             <Link
                                 href={applicationsHref}

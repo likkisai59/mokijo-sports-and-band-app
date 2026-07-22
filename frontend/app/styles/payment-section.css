@@ -19,12 +19,12 @@
 
 .payment-header {
     padding-bottom: 20px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f4f4f5;
 }
 
 .payment-eyebrow {
     display: block;
-    color: #2563eb;
+    color: #c6ff3d;
     font-size: 12px;
     font-weight: 800;
     text-transform: uppercase;
@@ -67,14 +67,14 @@
     gap: 8px;
     min-height: 38px;
     padding: 0 16px;
-    background: #2563eb;
+    background: #c6ff3d;
     color: #ffffff;
     border-radius: 8px;
     font-size: 14px;
 }
 
 .payment-primary-btn:hover {
-    background: #1d4ed8;
+    background: #9fcc1f;
     transform: translateY(-1px);
 }
 
@@ -118,7 +118,7 @@
     justify-content: center;
     border-radius: 8px;
     background: #eff6ff;
-    color: #2563eb;
+    color: #c6ff3d;
     flex: 0 0 auto;
 }
 
@@ -176,7 +176,7 @@
     display: flex;
     gap: 5px;
     padding: 4px;
-    background: #f1f5f9;
+    background: #f4f4f5;
     border-radius: 8px;
 }
 
@@ -241,7 +241,7 @@
 .payment-table td {
     padding: 15px 16px;
     color: #475569;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f4f4f5;
     font-size: 14px;
     vertical-align: middle;
 }
@@ -257,7 +257,7 @@
 }
 
 .payment-title-cell svg {
-    color: #2563eb;
+    color: #c6ff3d;
 }
 
 .payment-title-cell strong,
@@ -345,10 +345,10 @@
     height: 34px;
     margin-right: 8px;
     padding: 0 11px;
-    border: 1px solid #bfdbfe;
+    border: 1px solid #e8ffa3;
     border-radius: 8px;
     background: #eff6ff;
-    color: #1d4ed8;
+    color: #9fcc1f;
     cursor: pointer;
     font-size: 13px;
     font-weight: 800;
@@ -406,7 +406,7 @@
 }
 
 .payment-menu button:hover {
-    background: #f1f5f9;
+    background: #f4f4f5;
 }
 
 .payment-menu button.danger {
@@ -494,8 +494,8 @@
 .payment-form-grid input:focus,
 .payment-form-grid select:focus,
 .payment-form-grid textarea:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    border-color: #c6ff3d;
+    box-shadow: 0 0 0 3px rgba(198, 255, 61, 0.12);
 }
 
 .payment-form-grid textarea {

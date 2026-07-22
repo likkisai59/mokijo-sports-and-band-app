@@ -466,24 +466,24 @@ export default function UserDashboard() {
     // 20 Sports definition with distinct icons
     const twentySports = [
         { name: "Cricket", emoji: "🏏", color: "#f59e0b" },
-        { name: "Football", emoji: "⚽", color: "#3b82f6" },
-        { name: "Badminton", emoji: "🏸", color: "#ec4899" },
+        { name: "Football", emoji: "⚽", color: "#c6ff3d" },
+        { name: "Badminton", emoji: "🏸", color: "#ff2e93" },
         { name: "Basketball", emoji: "🏀", color: "#f97316" },
         { name: "Tennis", emoji: "🎾", color: "#84cc16" },
-        { name: "Swimming", emoji: "🏊", color: "#06b6d4" },
+        { name: "Swimming", emoji: "🏊", color: "#d9ff6e" },
         { name: "Volleyball", emoji: "🏐", color: "#eab308" },
         { name: "Table Tennis", emoji: "🏓", color: "#ef4444" },
-        { name: "Squash", emoji: "🥎", color: "#a855f7" },
-        { name: "Rugby", emoji: "🏉", color: "#6366f1" },
+        { name: "Squash", emoji: "🥎", color: "#ff2e93" },
+        { name: "Rugby", emoji: "🏉", color: "#c6ff3d" },
         { name: "Hockey", emoji: "🏑", color: "#14b8a6" },
         { name: "Baseball", emoji: "⚾", color: "#eab308" },
         { name: "Golf", emoji: "⛳", color: "#22c55e" },
-        { name: "Athletics", emoji: "🏃", color: "#f43f5e" },
+        { name: "Athletics", emoji: "🏃", color: "#ff2e93" },
         { name: "Boxing", emoji: "🥊", color: "#dc2626" },
-        { name: "Wrestling", emoji: "🤼", color: "#8b5cf6" },
-        { name: "Karate", emoji: "🥋", color: "#f43f5e" },
-        { name: "Archery", emoji: "🏹", color: "#00f0ff" },
-        { name: "Cycling", emoji: "🚴", color: "#06b6d4" },
+        { name: "Wrestling", emoji: "🤼", color: "#c6ff3d" },
+        { name: "Karate", emoji: "🥋", color: "#ff2e93" },
+        { name: "Archery", emoji: "🏹", color: "#d9ff6e" },
+        { name: "Cycling", emoji: "🚴", color: "#d9ff6e" },
         { name: "Fencing", emoji: "🤺", color: "#cbd5e1" },
     ];
 
@@ -520,8 +520,8 @@ export default function UserDashboard() {
                         onClick={() => setActiveTab("home")}
                         style={{
                             ...styles.headerTabBtn,
-                            color: activeTab === "home" ? "#bffe00" : "rgba(241, 245, 249, 0.6)",
-                            borderBottomColor: activeTab === "home" ? "#bffe00" : "transparent",
+                            color: activeTab === "home" ? "#c6ff3d" : "rgba(244, 244, 245, 0.6)",
+                            borderBottomColor: activeTab === "home" ? "#c6ff3d" : "transparent",
                         }}
                     >
                         <HomeIcon size={16} />
@@ -532,8 +532,8 @@ export default function UserDashboard() {
                         onClick={() => setActiveTab("game")}
                         style={{
                             ...styles.headerTabBtn,
-                            color: activeTab === "game" ? "#bffe00" : "rgba(241, 245, 249, 0.6)",
-                            borderBottomColor: activeTab === "game" ? "#bffe00" : "transparent",
+                            color: activeTab === "game" ? "#c6ff3d" : "rgba(244, 244, 245, 0.6)",
+                            borderBottomColor: activeTab === "game" ? "#c6ff3d" : "transparent",
                         }}
                     >
                         <Trophy size={16} />
@@ -544,8 +544,8 @@ export default function UserDashboard() {
                         onClick={() => setActiveTab("booking")}
                         style={{
                             ...styles.headerTabBtn,
-                            color: activeTab === "booking" ? "#bffe00" : "rgba(241, 245, 249, 0.6)",
-                            borderBottomColor: activeTab === "booking" ? "#bffe00" : "transparent",
+                            color: activeTab === "booking" ? "#c6ff3d" : "rgba(244, 244, 245, 0.6)",
+                            borderBottomColor: activeTab === "booking" ? "#c6ff3d" : "transparent",
                         }}
                     >
                         <Calendar size={16} />
@@ -556,8 +556,8 @@ export default function UserDashboard() {
                         onClick={() => setActiveTab("my-bookings")}
                         style={{
                             ...styles.headerTabBtn,
-                            color: activeTab === "my-bookings" ? "#bffe00" : "rgba(241, 245, 249, 0.6)",
-                            borderBottomColor: activeTab === "my-bookings" ? "#bffe00" : "transparent",
+                            color: activeTab === "my-bookings" ? "#c6ff3d" : "rgba(244, 244, 245, 0.6)",
+                            borderBottomColor: activeTab === "my-bookings" ? "#c6ff3d" : "transparent",
                         }}
                     >
                         <CalendarCheck size={16} />
@@ -568,8 +568,8 @@ export default function UserDashboard() {
                         onClick={() => setActiveTab("training")}
                         style={{
                             ...styles.headerTabBtn,
-                            color: activeTab === "training" ? "#bffe00" : "rgba(241, 245, 249, 0.6)",
-                            borderBottomColor: activeTab === "training" ? "#bffe00" : "transparent",
+                            color: activeTab === "training" ? "#c6ff3d" : "rgba(244, 244, 245, 0.6)",
+                            borderBottomColor: activeTab === "training" ? "#c6ff3d" : "transparent",
                         }}
                     >
                         <Award size={16} />
@@ -672,7 +672,7 @@ export default function UserDashboard() {
                             {/* Trainers Box */}
                             <div style={styles.boxCard}>
                                 <div style={styles.boxHeader}>
-                                    <UserCheck size={20} style={{ color: "#00f0ff" }} />
+                                    <UserCheck size={20} style={{ color: "#d9ff6e" }} />
                                     <h3 style={styles.boxTitle}>Certified Trainers</h3>
                                 </div>
                                 <div style={styles.trainersList}>
@@ -694,7 +694,7 @@ export default function UserDashboard() {
                             {/* Join Team Box */}
                             <div style={styles.boxCard}>
                                 <div style={styles.boxHeader}>
-                                    <Users size={20} style={{ color: "#bffe00" }} />
+                                    <Users size={20} style={{ color: "#c6ff3d" }} />
                                     <h3 style={styles.boxTitle}>Teams Near You</h3>
                                 </div>
                                 <div style={styles.teamsList}>
@@ -840,7 +840,7 @@ export default function UserDashboard() {
                         {/* Venue Cards Grid */}
                         {loadingVenues ? (
                             <div style={styles.loadingContainer}>
-                                <Loader2 className="animate-spin" size={32} style={{ color: "#bffe00" }} />
+                                <Loader2 className="animate-spin" size={32} style={{ color: "#c6ff3d" }} />
                                 <p style={{ marginTop: "16px", color: "rgba(148, 163, 184, 0.6)" }}>
                                     Searching sports arenas nearby...
                                 </p>
@@ -875,7 +875,7 @@ export default function UserDashboard() {
                                             </div>
                                             {venue.distance !== undefined && venue.distance !== null && (
                                                 <div style={styles.distanceBadge}>
-                                                    <MapPin size={12} style={{ color: "#00f0ff" }} />
+                                                    <MapPin size={12} style={{ color: "#d9ff6e" }} />
                                                     <span>{venue.distance} km</span>
                                                 </div>
                                             )}
@@ -927,9 +927,9 @@ export default function UserDashboard() {
                                 onClick={() => setGameSubTab("host")}
                                 style={{
                                     ...styles.gameSubNavBtn,
-                                    backgroundColor: gameSubTab === "host" ? "rgba(191, 254, 0, 0.1)" : "transparent",
-                                    color: gameSubTab === "host" ? "#bffe00" : "rgba(241, 245, 249, 0.7)",
-                                    borderColor: gameSubTab === "host" ? "#bffe00" : "rgba(255, 255, 255, 0.1)",
+                                    backgroundColor: gameSubTab === "host" ? "rgba(198, 255, 61, 0.1)" : "transparent",
+                                    color: gameSubTab === "host" ? "#c6ff3d" : "rgba(244, 244, 245, 0.7)",
+                                    borderColor: gameSubTab === "host" ? "#c6ff3d" : "rgba(255, 255, 255, 0.1)",
                                 }}
                             >
                                 <PlusCircle size={14} />
@@ -940,9 +940,9 @@ export default function UserDashboard() {
                                 onClick={() => setGameSubTab("joined")}
                                 style={{
                                     ...styles.gameSubNavBtn,
-                                    backgroundColor: gameSubTab === "joined" ? "rgba(191, 254, 0, 0.1)" : "transparent",
-                                    color: gameSubTab === "joined" ? "#bffe00" : "rgba(241, 245, 249, 0.7)",
-                                    borderColor: gameSubTab === "joined" ? "#bffe00" : "rgba(255, 255, 255, 0.1)",
+                                    backgroundColor: gameSubTab === "joined" ? "rgba(198, 255, 61, 0.1)" : "transparent",
+                                    color: gameSubTab === "joined" ? "#c6ff3d" : "rgba(244, 244, 245, 0.7)",
+                                    borderColor: gameSubTab === "joined" ? "#c6ff3d" : "rgba(255, 255, 255, 0.1)",
                                 }}
                             >
                                 <Users size={14} />
@@ -954,9 +954,9 @@ export default function UserDashboard() {
                                 style={{
                                     ...styles.gameSubNavBtn,
                                     backgroundColor:
-                                        gameSubTab === "explore" ? "rgba(191, 254, 0, 0.1)" : "transparent",
-                                    color: gameSubTab === "explore" ? "#bffe00" : "rgba(241, 245, 249, 0.7)",
-                                    borderColor: gameSubTab === "explore" ? "#bffe00" : "rgba(255, 255, 255, 0.1)",
+                                        gameSubTab === "explore" ? "rgba(198, 255, 61, 0.1)" : "transparent",
+                                    color: gameSubTab === "explore" ? "#c6ff3d" : "rgba(244, 244, 245, 0.7)",
+                                    borderColor: gameSubTab === "explore" ? "#c6ff3d" : "rgba(255, 255, 255, 0.1)",
                                 }}
                             >
                                 <Compass size={14} />
@@ -968,7 +968,7 @@ export default function UserDashboard() {
                             /* Host a Game Form (Create Game Match) */
                             <div style={styles.boxCard}>
                                 <div style={styles.boxHeader}>
-                                    <PlusCircle size={20} style={{ color: "#bffe00" }} />
+                                    <PlusCircle size={20} style={{ color: "#c6ff3d" }} />
                                     <h3 style={styles.boxTitle}>Host a Sports Match</h3>
                                 </div>
 
@@ -979,15 +979,15 @@ export default function UserDashboard() {
                                                 width: "50px",
                                                 height: "50px",
                                                 borderRadius: "50%",
-                                                background: "rgba(191, 254, 0, 0.1)",
-                                                color: "#bffe00",
+                                                background: "rgba(198, 255, 61, 0.1)",
+                                                color: "#c6ff3d",
                                                 fontSize: "20px",
                                                 fontWeight: "bold",
                                                 display: "flex",
                                                 alignItems: "center",
                                                 justifyContent: "center",
                                                 margin: "0 auto 16px auto",
-                                                border: "1px solid #bffe00",
+                                                border: "1px solid #c6ff3d",
                                             }}
                                         >
                                             ✓
@@ -1099,11 +1099,11 @@ export default function UserDashboard() {
                                                         style={{
                                                             ...styles.toggleTabBtn,
                                                             backgroundColor:
-                                                                gamePrivacy === "public" ? "#bffe00" : "transparent",
+                                                                gamePrivacy === "public" ? "#c6ff3d" : "transparent",
                                                             color:
                                                                 gamePrivacy === "public"
-                                                                    ? "#050508"
-                                                                    : "rgba(241, 245, 249, 0.6)",
+                                                                    ? "#08080f"
+                                                                    : "rgba(244, 244, 245, 0.6)",
                                                         }}
                                                     >
                                                         🌍 Public Match
@@ -1114,11 +1114,11 @@ export default function UserDashboard() {
                                                         style={{
                                                             ...styles.toggleTabBtn,
                                                             backgroundColor:
-                                                                gamePrivacy === "private" ? "#bffe00" : "transparent",
+                                                                gamePrivacy === "private" ? "#c6ff3d" : "transparent",
                                                             color:
                                                                 gamePrivacy === "private"
-                                                                    ? "#050508"
-                                                                    : "rgba(241, 245, 249, 0.6)",
+                                                                    ? "#08080f"
+                                                                    : "rgba(244, 244, 245, 0.6)",
                                                         }}
                                                     >
                                                         🔒 Invite-Only
@@ -1151,7 +1151,7 @@ export default function UserDashboard() {
                                 <h2 style={styles.sectionTitle}>My Hosted & Joined Matches</h2>
                                 {loadingHostedGames ? (
                                     <div style={styles.loadingContainer}>
-                                        <Loader2 className="animate-spin" size={32} style={{ color: "#bffe00" }} />
+                                        <Loader2 className="animate-spin" size={32} style={{ color: "#c6ff3d" }} />
                                         <p style={{ marginTop: "16px" }}>Fetching hosted matches...</p>
                                     </div>
                                 ) : hostedGames.length === 0 ? (
@@ -1192,9 +1192,9 @@ export default function UserDashboard() {
                                                                 <span
                                                                     style={{
                                                                         ...styles.badge,
-                                                                        backgroundColor: "rgba(0, 240, 255, 0.1)",
-                                                                        color: "#00f0ff",
-                                                                        borderColor: "rgba(0, 240, 255, 0.2)",
+                                                                        backgroundColor: "rgba(217, 255, 110, 0.1)",
+                                                                        color: "#d9ff6e",
+                                                                        borderColor: "rgba(217, 255, 110, 0.2)",
                                                                         marginLeft: "10px",
                                                                     }}
                                                                 >
@@ -1260,7 +1260,7 @@ export default function UserDashboard() {
                                                             <p
                                                                 style={{
                                                                     fontSize: "13px",
-                                                                    color: "rgba(241, 245, 249, 0.6)",
+                                                                    color: "rgba(244, 244, 245, 0.6)",
                                                                     fontStyle: "italic",
                                                                     marginTop: "6px",
                                                                 }}
@@ -1302,7 +1302,7 @@ export default function UserDashboard() {
                                 <h2 style={styles.sectionTitle}>Explore Open Game Lobbies</h2>
                                 {loadingPublicGames ? (
                                     <div style={styles.loadingContainer}>
-                                        <Loader2 className="animate-spin" size={32} style={{ color: "#bffe00" }} />
+                                        <Loader2 className="animate-spin" size={32} style={{ color: "#c6ff3d" }} />
                                         <p style={{ marginTop: "16px" }}>Searching for matches near you...</p>
                                     </div>
                                 ) : publicGames.length === 0 ? (
@@ -1362,11 +1362,11 @@ export default function UserDashboard() {
                                                                 ...styles.badge,
                                                                 backgroundColor: isFull
                                                                     ? "rgba(239, 68, 68, 0.1)"
-                                                                    : "rgba(191, 254, 0, 0.1)",
-                                                                color: isFull ? "#f87171" : "#bffe00",
+                                                                    : "rgba(198, 255, 61, 0.1)",
+                                                                color: isFull ? "#f87171" : "#c6ff3d",
                                                                 borderColor: isFull
                                                                     ? "rgba(239, 68, 68, 0.2)"
-                                                                    : "rgba(191, 254, 0, 0.2)",
+                                                                    : "rgba(198, 255, 61, 0.2)",
                                                             }}
                                                         >
                                                             {isFull ? "FULL" : "JOINABLE"}
@@ -1390,7 +1390,7 @@ export default function UserDashboard() {
                                                             />
                                                             <span>
                                                                 Split Cost:{" "}
-                                                                <strong style={{ color: "#bffe00" }}>
+                                                                <strong style={{ color: "#c6ff3d" }}>
                                                                     ₹{game.price_per_player}
                                                                 </strong>{" "}
                                                                 per player
@@ -1424,7 +1424,7 @@ export default function UserDashboard() {
                                                                 style={{
                                                                     width: `${(game.current_players / game.total_spots) * 100}%`,
                                                                     height: "100%",
-                                                                    backgroundColor: isFull ? "#f87171" : "#bffe00",
+                                                                    backgroundColor: isFull ? "#f87171" : "#c6ff3d",
                                                                     transition: "width 0.4s ease",
                                                                 }}
                                                             />
@@ -1469,7 +1469,7 @@ export default function UserDashboard() {
                                                                 disabled={joiningGameId === game.id}
                                                                 style={{
                                                                     ...styles.cancelBtn,
-                                                                    backgroundColor: "#bffe00",
+                                                                    backgroundColor: "#c6ff3d",
                                                                     color: "#0f172a",
                                                                     fontWeight: "bold",
                                                                     borderColor: "transparent",
@@ -1497,7 +1497,7 @@ export default function UserDashboard() {
                         <h2 style={styles.sectionTitle}>My Venue Bookings</h2>
                         {loadingBookings ? (
                             <div style={styles.loadingContainer}>
-                                <Loader2 className="animate-spin" size={32} style={{ color: "#bffe00" }} />
+                                <Loader2 className="animate-spin" size={32} style={{ color: "#c6ff3d" }} />
                                 <p style={{ marginTop: "16px" }}>Fetching your venue bookings...</p>
                             </div>
                         ) : bookings.length === 0 ? (
@@ -1659,7 +1659,7 @@ const styles = {
     dashboardContainer: {
         minHeight: "100vh",
         backgroundColor: "#08080f",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         fontFamily: "'Outfit', sans-serif",
     },
     topbar: {
@@ -1728,8 +1728,8 @@ const styles = {
         width: "36px",
         height: "36px",
         borderRadius: "50%",
-        background: "linear-gradient(135deg, #bffe00, #00f0ff)",
-        color: "#050508",
+        background: "linear-gradient(135deg, #c6ff3d, #d9ff6e)",
+        color: "#08080f",
         fontWeight: "700",
         display: "flex",
         alignItems: "center",
@@ -1743,7 +1743,7 @@ const styles = {
     userName: {
         fontSize: "14px",
         fontWeight: "600",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
     },
     userEmail: {
         fontSize: "11px",
@@ -1783,13 +1783,13 @@ const styles = {
         border: "1.5px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "12px",
         fontSize: "15px",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         outline: "none",
         transition: "all 0.25s ease",
         fontFamily: "'Outfit', sans-serif",
     },
     sportsCardContainer: {
-        background: "rgba(15, 15, 26, 0.6)",
+        background: "rgba(20, 20, 31, 0.6)",
         border: "1px solid rgba(255, 255, 255, 0.05)",
         borderRadius: "16px",
         padding: "30px",
@@ -1798,11 +1798,11 @@ const styles = {
     homeTitle: {
         fontSize: "18px",
         fontWeight: "700",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         marginBottom: "24px",
         textTransform: "uppercase",
         letterSpacing: "0.05em",
-        borderLeft: "3px solid #bffe00",
+        borderLeft: "3px solid #c6ff3d",
         paddingLeft: "10px",
     },
     sportsGrid20: {
@@ -1822,7 +1822,7 @@ const styles = {
     sportItemName: {
         fontSize: "15px",
         fontWeight: "500",
-        color: "rgba(241, 245, 249, 0.9)",
+        color: "rgba(244, 244, 245, 0.9)",
         textAlign: "center",
     },
     homeTwoColumns: {
@@ -1831,7 +1831,7 @@ const styles = {
         gap: "30px",
     },
     boxCard: {
-        background: "rgba(15, 15, 26, 0.6)",
+        background: "rgba(20, 20, 31, 0.6)",
         border: "1px solid rgba(255, 255, 255, 0.05)",
         borderRadius: "16px",
         padding: "24px",
@@ -1870,8 +1870,8 @@ const styles = {
         width: "40px",
         height: "40px",
         borderRadius: "50%",
-        background: "rgba(0, 240, 255, 0.1)",
-        color: "#00f0ff",
+        background: "rgba(217, 255, 110, 0.1)",
+        color: "#d9ff6e",
         fontWeight: "700",
         display: "flex",
         alignItems: "center",
@@ -1893,9 +1893,9 @@ const styles = {
         color: "rgba(148, 163, 184, 0.5)",
     },
     trainerBtn: {
-        background: "rgba(0, 240, 255, 0.1)",
-        border: "1px solid rgba(0, 240, 255, 0.2)",
-        color: "#00f0ff",
+        background: "rgba(217, 255, 110, 0.1)",
+        border: "1px solid rgba(217, 255, 110, 0.2)",
+        color: "#d9ff6e",
         padding: "6px 14px",
         borderRadius: "6px",
         fontSize: "12px",
@@ -1921,8 +1921,8 @@ const styles = {
         width: "40px",
         height: "40px",
         borderRadius: "8px",
-        background: "rgba(191, 254, 0, 0.1)",
-        color: "#bffe00",
+        background: "rgba(198, 255, 61, 0.1)",
+        color: "#c6ff3d",
         fontWeight: "700",
         display: "flex",
         alignItems: "center",
@@ -1944,9 +1944,9 @@ const styles = {
         color: "rgba(148, 163, 184, 0.5)",
     },
     teamJoinBtn: {
-        background: "rgba(191, 254, 0, 0.1)",
-        border: "1px solid rgba(191, 254, 0, 0.2)",
-        color: "#bffe00",
+        background: "rgba(198, 255, 61, 0.1)",
+        border: "1px solid rgba(198, 255, 61, 0.2)",
+        color: "#c6ff3d",
         padding: "6px 14px",
         borderRadius: "6px",
         fontSize: "12px",
@@ -1955,7 +1955,7 @@ const styles = {
         transition: "all 0.2s ease",
     },
     filterSection: {
-        background: "linear-gradient(135deg, rgba(15, 15, 26, 0.9) 0%, rgba(20, 20, 35, 0.7) 100%)",
+        background: "linear-gradient(135deg, rgba(20, 20, 31, 0.9) 0%, rgba(20, 20, 35, 0.7) 100%)",
         border: "1px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "16px",
         padding: "30px",
@@ -1983,7 +1983,7 @@ const styles = {
         border: "1.5px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "12px",
         fontSize: "15px",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         outline: "none",
         transition: "all 0.25s ease",
         fontFamily: "'Outfit', sans-serif",
@@ -2017,8 +2017,8 @@ const styles = {
         padding: "80px 0",
     },
     exploreLinkBtn: {
-        background: "linear-gradient(135deg, #bffe00, #00f0ff)",
-        color: "#050508",
+        background: "linear-gradient(135deg, #c6ff3d, #d9ff6e)",
+        color: "#08080f",
         border: "none",
         padding: "10px 24px",
         borderRadius: "8px",
@@ -2036,7 +2036,7 @@ const styles = {
         gap: "24px",
     },
     card: {
-        background: "rgba(15, 15, 26, 0.6)",
+        background: "rgba(20, 20, 31, 0.6)",
         border: "1px solid rgba(255, 255, 255, 0.05)",
         borderRadius: "14px",
         overflow: "hidden",
@@ -2060,7 +2060,7 @@ const styles = {
         position: "absolute",
         top: "12px",
         right: "12px",
-        background: "rgba(15, 15, 26, 0.8)",
+        background: "rgba(20, 20, 31, 0.8)",
         backdropFilter: "blur(4px)",
         borderRadius: "8px",
         padding: "4px 8px",
@@ -2101,11 +2101,11 @@ const styles = {
     cardSportChip: {
         fontSize: "10px",
         fontWeight: "700",
-        color: "#00f0ff",
-        background: "rgba(0, 240, 255, 0.06)",
+        color: "#d9ff6e",
+        background: "rgba(217, 255, 110, 0.06)",
         padding: "3px 8px",
         borderRadius: "4px",
-        border: "1px solid rgba(0, 240, 255, 0.12)",
+        border: "1px solid rgba(217, 255, 110, 0.12)",
         textTransform: "uppercase",
     },
     cardFooter: {
@@ -2130,8 +2130,8 @@ const styles = {
         color: "rgba(148, 163, 184, 0.4)",
     },
     bookBtn: {
-        background: "linear-gradient(135deg, #bffe00, #00f0ff)",
-        color: "#050508",
+        background: "linear-gradient(135deg, #c6ff3d, #d9ff6e)",
+        color: "#08080f",
         border: "none",
         padding: "8px 18px",
         borderRadius: "8px",
@@ -2143,7 +2143,7 @@ const styles = {
         cursor: "pointer",
         transition: "all 0.25s ease",
         transform: "skewX(-6deg)",
-        boxShadow: "0 4px 12px rgba(191, 254, 0, 0.25)",
+        boxShadow: "0 4px 12px rgba(198, 255, 61, 0.25)",
     },
     bookingsSection: {
         maxWidth: "800px",
@@ -2152,11 +2152,11 @@ const styles = {
     sectionTitle: {
         fontSize: "18px",
         fontWeight: "700",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         marginBottom: "20px",
         textTransform: "uppercase",
         letterSpacing: "0.05em",
-        borderLeft: "3px solid #bffe00",
+        borderLeft: "3px solid #c6ff3d",
         paddingLeft: "10px",
     },
     list: {
@@ -2244,7 +2244,7 @@ const styles = {
         alignItems: "center",
         gap: "10px",
         fontSize: "14px",
-        color: "rgba(241, 245, 249, 0.8)",
+        color: "rgba(244, 244, 245, 0.8)",
     },
     metaInfo: {
         fontSize: "12px",
@@ -2312,7 +2312,7 @@ const styles = {
     formLabel: {
         fontSize: "13px",
         fontWeight: "700",
-        color: "rgba(241, 245, 249, 0.7)",
+        color: "rgba(244, 244, 245, 0.7)",
         textTransform: "uppercase",
         letterSpacing: "0.03em",
     },
@@ -2328,7 +2328,7 @@ const styles = {
         fontFamily: "'Outfit', sans-serif",
     },
     formSelect: {
-        background: "rgba(15, 15, 26, 0.9)",
+        background: "rgba(20, 20, 31, 0.9)",
         border: "1.5px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "8px",
         padding: "12px 14px",
@@ -2372,8 +2372,8 @@ const styles = {
         fontFamily: "'Outfit', sans-serif",
     },
     formSubmitBtn: {
-        background: "linear-gradient(135deg, #bffe00, #00f0ff)",
-        color: "#050508",
+        background: "linear-gradient(135deg, #c6ff3d, #d9ff6e)",
+        color: "#08080f",
         border: "none",
         padding: "14px 20px",
         borderRadius: "8px",
@@ -2384,7 +2384,7 @@ const styles = {
         cursor: "pointer",
         transition: "all 0.25s ease",
         transform: "skewX(-6deg)",
-        boxShadow: "0 4px 16px rgba(191, 254, 0, 0.25)",
+        boxShadow: "0 4px 16px rgba(198, 255, 61, 0.25)",
         marginTop: "10px",
         width: "fit-content",
         alignSelf: "flex-start",
@@ -2393,7 +2393,7 @@ const styles = {
         position: "absolute",
         top: "12px",
         left: "12px",
-        background: "rgba(15, 15, 26, 0.8)",
+        background: "rgba(20, 20, 31, 0.8)",
         backdropFilter: "blur(4px)",
         borderRadius: "8px",
         padding: "4px 8px",
@@ -2402,7 +2402,7 @@ const styles = {
         gap: "4px",
         fontSize: "12px",
         fontWeight: "700",
-        color: "#00f0ff",
+        color: "#d9ff6e",
         border: "1px solid rgba(255, 255, 255, 0.08)",
     },
     filtersGrid: {
@@ -2421,7 +2421,7 @@ const styles = {
     filterLabel: {
         fontSize: "12px",
         fontWeight: "700",
-        color: "rgba(241, 245, 249, 0.5)",
+        color: "rgba(244, 244, 245, 0.5)",
         textTransform: "uppercase",
         letterSpacing: "0.05em",
     },
@@ -2432,7 +2432,7 @@ const styles = {
         border: "1px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "8px",
         fontSize: "13px",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         outline: "none",
         cursor: "pointer",
         transition: "all 0.2s ease",
@@ -2450,10 +2450,10 @@ const styles = {
         justifyContent: "center",
         gap: "8px",
         padding: "10px 14px",
-        background: "rgba(0, 240, 255, 0.06)",
-        border: "1px solid rgba(0, 240, 255, 0.15)",
+        background: "rgba(217, 255, 110, 0.06)",
+        border: "1px solid rgba(217, 255, 110, 0.15)",
         borderRadius: "8px",
-        color: "#00f0ff",
+        color: "#d9ff6e",
         fontSize: "13px",
         fontWeight: "700",
         cursor: "pointer",
@@ -2494,7 +2494,7 @@ const styles = {
         border: "1px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "8px",
         fontSize: "13px",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         outline: "none",
         fontFamily: "'Outfit', sans-serif",
         colorScheme: "dark",
@@ -2505,14 +2505,14 @@ const styles = {
         gap: "8px",
         fontSize: "12px",
         fontWeight: "700",
-        color: "rgba(241, 245, 249, 0.8)",
+        color: "rgba(244, 244, 245, 0.8)",
         cursor: "pointer",
         userSelect: "none",
     },
     toggleCheckbox: {
         width: "16px",
         height: "16px",
-        accentColor: "#bffe00",
+        accentColor: "#c6ff3d",
         cursor: "pointer",
     },
 };

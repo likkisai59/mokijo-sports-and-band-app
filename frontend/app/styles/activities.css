@@ -68,7 +68,7 @@
     font-family: "Outfit", sans-serif;
     text-decoration: none;
     cursor: pointer;
-    box-shadow: 0 4px 20px rgba(191, 254, 0, 0.3);
+    box-shadow: 0 4px 20px rgba(198, 255, 61, 0.3);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     white-space: nowrap;
     transform: skewX(-8deg);
@@ -76,8 +76,8 @@
 
 .sporty-btn:hover {
     transform: translateY(-2px) skewX(-8deg) scale(1.02);
-    box-shadow: 0 8px 30px rgba(0, 240, 255, 0.5);
-    background: linear-gradient(135deg, #d8ff33, #00f0ff);
+    box-shadow: 0 8px 30px rgba(217, 255, 110, 0.5);
+    background: linear-gradient(135deg, #d8ff33, #d9ff6e);
 }
 
 .sporty-btn span {
@@ -135,7 +135,7 @@
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 10px;
-    color: #f1f5f9;
+    color: #f4f4f5;
     font-family: "Outfit", sans-serif;
     outline: none;
     transition: all 0.2s;
@@ -143,8 +143,8 @@
 
 .search-input-wrapper input:focus {
     border-color: var(--brand-primary);
-    background: rgba(191, 254, 0, 0.02);
-    box-shadow: 0 0 10px rgba(191, 254, 0, 0.15);
+    background: rgba(198, 255, 61, 0.02);
+    box-shadow: 0 0 10px rgba(198, 255, 61, 0.15);
 }
 
 .search-icon {
@@ -181,10 +181,10 @@
 }
 
 .sport-chip.active {
-    background: rgba(191, 254, 0, 0.15);
+    background: rgba(198, 255, 61, 0.15);
     border-color: var(--brand-primary);
     color: var(--brand-primary);
-    box-shadow: 0 0 12px rgba(191, 254, 0, 0.15);
+    box-shadow: 0 0 12px rgba(198, 255, 61, 0.15);
 }
 
 /* Games Grid */
@@ -211,8 +211,8 @@
     transform: translateY(-5px);
     border-color: var(--brand-secondary);
     box-shadow:
-        0 20px 40px rgba(0, 240, 255, 0.1),
-        0 0 30px rgba(191, 254, 0, 0.05);
+        0 20px 40px rgba(217, 255, 110, 0.1),
+        0 0 30px rgba(198, 255, 61, 0.05);
 }
 
 .game-card-header {
@@ -223,9 +223,9 @@
 }
 
 .game-sport-badge {
-    background: rgba(0, 240, 255, 0.1);
+    background: rgba(217, 255, 110, 0.1);
     color: var(--brand-secondary);
-    border: 1px solid rgba(0, 240, 255, 0.2);
+    border: 1px solid rgba(217, 255, 110, 0.2);
     padding: 4px 12px;
     border-radius: 20px;
     font-size: 11px;
@@ -332,7 +332,7 @@
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.07);
-    color: #f1f5f9;
+    color: #f4f4f5;
     font-weight: 600;
     text-decoration: none;
     font-size: 13px;
@@ -358,12 +358,12 @@
     text-transform: uppercase;
     font-style: italic;
     transition: all 0.2s;
-    box-shadow: 0 4px 12px rgba(191, 254, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(198, 255, 61, 0.15);
 }
 
 .game-card-actions .join-btn:hover {
     background: #d8ff33;
-    box-shadow: 0 6px 18px rgba(191, 254, 0, 0.35);
+    box-shadow: 0 6px 18px rgba(198, 255, 61, 0.35);
 }
 
 .game-card-actions .waitlist-btn {
@@ -371,9 +371,9 @@
     text-align: center;
     padding: 10px;
     border-radius: 8px;
-    background: rgba(255, 45, 85, 0.15);
+    background: rgba(255, 77, 77, 0.15);
     color: var(--brand-accent);
-    border: 1px solid rgba(255, 45, 85, 0.3);
+    border: 1px solid rgba(255, 77, 77, 0.3);
     font-weight: 700;
     cursor: pointer;
     font-size: 13px;
@@ -382,7 +382,7 @@
 }
 
 .game-card-actions .waitlist-btn:hover {
-    background: rgba(255, 45, 85, 0.25);
+    background: rgba(255, 77, 77, 0.25);
 }
 
 /* Modal Styling */
@@ -528,7 +528,7 @@
 
 .player-name {
     font-weight: 600;
-    color: #f1f5f9;
+    color: #f4f4f5;
 }
 
 .player-role {
@@ -582,8 +582,8 @@
 }
 
 .chat-bubble.me {
-    background: rgba(0, 240, 255, 0.05);
-    border-color: rgba(0, 240, 255, 0.15);
+    background: rgba(217, 255, 110, 0.05);
+    border-color: rgba(217, 255, 110, 0.15);
     align-self: flex-end;
 }
 
@@ -612,7 +612,7 @@
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 12px;
-    color: #f1f5f9;
+    color: #f4f4f5;
     font-family: "Outfit", sans-serif;
     outline: none;
     transition: all 0.2s;
@@ -635,6 +635,6 @@
 }
 
 .chat-input-row button:hover {
-    background: #00e1f0;
-    box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+    background: #d9ff6e;
+    box-shadow: 0 0 15px rgba(217, 255, 110, 0.4);
 }

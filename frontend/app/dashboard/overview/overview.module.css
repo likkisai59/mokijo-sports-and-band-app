@@ -37,7 +37,7 @@
 .pageTitle {
     font-size: 28px;
     font-weight: 800;
-    color: #f1f5f9;
+    color: #f4f4f5;
     margin: 0 0 5px;
     letter-spacing: -0.5px;
 }
@@ -76,9 +76,9 @@
     gap: 8px;
     min-width: 160px;
     min-height: 42px;
-    background: rgba(99, 102, 241, 0.12);
-    color: #a5b4fc;
-    border: 1px solid rgba(99, 102, 241, 0.25);
+    background: rgba(198, 255, 61, 0.12);
+    color: #d9ff6e;
+    border: 1px solid rgba(198, 255, 61, 0.25);
     border-radius: 12px;
     padding: 10px 18px;
     font-size: 13px;
@@ -92,11 +92,11 @@
 }
 
 .actionButton:hover {
-    background: rgba(99, 102, 241, 0.22);
-    border-color: rgba(99, 102, 241, 0.5);
+    background: rgba(198, 255, 61, 0.22);
+    border-color: rgba(198, 255, 61, 0.5);
     color: #c7d2fe;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.2);
+    box-shadow: 0 6px 20px rgba(198, 255, 61, 0.2);
 }
 
 .actionButton svg {
@@ -135,7 +135,7 @@
 }
 
 .sectionCard {
-    background: rgba(15, 15, 26, 0.8);
+    background: rgba(20, 20, 31, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 18px;
     padding: 20px 22px;
@@ -158,13 +158,13 @@
 
 .viewAllLink {
     font-size: 12px;
-    color: #818cf8;
+    color: #c6ff3d;
     font-weight: 600;
     text-decoration: none;
 }
 
 .viewAllLink:hover {
-    color: #a5b4fc;
+    color: #d9ff6e;
     text-decoration: underline;
 }
 
@@ -193,8 +193,8 @@
     gap: 6px;
     padding: 3px 8px;
     border-radius: 999px;
-    background: rgba(59, 130, 246, 0.16);
-    color: #93c5fd;
+    background: rgba(198, 255, 61, 0.16);
+    color: #d9ff6e;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
@@ -256,7 +256,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    background: linear-gradient(135deg, #c6ff3d, #c6ff3d);
     color: #fff;
     font-weight: 800;
     font-size: 16px;
@@ -297,7 +297,7 @@
 
 /* ─── Individual Stat Card ────────────────────────── */
 .statCard {
-    background: rgba(15, 15, 26, 0.8);
+    background: rgba(20, 20, 31, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 18px;
     padding: 24px 22px;
@@ -337,10 +337,10 @@
 
 /* Color themes for accent line */
 .blue::before {
-    background: linear-gradient(90deg, #3b82f6, #6366f1);
+    background: linear-gradient(90deg, #c6ff3d, #c6ff3d);
 }
 .violet::before {
-    background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+    background: linear-gradient(90deg, #c6ff3d, #c6ff3d);
 }
 .amber::before {
     background: linear-gradient(90deg, #f59e0b, #fbbf24);
@@ -349,13 +349,13 @@
     background: linear-gradient(90deg, #10b981, #34d399);
 }
 .rose::before {
-    background: linear-gradient(90deg, #f43f5e, #fb7185);
+    background: linear-gradient(90deg, #ff2e93, #ff66b8);
 }
 .indigo::before {
-    background: linear-gradient(90deg, #4f46e5, #818cf8);
+    background: linear-gradient(90deg, #9fcc1f, #c6ff3d);
 }
 .cyan::before {
-    background: linear-gradient(90deg, #06b6d4, #22d3ee);
+    background: linear-gradient(90deg, #d9ff6e, #d9ff6e);
 }
 
 /* Clickable card */
@@ -410,14 +410,14 @@
 }
 
 .blue .statIcon {
-    background: rgba(59, 130, 246, 0.15);
-    color: #60a5fa;
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+    background: rgba(198, 255, 61, 0.15);
+    color: #d9ff6e;
+    box-shadow: 0 0 20px rgba(198, 255, 61, 0.15);
 }
 .violet .statIcon {
-    background: rgba(139, 92, 246, 0.15);
-    color: #a78bfa;
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
+    background: rgba(198, 255, 61, 0.15);
+    color: #c6ff3d;
+    box-shadow: 0 0 20px rgba(198, 255, 61, 0.15);
 }
 .amber .statIcon {
     background: rgba(245, 158, 11, 0.15);
@@ -430,19 +430,19 @@
     box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
 }
 .rose .statIcon {
-    background: rgba(244, 63, 94, 0.15);
-    color: #fb7185;
-    box-shadow: 0 0 20px rgba(244, 63, 94, 0.15);
+    background: rgba(255, 46, 147, 0.15);
+    color: #ff66b8;
+    box-shadow: 0 0 20px rgba(255, 46, 147, 0.15);
 }
 .indigo .statIcon {
-    background: rgba(99, 102, 241, 0.15);
-    color: #818cf8;
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+    background: rgba(198, 255, 61, 0.15);
+    color: #c6ff3d;
+    box-shadow: 0 0 20px rgba(198, 255, 61, 0.15);
 }
 .cyan .statIcon {
-    background: rgba(6, 182, 212, 0.15);
-    color: #22d3ee;
-    box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);
+    background: rgba(217, 255, 110, 0.15);
+    color: #d9ff6e;
+    box-shadow: 0 0 20px rgba(217, 255, 110, 0.15);
 }
 
 /* ─── Stat Body ──────────────────────────────────── */
@@ -455,7 +455,7 @@
 .statValue {
     font-size: 36px;
     font-weight: 800;
-    color: #f1f5f9;
+    color: #f4f4f5;
     line-height: 1;
     letter-spacing: -0.8px;
 }
@@ -488,7 +488,7 @@
 
 /* ─── Individual Panel ───────────────────────────── */
 .panel {
-    background: rgba(15, 15, 26, 0.8);
+    background: rgba(20, 20, 31, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 16px;
     padding: 22px;
@@ -517,7 +517,7 @@
 
 .panelLink {
     font-size: 12px;
-    color: #818cf8;
+    color: #c6ff3d;
     font-weight: 600;
     text-decoration: none;
     transition: color 0.2s;
@@ -525,7 +525,7 @@
 }
 
 .panelLink:hover {
-    color: #a5b4fc;
+    color: #d9ff6e;
     opacity: 1;
     text-decoration: underline;
 }
@@ -564,7 +564,7 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    box-shadow: 0 0 12px rgba(99, 102, 241, 0.25);
+    box-shadow: 0 0 12px rgba(198, 255, 61, 0.25);
 }
 
 .memberInfo {
@@ -595,10 +595,10 @@
     font-size: 10px;
     font-weight: 700;
     padding: 3px 8px;
-    background: rgba(99, 102, 241, 0.12);
-    color: #a5b4fc;
+    background: rgba(198, 255, 61, 0.12);
+    color: #d9ff6e;
     border-radius: 20px;
-    border: 1px solid rgba(99, 102, 241, 0.2);
+    border: 1px solid rgba(198, 255, 61, 0.2);
     white-space: nowrap;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -630,8 +630,8 @@
 .eventDateBox {
     width: 44px;
     height: 48px;
-    background: rgba(99, 102, 241, 0.12);
-    border: 1px solid rgba(99, 102, 241, 0.2);
+    background: rgba(198, 255, 61, 0.12);
+    border: 1px solid rgba(198, 255, 61, 0.2);
     border-radius: 10px;
     display: flex;
     flex-direction: column;
@@ -643,7 +643,7 @@
 .eventMonth {
     font-size: 9px;
     font-weight: 700;
-    color: #818cf8;
+    color: #c6ff3d;
     text-transform: uppercase;
     letter-spacing: 0.06em;
 }
@@ -651,7 +651,7 @@
 .eventDay {
     font-size: 20px;
     font-weight: 800;
-    color: #a5b4fc;
+    color: #d9ff6e;
     line-height: 1;
 }
 
@@ -697,7 +697,7 @@
 .fundraisingAmount {
     font-size: 36px;
     font-weight: 800;
-    color: #f1f5f9;
+    color: #f4f4f5;
     letter-spacing: -1px;
 }
 
@@ -718,10 +718,10 @@
 
 .fundraisingFill {
     height: 100%;
-    background: linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4);
+    background: linear-gradient(90deg, #c6ff3d, #c6ff3d, #d9ff6e);
     border-radius: 99px;
     transition: width 0.8s ease;
-    box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 0 8px rgba(198, 255, 61, 0.4);
 }
 
 .fundraisingMeta {
@@ -888,7 +888,7 @@
 .sectionTitle {
     font-size: 20px;
     font-weight: 800;
-    color: #f1f5f9;
+    color: #f4f4f5;
     letter-spacing: -0.5px;
     margin: 0 0 4px 0;
 }
@@ -907,7 +907,7 @@
 }
 
 .venueCard {
-    background: rgba(15, 15, 26, 0.8);
+    background: rgba(20, 20, 31, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 16px;
     overflow: hidden;
@@ -918,8 +918,8 @@
 
 .venueCard:hover {
     transform: translateY(-4px);
-    border-color: rgba(99, 102, 241, 0.35);
-    box-shadow: 0 12px 30px rgba(99, 102, 241, 0.15);
+    border-color: rgba(198, 255, 61, 0.35);
+    box-shadow: 0 12px 30px rgba(198, 255, 61, 0.15);
 }
 
 .venueImage {
@@ -968,7 +968,7 @@
 }
 
 .venueCard {
-    background: rgba(15, 15, 26, 0.8);
+    background: rgba(20, 20, 31, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 16px;
     overflow: hidden;
@@ -979,8 +979,8 @@
 
 .venueCard:hover {
     transform: translateY(-4px);
-    border-color: rgba(99, 102, 241, 0.35);
-    box-shadow: 0 12px 30px rgba(99, 102, 241, 0.15);
+    border-color: rgba(198, 255, 61, 0.35);
+    box-shadow: 0 12px 30px rgba(198, 255, 61, 0.15);
 }
 
 .venueImage {
@@ -1023,7 +1023,7 @@
 .venueName {
     font-size: 16px;
     font-weight: 700;
-    color: #f1f5f9;
+    color: #f4f4f5;
     margin: 0;
     line-height: 1.3;
 }
@@ -1051,9 +1051,9 @@
 }
 
 .under_review {
-    background: rgba(99, 102, 241, 0.1);
-    color: #818cf8;
-    border: 1px solid rgba(99, 102, 241, 0.2);
+    background: rgba(198, 255, 61, 0.1);
+    color: #c6ff3d;
+    border: 1px solid rgba(198, 255, 61, 0.2);
 }
 
 .more_info_required {
@@ -1063,9 +1063,9 @@
 }
 
 .rejected, .suspended {
-    background: rgba(244, 63, 94, 0.1);
-    color: #fb7185;
-    border: 1px solid rgba(244, 63, 94, 0.2);
+    background: rgba(255, 46, 147, 0.1);
+    color: #ff66b8;
+    border: 1px solid rgba(255, 46, 147, 0.2);
 }
 
 .venueLocation, .venueSports {

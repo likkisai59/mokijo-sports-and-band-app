@@ -94,7 +94,7 @@ export default function SlotsPage() {
                 </button>
             </div>
 
-            {actionMsg && <p style={{ color: "#bffe00", fontSize: 13, marginBottom: 14 }}>{actionMsg}</p>}
+            {actionMsg && <p style={{ color: "#c6ff3d", fontSize: 13, marginBottom: 14 }}>{actionMsg}</p>}
 
             {loading ? (
                 <div className="vd-loading">

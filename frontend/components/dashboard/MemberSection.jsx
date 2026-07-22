@@ -126,7 +126,7 @@ export default function MemberSection() {
                             outline: "none",
                             background: "transparent",
                             fontSize: "14px",
-                            color: "#f1f5f9",
+                            color: "#f4f4f5",
                             width: "220px",
                         }}
                     />
@@ -146,7 +146,7 @@ export default function MemberSection() {
                     style={{
                         marginTop: "15px",
                         width: "100%",
-                        backgroundColor: "rgba(15, 15, 26, 0.85)",
+                        backgroundColor: "rgba(20, 20, 31, 0.85)",
                         borderRadius: "12px",
                         border: "1px solid rgba(255, 255, 255, 0.07)",
                         overflow: "visible",
@@ -204,14 +204,14 @@ export default function MemberSection() {
                                     <td
                                         style={{
                                             padding: "16px",
-                                            color: "#f1f5f9",
+                                            color: "#f4f4f5",
                                             fontSize: "15px",
                                             fontWeight: "500",
                                         }}
                                     >
                                         {member.first_name}
                                     </td>
-                                    <td style={{ padding: "16px", color: "#f1f5f9", fontSize: "15px" }}>
+                                    <td style={{ padding: "16px", color: "#f4f4f5", fontSize: "15px" }}>
                                         {member.last_name || "-"}
                                     </td>
                                     <td style={{ padding: "16px", color: "#94a3b8", fontSize: "15px" }}>
@@ -227,10 +227,10 @@ export default function MemberSection() {
                                                 padding: "4px 10px",
                                                 backgroundColor:
                                                     member.role === "Club Admin"
-                                                        ? "rgba(191, 254, 0, 0.12)"
+                                                        ? "rgba(198, 255, 61, 0.12)"
                                                         : "rgba(255, 255, 255, 0.06)",
                                                 color:
-                                                    member.role === "Club Admin" ? "#bffe00" : "#94a3b8",
+                                                    member.role === "Club Admin" ? "#c6ff3d" : "#94a3b8",
                                                 borderRadius: "12px",
                                                 fontWeight: "500",
                                             }}
@@ -267,9 +267,9 @@ export default function MemberSection() {
                                                         }}
                                                         title="Edit Member"
                                                         onMouseOver={(e) => {
-                                                            e.currentTarget.style.color = "#bffe00";
+                                                            e.currentTarget.style.color = "#c6ff3d";
                                                             e.currentTarget.style.backgroundColor =
-                                                                "rgba(191, 254, 0, 0.1)";
+                                                                "rgba(198, 255, 61, 0.1)";
                                                         }}
                                                         onMouseOut={(e) => {
                                                             e.currentTarget.style.color = "#94a3b8";

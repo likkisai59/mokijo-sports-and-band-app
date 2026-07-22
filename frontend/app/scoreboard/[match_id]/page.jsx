@@ -199,8 +199,8 @@ export default function PublicScoreboardPage() {
                                 className="pub-live-glow"
                                 style={{
                                     color: "var(--vd-cyan)",
-                                    background: "rgba(0, 240, 255, 0.04)",
-                                    borderColor: "rgba(0, 240, 255, 0.2)",
+                                    background: "rgba(217, 255, 110, 0.04)",
+                                    borderColor: "rgba(217, 255, 110, 0.2)",
                                 }}
                             >
                                 UPCOMING MATCH
@@ -377,7 +377,7 @@ export default function PublicScoreboardPage() {
 
                 {/* Team Squads Panel */}
                 {(teamAMembers.length > 0 || teamBMembers.length > 0) && (
-                    <div className="pub-timeline" style={{ background: "rgba(15, 15, 26, 0.4)", border: "1px solid rgba(255, 255, 255, 0.05)" }}>
+                    <div className="pub-timeline" style={{ background: "rgba(20, 20, 31, 0.4)", border: "1px solid rgba(255, 255, 255, 0.05)" }}>
                         <h2 style={{ fontSize: "16px", fontWeight: "800", color: "#fff", marginBottom: "20px", textAlign: "center", letterSpacing: "1px" }}>
                             TEAM SQUADS & PLAYER ROSTERS
                         </h2>

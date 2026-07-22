@@ -52,7 +52,7 @@ export default function TrainersPage() {
         <div style={{ padding: "24px", color: "#f8fafc" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px", marginBottom: "20px", flexWrap: "wrap" }}>
                 <div>
-                    <div style={{ color: "#bffe00", fontSize: "12px", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: "6px" }}>
+                    <div style={{ color: "#c6ff3d", fontSize: "12px", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: "6px" }}>
                         Parent & Guardian Hub
                     </div>
                     <h1 style={{ margin: 0, fontSize: "28px" }}>Trainers</h1>
@@ -61,7 +61,7 @@ export default function TrainersPage() {
                     </p>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", borderRadius: "999px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}>
-                    <Sparkles size={16} color="#bffe00" />
+                    <Sparkles size={16} color="#c6ff3d" />
                     <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)" }}>Trusted sessions</span>
                 </div>
             </div>
@@ -84,7 +84,7 @@ export default function TrainersPage() {
                 </div>
             ) : filteredTrainers.length === 0 ? (
                 <div style={{ padding: "24px", borderRadius: "16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", textAlign: "center" }}>
-                    <UserRound size={32} style={{ marginBottom: "10px", color: "#bffe00" }} />
+                    <UserRound size={32} style={{ marginBottom: "10px", color: "#c6ff3d" }} />
                     <h3 style={{ margin: "0 0 6px" }}>No trainers available yet</h3>
                     <p style={{ margin: 0, color: "rgba(255,255,255,0.7)" }}>Try a different search term or check back later.</p>
                 </div>
@@ -94,13 +94,13 @@ export default function TrainersPage() {
                         <div key={trainer.id} style={{ padding: "16px", borderRadius: "16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}>
                             <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start", flexWrap: "wrap" }}>
                                 <div>
-                                    <div style={{ fontSize: "12px", color: "#bffe00", textTransform: "uppercase", letterSpacing: "0.18em", marginBottom: "4px" }}>
+                                    <div style={{ fontSize: "12px", color: "#c6ff3d", textTransform: "uppercase", letterSpacing: "0.18em", marginBottom: "4px" }}>
                                         {trainer.experience}
                                     </div>
                                     <h3 style={{ margin: "0 0 4px", fontSize: "18px" }}>{trainer.name}</h3>
                                     <p style={{ margin: 0, color: "rgba(255,255,255,0.8)" }}>{trainer.specialty}</p>
                                 </div>
-                                <div style={{ padding: "8px 10px", borderRadius: "999px", background: "rgba(191,254,0,0.14)", color: "#bffe00", fontSize: "12px", fontWeight: 700 }}>
+                                <div style={{ padding: "8px 10px", borderRadius: "999px", background: "rgba(198, 255, 61,0.14)", color: "#c6ff3d", fontSize: "12px", fontWeight: 700 }}>
                                     Available
                                 </div>
                             </div>

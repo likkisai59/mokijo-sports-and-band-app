@@ -47,7 +47,7 @@ export default function MukijoAdminLoginPage() {
             <div className={styles.formPanel}>
                 <div className={styles.loginCard} style={{ background: "#0e0e16", border: "1px solid rgba(255,255,255,0.06)" }}>
                     <div className={styles.header}>
-                        <span className={styles.logo} style={{ color: "#bffe00" }}>Mukijo Admin</span>
+                        <span className={styles.logo} style={{ color: "#c6ff3d" }}>Mukijo Admin</span>
                         <h1 className={styles.title}>Platform Sign In</h1>
                         <p className={styles.subtitle}>Enter your administrative credentials to manage verifications</p>
                     </div>
@@ -89,7 +89,7 @@ export default function MukijoAdminLoginPage() {
                             </div>
                         </div>
                         {error && <div className={styles.errorMsg}>{error}</div>}
-                        <button type="submit" className={styles.loginButton} style={{ background: "#bffe00", color: "#000" }} disabled={loading}>
+                        <button type="submit" className={styles.loginButton} style={{ background: "#c6ff3d", color: "#000" }} disabled={loading}>
                             {loading ? "Authenticating…" : "Authenticate →"}
                         </button>
                     </form>

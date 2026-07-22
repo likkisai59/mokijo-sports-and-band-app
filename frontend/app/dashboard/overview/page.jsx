@@ -696,7 +696,7 @@ export default function OverviewPage() {
                                     <div
                                         className={styles.memberAvatar}
                                         style={{
-                                            background: idx === 0 ? "#3b82f6" : idx === 1 ? "#8b5cf6" : "#10b981",
+                                            background: idx === 0 ? "#c6ff3d" : idx === 1 ? "#c6ff3d" : "#10b981",
                                         }}
                                     >
                                         {mem.first_name[0]}
@@ -790,7 +790,7 @@ export default function OverviewPage() {
                                 type="submit"
                                 style={{
                                     padding: "8px",
-                                    background: "#8b5cf6",
+                                    background: "#c6ff3d",
                                     color: "white",
                                     border: "none",
                                     borderRadius: "8px",
@@ -843,7 +843,7 @@ export default function OverviewPage() {
                                 key={c.id}
                                 style={{
                                     padding: "12px",
-                                    border: "1px solid #f1f5f9",
+                                    border: "1px solid #f4f4f5",
                                     borderRadius: "10px",
                                     background: "#f8fafc",
                                 }}
@@ -876,7 +876,7 @@ export default function OverviewPage() {
                                             padding: "2px 6px",
                                             borderRadius: "8px",
                                             background: "#eff6ff",
-                                            color: "#2563eb",
+                                            color: "#c6ff3d",
                                         }}
                                     >
                                         {progress}%
@@ -907,7 +907,7 @@ export default function OverviewPage() {
                                         style={{
                                             height: "100%",
                                             width: `${progress}%`,
-                                            background: "linear-gradient(90deg, #3b82f6, #10b981)",
+                                            background: "linear-gradient(90deg, #c6ff3d, #10b981)",
                                             borderRadius: "99px",
                                         }}
                                     />
@@ -923,7 +923,7 @@ export default function OverviewPage() {
                                         href={`/dashboard/fundraising/donate/${c.id}`}
                                         style={{
                                             padding: "4px 10px",
-                                            background: "#2563eb",
+                                            background: "#c6ff3d",
                                             color: "white",
                                             textDecoration: "none",
                                             borderRadius: "6px",
@@ -986,7 +986,7 @@ export default function OverviewPage() {
                                         borderRadius: "6px",
                                         fontSize: "12px",
                                         textDecoration: "none",
-                                        background: "var(--brand, #bffe00)",
+                                        background: "var(--brand, #c6ff3d)",
                                         color: "#000",
                                         fontWeight: "700"
                                     }}
@@ -1011,7 +1011,7 @@ export default function OverviewPage() {
                     <Link
                         href="/dashboard/events"
                         className={styles.actionButton}
-                        style={{ background: "#8b5cf6", boxShadow: "0 4px 12px rgba(139, 92, 246, 0.25)" }}
+                        style={{ background: "#c6ff3d", boxShadow: "0 4px 12px rgba(198, 255, 61, 0.25)" }}
                     >
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none">
                             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -1135,13 +1135,13 @@ export default function OverviewPage() {
                                     <li
                                         key={ev.id}
                                         className={styles.eventRow}
-                                        style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "16px" }}
+                                        style={{ borderBottom: "1px solid #f4f4f5", paddingBottom: "16px" }}
                                     >
                                         <div className={styles.eventDateBox} style={{ background: "#f5f3ff" }}>
-                                            <span className={styles.eventMonth} style={{ color: "#8b5cf6" }}>
+                                            <span className={styles.eventMonth} style={{ color: "#c6ff3d" }}>
                                                 {month}
                                             </span>
-                                            <span className={styles.eventDay} style={{ color: "#7c3aed" }}>
+                                            <span className={styles.eventDay} style={{ color: "#e6007a" }}>
                                                 {day}
                                             </span>
                                         </div>
@@ -1273,7 +1273,7 @@ export default function OverviewPage() {
                                         className={styles.memberAvatar}
                                         style={{
                                             background:
-                                                idx % 3 === 0 ? "#3b82f6" : idx % 3 === 1 ? "#10b981" : "#8b5cf6",
+                                                idx % 3 === 0 ? "#c6ff3d" : idx % 3 === 1 ? "#10b981" : "#c6ff3d",
                                             width: "42px",
                                             height: "42px",
                                             borderRadius: "50%",
@@ -1398,10 +1398,10 @@ export default function OverviewPage() {
     // Render 5: Referee Dashboard
     const renderRefereeDashboard = () => {
         const officialButtonStyle = {
-            background: "#2563eb",
+            background: "#c6ff3d",
             border: "none",
             borderRadius: "8px",
-            boxShadow: "0 4px 12px rgba(37, 99, 235, 0.25)",
+            boxShadow: "0 4px 12px rgba(198, 255, 61, 0.25)",
             width: "250px",
             padding: "11px 18px",
         };
@@ -1553,7 +1553,7 @@ export default function OverviewPage() {
                             width: "40px",
                             height: "40px",
                             border: "4px solid #cbd5e1",
-                            borderTopColor: "#2563eb",
+                            borderTopColor: "#c6ff3d",
                             borderRadius: "50%",
                             animation: "spin 1s linear infinite",
                             margin: "0 auto 16px",

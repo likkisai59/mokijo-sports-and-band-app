@@ -186,12 +186,12 @@ export default function VenueOverviewPage() {
                                             style={{
                                                 height: "100%",
                                                 width: `${p.percentage}%`,
-                                                background: "linear-gradient(90deg,#bffe00,#00f0ff)",
+                                                background: "linear-gradient(90deg,#c6ff3d,#d9ff6e)",
                                                 borderRadius: 4,
                                             }}
                                         />
                                     </div>
-                                    <span style={{ fontSize: 12, color: "#bffe00", width: 36, textAlign: "right" }}>
+                                    <span style={{ fontSize: 12, color: "#c6ff3d", width: 36, textAlign: "right" }}>
                                         {p.percentage}%
                                     </span>
                                 </div>

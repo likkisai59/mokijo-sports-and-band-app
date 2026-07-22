@@ -485,7 +485,7 @@ export default function CourseDetailPage() {
                                         style={{
                                             display: "inline-flex",
                                             alignItems: "center",
-                                            background: "#f1f5f9",
+                                            background: "#f4f4f5",
                                             color: "#64748b",
                                             fontWeight: "700",
                                             padding: "10px 20px",
@@ -572,7 +572,7 @@ export default function CourseDetailPage() {
                                             padding: "14px 18px",
                                             background: "white",
                                             borderRadius: "12px",
-                                            border: "1px solid #f1f5f9",
+                                            border: "1px solid #f4f4f5",
                                         }}
                                     >
                                         <div>
@@ -618,7 +618,7 @@ export default function CourseDetailPage() {
                                             padding: "14px 18px",
                                             background: "white",
                                             borderRadius: "12px",
-                                            border: "1px solid #f1f5f9",
+                                            border: "1px solid #f4f4f5",
                                         }}
                                     >
                                         <div>

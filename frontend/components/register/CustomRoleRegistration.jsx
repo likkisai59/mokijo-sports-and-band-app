@@ -157,7 +157,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                         width: "30px",
                         height: "30px",
                         border: "3px solid #cbd5e1",
-                        borderTopColor: "#2563eb",
+                        borderTopColor: "#c6ff3d",
                         borderRadius: "50%",
                         animation: "spin 1s linear infinite",
                         margin: "0 auto 12px",
@@ -323,7 +323,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                             gap: "8px",
                                             cursor: "pointer",
                                             fontSize: "14px",
-                                            color: "#f1f5f9",
+                                            color: "#f4f4f5",
                                         }}
                                     >
                                         <input
@@ -342,7 +342,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                                 cursor: "pointer",
                                                 width: "16px",
                                                 height: "16px",
-                                                accentColor: "#bffe00",
+                                                accentColor: "#c6ff3d",
                                             }}
                                         />
                                         <span>{sport}</span>

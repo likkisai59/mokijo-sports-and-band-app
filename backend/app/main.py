@@ -80,6 +80,13 @@ app.add_middleware(LoggingMiddleware)
 # Register the aggregated routers
 app.include_router(api_router)
 
+# Serve Band module uploads (local storage) if the directory exists
+import os as _os
+from fastapi.staticfiles import StaticFiles as _StaticFiles
+_BAND_UPLOAD_DIR = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))), "uploads", "band")
+_os.makedirs(_BAND_UPLOAD_DIR, exist_ok=True)
+app.mount("/band/uploads", _StaticFiles(directory=_BAND_UPLOAD_DIR), name="band-uploads")
+
 # ── Exception Handlers ────────────────────────────────────────────────────────
 
 @app.exception_handler(SessionNotFoundError)

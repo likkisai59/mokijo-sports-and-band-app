@@ -376,12 +376,12 @@ export default function MyVenuesPage() {
                                             fontWeight: 600,
                                             cursor: "pointer",
                                             border: editVenue.sports.includes(s)
-                                                ? "1px solid rgba(191,254,0,0.5)"
+                                                ? "1px solid rgba(198, 255, 61,0.5)"
                                                 : "1px solid rgba(255,255,255,0.1)",
                                             background: editVenue.sports.includes(s)
-                                                ? "rgba(191,254,0,0.1)"
+                                                ? "rgba(198, 255, 61,0.1)"
                                                 : "transparent",
-                                            color: editVenue.sports.includes(s) ? "#bffe00" : "rgba(255,255,255,0.5)",
+                                            color: editVenue.sports.includes(s) ? "#c6ff3d" : "rgba(255,255,255,0.5)",
                                             fontFamily: "Outfit,sans-serif",
                                         }}
                                     >

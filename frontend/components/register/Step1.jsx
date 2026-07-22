@@ -115,7 +115,7 @@ export default function Step1({ formData, onChange, onNext }) {
                                     gap: "10px",
                                     cursor: "pointer",
                                     fontSize: "14px",
-                                    color: "#f1f5f9",
+                                    color: "#f4f4f5",
                                 }}
                             >
                                 <input
@@ -130,7 +130,7 @@ export default function Step1({ formData, onChange, onNext }) {
                                         }
                                         onChange("sport", updated);
                                     }}
-                                    style={{ width: "16px", height: "16px", accentColor: "#bffe00", cursor: "pointer" }}
+                                    style={{ width: "16px", height: "16px", accentColor: "#c6ff3d", cursor: "pointer" }}
                                 />
                                 <span>{sport}</span>
                             </label>

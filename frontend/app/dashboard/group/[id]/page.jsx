@@ -432,7 +432,7 @@ export default function GroupProfilePage() {
                                     display: "block",
                                     marginTop: "12px",
                                     fontSize: "13px",
-                                    color: "#3b82f6",
+                                    color: "#c6ff3d",
                                     textDecoration: "none",
                                     fontWeight: "600",
                                 }}

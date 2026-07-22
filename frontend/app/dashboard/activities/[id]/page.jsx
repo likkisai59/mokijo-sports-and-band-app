@@ -523,7 +523,7 @@ export default function ActivityDetailPage({ params: paramsPromise }) {
                                 </label>
                                 <p
                                     style={{
-                                        color: "rgba(241, 245, 249, 0.8)",
+                                        color: "rgba(244, 244, 245, 0.8)",
                                         fontSize: "14px",
                                         marginTop: "8px",
                                         lineHeight: "1.6",

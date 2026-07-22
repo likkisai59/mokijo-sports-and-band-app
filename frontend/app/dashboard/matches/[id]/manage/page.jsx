@@ -324,10 +324,10 @@ export default function DashboardMatchManagePage() {
                             fontSize: "12px",
                             fontWeight: "600",
                             color: wsConnected ? "var(--vd-brand)" : "#ff3b30",
-                            background: wsConnected ? "rgba(191, 254, 0, 0.06)" : "rgba(255, 59, 48, 0.06)",
+                            background: wsConnected ? "rgba(198, 255, 61, 0.06)" : "rgba(255, 59, 48, 0.06)",
                             padding: "6px 12px",
                             borderRadius: "8px",
-                            border: `1px solid ${wsConnected ? "rgba(191, 254, 0, 0.2)" : "rgba(255, 59, 48, 0.2)"}`,
+                            border: `1px solid ${wsConnected ? "rgba(198, 255, 61, 0.2)" : "rgba(255, 59, 48, 0.2)"}`,
                         }}
                     >
                         <RefreshCw size={12} className={wsConnected ? "" : "animate-spin"} />

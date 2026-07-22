@@ -182,7 +182,7 @@ export default function DashboardMatchesPage() {
                 <div className="m-stat-card">
                     <div
                         className="m-stat-icon"
-                        style={{ color: "var(--vd-cyan)", borderColor: "rgba(0, 240, 255, 0.15)" }}
+                        style={{ color: "var(--vd-cyan)", borderColor: "rgba(217, 255, 110, 0.15)" }}
                     >
                         ⏳
                     </div>

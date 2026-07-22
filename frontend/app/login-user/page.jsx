@@ -176,10 +176,10 @@ function LoginUserContent() {
                                 style={{
                                     width: "100%",
                                     padding: "10px",
-                                    background: "rgba(0, 240, 255, 0.1)",
-                                    border: "1px solid rgba(0, 240, 255, 0.3)",
+                                    background: "rgba(217, 255, 110, 0.1)",
+                                    border: "1px solid rgba(217, 255, 110, 0.3)",
                                     borderRadius: "8px",
-                                    color: "#00f0ff",
+                                    color: "#d9ff6e",
                                     fontWeight: "600",
                                     fontSize: "14px",
                                     marginTop: "10px",
@@ -195,9 +195,9 @@ function LoginUserContent() {
                         {resendSuccess && (
                             <div
                                 style={{
-                                    background: "rgba(191, 254, 0, 0.1)",
-                                    border: "1px solid rgba(191, 254, 0, 0.3)",
-                                    color: "#bffe00",
+                                    background: "rgba(198, 255, 61, 0.1)",
+                                    border: "1px solid rgba(198, 255, 61, 0.3)",
+                                    color: "#c6ff3d",
                                     padding: "12px",
                                     borderRadius: "8px",
                                     marginTop: "10px",

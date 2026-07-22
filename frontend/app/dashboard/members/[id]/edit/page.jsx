@@ -162,7 +162,7 @@ export default function EditMemberPage() {
                                 style={{
                                     margin: "0 auto 16px",
                                     border: "3px solid #f3f3f3",
-                                    borderTop: "3px solid #2563eb",
+                                    borderTop: "3px solid #c6ff3d",
                                     borderRadius: "50%",
                                     width: "30px",
                                     height: "30px",
@@ -215,7 +215,7 @@ export default function EditMemberPage() {
                                         textTransform: "uppercase",
                                         fontWeight: "700",
                                         letterSpacing: "1.5px",
-                                        color: "#3b82f6",
+                                        color: "#c6ff3d",
                                         display: "block",
                                         marginBottom: "6px",
                                     }}
@@ -323,7 +323,7 @@ export default function EditMemberPage() {
                                                 width: "100%",
                                                 padding: "14px 18px",
                                                 borderRadius: "12px",
-                                                border: "2px solid #f1f5f9",
+                                                border: "2px solid #f4f4f5",
                                                 background: "#f8fafc",
                                                 fontSize: "16px",
                                                 color: "#1e293b",
@@ -349,7 +349,7 @@ export default function EditMemberPage() {
                                             value={groupName}
                                             disabled
                                             style={{
-                                                backgroundColor: "#f1f5f9",
+                                                backgroundColor: "#f4f4f5",
                                                 borderColor: "#e2e8f0",
                                                 color: "#64748b",
                                                 cursor: "not-allowed",

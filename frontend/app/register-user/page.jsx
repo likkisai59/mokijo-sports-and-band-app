@@ -108,15 +108,15 @@ export default function RegisterUserPage() {
                                 width: "60px",
                                 height: "60px",
                                 borderRadius: "50%",
-                                background: "rgba(191, 254, 0, 0.1)",
-                                color: "#bffe00",
+                                background: "rgba(198, 255, 61, 0.1)",
+                                color: "#c6ff3d",
                                 fontSize: "24px",
                                 fontWeight: "bold",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                                 margin: "0 auto 16px auto",
-                                border: "2px solid #bffe00",
+                                border: "2px solid #c6ff3d",
                             }}
                         >
                             ✓
@@ -265,7 +265,7 @@ export default function RegisterUserPage() {
                             Already have an account?{" "}
                             <Link
                                 href="/login-user"
-                                style={{ color: "#00f0ff", textDecoration: "none", fontWeight: "bold" }}
+                                style={{ color: "#d9ff6e", textDecoration: "none", fontWeight: "bold" }}
                             >
                                 Sign In
                             </Link>

@@ -308,7 +308,7 @@ export default function VerificationWizardPage() {
                             width: 28,
                             height: 28,
                             borderRadius: "50%",
-                            background: activeStep === s.nr ? "var(--vd-brand)" : activeStep > s.nr ? "rgba(191,254,0,0.2)" : "rgba(255,255,255,0.05)",
+                            background: activeStep === s.nr ? "var(--vd-brand)" : activeStep > s.nr ? "rgba(198, 255, 61,0.2)" : "rgba(255,255,255,0.05)",
                             color: activeStep === s.nr ? "#000" : activeStep > s.nr ? "var(--vd-brand)" : "rgba(255,255,255,0.3)",
                             display: "flex",
                             alignItems: "center",
@@ -405,7 +405,7 @@ export default function VerificationWizardPage() {
                     </button>
 
                     {locationCaptured && (
-                        <div style={{ marginTop: 24, display: "inline-block", background: "rgba(191,254,0,0.08)", border: "1px solid rgba(191,254,0,0.2)", padding: "12px 24px", borderRadius: 10 }}>
+                        <div style={{ marginTop: 24, display: "inline-block", background: "rgba(198, 255, 61,0.08)", border: "1px solid rgba(198, 255, 61,0.2)", padding: "12px 24px", borderRadius: 10 }}>
                             <div style={{ fontSize: 13, color: "var(--vd-brand)", fontWeight: 700 }}>✓ GPS Coordinates Captured Successfully</div>
                             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 4 }}>
                                 Latitude: {gps.latitude} · Longitude: {gps.longitude}

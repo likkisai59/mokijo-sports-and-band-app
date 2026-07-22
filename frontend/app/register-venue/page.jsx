@@ -399,7 +399,7 @@ export default function RegisterVenuePage() {
                                 width="42"
                                 height="42"
                                 fill="none"
-                                stroke="#bffe00"
+                                stroke="#c6ff3d"
                                 strokeWidth="2.5"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"

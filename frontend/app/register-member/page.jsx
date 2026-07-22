@@ -121,9 +121,9 @@ export default function RegisterMemberPage() {
                                 marginBottom: "16px",
                                 textDecoration: "none",
                                 width: "fit-content",
-                                background: "#2563eb",
+                                background: "#c6ff3d",
                                 color: "#ffffff",
-                                borderColor: "#2563eb",
+                                borderColor: "#c6ff3d",
                             }}
                         >
                             &lt;- Back to Home
@@ -186,7 +186,7 @@ export default function RegisterMemberPage() {
                                                 : clubs.find((club) => club.id === Number(pendingClubId))?.club_name ||
                                                   "Choose your club..."}
                                         </span>
-                                        <span style={{ color: "#2563eb", fontWeight: 800 }}>v</span>
+                                        <span style={{ color: "#c6ff3d", fontWeight: 800 }}>v</span>
                                     </button>
 
                                     {clubDropdownOpen && (
@@ -217,7 +217,7 @@ export default function RegisterMemberPage() {
                                                         width: "100%",
                                                         padding: "11px 14px",
                                                         border: "none",
-                                                        borderBottom: "1px solid #f1f5f9",
+                                                        borderBottom: "1px solid #f4f4f5",
                                                         background:
                                                             Number(pendingClubId) === club.id ? "#eff6ff" : "#ffffff",
                                                         color: "#0f172a",
@@ -244,7 +244,7 @@ export default function RegisterMemberPage() {
                                     width: "auto",
                                     minWidth: "150px",
                                     padding: "10px 22px",
-                                    background: "#2563eb",
+                                    background: "#c6ff3d",
                                     opacity: loadingClubs || clubs.length === 0 || !pendingClubId ? 0.7 : 1,
                                 }}
                             >
@@ -277,7 +277,7 @@ export default function RegisterMemberPage() {
                                     style={roleCardStyle}
                                     onMouseEnter={(event) => {
                                         event.currentTarget.style.transform = "translateY(-2px)";
-                                        event.currentTarget.style.borderColor = "#2563eb";
+                                        event.currentTarget.style.borderColor = "#c6ff3d";
                                         event.currentTarget.style.boxShadow = "0 6px 12px rgba(15, 23, 42, 0.05)";
                                     }}
                                     onMouseLeave={(event) => {

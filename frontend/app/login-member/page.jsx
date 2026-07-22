@@ -139,7 +139,7 @@ function LoginMemberContent() {
                             type="submit"
                             className={styles.loginButton}
                             disabled={loading}
-                            style={{ background: "linear-gradient(135deg, #06b6d4, #0891b2)" }}
+                            style={{ background: "linear-gradient(135deg, #d9ff6e, #9fcc1f)" }}
                         >
                             {loading ? "Signing in…" : "Enter Member Dashboard →"}
                         </button>
