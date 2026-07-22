@@ -139,7 +139,7 @@ class User(Base):
     fundraising_campaigns = relationship("FundraisingCampaign", back_populates="owner")
     payments = relationship("Payment", back_populates="owner")
     courses = relationship("Course", back_populates="owner")
-    course_registrations = relationship("CourseRegistration", back_populates="owner")
+    course_registrations = relationship("CourseRegistration", back_populates="owner", foreign_keys="CourseRegistration.owner_id")
     signup_forms = relationship("SignupForm", back_populates="owner", cascade="all, delete-orphan")
     signup_submissions = relationship("SignupSubmission", back_populates="owner", cascade="all, delete-orphan")
     venues = relationship("Venue", back_populates="owner")
@@ -208,11 +208,32 @@ class PaymentGatewayOrder(Base):
 
     payment = relationship("Payment", back_populates="gateway_orders")
 
+class Trainer(Base):
+    __tablename__ = "trainers"
+
+    id = Column(Integer, primary_key=True, index=True)
+    first_name = Column(String, nullable=False)
+    last_name = Column(String, nullable=False)
+    dob = Column(String, nullable=True)
+    gender = Column(String, nullable=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    phone = Column(String, nullable=False)
+    aadhar_number = Column(String, nullable=True)
+    experience_years = Column(Integer, nullable=True)
+    sports = Column(Text, nullable=True)  # JSON array
+    password = Column(String, nullable=False)
+    is_verified = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    courses = relationship("Course", back_populates="trainer")
+    registrations = relationship("CourseRegistration", back_populates="trainer")
+
 class Course(Base):
     __tablename__ = "courses"
 
     id = Column(Integer, primary_key=True, index=True)
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    trainer_id = Column(Integer, ForeignKey("trainers.id"), nullable=True)
     group_id = Column(Integer, ForeignKey("groups.id"), nullable=True)
     title = Column(String, nullable=False)
     code = Column(String, nullable=True)
@@ -227,9 +248,13 @@ class Course(Base):
     capacity = Column(Integer, default=20)
     fee = Column(Integer, default=0)
     status = Column(String, default="open") # draft, open, full, closed, completed
+    cover_image = Column(Text, nullable=True)
+    reschedule_reason = Column(String, nullable=True)
+    rescheduled_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     owner = relationship("User", back_populates="courses")
+    trainer = relationship("Trainer", back_populates="courses")
     group = relationship("Group", back_populates="courses")
     registrations = relationship("CourseRegistration", back_populates="course", cascade="all, delete-orphan")
 
@@ -237,9 +262,11 @@ class CourseRegistration(Base):
     __tablename__ = "course_registrations"
 
     id = Column(Integer, primary_key=True, index=True)
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    trainer_id = Column(Integer, ForeignKey("trainers.id"), nullable=True)
     course_id = Column(Integer, ForeignKey("courses.id"), nullable=False)
     member_id = Column(Integer, ForeignKey("members.id"), nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     participant_name = Column(String, nullable=False)
     participant_email = Column(String, nullable=True)
     participant_phone = Column(String, nullable=True)
@@ -248,9 +275,11 @@ class CourseRegistration(Base):
     notes = Column(Text, nullable=True)
     registered_at = Column(DateTime, default=datetime.utcnow)
 
-    owner = relationship("User", back_populates="course_registrations")
+    owner = relationship("User", back_populates="course_registrations", foreign_keys=[owner_id])
+    trainer = relationship("Trainer", back_populates="registrations")
     course = relationship("Course", back_populates="registrations")
     member = relationship("Member", back_populates="course_registrations")
+
 
 class SignupForm(Base):
     __tablename__ = "signup_forms"

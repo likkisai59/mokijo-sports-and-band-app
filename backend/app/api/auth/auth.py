@@ -137,7 +137,22 @@ class AuthLogic(ConnectionService):
         try:
             with logger.time_operation("REGISTER_USER", request=request):
                 db = self.db_driver
-                email_clean = user.email.replace(" ", "").lower() if user.email else ""
+                from app.core.validators import (
+                    validate_club_name_or_raise,
+                    validate_person_name_or_raise,
+                    validate_email_or_raise,
+                    validate_strong_password_or_raise,
+                    validate_phone_or_raise,
+                    validate_aadhaar_or_raise,
+                )
+
+                club_name = validate_club_name_or_raise(user.clubName)
+                first_name = validate_person_name_or_raise(user.firstName, "First name")
+                last_name = validate_person_name_or_raise(user.lastName, "Last name")
+                email_clean = validate_email_or_raise(user.email)
+                validate_strong_password_or_raise(user.password.strip() if user.password else "")
+                phone_clean = validate_phone_or_raise(user.phone)
+                aadhar_clean = validate_aadhaar_or_raise(user.aadharNumber, required=True)
                 
                 existing = db.fetch_one("SELECT id FROM users WHERE LOWER(email) = %s LIMIT 1", (email_clean,))
                 if existing:
@@ -148,17 +163,17 @@ class AuthLogic(ConnectionService):
                 expires_at = datetime.utcnow() + timedelta(hours=24)
 
                 insert_data = {
-                    "club_name": user.clubName,
+                    "club_name": club_name,
                     "country": user.country,
                     "state": user.state,
                     "member_count": user.memberCount,
                     "sport": user.sport,
-                    "first_name": user.firstName,
-                    "last_name": user.lastName,
+                    "first_name": first_name,
+                    "last_name": last_name,
                     "email": email_clean,
                     "password": hashed_password,
-                    "phone": user.phone,
-                    "aadhar_number": user.aadharNumber,
+                    "phone": phone_clean,
+                    "aadhar_number": aadhar_clean,
                     "hear_about": user.hearAbout,
                     "is_verified": False,
                     "verification_token": token,

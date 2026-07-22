@@ -1,7 +1,8 @@
 "use client";
 import { API_BASE_URL } from "@/lib/api";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import "../../styles/venues.css";
 
 function parseJsonList(value) {
@@ -15,20 +16,37 @@ function parseJsonList(value) {
     }
 }
 
-function statusBadgeStyle(status) {
-    if (status === "VERIFIED") {
-        return { background: "rgba(34, 197, 94, 0.15)", color: "#4ade80" };
-    }
-    if (status === "PENDING_VERIFICATION" || status === "UNDER_REVIEW" || status === "MORE_INFO_REQUIRED") {
-        return { background: "rgba(234, 179, 8, 0.15)", color: "#facc15" };
-    }
-    if (status === "REJECTED" || status === "SUSPENDED") {
-        return { background: "rgba(239, 68, 68, 0.15)", color: "#f87171" };
-    }
-    return { background: "rgba(148, 163, 184, 0.15)", color: "#94a3b8" };
+function authHeaders() {
+    const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+    return {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
 }
 
-export default function VenuesPage() {
+function loadRazorpayCheckout() {
+    return new Promise((resolve, reject) => {
+        if (typeof window !== "undefined" && window.Razorpay) return resolve();
+        const existing = document.querySelector("script[src='https://checkout.razorpay.com/v1/checkout.js']");
+        if (existing) {
+            existing.addEventListener("load", () => resolve());
+            existing.addEventListener("error", () => reject(new Error("Could not load Razorpay Checkout.")), {
+                once: true,
+            });
+            return;
+        }
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error("Could not load Razorpay Checkout."));
+        document.body.appendChild(script);
+    });
+}
+
+function VenuesPageContent() {
+    const searchParams = useSearchParams();
+    const venueIdParam = searchParams.get("venue_id");
+
     const [venues, setVenues] = useState([]);
     const [selectedVenue, setSelectedVenue] = useState(null);
     const [slots, setSlots] = useState([]);
@@ -81,6 +99,12 @@ export default function VenuesPage() {
     }, [searchQuery]);
 
     useEffect(() => {
+        if (!venueIdParam || venues.length === 0 || selectedVenue) return;
+        const match = venues.find((v) => String(v.id) === String(venueIdParam));
+        if (match) setSelectedVenue(match);
+    }, [venueIdParam, venues, selectedVenue]);
+
+    useEffect(() => {
         if (selectedVenue) {
             fetchSlots(selectedVenue.id);
             setSelectedSlot(null);
@@ -95,38 +119,101 @@ export default function VenuesPage() {
             const userId = localStorage.getItem("userId");
             if (!userId) {
                 setBookingStatus("error");
-                setBookingMessage("Please log in to request a booking.");
+                setBookingMessage("Please log in to book a venue.");
                 return;
             }
 
-            const response = await fetch(`${API_BASE_URL}/bookings/request-approval`, {
+            const holdRes = await fetch(`${API_BASE_URL}/bookings/hold`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: authHeaders(),
                 body: JSON.stringify({
                     user_id: parseInt(userId, 10),
                     slot_ids: [selectedSlot.id],
-                    amount_paid: selectedSlot.current_price,
-                    status: "pending_approval",
-                    payment_status: "pending",
                 }),
             });
-
-            const data = await response.json();
-            if (response.ok) {
-                setBookingStatus("success");
-                setBookingMessage(
-                    `Booking request sent. Venue owner has been notified and will approve it shortly.`
-                );
-                fetchSlots(selectedVenue.id);
-                setSelectedSlot(null);
-            } else {
+            const holdData = await holdRes.json().catch(() => ({}));
+            if (!holdRes.ok) {
                 setBookingStatus("error");
-                setBookingMessage(data.detail || "This slot could not be requested. Please try another time.");
+                setBookingMessage(holdData.detail || "Could not reserve this slot. Please try another time.");
+                return;
             }
+
+            const orderRes = await fetch(`${API_BASE_URL}/bookings/razorpay/order`, {
+                method: "POST",
+                headers: authHeaders(),
+                body: JSON.stringify({
+                    booking_id: holdData.id,
+                    user_id: parseInt(userId, 10),
+                }),
+            });
+            const order = await orderRes.json().catch(() => ({}));
+            if (!orderRes.ok) {
+                setBookingStatus("error");
+                setBookingMessage(order.detail || "Could not start Razorpay payment.");
+                return;
+            }
+
+            await loadRazorpayCheckout();
+
+            const checkout = new window.Razorpay({
+                key: order.key_id,
+                amount: order.amount,
+                currency: order.currency,
+                name: order.name || "Mukijo Venue Booking",
+                description: order.description || `Booking #${holdData.id}`,
+                order_id: order.razorpay_order_id,
+                prefill: {
+                    name: order.prefill_name || "",
+                    email: order.prefill_email || "",
+                    contact: order.prefill_contact || "",
+                },
+                handler: async (response) => {
+                    try {
+                        const verifyRes = await fetch(`${API_BASE_URL}/bookings/razorpay/verify`, {
+                            method: "POST",
+                            headers: authHeaders(),
+                            body: JSON.stringify({
+                                booking_id: holdData.id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                            }),
+                        });
+                        const verifyData = await verifyRes.json().catch(() => ({}));
+                        if (!verifyRes.ok) {
+                            setBookingStatus("error");
+                            setBookingMessage(verifyData.detail || "Payment verification failed.");
+                            return;
+                        }
+                        setBookingStatus("success");
+                        setBookingMessage("Payment successful. Your venue slot is booked.");
+                        fetchSlots(selectedVenue.id);
+                        setSelectedSlot(null);
+                    } catch (verifyErr) {
+                        console.error(verifyErr);
+                        setBookingStatus("error");
+                        setBookingMessage("Payment verification failed.");
+                    }
+                },
+                modal: {
+                    ondismiss: () => {
+                        setBookingStatus("error");
+                        setBookingMessage("Payment cancelled. Your slot hold may expire shortly.");
+                    },
+                },
+            });
+
+            checkout.on("payment.failed", (response) => {
+                setBookingStatus("error");
+                setBookingMessage(response?.error?.description || "Payment failed.");
+            });
+
+            setBookingStatus(null);
+            checkout.open();
         } catch (error) {
             setBookingStatus("error");
-            setBookingMessage("Network error occurred while sending the booking request.");
-            console.error("Booking request error:", error);
+            setBookingMessage("Network error occurred while booking.");
+            console.error("Booking error:", error);
         }
     };
 
@@ -139,12 +226,16 @@ export default function VenuesPage() {
         }
     };
 
+    const priceLabel = selectedSlot
+        ? `Pay ₹${selectedSlot.current_price} with Razorpay`
+        : "Select a slot to book";
+
     return (
         <div className="venues-container">
             <header className="venues-header">
                 <div>
                     <h1>Venues & Arenas</h1>
-                    <p>Browse venues registered by venue owners and book available slots.</p>
+                    <p>Browse venues registered by venue owners and book available slots with Razorpay.</p>
                 </div>
             </header>
 
@@ -182,7 +273,6 @@ export default function VenuesPage() {
                         <div className="venues-grid">
                             {venues.map((venue) => {
                                 const sports = parseJsonList(venue.sports_supported);
-                                const status = venue.verification_status || "DRAFT";
                                 const rating =
                                     typeof venue.rating === "number" ? venue.rating.toFixed(1) : "5.0";
                                 return (
@@ -218,34 +308,9 @@ export default function VenuesPage() {
                                             )}
                                         </div>
                                         <div className="venue-body">
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    justifyContent: "space-between",
-                                                    alignItems: "center",
-                                                    gap: 8,
-                                                }}
-                                            >
-                                                <h3 className="venue-title" style={{ margin: 0 }}>
-                                                    {venue.name}
-                                                </h3>
-                                                <span
-                                                    style={{
-                                                        fontSize: 10,
-                                                        padding: "2px 8px",
-                                                        borderRadius: 4,
-                                                        fontWeight: 700,
-                                                        textTransform: "uppercase",
-                                                        letterSpacing: "0.5px",
-                                                        whiteSpace: "nowrap",
-                                                        ...statusBadgeStyle(status),
-                                                    }}
-                                                >
-                                                    {status === "VERIFIED"
-                                                        ? "✓ Verified"
-                                                        : status.replace(/_/g, " ")}
-                                                </span>
-                                            </div>
+                                            <h3 className="venue-title" style={{ margin: 0 }}>
+                                                {venue.name}
+                                            </h3>
                                             <div className="venue-location">
                                                 <svg
                                                     viewBox="0 0 24 24"
@@ -271,7 +336,7 @@ export default function VenuesPage() {
                                                 <div className="venue-rating">
                                                     ★ <span>{rating}</span>
                                                 </div>
-                                                <span className="book-now-text">View slots →</span>
+                                                <span className="book-now-text">Book with Razorpay →</span>
                                             </div>
                                         </div>
                                     </div>
@@ -290,19 +355,6 @@ export default function VenuesPage() {
                     <div className="venue-info-sidebar">
                         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: "14px" }}>
                             <h2 style={{ margin: 0 }}>{selectedVenue.name}</h2>
-                            <span
-                                style={{
-                                    fontSize: 11,
-                                    padding: "2px 8px",
-                                    borderRadius: 4,
-                                    fontWeight: 700,
-                                    textTransform: "uppercase",
-                                    letterSpacing: "0.5px",
-                                    ...statusBadgeStyle(selectedVenue.verification_status || "DRAFT"),
-                                }}
-                            >
-                                {(selectedVenue.verification_status || "DRAFT").replace(/_/g, " ")}
-                            </span>
                         </div>
                         <div className="venue-location" style={{ marginBottom: "14px" }}>
                             <svg
@@ -422,10 +474,10 @@ export default function VenuesPage() {
                         <div className="confirm-booking-box">
                             <button
                                 className="confirm-booking-btn"
-                                disabled={!selectedSlot}
+                                disabled={!selectedSlot || bookingStatus === "loading"}
                                 onClick={handleConfirmBooking}
                             >
-                                Request booking approval
+                                {bookingStatus === "loading" ? "Opening Razorpay…" : priceLabel}
                             </button>
                         </div>
                     </div>
@@ -445,7 +497,7 @@ export default function VenuesPage() {
                     >
                         <div className="modal-header">
                             <h2 style={{ color: bookingStatus === "success" ? "var(--brand)" : "var(--rose)" }}>
-                                {bookingStatus === "success" ? "Booking Confirmed!" : "Booking Conflict"}
+                                {bookingStatus === "success" ? "Booking Confirmed!" : "Booking Issue"}
                             </h2>
                             <button className="close-btn" onClick={() => setBookingStatus(null)}>
                                 ×
@@ -472,5 +524,13 @@ export default function VenuesPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function VenuesPage() {
+    return (
+        <Suspense fallback={<div className="venues-container"><p>Loading venues...</p></div>}>
+            <VenuesPageContent />
+        </Suspense>
     );
 }

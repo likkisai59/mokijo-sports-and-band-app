@@ -93,6 +93,16 @@ def serialize_course(course: dict, db_driver):
         if group:
             group_name = group.get("group_name")
 
+    trainer_name = None
+    trainer_id = course.get("trainer_id")
+    if trainer_id:
+        trainer = db_driver.fetch_one(
+            "SELECT first_name, last_name FROM trainers WHERE id = %s",
+            (trainer_id,),
+        )
+        if trainer:
+            trainer_name = f"{trainer.get('first_name') or ''} {trainer.get('last_name') or ''}".strip()
+
     paid_res = db_driver.fetch_one(
         "SELECT COUNT(*) as count FROM course_registrations WHERE course_id = %s AND payment_status = 'paid'",
         (course_id,)
@@ -112,6 +122,7 @@ def serialize_course(course: dict, db_driver):
     return {
         "id": course_id,
         "owner_id": course.get("owner_id"),
+        "trainer_id": course.get("trainer_id"),
         "group_id": group_id,
         "title": course.get("title"),
         "code": course.get("code"),
@@ -128,9 +139,13 @@ def serialize_course(course: dict, db_driver):
         "status": status,
         "created_at": created_at_str,
         "group_name": group_name,
+        "trainer_name": trainer_name,
         "registration_count": registration_count,
         "available_seats": available_seats,
         "paid_count": paid_count,
+        "cover_image": course.get("cover_image"),
+        "reschedule_reason": course.get("reschedule_reason"),
+        "rescheduled_at": str(course.get("rescheduled_at")) if course.get("rescheduled_at") else None,
     }
 
 def serialize_course_registration(registration: dict, db_driver):
@@ -156,8 +171,10 @@ def serialize_course_registration(registration: dict, db_driver):
     return {
         "id": registration.get("id"),
         "owner_id": registration.get("owner_id"),
+        "trainer_id": registration.get("trainer_id"),
         "course_id": course_id,
         "member_id": registration.get("member_id"),
+        "user_id": registration.get("user_id"),
         "participant_name": registration.get("participant_name"),
         "participant_email": registration.get("participant_email"),
         "participant_phone": registration.get("participant_phone"),

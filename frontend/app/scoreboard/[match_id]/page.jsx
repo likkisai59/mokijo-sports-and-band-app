@@ -67,17 +67,21 @@ export default function PublicScoreboardPage() {
             }
         };
 
-        socket.onclose = () => {
-            console.log("Live feed disconnected. Retrying connection in 3 seconds...");
+        socket.onclose = (event) => {
             setWsConnected(false);
+            // 4004 = match not found — do not retry forever
+            if (event.code === 4004) {
+                console.warn("Scoreboard: match not found on live feed.");
+                return;
+            }
             reconnectTimerRef.current = setTimeout(() => {
                 connectWS();
             }, 3000);
         };
 
-        socket.onerror = (err) => {
-            console.error("WebSocket error:", err);
-            socket.close();
+        socket.onerror = () => {
+            // Browser hides WS error details; onclose handles reconnect.
+            setWsConnected(false);
         };
     };
 
@@ -232,40 +236,34 @@ export default function PublicScoreboardPage() {
                         {match.title}
                     </h1>
 
-                    {/* Scores Display */}
+                    {/* Scores Display: Team name above score */}
                     <div className="pub-score-display">
-                        {/* Team A */}
-                        <div className="pub-team" style={{ textAlign: "right" }}>
+                        <div className="pub-team" style={{ textAlign: "center" }}>
                             <div className="pub-team-name" style={{ color: teamA.color || "var(--vd-brand)" }}>
                                 {teamA.team_name}
                             </div>
                             {teamA.club_name && <div className="pub-team-club">{teamA.club_name}</div>}
-                        </div>
-
-                        {/* Team A Score */}
-                        <div
-                            className="pub-score-num"
-                            style={{ textShadow: `0 0 30px ${teamA.color || "var(--vd-brand)"}22` }}
-                        >
-                            {teamA.score}
+                            <div
+                                className="pub-score-num"
+                                style={{ textShadow: `0 0 30px ${teamA.color || "var(--vd-brand)"}22` }}
+                            >
+                                {teamA.score}
+                            </div>
                         </div>
 
                         <div className="pub-vs">vs</div>
 
-                        {/* Team B Score */}
-                        <div
-                            className="pub-score-num"
-                            style={{ textShadow: `0 0 30px ${teamB.color || "var(--vd-cyan)"}22` }}
-                        >
-                            {teamB.score}
-                        </div>
-
-                        {/* Team B */}
-                        <div className="pub-team" style={{ textAlign: "left" }}>
+                        <div className="pub-team" style={{ textAlign: "center" }}>
                             <div className="pub-team-name" style={{ color: teamB.color || "var(--vd-cyan)" }}>
                                 {teamB.team_name}
                             </div>
                             {teamB.club_name && <div className="pub-team-club">{teamB.club_name}</div>}
+                            <div
+                                className="pub-score-num"
+                                style={{ textShadow: `0 0 30px ${teamB.color || "var(--vd-cyan)"}22` }}
+                            >
+                                {teamB.score}
+                            </div>
                         </div>
                     </div>
 

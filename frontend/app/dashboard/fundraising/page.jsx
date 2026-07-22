@@ -316,11 +316,25 @@ export default function FundraisingPage() {
             {/* Payments Section (Moved to top) */}
             {!isMember && (
                 <div className="payments-container" style={{ marginBottom: "48px", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "40px" }}>
-                    <div className="payments-header" style={{ marginBottom: "20px" }}>
+                    <div className="payments-header" style={{ marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px", flexWrap: "wrap" }}>
                         <div>
                             <h2 style={{ margin: "0 0 4px", fontSize: "20px", fontWeight: "700", color: "#f1f5f9" }}>Member Payments</h2>
                             <p style={{ margin: 0, fontSize: "14px", color: "rgba(148,163,184,0.55)" }}>All club group members with full name, email, role, sport, payment, amount, and paid status.</p>
                         </div>
+                        <Link href="/dashboard/fundraising/new" className="btn-primary">
+                            <svg
+                                viewBox="0 0 24 24"
+                                width="16"
+                                height="16"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.5"
+                            >
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                            New Campaign
+                        </Link>
                     </div>
 
                     <div className="payments-table-toolbar" style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "stretch", marginBottom: "16px" }}>
@@ -470,22 +484,6 @@ export default function FundraisingPage() {
                                 </button>
                             ))}
                         </div>
-                        {!isMember && (
-                            <Link href="/dashboard/fundraising/new" className="btn-primary">
-                                <svg
-                                    viewBox="0 0 24 24"
-                                    width="16"
-                                    height="16"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2.5"
-                                >
-                                    <line x1="12" y1="5" x2="12" y2="19" />
-                                    <line x1="5" y1="12" x2="19" y2="12" />
-                                </svg>
-                                New Campaign
-                            </Link>
-                        )}
                     </div>
                 </div>
 

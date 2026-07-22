@@ -1,0 +1,585 @@
+/* ── Page shell — matches dashboard dark bg ─────────────────────────────── */
+.page {
+    min-height: 100vh;
+    background: #050508;
+    padding: 0 0 60px 0;
+    font-family: "Outfit", "Inter", -apple-system, sans-serif;
+}
+
+/* ── Nav Bar ────────────────────────────────────────────────────────────── */
+.navBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 28px 0 28px;
+    background: transparent;
+    border-bottom: none;
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.backBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+.backBtn:hover {
+    background: rgba(191,254,0,0.07);
+    border-color: rgba(191,254,0,0.25);
+    color: #bffe00;
+    transform: translateX(-2px);
+}
+
+.navBreadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13.5px;
+    color: #475569;
+}
+.breadcrumbActive {
+    color: #f1f5f9;
+    font-weight: 600;
+}
+
+/* ── Layout grid ────────────────────────────────────────────────────────── */
+.layout {
+    max-width: 760px;
+    margin: 28px auto 0;
+    padding: 0 28px;
+}
+@media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+}
+
+/* ── Profile Card (left) ─────────────────────────────────────────────────── */
+.profileCard {
+    background: #0c0c14;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 18px;
+    padding: 28px 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    height: fit-content;
+    position: sticky;
+    top: 80px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+.avatarWrapper {
+    position: relative;
+    margin-bottom: 18px;
+}
+.avatar {
+    width: 82px;
+    height: 82px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 1px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+.avatarOnline {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #bffe00;
+    border: 2.5px solid #0c0c14;
+}
+
+.profileName {
+    font-size: 18px;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin: 0 0 4px;
+}
+.profileEmail {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0 0 14px;
+    word-break: break-all;
+}
+
+.roleBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 13px;
+    border-radius: 99px;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    margin-bottom: 18px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+.roleDot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.infoPills {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+.infoPill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 9px;
+    font-size: 13px;
+    color: #94a3b8;
+    font-weight: 500;
+    text-align: left;
+}
+.pillIcon { display: flex; align-items: center; color: #64748b; flex-shrink: 0; }
+
+.sidebarActions {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+/* ── Right fields panel ──────────────────────────────────────────────────── */
+.fieldsPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* ── Section card ────────────────────────────────────────────────────────── */
+.section {
+    background: #0c0c14;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+.section:hover {
+    border-color: rgba(255,255,255,0.1);
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 22px 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.02);
+}
+.sectionIcon {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.sectionTitle {
+    font-size: 15px;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin: 0 0 2px;
+}
+.sectionSub {
+    font-size: 12.5px;
+    color: #475569;
+    margin: 0;
+}
+
+/* ── Field Row ────────────────────────────────────────────────────────────── */
+.fieldRow {
+    display: grid;
+    grid-template-columns: 175px 1fr;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 22px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    transition: background 0.15s;
+}
+.fieldRow:last-child { border-bottom: none; }
+.fieldRow:hover { background: rgba(255,255,255,0.02); }
+.fieldRowActive { background: rgba(191,254,0,0.04) !important; border-bottom-color: rgba(191,254,0,0.12) !important; }
+
+.fieldMeta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.fieldIcon { display: flex; align-items: center; flex-shrink: 0; }
+.fieldLabel {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+.fieldContent { flex: 1; min-width: 0; }
+
+/* Display mode */
+.displayWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.fieldValue {
+    font-size: 15.5px;
+    color: #f1f5f9;
+    font-weight: 500;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "Outfit", sans-serif;
+}
+.fieldEmpty { color: #334155; font-style: italic; font-weight: 400; font-size: 14px; }
+
+/* Edit mode */
+.editingWrapper {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: wrap;
+}
+.fieldInput {
+    width: 100%;
+    max-width: 500px;
+    padding: 10px 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 9px;
+    background: #121222;
+    font-size: 15.5px;
+    color: #f1f5f9;
+    outline: none;
+    font-family: "Outfit", sans-serif;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.fieldInput:focus {
+    border-color: #bffe00;
+    box-shadow: 0 0 0 3px rgba(191,254,0,0.15);
+}
+.disabledInput {
+    background: rgba(255, 255, 255, 0.02) !important;
+    border-color: rgba(255, 255, 255, 0.04) !important;
+    color: #64748b !important;
+    cursor: not-allowed;
+}
+
+.fieldActions { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+.btnEdit {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 7px;
+    background: rgba(255,255,255,0.04);
+    color: #64748b;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.16s;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-family: "Outfit", sans-serif;
+}
+.btnEdit:hover {
+    background: rgba(191,254,0,0.08);
+    border-color: rgba(191,254,0,0.3);
+    color: #bffe00;
+}
+
+/* ── Inline Save / Cancel (compact) ─────────────────────────────────────── */
+.btnSave {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    border-radius: 7px;
+    border: none;
+    background: #bffe00;
+    color: #050508;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.15s, transform 0.15s;
+    box-shadow: 0 2px 8px rgba(191,254,0,0.25);
+    font-family: "Outfit", sans-serif;
+    letter-spacing: 0.2px;
+}
+.btnSave:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+.btnSave:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btnCancel {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 7px;
+    border: 1px solid rgba(255,255,255,0.09);
+    background: rgba(255,255,255,0.04);
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    font-family: "Outfit", sans-serif;
+}
+.btnCancel:hover {
+    background: rgba(239,68,68,0.1);
+    border-color: rgba(239,68,68,0.3);
+    color: #ef4444;
+}
+
+/* ── Save All / Cancel All (sidebar & bottom bar) ───────────────────────── */
+.btnSaveAll {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 11px 18px;
+    border-radius: 10px;
+    border: none;
+    background: #bffe00;
+    color: #050508;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 16px rgba(191,254,0,0.25);
+    letter-spacing: 0.2px;
+    font-family: "Outfit", sans-serif;
+}
+.btnSaveAll:hover:not(:disabled) {
+    opacity: 0.88;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(191,254,0,0.35);
+}
+.btnSaveAll:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btnCancelAll {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.09);
+    background: rgba(255,255,255,0.04);
+    color: #64748b;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: "Outfit", sans-serif;
+}
+.btnCancelAll:hover {
+    background: rgba(239,68,68,0.08);
+    border-color: rgba(239,68,68,0.25);
+    color: #ef4444;
+}
+
+/* ── Bottom action bar ───────────────────────────────────────────────────── */
+.bottomBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.01);
+}
+.bottomBar .btnSaveAll {
+    width: auto;
+    padding: 10px 24px;
+    font-size: 14.5px;
+    border-radius: 9px;
+    background: #bffe00;
+    color: #050508;
+    box-shadow: 0 4px 16px rgba(191,254,0,0.2);
+}
+.bottomBar .btnCancelAll {
+    width: auto;
+    padding: 10px 24px;
+    font-size: 14.5px;
+    border-radius: 9px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.09);
+    color: #94a3b8;
+}
+.bottomBar .btnCancelAll:hover {
+    background: rgba(239,68,68,0.08);
+    border-color: rgba(239,68,68,0.25);
+    color: #ef4444;
+}
+
+/* ── Saved badge ─────────────────────────────────────────────────────────── */
+.savedBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: rgba(191,254,0,0.12);
+    color: #bffe00;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn { from { opacity:0; transform:scale(0.8); } to { opacity:1; transform:scale(1); } }
+
+/* ── Spinner ─────────────────────────────────────────────────────────────── */
+.spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(5,5,8,0.25);
+    border-top-color: #050508;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Loading screen ──────────────────────────────────────────────────────── */
+.loadingScreen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #050508;
+}
+.loadingCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 48px 60px;
+    background: #0c0c14;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.07);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+.loadingSpinner {
+    width: 38px;
+    height: 38px;
+    border: 3px solid rgba(255,255,255,0.07);
+    border-top-color: #bffe00;
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+.loadingText { font-size: 15px; font-weight: 500; color: #64748b; margin: 0; }
+
+/* ── Error screen ────────────────────────────────────────────────────────── */
+.errorScreen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #050508;
+}
+.errorCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 48px 56px;
+    background: #0c0c14;
+    border-radius: 18px;
+    border: 1px solid rgba(239,68,68,0.2);
+    box-shadow: 0 8px 32px rgba(239,68,68,0.1);
+    max-width: 420px;
+    text-align: center;
+}
+.errorIcon {
+    background: rgba(239,68,68,0.1);
+    padding: 16px;
+    border-radius: 50%;
+}
+.errorTitle { font-size: 20px; font-weight: 800; color: #ef4444; margin: 0; }
+.errorMsg { font-size: 14px; color: #64748b; margin: 0; line-height: 1.6; }
+.errorBtn {
+    margin-top: 6px;
+    padding: 10px 24px;
+    border-radius: 10px;
+    border: none;
+    background: #ef4444;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: "Outfit", sans-serif;
+    transition: opacity 0.15s;
+}
+.errorBtn:hover { opacity: 0.88; }
+
+/* ── Success screen ──────────────────────────────────────────────────────── */
+.successScreen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #050508;
+}
+.successCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 52px 64px;
+    background: #0c0c14;
+    border-radius: 22px;
+    border: 1.5px solid rgba(191,254,0,0.2);
+    box-shadow: 0 12px 40px rgba(191,254,0,0.1);
+    text-align: center;
+    animation: slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes slideUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+.successRing {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: rgba(191,254,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(191,254,0,0.3);
+}
+.successTitle { font-size: 22px; font-weight: 800; color: #bffe00; margin: 0; }
+.successMsg { font-size: 14px; color: #64748b; margin: 0; }

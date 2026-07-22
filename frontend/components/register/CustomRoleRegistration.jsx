@@ -5,17 +5,48 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import styles from "../../app/styles/signup.module.css";
+import PasswordField from "@/components/ui/PasswordField";
+import PhoneInput from "@/components/ui/PhoneInput";
+import {
+    personNameError,
+    emailError,
+    passwordError,
+    phoneError,
+    aadhaarError,
+    digitsOnly,
+    formatAadhaarDisplay,
+    formatPhoneForStorage,
+} from "@/lib/validation";
+
+function fieldKey(name = "") {
+    return String(name).toLowerCase();
+}
+
+function isNameField(name) {
+    const n = fieldKey(name);
+    return n === "first_name" || n === "lastname" || n === "last_name" || n === "firstname" || n === "child_name";
+}
+
+function isPhoneField(name) {
+    const n = fieldKey(name);
+    return n === "phone" || n === "emergency_contact" || n.includes("phone");
+}
+
+function isAadhaarField(name) {
+    const n = fieldKey(name);
+    return n === "aadhar" || n === "aadhaar" || n === "aadharnumber";
+}
 
 export default function CustomRoleRegistration({ role, selectedClub, onBack, onComplete, backLabel = "<- Back" }) {
     const router = useRouter();
     const redirectedRef = useRef(false);
     const [formConfig, setFormConfig] = useState(null);
     const [formData, setFormData] = useState({});
+    const [phoneMeta, setPhoneMeta] = useState({});
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const [submitError, setSubmitError] = useState("");
 
-    // Fetch form configuration once club is selected
     useEffect(() => {
         if (!selectedClub) {
             setFormConfig(null);
@@ -39,12 +70,16 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                     }
                     setFormConfig({ ...data, fields: parsedFields });
 
-                    // Initialise formData state with empty values
                     const initialData = {};
+                    const initialPhone = {};
                     parsedFields.forEach((f) => {
                         initialData[f.name] = "";
+                        if (isPhoneField(f.name)) {
+                            initialPhone[f.name] = { countryCode: "+91", digits: "" };
+                        }
                     });
                     setFormData(initialData);
+                    setPhoneMeta(initialPhone);
                 }
             } catch (err) {
                 console.error("Error fetching custom form:", err);
@@ -69,31 +104,63 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
         }
     }
 
-    async function handleSubmit(e) {
-        e.preventDefault();
-        setSubmitError("");
-
-        // Simple validation
+    function validateAll() {
         const newErrors = {};
         if (formConfig && formConfig.fields) {
             formConfig.fields.forEach((field) => {
-                if (field.required && !String(formData[field.name] || "").trim()) {
-                    newErrors[field.name] = `${field.label} is required`;
+                const name = field.name;
+                const value = formData[name];
+                const key = fieldKey(name);
+
+                if (field.required && !String(value || "").trim() && !isPhoneField(name) && !isAadhaarField(name)) {
+                    newErrors[name] = `${field.label} is required`;
+                }
+
+                if (isNameField(name) && String(value || "").trim()) {
+                    const err = personNameError(value, field.label || "Name");
+                    if (err) newErrors[name] = err;
+                }
+
+                if (key === "email") {
+                    const err = emailError(value);
+                    if (err) newErrors[name] = err;
+                }
+
+                if (isPhoneField(name)) {
+                    const meta = phoneMeta[name] || { countryCode: "+91", digits: "" };
+                    const err = phoneError(meta.digits, meta.countryCode);
+                    if (err) newErrors[name] = err;
+                }
+
+                if (isAadhaarField(name)) {
+                    const roleNeedsAadhaar =
+                        /coach|referee|refree/i.test(role) || field.required;
+                    if (roleNeedsAadhaar || String(value || "").trim()) {
+                        const err = aadhaarError(value);
+                        if (err) newErrors[name] = err;
+                    }
                 }
             });
         }
 
-        // Validate password if email field exists
-        const hasEmail = formConfig?.fields?.some((f) => f.name.toLowerCase() === "email");
-        if (hasEmail && !String(formData["password"] || "").trim()) {
-            newErrors["password"] = "Password is required";
+        const hasEmail = formConfig?.fields?.some((f) => fieldKey(f.name) === "email");
+        if (hasEmail) {
+            const pwErr = passwordError(formData["password"]);
+            if (pwErr) newErrors["password"] = pwErr;
         }
 
-        // Validate interested sports
         if (!(formData["sports"] && formData["sports"].length > 0)) {
             newErrors["sports"] = "Selecting at least one sport is required";
         }
 
+        return newErrors;
+    }
+
+    async function handleSubmit(e) {
+        e.preventDefault();
+        setSubmitError("");
+
+        const newErrors = validateAll();
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
             return;
@@ -111,6 +178,19 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                 password: String(formData.password || "").trim(),
             };
 
+            Object.keys(phoneMeta).forEach((name) => {
+                const meta = phoneMeta[name];
+                if (meta) {
+                    submittedData[name] = formatPhoneForStorage(meta.countryCode, meta.digits);
+                }
+            });
+
+            Object.keys(submittedData).forEach((name) => {
+                if (isAadhaarField(name)) {
+                    submittedData[name] = digitsOnly(submittedData[name]);
+                }
+            });
+
             const response = await fetch(`${API_BASE_URL}/signup-submissions`, {
                 method: "POST",
                 headers: {
@@ -124,22 +204,24 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
             });
 
             if (response.ok) {
-                // Prevent duplicate redirect triggers
                 if (redirectedRef.current) return;
                 redirectedRef.current = true;
 
                 toast.success(
-                    "Registration successful! Please check your email to verify your account.",
+                    "Application submitted! Club admin must approve your application before you can log in.",
                     { duration: 4000 }
                 );
                 onComplete();
-                // Redirect to Landing Page after the toast is visible
                 setTimeout(() => {
                     router.push("/");
                 }, 1500);
             } else {
                 const errorData = await response.json().catch(() => ({}));
-                setSubmitError(errorData.detail || "Failed to submit application. Please check details.");
+                let detail = errorData.detail || "Failed to submit application. Please check details.";
+                if (Array.isArray(detail)) {
+                    detail = detail.map((d) => d.msg || JSON.stringify(d)).join(", ");
+                }
+                setSubmitError(detail);
             }
         } catch (err) {
             console.error("Error submitting form application:", err);
@@ -206,11 +288,13 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
             </p>
 
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                {/* Customized Club Onboarding Fields */}
-                {formConfig?.fields?.
-                    filter((field) => !field.name.toLowerCase().includes("password"))
+                {formConfig?.fields
+                    ?.filter((field) => !fieldKey(field.name).includes("password"))
                     .map((field) => {
-                        const isEmailField = field.name.toLowerCase() === "email";
+                        const isEmailField = fieldKey(field.name) === "email";
+                        const phone = isPhoneField(field.name);
+                        const aadhaar = isAadhaarField(field.name);
+
                         return (
                             <div key={field.name} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                                 <div className={styles.fieldGroup}>
@@ -239,6 +323,35 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                                 </option>
                                             ))}
                                         </select>
+                                    ) : phone ? (
+                                        <PhoneInput
+                                            countryCode={phoneMeta[field.name]?.countryCode || "+91"}
+                                            digits={phoneMeta[field.name]?.digits || ""}
+                                            selectClassName={styles.select}
+                                            inputClassName={styles.input}
+                                            placeholder={field.placeholder || "10-digit number"}
+                                            onChange={({ countryCode, digits, full }) => {
+                                                setPhoneMeta((prev) => ({
+                                                    ...prev,
+                                                    [field.name]: { countryCode, digits },
+                                                }));
+                                                handleFieldChange(field.name, full);
+                                            }}
+                                        />
+                                    ) : aadhaar ? (
+                                        <input
+                                            type="text"
+                                            className={styles.input}
+                                            placeholder="XXXX XXXX XXXX"
+                                            maxLength={14}
+                                            value={formatAadhaarDisplay(formData[field.name])}
+                                            onChange={(e) =>
+                                                handleFieldChange(
+                                                    field.name,
+                                                    digitsOnly(e.target.value).slice(0, 12)
+                                                )
+                                            }
+                                        />
                                     ) : (
                                         <input
                                             type={field.type}
@@ -266,14 +379,16 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                         <label className={styles.label}>
                                             Create Password <span style={{ color: "#ef4444" }}>*</span>
                                         </label>
-                                        <input
-                                            type="password"
+                                        <PasswordField
                                             className={styles.input}
-                                            placeholder="Choose a password for your account"
+                                            placeholder="Choose a strong password"
                                             value={formData["password"] || ""}
                                             onChange={(e) => handleFieldChange("password", e.target.value)}
                                             required
                                         />
+                                        <p style={{ color: "#94a3b8", fontSize: "12px", marginTop: "6px" }}>
+                                            Min 8 chars with uppercase, lowercase, number, and special character.
+                                        </p>
                                         {errors["password"] && (
                                             <span
                                                 style={{

@@ -15,6 +15,15 @@ from app.core.helpers import (
 )
 from app.logger import logger
 from app.core.security import hash_password
+from app.core.validators import (
+    is_valid_person_name,
+    is_valid_email,
+    is_strong_password,
+    is_valid_phone,
+    is_valid_aadhaar,
+    digits_only,
+    STRONG_PASSWORD_MESSAGE,
+)
 
 
 def get_default_fields(role: str):
@@ -27,7 +36,7 @@ def get_default_fields(role: str):
             {"name": "phone", "label": "Phone Number", "type": "tel", "required": True, "placeholder": "10-digit number"},
             {"name": "specialization", "label": "Specialization / Sport", "type": "text", "required": True, "placeholder": "e.g., Football, Cricket"},
             {"name": "experience", "label": "Coaching Experience (Years)", "type": "number", "required": False, "placeholder": "e.g., 5"},
-            {"name": "aadhar", "label": "Aadhar Number", "type": "text", "required": False, "placeholder": "12-digit Aadhar"}
+            {"name": "aadhar", "label": "Aadhar Number", "type": "text", "required": True, "placeholder": "12-digit Aadhar"}
         ]
         title = "Coach Registration"
         desc = "Apply to become a coach for our club. Fill in your details below."
@@ -63,7 +72,7 @@ def get_default_fields(role: str):
             {"name": "phone", "label": "Phone Number", "type": "tel", "required": True, "placeholder": "10-digit number"},
             {"name": "certification", "label": "Certification Level", "type": "text", "required": True, "placeholder": "e.g., State Level, National Level"},
             {"name": "experience", "label": "Officiating Experience (Years)", "type": "number", "required": False, "placeholder": "e.g., 3"},
-            {"name": "aadhar", "label": "Aadhar Number", "type": "text", "required": False, "placeholder": "12-digit Aadhar"}
+            {"name": "aadhar", "label": "Aadhar Number", "type": "text", "required": True, "placeholder": "12-digit Aadhar"}
         ]
         title = "Referee Registration"
         desc = "Apply to become a referee for our club. Fill in your details below."
@@ -321,11 +330,52 @@ class OnboardingLogic(ConnectionService):
 
                 email_clean = get_submission_email(submitted_data)
                 password_clean = normalize_text(get_case_insensitive_value(submitted_data, "password"))
+                first_name = normalize_text(
+                    get_case_insensitive_value(submitted_data, "first_name")
+                    or get_case_insensitive_value(submitted_data, "firstName")
+                )
+                last_name = normalize_text(
+                    get_case_insensitive_value(submitted_data, "last_name")
+                    or get_case_insensitive_value(submitted_data, "lastName")
+                )
+                phone_raw = normalize_text(get_case_insensitive_value(submitted_data, "phone"))
+                aadhar_raw = normalize_text(
+                    get_case_insensitive_value(submitted_data, "aadhar")
+                    or get_case_insensitive_value(submitted_data, "aadhaar")
+                    or get_case_insensitive_value(submitted_data, "aadharNumber")
+                )
+                role_lower = (submission.role or "").lower()
 
                 if not email_clean:
                     raise HTTPException(status_code=400, detail="Email is required for member approval and login.")
+                if not is_valid_email(email_clean):
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Please enter a valid email address (e.g., name@example.com).",
+                    )
                 if not password_clean:
                     raise HTTPException(status_code=400, detail="Password is required for member approval and login.")
+                if not is_strong_password(password_clean):
+                    raise HTTPException(status_code=400, detail=STRONG_PASSWORD_MESSAGE)
+                if first_name and not is_valid_person_name(first_name):
+                    raise HTTPException(
+                        status_code=400,
+                        detail="First name can only contain letters, spaces, hyphens, and apostrophes",
+                    )
+                if last_name and not is_valid_person_name(last_name):
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Last name can only contain letters, spaces, hyphens, and apostrophes",
+                    )
+                if phone_raw and not is_valid_phone(phone_raw):
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Phone number can only contain digits and must match the selected country code length.",
+                    )
+                if aadhar_raw or "coach" in role_lower or "referee" in role_lower or "refree" in role_lower:
+                    if not is_valid_aadhaar(aadhar_raw):
+                        raise HTTPException(status_code=400, detail="Aadhaar number must be exactly 12 digits.")
+                    submitted_data["aadhar"] = digits_only(aadhar_raw)
 
                 if find_approved_member_by_email(db, email_clean, submission.owner_id):
                     raise HTTPException(status_code=400, detail="This email is already approved as a club member. Please log in.")
@@ -338,19 +388,21 @@ class OnboardingLogic(ConnectionService):
 
                 submitted_data["email"] = email_clean
                 submitted_data["password"] = password_clean
+                if phone_raw:
+                    submitted_data["phone"] = phone_raw
 
                 insert_data = {
                     "owner_id": submission.owner_id,
                     "role": submission.role,
-                    "submitted_data": json.dumps(submitted_data)
+                    "submitted_data": json.dumps(submitted_data),
                 }
                 sub_id = db.insert("signup_submissions", insert_data)
-                
+
                 return {
                     "message": "Application submitted. Club admin has to approve your application before you can log in.",
                     "id": sub_id,
                     "role": submission.role,
-                    "status": "pending"
+                    "status": "pending",
                 }
         except HTTPException as he:
             raise he
@@ -375,7 +427,7 @@ class OnboardingLogic(ConnectionService):
                         "role": s.get("role"),
                         "submitted_data": s.get("submitted_data"),
                         "created_at": s.get("created_at").isoformat() if s.get("created_at") else None,
-                        "status": "pending"
+                        "status": "pending",
                     })
                 return result
         except Exception as e:

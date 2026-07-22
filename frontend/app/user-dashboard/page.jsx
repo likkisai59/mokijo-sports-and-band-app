@@ -67,6 +67,8 @@ export default function UserDashboard() {
     const [bookings, setBookings] = useState([]);
     const [loadingBookings, setLoadingBookings] = useState(true);
     const [cancellingId, setCancellingId] = useState(null);
+    const [publicTrainings, setPublicTrainings] = useState([]);
+    const [loadingTrainings, setLoadingTrainings] = useState(true);
 
     // Create / Host Game form states
     const [gameSport, setGameSport] = useState("badminton");
@@ -104,6 +106,27 @@ export default function UserDashboard() {
         const storedEmail = localStorage.getItem("userEmail");
         if (storedName) setUserName(storedName);
         if (storedEmail) setUserEmail(storedEmail);
+    }, []);
+
+    useEffect(() => {
+        const fetchTrainings = async () => {
+            setLoadingTrainings(true);
+            try {
+                const token = localStorage.getItem("accessToken");
+                const res = await fetch(`${API_BASE_URL}/trainings/public`, {
+                    headers: token ? { Authorization: `Bearer ${token}` } : {},
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setPublicTrainings(data || []);
+                }
+            } catch (err) {
+                console.error("Error loading trainings:", err);
+            } finally {
+                setLoadingTrainings(false);
+            }
+        };
+        fetchTrainings();
     }, []);
 
     // Fetch Venues dynamically with filters
@@ -487,12 +510,6 @@ export default function UserDashboard() {
         { name: "Fencing", emoji: "🤺", color: "#cbd5e1" },
     ];
 
-    const mockTrainers = [
-        { name: "Rahul Sharma", sport: "Cricket Coach", exp: "8 Yrs" },
-        { name: "Priya Patel", sport: "Badminton Pro", exp: "5 Yrs" },
-        { name: "David Miller", sport: "Football Instructor", exp: "10 Yrs" },
-    ];
-
     const mockTeams = [
         { name: "Strikers FC", sport: "Football", members: "18/22" },
         { name: "Spin Wizards", sport: "Table Tennis", members: "4/6" },
@@ -669,25 +686,35 @@ export default function UserDashboard() {
 
                         {/* Trainers Box and Join Team Column Layout */}
                         <div style={styles.homeTwoColumns}>
-                            {/* Trainers Box */}
+                            {/* Trainers / open trainings */}
                             <div style={styles.boxCard}>
                                 <div style={styles.boxHeader}>
                                     <UserCheck size={20} style={{ color: "#00f0ff" }} />
-                                    <h3 style={styles.boxTitle}>Certified Trainers</h3>
+                                    <h3 style={styles.boxTitle}>Open Trainings</h3>
                                 </div>
                                 <div style={styles.trainersList}>
-                                    {mockTrainers.map((trainer, idx) => (
-                                        <div key={idx} style={styles.trainerItem}>
-                                            <div style={styles.trainerAvatar}>{trainer.name.charAt(0)}</div>
-                                            <div style={styles.trainerInfo}>
-                                                <span style={styles.trainerName}>{trainer.name}</span>
-                                                <span style={styles.trainerSport}>
-                                                    {trainer.sport} • {trainer.exp} Exp
-                                                </span>
+                                    {loadingTrainings ? (
+                                        <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 14 }}>Loading…</p>
+                                    ) : publicTrainings.length === 0 ? (
+                                        <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 14 }}>No open trainings yet.</p>
+                                    ) : (
+                                        publicTrainings.slice(0, 6).map((training) => (
+                                            <div key={training.id} style={styles.trainerItem}>
+                                                <div style={styles.trainerAvatar}>
+                                                    {(training.trainer_name || training.title || "T").charAt(0)}
+                                                </div>
+                                                <div style={styles.trainerInfo}>
+                                                    <span style={styles.trainerName}>{training.title}</span>
+                                                    <span style={styles.trainerSport}>
+                                                        {training.trainer_name || "Trainer"} • Rs. {training.fee || 0} • {training.available_seats} seats
+                                                    </span>
+                                                </div>
+                                                <Link href={`/user-dashboard/trainings/${training.id}`} style={styles.trainerBtn}>
+                                                    View
+                                                </Link>
                                             </div>
-                                            <button style={styles.trainerBtn}>Book Session</button>
-                                        </div>
-                                    ))}
+                                        ))
+                                    )}
                                 </div>
                             </div>
 
@@ -1638,16 +1665,42 @@ export default function UserDashboard() {
                 )}
 
                 {activeTab === "training" && (
-                    /* Training: coaching sessions & workshops */
                     <div style={styles.bookingsSection}>
-                        <h2 style={styles.sectionTitle}>My Training Programs</h2>
-                        <div style={styles.emptyContainer}>
-                            <Award size={48} style={{ color: "rgba(148, 163, 184, 0.15)", marginBottom: "16px" }} />
-                            <h3>No Active Training Enrolments</h3>
-                            <p style={{ color: "rgba(148, 163, 184, 0.4)", fontSize: "14px", marginTop: "8px" }}>
-                                You are not enrolled in any coaching academies or workshops at the moment.
-                            </p>
-                        </div>
+                        <h2 style={styles.sectionTitle}>Open Trainer Programs</h2>
+                        {loadingTrainings ? (
+                            <p style={{ color: "rgba(148,163,184,0.6)" }}>Loading…</p>
+                        ) : publicTrainings.length === 0 ? (
+                            <div style={styles.emptyContainer}>
+                                <Award size={48} style={{ color: "rgba(148, 163, 184, 0.15)", marginBottom: "16px" }} />
+                                <h3>No Open Trainings</h3>
+                                <p style={{ color: "rgba(148, 163, 184, 0.4)", fontSize: "14px", marginTop: "8px" }}>
+                                    Trainers have not published any open programs yet.
+                                </p>
+                            </div>
+                        ) : (
+                            <div style={{ display: "grid", gap: 12 }}>
+                                {publicTrainings.map((t) => (
+                                    <Link
+                                        key={t.id}
+                                        href={`/user-dashboard/trainings/${t.id}`}
+                                        style={{
+                                            display: "block",
+                                            textDecoration: "none",
+                                            color: "inherit",
+                                            border: "1px solid rgba(255,255,255,0.08)",
+                                            borderRadius: 12,
+                                            padding: 16,
+                                            background: "rgba(255,255,255,0.03)",
+                                        }}
+                                    >
+                                        <div style={{ fontWeight: 700 }}>{t.title}</div>
+                                        <div style={{ fontSize: 13, color: "rgba(148,163,184,0.8)", marginTop: 6 }}>
+                                            {t.trainer_name || "Trainer"} · Rs. {t.fee || 0} · {t.available_seats} seats left
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
             </main>

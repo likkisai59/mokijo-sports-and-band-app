@@ -338,9 +338,10 @@ class PaymentsLogic(ConnectionService):
                     try:
                         parts = dict(part.split(":", 1) for part in desc.split("|") if ":" in part)
                         registration_id = int(parts.get("course_registration_id", "0"))
+                        # Trainer-owned registrations may have null owner_id — update by id.
                         db.execute_query(
-                            "UPDATE course_registrations SET payment_status = 'paid' WHERE id = %s AND owner_id = %s",
-                            (registration_id, verification.owner_id)
+                            "UPDATE course_registrations SET payment_status = 'paid', status = 'registered' WHERE id = %s",
+                            (registration_id,)
                         )
                     except Exception:
                         pass

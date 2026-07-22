@@ -22,6 +22,15 @@ settings = get_settings()
 # Create database tables on startup
 models.Base.metadata.create_all(bind=engine)
 
+# Additive schema patches for trainer module (safe on existing DBs)
+try:
+    from app.api.trainer.trainer import ensure_trainer_schema
+    from app.connectors.connection_service import ConnectionService
+    _svc = ConnectionService()
+    ensure_trainer_schema(_svc.db_driver)
+except Exception as _schema_err:
+    logger.log_error_sync(message=f"Trainer schema ensure skipped/failed: {_schema_err}")
+
 # Background scheduler instance
 scheduler = BackgroundScheduler()
 

@@ -4,6 +4,8 @@ import { API_BASE_URL } from "@/lib/api";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import styles from "./overview.module.css";
+import TrainerTrainingsSection from "../../../components/dashboard/TrainerTrainingsSection";
+import InfoCard from "../../../components/dashboard/InfoCard";
 
 const StatCard = ({ icon, label, value, sub, color, loading, href }) => {
     const content = (
@@ -61,9 +63,6 @@ export default function OverviewPage() {
     const [realEvents, setRealEvents] = useState([]);
     const [realMembers, setRealMembers] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    // Event response status
-    const [responses, setResponses] = useState({});
 
     const [campaigns, setCampaigns] = useState([]);
     const [liveMatches, setLiveMatches] = useState([]);
@@ -185,7 +184,9 @@ export default function OverviewPage() {
                 }
             };
 
-            ws.onerror = (err) => console.error("Scoreboard WS error:", err);
+            ws.onerror = () => {
+                /* live feed unavailable — HTTP match data still shows */
+            };
 
             return ws;
         });
@@ -194,31 +195,6 @@ export default function OverviewPage() {
             sockets.forEach((ws) => ws.close());
         };
     }, [liveMatches.length]);
-
-    // Handle interactive player response
-    const handlePlayerResponse = async (eventId, responseType) => {
-        try {
-            const res = await fetch(`${API_BASE_URL}/events/${eventId}/respond`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    participant_name: userName,
-                    participant_email: localStorage.getItem("userEmail") || "player@club.com",
-                    response: responseType, // accepted, declined, maybe
-                    role: memberRole,
-                }),
-            });
-            if (res.ok) {
-                setResponses((prev) => ({ ...prev, [eventId]: responseType }));
-                alert(`Your response status has been successfully set to: ${responseType.toUpperCase()}`);
-            } else {
-                alert("Failed to submit your response. Check if session limit was reached.");
-            }
-        } catch (e) {
-            console.error("Event response error:", e);
-            alert("Connection error while sending your response.");
-        }
-    };
 
     const renderMemberApprovalBanner = () => (
         <div
@@ -309,13 +285,6 @@ export default function OverviewPage() {
                         </svg>
                         Create New Campaign
                     </Link>
-                    <Link href="/dashboard/courses" className={styles.actionButton}>
-                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none">
-                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                            <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"></path>
-                        </svg>
-                        Manage Courses
-                    </Link>
                     <Link href="/dashboard/members" className={styles.actionButton}>
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none">
                             <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -323,7 +292,7 @@ export default function OverviewPage() {
                             <line x1="19" y1="8" x2="19" y2="14"></line>
                             <line x1="22" y1="11" x2="16" y2="11"></line>
                         </svg>
-                        Add a New Member
+                        Add a New Team Member
                     </Link>
                 </div>
 
@@ -365,7 +334,12 @@ export default function OverviewPage() {
                 ) : adminData?.venues && adminData.venues.length > 0 ? (
                     <div className={styles.venuesGrid}>
                         {adminData.venues.map((venue) => (
-                            <div key={venue.id} className={styles.venueCard}>
+                            <Link
+                                key={venue.id}
+                                href={`/dashboard/venues?venue_id=${venue.id}`}
+                                className={styles.venueCard}
+                                style={{ textDecoration: "none", color: "inherit", display: "block", cursor: "pointer" }}
+                            >
                                 {venue.cover_image ? (
                                     <img src={venue.cover_image} alt={venue.name} className={styles.venueImage} />
                                 ) : (
@@ -376,9 +350,6 @@ export default function OverviewPage() {
                                 <div className={styles.venueCardContent}>
                                     <div className={styles.venueCardHeader}>
                                         <h3 className={styles.venueName}>{venue.name}</h3>
-                                        <span className={`${styles.statusBadge} ${styles[venue.verification_status?.toLowerCase() || "draft"]}`}>
-                                            {venue.verification_status || "DRAFT"}
-                                        </span>
                                     </div>
                                     <p className={styles.venueLocation}>
                                         <strong>Location:</strong> {venue.location}
@@ -401,8 +372,11 @@ export default function OverviewPage() {
                                         {venue.contact_email && <p><strong>Email:</strong> {venue.contact_email}</p>}
                                         {venue.contact_phone && <p><strong>Phone:</strong> {venue.contact_phone}</p>}
                                     </div>
+                                    <p style={{ marginTop: 12, fontWeight: 600, color: "#3b82f6", fontSize: 13 }}>
+                                        Book venue →
+                                    </p>
                                 </div>
-                            </div>
+                            </Link>
                         ))}
                     </div>
                 ) : (
@@ -411,12 +385,14 @@ export default function OverviewPage() {
                     </div>
                 )}
 
+                <TrainerTrainingsSection />
+
                 {/* Stat Cards */}
                 <div className={styles.statsGrid}>
                     <StatCard
                         loading={loading}
                         color="blue"
-                        label="Total Members"
+                        label="Total Team Members"
                         value={adminData?.total_members ?? 0}
                         sub="Across all groups"
                         href="/dashboard/members"
@@ -441,20 +417,6 @@ export default function OverviewPage() {
                                 <polygon points="12 2 2 7 12 12 22 7 12 2" />
                                 <polyline points="2 17 12 22 22 17" />
                                 <polyline points="2 12 12 17 22 12" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        loading={loading}
-                        color="indigo"
-                        label="Total Courses"
-                        value={adminData?.total_courses ?? 0}
-                        sub="Active programs"
-                        href="/dashboard/courses"
-                        icon={
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                                <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z" />
                             </svg>
                         }
                     />
@@ -487,7 +449,7 @@ export default function OverviewPage() {
                         label="Upcoming Events"
                         value={adminData?.upcoming_events_count ?? 0}
                         sub="Scheduled ahead"
-                        href="/dashboard"
+                        href="/dashboard/events"
                         icon={
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -577,14 +539,55 @@ export default function OverviewPage() {
                         </div>
                     </div>
                 )}
+
+                <div className={styles.sectionCard} style={{ marginTop: "24px" }}>
+                    <div className={styles.sectionHeader}>
+                        <h2 className={styles.sectionTitle}>Upcoming Events</h2>
+                        <Link href="/dashboard/events" className={styles.viewAllLink}>View all</Link>
+                    </div>
+                    {(adminData?.upcoming_events?.length ?? 0) === 0 ? (
+                        <p style={{ color: "#94a3b8", fontSize: "14px", margin: 0 }}>No upcoming events scheduled.</p>
+                    ) : (
+                        <div className={styles.eventList}>
+                            {adminData.upcoming_events.map((event) => (
+                                <Link
+                                    key={event.id}
+                                    href={`/dashboard/events/${event.id}`}
+                                    className={styles.eventCard}
+                                    style={{ textDecoration: "none", color: "inherit", display: "block" }}
+                                >
+                                    <div className={styles.eventMeta}>
+                                        <span className={styles.eventTypeBadge}>{event.type || "Event"}</span>
+                                        <span className={styles.eventDate}>{event.date || "TBD"}</span>
+                                    </div>
+                                    <div className={styles.eventTitle}>{event.name || "Untitled event"}</div>
+                                    <div className={styles.eventLocation}>
+                                        {[
+                                            event.time || event.start_time,
+                                            event.location,
+                                            event.group_name || event.group,
+                                        ]
+                                            .filter(Boolean)
+                                            .join(" · ") || "Details coming soon"}
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div className={styles.sectionCard} style={{ marginTop: "24px" }}>
+                    <div className={styles.sectionHeader}>
+                        <h2 className={styles.sectionTitle}>Club Groups</h2>
+                    </div>
+                    <InfoCard />
+                </div>
             </div>
         );
     };
 
     // Render 2: Coach Dashboard
     const renderCoachDashboard = () => {
-        const myPlayers = coachData?.squad_players || [];
-        const myEvents = coachData?.upcoming_events || [];
         return (
             <div className={styles.page}>
                 {renderMemberApprovalBanner()}
@@ -604,14 +607,7 @@ export default function OverviewPage() {
                             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                             <circle cx="9" cy="7" r="4"></circle>
                         </svg>
-                        Manage Player Members
-                    </Link>
-                    <Link href="/dashboard/courses" className={styles.actionButton}>
-                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none">
-                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                            <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"></path>
-                        </svg>
-                        Coaching Courses
+                        Manage Player Team Members
                     </Link>
                 </div>
 
@@ -664,150 +660,11 @@ export default function OverviewPage() {
                             </svg>
                         }
                     />
-                    <StatCard
-                        loading={loading}
-                        color="emerald"
-                        label="Attendance Rating"
-                        value={coachData?.attendance_rating ?? "94.2%"}
-                        sub="Team presence average"
-                        icon={
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                <polyline points="22 4 12 14.01 9 11.01" />
-                            </svg>
-                        }
-                    />
                 </div>
 
                 {/* Content Panels */}
                 <div className={styles.panels}>
                     {renderLiveMatchesWidget()}
-                    <div className={styles.panel}>
-                        <ul className={styles.memberList}>
-                            {(myPlayers.length > 0
-                                ? myPlayers.slice(0, 4)
-                                : [
-                                      { first_name: "Amit", last_name: "Sharma", email: "amit@cricket.com" },
-                                      { first_name: "Rohan", last_name: "Verma", email: "rohan@football.com" },
-                                      { first_name: "Sania", last_name: "Mirza", email: "sania@tennis.com" },
-                                  ]
-                            ).map((mem, idx) => (
-                                <li key={idx} className={styles.memberRow}>
-                                    <div
-                                        className={styles.memberAvatar}
-                                        style={{
-                                            background: idx === 0 ? "#3b82f6" : idx === 1 ? "#8b5cf6" : "#10b981",
-                                        }}
-                                    >
-                                        {mem.first_name[0]}
-                                    </div>
-                                    <div className={styles.memberInfo}>
-                                        <span className={styles.memberName}>
-                                            {mem.first_name} {mem.last_name || ""}
-                                        </span>
-                                        <span className={styles.memberEmail}>{mem.email}</span>
-                                    </div>
-                                    <span className={styles.groupBadge}>Active Player</span>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-
-                    <div className={styles.panel}>
-                        <div className={styles.panelHeader}>
-                            <h3 className={styles.panelTitle}>Upcoming Practice Itinerary</h3>
-                            <Link href="/dashboard/events" className={styles.panelLink}>
-                                View All
-                            </Link>
-                        </div>
-                        <ul className={styles.eventList}>
-                            {(myEvents.length > 0
-                                ? myEvents.slice(0, 3)
-                                : [
-                                      {
-                                          name: "Weekly Fitness & Stamina Session",
-                                          venue: "Club Grounds",
-                                          category: "Fitness",
-                                          start_time: "2026-05-20T17:00",
-                                      },
-                                      {
-                                          name: "Tactical Defense Drilling",
-                                          venue: "Main Field",
-                                          category: "Match",
-                                          start_time: "2026-05-22T08:30",
-                                      },
-                                  ]
-                            ).map((ev, idx) => {
-                                const { month, day } = getEventDateParts(ev);
-
-                                return (
-                                    <li key={idx} className={styles.eventRow}>
-                                        <div className={styles.eventDateBox}>
-                                            <span className={styles.eventMonth}>{month}</span>
-                                            <span className={styles.eventDay}>{day}</span>
-                                        </div>
-                                        <div className={styles.eventInfo}>
-                                            <span className={styles.eventName}>{ev.name || ev.title}</span>
-                                            <div className={styles.eventMeta}>
-                                                <span className={styles.eventType}>
-                                                    {ev.category || ev.type || "Practice"}
-                                                </span>
-                                                <span>Location: {ev.venue || ev.location}</span>
-                                            </div>
-                                        </div>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    </div>
-
-                    <div className={styles.panel}>
-                        <div className={styles.panelHeader}>
-                            <h3 className={styles.panelTitle}>Quick Group Announcement</h3>
-                        </div>
-                        <form
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                alert("Broadcast announcement successfully dispatched!");
-                                e.target.reset();
-                            }}
-                            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
-                        >
-                            <textarea
-                                placeholder="Type notice here... (e.g., Please bring extra sports shoes for tomorrow's mud session)"
-                                required
-                                style={{
-                                    padding: "10px",
-                                    borderRadius: "8px",
-                                    border: "1px solid #cbd5e1",
-                                    resize: "none",
-                                    height: "85px",
-                                    fontSize: "13px",
-                                    outline: "none",
-                                }}
-                            />
-                            <button
-                                type="submit"
-                                style={{
-                                    padding: "8px",
-                                    background: "#8b5cf6",
-                                    color: "white",
-                                    border: "none",
-                                    borderRadius: "8px",
-                                    fontWeight: "bold",
-                                    fontSize: "12px",
-                                    cursor: "pointer",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    gap: "6px",
-                                }}
-                            >
-                                Dispatch Announcement
-                            </button>
-                        </form>
-                    </div>
-
                     {renderActiveCampaignsPanel()}
                 </div>
             </div>
@@ -1020,13 +877,6 @@ export default function OverviewPage() {
                         </svg>
                         My Game Schedule
                     </Link>
-                    <Link href="/dashboard/courses" className={styles.actionButton}>
-                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none">
-                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                            <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"></path>
-                        </svg>
-                        Training Batches
-                    </Link>
                     <Link
                         href="/dashboard/fundraising"
                         className={styles.actionButton}
@@ -1035,6 +885,8 @@ export default function OverviewPage() {
                         {"\u20B9"} Support Club Dues
                     </Link>
                 </div>
+
+                <TrainerTrainingsSection />
 
                 {/* Page heading */}
                 <div className={styles.pageHeader}>
@@ -1054,242 +906,9 @@ export default function OverviewPage() {
                     </div>
                 </div>
 
-                {/* Stats */}
-                <div className={styles.statsGrid}>
-                    <StatCard
-                        loading={loading}
-                        color="indigo"
-                        label="Upcoming Games"
-                        value={realEvents.length || 3}
-                        sub="Fixtures this week"
-                        href="/dashboard/events"
-                        icon={
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                <line x1="16" y1="2" x2="16" y2="6" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        loading={loading}
-                        color="emerald"
-                        label="My Presence Rate"
-                        value="96.8%"
-                        sub="Perfect attendance score"
-                        icon={
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                <polyline points="22 4 12 14.01 9 11.01" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        loading={loading}
-                        color="amber"
-                        label="Registered Classes"
-                        value="2 Batches"
-                        sub="Elite Skill Development"
-                        href="/dashboard/courses"
-                        icon={
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                            </svg>
-                        }
-                    />
-                </div>
-
                 {/* Content Panels */}
                 <div className={styles.panels}>
                     {renderLiveMatchesWidget()}
-                    <div className={styles.panel} style={{ gridColumn: "span 2" }}>
-                        <div className={styles.panelHeader}>
-                            <h3 className={styles.panelTitle}>Respond to Invited Matches & Practices</h3>
-                            <span style={{ fontSize: "12px", color: "#64748b" }}>
-                                Respond here to secure your team day spot
-                            </span>
-                        </div>
-                        <ul className={styles.eventList} style={{ gap: "20px" }}>
-                            {(realEvents.length > 0
-                                ? realEvents.slice(0, 2)
-                                : [
-                                      {
-                                          id: 1,
-                                          name: "Weekend Cup - Semifinals vs Warriors",
-                                          venue: "East Arena Pitch 2",
-                                          start_time: "2026-05-23T09:00",
-                                          category: "Match",
-                                      },
-                                      {
-                                          id: 2,
-                                          name: "Intense Drills with Coach",
-                                          venue: "Indoor Courts",
-                                          start_time: "2026-05-25T18:00",
-                                          category: "Training",
-                                      },
-                                  ]
-                            ).map((ev) => {
-                                const { month, day } = getEventDateParts(ev);
-                                const hasResponded = responses[ev.id];
-
-                                return (
-                                    <li
-                                        key={ev.id}
-                                        className={styles.eventRow}
-                                        style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "16px" }}
-                                    >
-                                        <div className={styles.eventDateBox} style={{ background: "#f5f3ff" }}>
-                                            <span className={styles.eventMonth} style={{ color: "#8b5cf6" }}>
-                                                {month}
-                                            </span>
-                                            <span className={styles.eventDay} style={{ color: "#7c3aed" }}>
-                                                {day}
-                                            </span>
-                                        </div>
-                                        <div className={styles.eventInfo} style={{ flex: 1 }}>
-                                            <span className={styles.eventName}>{ev.name || ev.title}</span>
-                                            <div className={styles.eventMeta}>
-                                                <span className={styles.eventType}>{ev.category || "Practice"}</span>
-                                                <span>Location: {ev.venue || ev.location}</span>
-                                            </div>
-                                        </div>
-                                        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                                            {hasResponded ? (
-                                                <span
-                                                    style={{
-                                                        fontSize: "11px",
-                                                        fontWeight: "bold",
-                                                        background:
-                                                            hasResponded === "accepted"
-                                                                ? "#d1fae5"
-                                                                : hasResponded === "declined"
-                                                                  ? "#fee2e2"
-                                                                  : "#fef3c7",
-                                                        color:
-                                                            hasResponded === "accepted"
-                                                                ? "#065f46"
-                                                                : hasResponded === "declined"
-                                                                  ? "#991b1b"
-                                                                  : "#92400e",
-                                                        padding: "6px 12px",
-                                                        borderRadius: "12px",
-                                                    }}
-                                                >
-                                                    Response: {hasResponded.toUpperCase()}
-                                                </span>
-                                            ) : (
-                                                <>
-                                                    <button
-                                                        onClick={() => handlePlayerResponse(ev.id, "accepted")}
-                                                        style={{
-                                                            padding: "6px 10px",
-                                                            background: "#10b981",
-                                                            color: "white",
-                                                            border: "none",
-                                                            borderRadius: "6px",
-                                                            fontSize: "11px",
-                                                            fontWeight: "bold",
-                                                            cursor: "pointer",
-                                                        }}
-                                                    >
-                                                        Accept
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handlePlayerResponse(ev.id, "maybe")}
-                                                        style={{
-                                                            padding: "6px 10px",
-                                                            background: "#f59e0b",
-                                                            color: "white",
-                                                            border: "none",
-                                                            borderRadius: "6px",
-                                                            fontSize: "11px",
-                                                            fontWeight: "bold",
-                                                            cursor: "pointer",
-                                                        }}
-                                                    >
-                                                        Maybe
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handlePlayerResponse(ev.id, "declined")}
-                                                        style={{
-                                                            padding: "6px 10px",
-                                                            background: "#ef4444",
-                                                            color: "white",
-                                                            border: "none",
-                                                            borderRadius: "6px",
-                                                            fontSize: "11px",
-                                                            fontWeight: "bold",
-                                                            cursor: "pointer",
-                                                        }}
-                                                    >
-                                                        Decline
-                                                    </button>
-                                                </>
-                                            )}
-                                        </div>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    </div>
-
-                    <div className={styles.panel}>
-                        <div className={styles.panelHeader}>
-                            <h3 className={styles.panelTitle}>Active Teammates</h3>
-                            <Link href="/dashboard/members" className={styles.panelLink}>
-                                View Squad
-                            </Link>
-                        </div>
-                        <div
-                            style={{
-                                display: "grid",
-                                gridTemplateColumns: "repeat(4, 1fr)",
-                                gap: "10px",
-                                marginTop: "10px",
-                            }}
-                        >
-                            {(realMembers.length > 0
-                                ? realMembers.slice(0, 8)
-                                : [
-                                      { first_name: "Amit" },
-                                      { first_name: "Sania" },
-                                      { first_name: "Rohan" },
-                                      { first_name: "Vikram" },
-                                      { first_name: "Preeti" },
-                                      { first_name: "Kabir" },
-                                      { first_name: "Rahul" },
-                                      { first_name: "Jyoti" },
-                                  ]
-                            ).map((m, idx) => (
-                                <div
-                                    key={idx}
-                                    style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        alignItems: "center",
-                                        gap: "4px",
-                                    }}
-                                >
-                                    <div
-                                        className={styles.memberAvatar}
-                                        style={{
-                                            background:
-                                                idx % 3 === 0 ? "#3b82f6" : idx % 3 === 1 ? "#10b981" : "#8b5cf6",
-                                            width: "42px",
-                                            height: "42px",
-                                            borderRadius: "50%",
-                                            margin: 0,
-                                        }}
-                                    >
-                                        {m.first_name[0]}
-                                    </div>
-                                    <span style={{ fontSize: "11px", fontWeight: "500", color: "#475569" }}>
-                                        {m.first_name}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
                     {renderActiveCampaignsPanel()}
                 </div>
             </div>
@@ -1327,6 +946,8 @@ export default function OverviewPage() {
                         Donate
                     </Link>
                 </div>
+
+                <TrainerTrainingsSection />
 
                 {/* Page heading */}
                 <div className={styles.pageHeader}>
@@ -1432,24 +1053,6 @@ export default function OverviewPage() {
                             <circle cx="16" cy="15" r="1" fill="currentColor" stroke="none" />
                         </svg>
                         Events
-                    </Link>
-                    <Link href="/dashboard/courses" className={styles.actionButton} style={officialButtonStyle}>
-                        <svg
-                            viewBox="0 0 24 24"
-                            width="20"
-                            height="20"
-                            stroke="currentColor"
-                            fill="none"
-                            strokeWidth="2.4"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                            <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z" />
-                            <path d="M8 6h8" />
-                            <path d="M8 10h7" />
-                        </svg>
-                        Courses
                     </Link>
                     <button
                         onClick={() => alert("Availability marked: 100% active!")}

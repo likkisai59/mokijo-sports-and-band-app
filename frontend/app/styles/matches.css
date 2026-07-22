@@ -405,21 +405,52 @@
 
 .m-input,
 .m-select {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--vd-border);
-    color: #fff;
+    background: #16161f;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #f1f5f9;
     font-family: inherit;
     font-size: 14px;
     padding: 12px 16px;
     border-radius: 10px;
     outline: none;
     transition: all 0.2s;
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+}
+
+.m-select {
+    background-image: linear-gradient(45deg, transparent 50%, #94a3b8 50%),
+        linear-gradient(135deg, #94a3b8 50%, transparent 50%);
+    background-position:
+        calc(100% - 18px) calc(50% - 3px),
+        calc(100% - 12px) calc(50% - 3px);
+    background-size:
+        6px 6px,
+        6px 6px;
+    background-repeat: no-repeat;
+    background-color: #16161f;
+    padding-right: 36px;
+}
+
+.m-select option {
+    background-color: #16161f;
+    color: #f1f5f9;
+    padding: 10px;
+}
+
+.m-select option:checked,
+.m-select option:hover {
+    background-color: #252536;
+    color: #ffffff;
 }
 
 .m-input:focus,
 .m-select:focus {
     border-color: var(--vd-brand);
-    background: rgba(255, 255, 255, 0.06);
+    background-color: #1c1c28;
     box-shadow: 0 0 0 1px var(--vd-brand);
 }
 
@@ -465,12 +496,14 @@
 .op-teams-grid {
     display: flex;
     align-items: center;
-    justify-content: space-around;
-    margin: 32px 0;
+    justify-content: center;
+    gap: 40px;
+    margin: 40px 0;
+    padding: 0 16px;
 }
 
 .op-team-col {
-    width: 40%;
+    width: 36%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -541,9 +574,12 @@
 }
 
 .op-vs-divider {
-    font-size: 24px;
-    font-weight: 800;
+    font-size: 72px;
+    font-weight: 900;
     color: var(--vd-muted);
+    margin: 0 24px;
+    flex-shrink: 0;
+    letter-spacing: 3px;
 }
 
 /* --- TIMELINE EVENT PANEL --- */
@@ -729,15 +765,19 @@
 .pub-score-display {
     display: flex;
     align-items: center;
-    justify-content: space-around;
-    margin: 40px 0;
+    justify-content: center;
+    gap: 56px;
+    margin: 48px 0;
+    padding: 0 24px;
 }
 
 .pub-team {
-    width: 40%;
+    flex: 1;
+    max-width: 320px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    align-items: center;
+    gap: 10px;
 }
 
 .pub-team-name {
@@ -760,14 +800,42 @@
     background-clip: text;
     -webkit-text-fill-color: transparent;
     line-height: 1;
+    margin-top: 12px;
+    text-align: center;
 }
 
 .pub-vs {
-    font-size: 20px;
-    font-weight: 700;
+    font-size: 72px;
+    font-weight: 900;
     color: var(--vd-muted);
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 3px;
+    margin: 0 16px;
+    flex-shrink: 0;
+    align-self: center;
+    padding-top: 36px;
+}
+
+@media (max-width: 768px) {
+    .pub-score-display {
+        gap: 20px;
+        padding: 0 12px;
+    }
+
+    .pub-vs {
+        margin: 0 8px;
+        padding-top: 24px;
+        font-size: 48px;
+    }
+
+    .pub-score-num {
+        font-size: 64px;
+        margin-top: 8px;
+    }
+
+    .pub-team-name {
+        font-size: 18px;
+    }
 }
 
 .pub-timeline {

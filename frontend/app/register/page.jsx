@@ -25,6 +25,8 @@ export default function SignupPage() {
         email: "",
         password: "",
         phone: "",
+        phoneCountryCode: "+91",
+        phoneDigits: "",
         aadharNumber: "",
         hearAbout: "",
         termsAgreed: false,
@@ -53,8 +55,18 @@ export default function SignupPage() {
             console.log("Attempting registration at:", apiUrl);
 
             const submissionBody = {
-                ...formData,
+                clubName: formData.clubName,
+                country: formData.country,
+                state: formData.state,
+                memberCount: formData.memberCount,
                 sport: Array.isArray(formData.sport) ? formData.sport.join(", ") : formData.sport,
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                email: formData.email,
+                password: formData.password,
+                phone: formData.phone || `${formData.phoneCountryCode || "+91"}${formData.phoneDigits || ""}`,
+                aadharNumber: formData.aadharNumber,
+                hearAbout: formData.hearAbout,
             };
 
             const response = await fetch(apiUrl, {

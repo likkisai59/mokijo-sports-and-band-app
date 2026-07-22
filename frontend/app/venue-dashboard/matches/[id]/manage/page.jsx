@@ -84,17 +84,19 @@ export default function MatchManagePage() {
             }
         };
 
-        socket.onclose = () => {
-            console.log("WebSocket connection closed, reconnecting in 3 seconds...");
+        socket.onclose = (event) => {
             setWsConnected(false);
+            if (event.code === 4004) {
+                console.warn("Scoreboard: match not found on live feed.");
+                return;
+            }
             reconnectTimerRef.current = setTimeout(() => {
                 connectWS();
             }, 3000);
         };
 
-        socket.onerror = (err) => {
-            console.error("WebSocket error:", err);
-            socket.close();
+        socket.onerror = () => {
+            setWsConnected(false);
         };
     };
 

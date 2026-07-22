@@ -40,6 +40,7 @@ export default function DashboardLayout({ children }) {
             "/dashboard/creategroup",
             "/dashboard/importgroups",
             "/dashboard/members",
+            "/dashboard/groups",
             "/dashboard/signup-forms",
             "/dashboard/venues"
         ];

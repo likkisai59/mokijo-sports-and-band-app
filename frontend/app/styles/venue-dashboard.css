@@ -201,6 +201,31 @@
     min-height: calc(100vh - var(--vd-header-h));
 }
 
+.vd-page {
+    max-width: 1100px;
+}
+
+.vd-sidebar-brand {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.35);
+    padding: 8px 14px 16px;
+}
+
+.vd-nav-section {
+    margin-bottom: 18px;
+}
+
+.vd-nav-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.3);
+    padding: 0 14px 8px;
+}
+
 .vd-page-title {
     font-size: 24px;
     font-weight: 800;

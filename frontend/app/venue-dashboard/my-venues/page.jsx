@@ -43,6 +43,9 @@ export default function MyVenuesPage() {
     const [editVenue, setEditVenue] = useState(null); // venue being edited
     const [saving, setSaving] = useState(false);
     const [msg, setMsg] = useState("");
+    const [courts, setCourts] = useState([]);
+    const [newCourt, setNewCourt] = useState({ name: "", sport_type: "Badminton", capacity: 4, price_per_hour: "" });
+    const [savingCourt, setSavingCourt] = useState(false);
 
     const ownerId = typeof window !== "undefined" ? localStorage.getItem("venueOwnerId") : null;
 
@@ -56,6 +59,16 @@ export default function MyVenuesPage() {
     useEffect(() => {
         load();
     }, []);
+
+    const loadCourts = async (venueId) => {
+        try {
+            const r = await fetch(`${API}/venues/${venueId}/courts`);
+            if (r.ok) setCourts(await r.json());
+            else setCourts([]);
+        } catch {
+            setCourts([]);
+        }
+    };
 
     const openEdit = (v) => {
         setEditVenue({
@@ -80,7 +93,72 @@ export default function MyVenuesPage() {
             state_name: v.state_name || "",
             postal_code: v.postal_code || "",
         });
+        setNewCourt({ name: "", sport_type: "Badminton", capacity: 4, price_per_hour: "" });
         setMsg("");
+        loadCourts(v.id);
+    };
+
+    const saveCourtPrice = async (court) => {
+        try {
+            const r = await fetch(`${API}/courts/${court.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    price_per_hour:
+                        court.price_per_hour === "" || court.price_per_hour == null
+                            ? null
+                            : Number(court.price_per_hour),
+                    name: court.name,
+                    sport_type: court.sport_type,
+                    capacity: court.capacity,
+                }),
+            });
+            if (!r.ok) {
+                const d = await r.json().catch(() => ({}));
+                alert(d.detail || "Failed to update court");
+                return;
+            }
+            await loadCourts(editVenue.id);
+            setMsg("Court saved successfully!");
+        } catch (e) {
+            console.error(e);
+            alert("Failed to update court");
+        }
+    };
+
+    const addCourt = async () => {
+        if (!editVenue || !newCourt.name.trim()) {
+            alert("Court name is required");
+            return;
+        }
+        setSavingCourt(true);
+        try {
+            const r = await fetch(`${API}/venues/${editVenue.id}/courts`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    venue_id: editVenue.id,
+                    name: newCourt.name.trim(),
+                    sport_type: newCourt.sport_type,
+                    capacity: Number(newCourt.capacity) || 4,
+                    price_per_hour:
+                        newCourt.price_per_hour === "" ? null : Number(newCourt.price_per_hour),
+                }),
+            });
+            if (r.ok) {
+                setNewCourt({ name: "", sport_type: "Badminton", capacity: 4, price_per_hour: "" });
+                await loadCourts(editVenue.id);
+                setMsg("Court added successfully!");
+            } else {
+                const d = await r.json().catch(() => ({}));
+                alert(d.detail || "Failed to add court");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Failed to add court");
+        } finally {
+            setSavingCourt(false);
+        }
     };
 
     const saveEdit = async () => {
@@ -388,6 +466,147 @@ export default function MyVenuesPage() {
                                         {s}
                                     </button>
                                 ))}
+                            </div>
+                        </div>
+
+                        <div className="vd-field" style={{ marginBottom: 16 }}>
+                            <label className="vd-label">Courts / pitches (price per sport)</label>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8 }}>
+                                {courts.length === 0 && (
+                                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>
+                                        No courts yet. Add one below — slot prices will use these rates.
+                                    </div>
+                                )}
+                                {courts.map((court) => (
+                                    <div
+                                        key={court.id}
+                                        style={{
+                                            display: "grid",
+                                            gridTemplateColumns: "1.2fr 1fr 0.7fr 0.9fr auto",
+                                            gap: 8,
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <input
+                                            className="vd-input"
+                                            value={court.name || ""}
+                                            onChange={(e) =>
+                                                setCourts((prev) =>
+                                                    prev.map((c) =>
+                                                        c.id === court.id ? { ...c, name: e.target.value } : c
+                                                    )
+                                                )
+                                            }
+                                        />
+                                        <select
+                                            className="vd-input"
+                                            value={court.sport_type || "Badminton"}
+                                            onChange={(e) =>
+                                                setCourts((prev) =>
+                                                    prev.map((c) =>
+                                                        c.id === court.id
+                                                            ? { ...c, sport_type: e.target.value }
+                                                            : c
+                                                    )
+                                                )
+                                            }
+                                        >
+                                            {SPORTS_LIST.map((s) => (
+                                                <option key={s} value={s}>
+                                                    {s}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <input
+                                            className="vd-input"
+                                            type="number"
+                                            min={1}
+                                            value={court.capacity ?? 4}
+                                            onChange={(e) =>
+                                                setCourts((prev) =>
+                                                    prev.map((c) =>
+                                                        c.id === court.id
+                                                            ? { ...c, capacity: Number(e.target.value) }
+                                                            : c
+                                                    )
+                                                )
+                                            }
+                                        />
+                                        <input
+                                            className="vd-input"
+                                            type="number"
+                                            min={0}
+                                            placeholder="₹/hr"
+                                            value={court.price_per_hour ?? ""}
+                                            onChange={(e) =>
+                                                setCourts((prev) =>
+                                                    prev.map((c) =>
+                                                        c.id === court.id
+                                                            ? { ...c, price_per_hour: e.target.value }
+                                                            : c
+                                                    )
+                                                )
+                                            }
+                                        />
+                                        <button className="vd-btn-sm outline" type="button" onClick={() => saveCourtPrice(court)}>
+                                            Save
+                                        </button>
+                                    </div>
+                                ))}
+                                <div
+                                    style={{
+                                        display: "grid",
+                                        gridTemplateColumns: "1.2fr 1fr 0.7fr 0.9fr auto",
+                                        gap: 8,
+                                        alignItems: "center",
+                                        marginTop: 4,
+                                    }}
+                                >
+                                    <input
+                                        className="vd-input"
+                                        placeholder="New court name"
+                                        value={newCourt.name}
+                                        onChange={(e) => setNewCourt((p) => ({ ...p, name: e.target.value }))}
+                                    />
+                                    <select
+                                        className="vd-input"
+                                        value={newCourt.sport_type}
+                                        onChange={(e) => setNewCourt((p) => ({ ...p, sport_type: e.target.value }))}
+                                    >
+                                        {SPORTS_LIST.map((s) => (
+                                            <option key={s} value={s}>
+                                                {s}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <input
+                                        className="vd-input"
+                                        type="number"
+                                        min={1}
+                                        value={newCourt.capacity}
+                                        onChange={(e) =>
+                                            setNewCourt((p) => ({ ...p, capacity: Number(e.target.value) }))
+                                        }
+                                    />
+                                    <input
+                                        className="vd-input"
+                                        type="number"
+                                        min={0}
+                                        placeholder="₹/hr"
+                                        value={newCourt.price_per_hour}
+                                        onChange={(e) =>
+                                            setNewCourt((p) => ({ ...p, price_per_hour: e.target.value }))
+                                        }
+                                    />
+                                    <button
+                                        className="vd-btn-sm primary"
+                                        type="button"
+                                        onClick={addCourt}
+                                        disabled={savingCourt}
+                                    >
+                                        {savingCourt ? "…" : "Add"}
+                                    </button>
+                                </div>
                             </div>
                         </div>
 

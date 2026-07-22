@@ -48,6 +48,14 @@ class GroupsRouting(ConnectionService):
         )
         self.router.add_api_route(
             path="/groups/{group_id}",
+            endpoint=self.update_group,
+            methods=["PATCH"],
+            response_model=schemas.GroupResponse,
+            summary="Update group fields such as cover/avatar image.",
+            tags=["Groups"]
+        )
+        self.router.add_api_route(
+            path="/groups/{group_id}",
             endpoint=self.delete_group,
             methods=["DELETE"],
             summary="Delete a specific club group/team and all its associated data.",
@@ -81,6 +89,27 @@ class GroupsRouting(ConnectionService):
             endpoint=self.get_all_members,
             methods=["GET"],
             summary="Retrieve all members across all groups for the given club administrator.",
+            tags=["Groups"]
+        )
+        self.router.add_api_route(
+            path="/members/{member_id}",
+            endpoint=self.get_member_by_id,
+            methods=["GET"],
+            summary="Retrieve a single member by their ID.",
+            tags=["Groups"]
+        )
+        self.router.add_api_route(
+            path="/members/{member_id}",
+            endpoint=self.update_member,
+            methods=["PUT"],
+            summary="Update an existing member's details by their ID.",
+            tags=["Groups"]
+        )
+        self.router.add_api_route(
+            path="/members/{member_id}",
+            endpoint=self.delete_member,
+            methods=["DELETE"],
+            summary="Delete a member by their ID.",
             tags=["Groups"]
         )
 
@@ -125,6 +154,18 @@ class GroupsRouting(ConnectionService):
         await logger.log_message(request=request, message="Get group router start", step="ROUTER_START", user_info=current_user)
         logic = GroupsLogic()
         return await logic.get_group(request, group_id, owner_id, current_user)
+
+    async def update_group(
+        self,
+        request: Request,
+        group_id: int,
+        owner_id: int,
+        group_update: schemas.GroupUpdate,
+        current_user: dict = Depends(check_user_authorization)
+    ):
+        await logger.log_message(request=request, message="Update group router start", step="ROUTER_START", user_info=current_user)
+        logic = GroupsLogic()
+        return await logic.update_group(request, group_id, owner_id, group_update, current_user)
 
     async def delete_group(
         self,
@@ -181,6 +222,37 @@ class GroupsRouting(ConnectionService):
         await logger.log_message(request=request, message="Get all members router start", step="ROUTER_START", user_info=current_user)
         logic = GroupsLogic()
         return await logic.get_all_members(request, owner_id, current_user)
+
+    async def get_member_by_id(
+        self,
+        request: Request,
+        member_id: int,
+        current_user: dict = Depends(check_user_authorization)
+    ):
+        await logger.log_message(request=request, message="Get member by id router start", step="ROUTER_START", user_info=current_user)
+        logic = GroupsLogic()
+        return await logic.get_member_by_id(request, member_id, current_user)
+
+    async def update_member(
+        self,
+        request: Request,
+        member_id: int,
+        member: schemas.MemberUpdate,
+        current_user: dict = Depends(check_user_authorization)
+    ):
+        await logger.log_message(request=request, message="Update member router start", step="ROUTER_START", user_info=current_user)
+        logic = GroupsLogic()
+        return await logic.update_member(request, member_id, member, current_user)
+
+    async def delete_member(
+        self,
+        request: Request,
+        member_id: int,
+        current_user: dict = Depends(check_user_authorization)
+    ):
+        await logger.log_message(request=request, message="Delete member router start", step="ROUTER_START", user_info=current_user)
+        logic = GroupsLogic()
+        return await logic.delete_member(request, member_id, current_user)
 
 
 class GroupsLogic(ConnectionService):
@@ -341,6 +413,38 @@ class GroupsLogic(ConnectionService):
             raise he
         except Exception as e:
             await logger.log_error(request=request, message=f"Failed to get group: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+
+    async def update_group(self, request: Request, group_id: int, owner_id: int, group_update: schemas.GroupUpdate, current_user: dict):
+        try:
+            with logger.time_operation("UPDATE_GROUP", request=request):
+                db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin"], owner_id)
+                group = db.fetch_one(
+                    "SELECT * FROM groups WHERE id = %s AND owner_id = %s",
+                    (group_id, owner_id)
+                )
+                if not group:
+                    raise HTTPException(status_code=404, detail="Group not found or access denied")
+
+                # Allow clearing avatar by sending null / empty string
+                avatar_value = group_update.avatar if group_update.avatar else None
+                db.execute_query(
+                    "UPDATE groups SET avatar = %s WHERE id = %s AND owner_id = %s",
+                    (avatar_value, group_id, owner_id)
+                )
+
+                updated = db.fetch_one(
+                    "SELECT * FROM groups WHERE id = %s AND owner_id = %s",
+                    (group_id, owner_id)
+                )
+                updated["members"] = db.fetch_all("SELECT * FROM members WHERE group_id = %s", (group_id,))
+                updated["events"] = db.fetch_all("SELECT * FROM events WHERE group_id = %s", (group_id,))
+                return updated
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            await logger.log_error(request=request, message=f"Failed to update group: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
 
     async def delete_group(self, request: Request, group_id: int, owner_id: int, current_user: dict):
@@ -523,4 +627,92 @@ class GroupsLogic(ConnectionService):
             raise he
         except Exception as e:
             await logger.log_error(request=request, message=f"Failed to get all members: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+
+    async def get_member_by_id(self, request: Request, member_id: int, current_user: dict):
+        try:
+            with logger.time_operation("GET_MEMBER_BY_ID", request=request):
+                db = self.db_driver
+                member = db.fetch_one(
+                    "SELECT m.*, g.group_name FROM members m "
+                    "LEFT JOIN groups g ON m.group_id = g.id WHERE m.id = %s",
+                    (member_id,)
+                )
+                if not member:
+                    raise HTTPException(status_code=404, detail="Member not found")
+                return {
+                    "id": member.get("id"),
+                    "group_id": member.get("group_id"),
+                    "first_name": member.get("first_name"),
+                    "last_name": member.get("last_name"),
+                    "email": member.get("email"),
+                    "phone": member.get("phone"),
+                    "role": member.get("role"),
+                    "group_name": member.get("group_name", "No Group"),
+                    "password": member.get("password", ""),
+                }
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            await logger.log_error(request=request, message=f"Failed to get member by id: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+
+    async def update_member(self, request: Request, member_id: int, member: schemas.MemberUpdate, current_user: dict):
+        try:
+            with logger.time_operation("UPDATE_MEMBER", request=request):
+                db = self.db_driver
+                existing = db.fetch_one("SELECT * FROM members WHERE id = %s", (member_id,))
+                if not existing:
+                    raise HTTPException(status_code=404, detail="Member not found")
+                update_data = {}
+                if member.first_name is not None:
+                    update_data["first_name"] = member.first_name
+                if member.last_name is not None:
+                    update_data["last_name"] = member.last_name
+                if member.email is not None:
+                    update_data["email"] = member.email
+                if member.phone is not None:
+                    update_data["phone"] = member.phone
+                if member.role is not None:
+                    update_data["role"] = member.role
+                if member.password is not None and member.password.strip():
+                    update_data["password"] = member.password
+                if update_data:
+                    set_clause = ", ".join([f"{k} = %s" for k in update_data.keys()])
+                    values = list(update_data.values()) + [member_id]
+                    db.execute_query(f"UPDATE members SET {set_clause} WHERE id = %s", values)
+                updated = db.fetch_one(
+                    "SELECT m.*, g.group_name FROM members m "
+                    "LEFT JOIN groups g ON m.group_id = g.id WHERE m.id = %s",
+                    (member_id,)
+                )
+                return {
+                    "id": updated.get("id"),
+                    "group_id": updated.get("group_id"),
+                    "first_name": updated.get("first_name"),
+                    "last_name": updated.get("last_name"),
+                    "email": updated.get("email"),
+                    "phone": updated.get("phone"),
+                    "role": updated.get("role"),
+                    "group_name": updated.get("group_name", "No Group"),
+                }
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            await logger.log_error(request=request, message=f"Failed to update member: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+
+    async def delete_member(self, request: Request, member_id: int, current_user: dict):
+        try:
+            with logger.time_operation("DELETE_MEMBER", request=request):
+                db = self.db_driver
+                existing = db.fetch_one("SELECT * FROM members WHERE id = %s", (member_id,))
+                if not existing:
+                    raise HTTPException(status_code=404, detail="Member not found")
+                db.execute_query("DELETE FROM members WHERE id = %s", (member_id,))
+                return {"message": "Member deleted successfully", "id": member_id}
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            await logger.log_error(request=request, message=f"Failed to delete member: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")

@@ -1,28 +1,54 @@
 "use client";
 import styles from "../../app/styles/signup.module.css";
 import { hearAboutOptions, termsOptions } from "./constants";
+import PasswordField from "@/components/ui/PasswordField";
+import PhoneInput from "@/components/ui/PhoneInput";
+import {
+    personNameError,
+    emailError,
+    passwordError,
+    phoneError,
+    aadhaarError,
+    formatAadhaarDisplay,
+    digitsOnly,
+} from "@/lib/validation";
 
 export default function Step2({ formData, onChange, onPrevious, onSubmit, loading }) {
     function handleSubmit() {
         if (loading) return;
-        if (
-            !formData.firstName ||
-            !formData.lastName ||
-            !formData.email ||
-            !formData.password ||
-            !formData.phone ||
-            !formData.aadharNumber ||
-            !formData.hearAbout ||
-            !formData.termsAgreed
-        ) {
-            alert("Please fill in all fields before submitting.");
+
+        const firstErr = personNameError(formData.firstName, "First name");
+        if (firstErr) {
+            alert(firstErr);
             return;
         }
-
-        // Validate Aadhar Number (exactly 12 digits)
-        const aadharRegex = /^\d{12}$/;
-        if (!aadharRegex.test(formData.aadharNumber)) {
-            alert("Aadhar Number must be exactly 12 digits.");
+        const lastErr = personNameError(formData.lastName, "Last name");
+        if (lastErr) {
+            alert(lastErr);
+            return;
+        }
+        const mailErr = emailError(formData.email);
+        if (mailErr) {
+            alert(mailErr);
+            return;
+        }
+        const pwErr = passwordError(formData.password);
+        if (pwErr) {
+            alert(pwErr);
+            return;
+        }
+        const phErr = phoneError(formData.phoneDigits, formData.phoneCountryCode || "+91");
+        if (phErr) {
+            alert(phErr);
+            return;
+        }
+        const aadErr = aadhaarError(formData.aadharNumber);
+        if (aadErr) {
+            alert(aadErr);
+            return;
+        }
+        if (!formData.hearAbout || !formData.termsAgreed) {
+            alert("Please fill in all fields before submitting.");
             return;
         }
         if (formData.termsAgreed === "No") {
@@ -82,25 +108,32 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
 
             <div className={styles.fieldGroup}>
                 <label className={styles.label}>Password *</label>
-                <input
-                    type="password"
+                <PasswordField
                     className={styles.input}
                     placeholder="Create a strong password"
                     value={formData.password}
                     onChange={(e) => onChange("password", e.target.value)}
                     disabled={loading}
                 />
+                <p style={{ color: "#94a3b8", fontSize: "12px", marginTop: "6px" }}>
+                    Min 8 chars with uppercase, lowercase, number, and special character.
+                </p>
             </div>
 
             <div className={styles.fieldGroup}>
                 <label className={styles.label}>Club Admin Phone Number *</label>
-                <input
-                    type="tel"
-                    className={styles.input}
-                    placeholder="+91 00000 00000"
-                    value={formData.phone}
-                    onChange={(e) => onChange("phone", e.target.value)}
+                <PhoneInput
+                    countryCode={formData.phoneCountryCode || "+91"}
+                    digits={formData.phoneDigits || ""}
+                    selectClassName={styles.select}
+                    inputClassName={styles.input}
                     disabled={loading}
+                    placeholder="10-digit number"
+                    onChange={({ countryCode, digits, full }) => {
+                        onChange("phoneCountryCode", countryCode);
+                        onChange("phoneDigits", digits);
+                        onChange("phone", full);
+                    }}
                 />
             </div>
 
@@ -109,13 +142,11 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                 <input
                     type="text"
                     className={styles.input}
-                    placeholder="12-digit Aadhar Number"
-                    maxLength={12}
-                    value={formData.aadharNumber}
+                    placeholder="XXXX XXXX XXXX"
+                    maxLength={14}
+                    value={formatAadhaarDisplay(formData.aadharNumber)}
                     onChange={(e) => {
-                        // Automatically strip non-digits to prevent frustration
-                        const val = e.target.value.replace(/\D/g, "");
-                        onChange("aadharNumber", val);
+                        onChange("aadharNumber", digitsOnly(e.target.value).slice(0, 12));
                     }}
                     disabled={loading}
                 />

@@ -1,384 +1,330 @@
 "use client";
 import { API_BASE_URL } from "@/lib/api";
-
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import "../../../../styles/creategroup.css";
+import styles from "./edit-member.module.css";
+
+const ROLES = ["Player", "Coach", "Parent", "Referee", "Member"];
 
 export default function EditMemberPage() {
     const params = useParams();
     const router = useRouter();
-    const id = params?.id;
+    const id     = params?.id;
 
-    // Form fields
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [email, setEmail] = useState("");
-    const [phone, setPhone] = useState("");
-    const [password, setPassword] = useState("");
-    const [role, setRole] = useState("Member");
-    const [groupName, setGroupName] = useState("");
-
+    const [member, setMember]   = useState(null);
     const [loading, setLoading] = useState(true);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [showSuccess, setShowSuccess] = useState(false);
-    const [error, setError] = useState("");
+    const [error, setError]     = useState("");
+    const [globalSaving, setGlobalSaving] = useState(false);
+    const [globalSuccess, setGlobalSuccess] = useState(false);
 
-    // Roles matching the system's standard roles
-    const roles = ["Player", "Coach", "Parent", "Referee", "Member"];
+    // Form inputs state
+    const [draft, setDraft] = useState({
+        first_name: "",
+        last_name:  "",
+        email:      "",
+        phone:      "",
+        role:       "Member",
+        password:   "",
+    });
 
     useEffect(() => {
         const fetchMember = async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/members/${id}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    setFirstName(data.first_name || "");
-                    setLastName(data.last_name || "");
-                    setEmail(data.email || "");
-                    setPhone(data.phone || "");
-                    setRole(data.role || "Member");
-                    setGroupName(data.group_name || "No Group");
-                    setPassword(data.password || "");
+                const res = await fetch(`${API_BASE_URL}/members/${id}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setMember(data);
+                    setDraft({
+                        first_name: data.first_name || "",
+                        last_name:  data.last_name  || "",
+                        email:      data.email      || "",
+                        phone:      data.phone      || "",
+                        role:       data.role       || "Member",
+                        password:   data.password   || "",
+                    });
                 } else {
-                    setError("Failed to retrieve member details. It might have been deleted.");
+                    const err = await res.json().catch(() => ({}));
+                    setError(err.detail || "Member not found or has been deleted.");
                 }
-            } catch (err) {
-                console.error("Error fetching member:", err);
-                setError("Could not connect to the backend server. Please verify it is running.");
+            } catch {
+                setError("Cannot connect to the backend. Please ensure the server is running on port 8001.");
             } finally {
                 setLoading(false);
             }
         };
-
-        if (id) {
-            fetchMember();
-        }
+        if (id) fetchMember();
     }, [id]);
 
-    const handleUpdateMember = async (e) => {
-        e.preventDefault();
+    const handleInputChange = (field, value) => {
+        setDraft(prev => ({ ...prev, [field]: value }));
+    };
 
-        if (!firstName.trim()) {
-            alert("First Name is required");
-            return;
-        }
-        if (!lastName.trim()) {
-            alert("Last Name is required");
-            return;
-        }
-        if (!email.trim()) {
-            alert("Email is required");
-            return;
-        }
-        if (!phone.trim()) {
-            alert("Phone number is required");
-            return;
-        }
-        if (!password.trim()) {
-            alert("Password is required");
-            return;
-        }
-
-        setIsSubmitting(true);
-        setError("");
-
-        const updatedData = {
-            first_name: firstName,
-            last_name: lastName,
-            email: email,
-            phone: phone,
-            role: role,
-            password: password,
-        };
-
+    const handleSaveAll = async (e) => {
+        if (e) e.preventDefault();
+        setGlobalSaving(true);
         try {
-            const response = await fetch(`${API_BASE_URL}/members/${id}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(updatedData),
+            const res = await fetch(`${API_BASE_URL}/members/${id}`, {
+                method:  "PUT",
+                headers: { "Content-Type": "application/json" },
+                body:    JSON.stringify(draft),
             });
-
-            if (!response.ok) {
-                const errData = await response.json().catch(() => ({}));
-                setError(errData.detail || "Failed to update member.");
-                setIsSubmitting(false);
-                return;
+            if (res.ok) {
+                const updated = await res.json();
+                setMember(updated);
+                setGlobalSuccess(true);
+                setTimeout(() => {
+                    router.push("/dashboard/members");
+                }, 1600);
+            } else {
+                const err = await res.json().catch(() => ({}));
+                alert(err.detail || "Update failed. Please check your inputs.");
             }
-
-            // Success animation trigger
-            setShowSuccess(true);
-
-            setTimeout(() => {
-                router.push("/dashboard/members");
-            }, 1800);
-        } catch (err) {
-            console.error("Error updating member:", err);
-            setError("Server connection lost. Unable to update member.");
-            setIsSubmitting(false);
+        } catch {
+            alert("Connection error. Please try again.");
+        } finally {
+            setGlobalSaving(false);
         }
     };
 
+    if (loading) {
+        return (
+            <div className={styles.loadingScreen}>
+                <div className={styles.loadingCard}>
+                    <div className={styles.loadingSpinner} />
+                    <p className={styles.loadingText}>Loading member profile…</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className={styles.errorScreen}>
+                <div className={styles.errorCard}>
+                    <div className={styles.errorIcon}>
+                        <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#EF4444" strokeWidth="1.5">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                    </div>
+                    <h2 className={styles.errorTitle}>Profile Load Error</h2>
+                    <p className={styles.errorMsg}>{error}</p>
+                    <button className={styles.errorBtn} onClick={() => router.push("/dashboard/members")}>
+                        ← Back to Team Members
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (globalSuccess) {
+        return (
+            <div className={styles.successScreen}>
+                <div className={styles.successCard}>
+                    <div className={styles.successRing}>
+                        <svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="#bffe00" strokeWidth="2.5">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </div>
+                    <h2 className={styles.successTitle}>Profile Updated!</h2>
+                    <p className={styles.successMsg}>All changes have been saved. Redirecting to members list…</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="create-group-page" style={{ padding: "40px 20px", minHeight: "calc(100vh - 120px)" }}>
-            <div className="create-group-container" style={{ maxWidth: "650px" }}>
-                {/* Back Button Link */}
-                <button
-                    className="back-btn"
-                    onClick={() => router.push("/dashboard/members")}
-                    style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        marginBottom: "24px",
-                        fontSize: "15px",
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        fontWeight: "600",
-                    }}
-                >
-                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2.5" fill="none">
-                        <line x1="19" y1="12" x2="5" y2="12"></line>
-                        <polyline points="12 19 5 12 12 5"></polyline>
+        <div className={styles.page}>
+            {/* ── Top Nav Bar ────────────────────────────────────────────── */}
+            <div className={styles.navBar}>
+                <button className={styles.backBtn} onClick={() => router.push("/dashboard/members")}>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
                     </svg>
-                    Back to members list
+                    Back to Team Members
                 </button>
+                <div className={styles.navBreadcrumb}>
+                    <span>Team Members</span>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#94A3B8" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    <span className={styles.breadcrumbActive}>Edit Profile</span>
+                </div>
+            </div>
 
-                <div
-                    className="form-card"
-                    style={{
-                        backdropFilter: "blur(20px)",
-                        border: "1px solid rgba(226, 232, 240, 0.8)",
-                        boxShadow: "0 20px 40px -15px rgba(0, 0, 0, 0.05)",
-                    }}
-                >
-                    {loading ? (
-                        <div style={{ padding: "40px 20px", textAlign: "center", color: "#64748b" }}>
-                            <div
-                                className="loading-spinner"
-                                style={{
-                                    margin: "0 auto 16px",
-                                    border: "3px solid #f3f3f3",
-                                    borderTop: "3px solid #2563eb",
-                                    borderRadius: "50%",
-                                    width: "30px",
-                                    height: "30px",
-                                    animation: "spin 1s linear infinite",
-                                }}
-                            ></div>
-                            <p style={{ fontWeight: "500" }}>Fetching member profile...</p>
-                            <style>{`
-                                @keyframes spin {
-                                    0% { transform: rotate(0deg); }
-                                    100% { transform: rotate(360deg); }
-                                }
-                            `}</style>
-                        </div>
-                    ) : error ? (
-                        <div style={{ textAlign: "center", padding: "20px 0" }}>
-                            <div style={{ fontSize: "48px", marginBottom: "16px" }}>⚠️</div>
-                            <h2 style={{ color: "#ef4444", fontSize: "22px", fontWeight: "700", marginBottom: "8px" }}>
-                                Profile Load Error
-                            </h2>
-                            <p style={{ color: "#64748b", marginBottom: "24px" }}>{error}</p>
-                            <button
-                                className="next-btn"
-                                onClick={() => router.push("/dashboard/members")}
-                                style={{ maxWidth: "200px", margin: "0 auto" }}
-                            >
-                                Return to Members
-                            </button>
-                        </div>
-                    ) : showSuccess ? (
-                        <div className="success-message">
-                            <div className="success-icon" style={{ animation: "bounce 0.8s ease infinite alternate" }}>
-                                ✨
+            <div className={styles.layout}>
+                {/* ── Unified Fields Form ───────────────────────────── */}
+                <main className={styles.fieldsPanel}>
+                    <form onSubmit={handleSaveAll} className={styles.section}>
+                        <div className={styles.sectionHeader}>
+                            <div className={styles.sectionIcon} style={{ background: "rgba(191, 254, 0, 0.1)" }}>
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#bffe00" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                             </div>
-                            <h1>Member Updated!</h1>
-                            <p>Profile changes saved persistently in the database. Redirecting...</p>
-                            <style>{`
-                                @keyframes bounce {
-                                    0% { transform: translateY(0); }
-                                    100% { transform: translateY(-8px); }
-                                }
-                            `}</style>
+                            <div>
+                                <h3 className={styles.sectionTitle}>Edit Team Member Profile</h3>
+                                <p className={styles.sectionSub}>Update the profile fields below and click Save at the bottom.</p>
+                            </div>
                         </div>
-                    ) : (
-                        <form onSubmit={handleUpdateMember} className="step-content fade-in">
-                            <div className="step-header" style={{ marginBottom: "28px" }}>
-                                <span
-                                    style={{
-                                        fontSize: "12px",
-                                        textTransform: "uppercase",
-                                        fontWeight: "700",
-                                        letterSpacing: "1.5px",
-                                        color: "#3b82f6",
-                                        display: "block",
-                                        marginBottom: "6px",
-                                    }}
-                                >
-                                    Club Member Management
+
+                        {/* First Name */}
+                        <div className={styles.fieldRow}>
+                            <div className={styles.fieldMeta}>
+                                <span className={styles.fieldIcon}>
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#64748B" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                 </span>
-                                <h1>Edit Member Details</h1>
-                                <p style={{ fontSize: "14px", marginTop: "4px" }}>
-                                    Modify first name, last name, and contact details. Club assignment remains
-                                    read-only.
-                                </p>
+                                <span className={styles.fieldLabel}>First Name</span>
                             </div>
-
-                            <div className="input-section">
-                                <div
-                                    style={{
-                                        display: "grid",
-                                        gridTemplateColumns: "1fr 1fr",
-                                        gap: "16px",
-                                        marginBottom: "16px",
-                                    }}
-                                >
-                                    <div className="input-group" style={{ marginBottom: 0 }}>
-                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
-                                            First Name *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={firstName}
-                                            onChange={(e) => setFirstName(e.target.value)}
-                                            placeholder="First Name"
-                                            required
-                                        />
-                                    </div>
-                                    <div className="input-group" style={{ marginBottom: 0 }}>
-                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
-                                            Last Name *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={lastName}
-                                            onChange={(e) => setLastName(e.target.value)}
-                                            placeholder="Last Name"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="input-group">
-                                    <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
-                                        Email Address *
-                                    </label>
-                                    <input
-                                        type="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        placeholder="email@example.com"
-                                        required
-                                    />
-                                </div>
-
-                                <div
-                                    style={{
-                                        display: "grid",
-                                        gridTemplateColumns: "1fr 1fr",
-                                        gap: "16px",
-                                        marginBottom: "16px",
-                                    }}
-                                >
-                                    <div className="input-group" style={{ marginBottom: 0 }}>
-                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
-                                            Phone Number *
-                                        </label>
-                                        <input
-                                            type="tel"
-                                            value={phone}
-                                            onChange={(e) => setPhone(e.target.value)}
-                                            placeholder="Phone Number"
-                                            required
-                                        />
-                                    </div>
-                                    <div className="input-group" style={{ marginBottom: 0 }}>
-                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
-                                            Member Password *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            placeholder="Enter password"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                                    <div className="input-group">
-                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
-                                            Member Role
-                                        </label>
-                                        <select
-                                            value={role}
-                                            onChange={(e) => setRole(e.target.value)}
-                                            style={{
-                                                width: "100%",
-                                                padding: "14px 18px",
-                                                borderRadius: "12px",
-                                                border: "2px solid #f1f5f9",
-                                                background: "#f8fafc",
-                                                fontSize: "16px",
-                                                color: "#1e293b",
-                                                outline: "none",
-                                                cursor: "pointer",
-                                                transition: "0.2s",
-                                            }}
-                                        >
-                                            {roles.map((r) => (
-                                                <option key={r} value={r}>
-                                                    {r}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div className="input-group">
-                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#94a3b8" }}>
-                                            Group / Club (Read-Only)
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={groupName}
-                                            disabled
-                                            style={{
-                                                backgroundColor: "#f1f5f9",
-                                                borderColor: "#e2e8f0",
-                                                color: "#64748b",
-                                                cursor: "not-allowed",
-                                                fontWeight: "500",
-                                            }}
-                                            title="Group assignment cannot be changed from this screen."
-                                        />
-                                    </div>
-                                </div>
+                            <div className={styles.fieldContent}>
+                                <input
+                                    type="text"
+                                    value={draft.first_name}
+                                    onChange={e => handleInputChange("first_name", e.target.value)}
+                                    className={styles.fieldInput}
+                                    placeholder="Enter first name"
+                                    required
+                                />
                             </div>
+                        </div>
 
+                        {/* Last Name */}
+                        <div className={styles.fieldRow}>
+                            <div className={styles.fieldMeta}>
+                                <span className={styles.fieldIcon}>
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#64748B" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                </span>
+                                <span className={styles.fieldLabel}>Last Name</span>
+                            </div>
+                            <div className={styles.fieldContent}>
+                                <input
+                                    type="text"
+                                    value={draft.last_name}
+                                    onChange={e => handleInputChange("last_name", e.target.value)}
+                                    className={styles.fieldInput}
+                                    placeholder="Enter last name"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        {/* Email Address */}
+                        <div className={styles.fieldRow}>
+                            <div className={styles.fieldMeta}>
+                                <span className={styles.fieldIcon}>
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#64748B" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                                </span>
+                                <span className={styles.fieldLabel}>Email Address</span>
+                            </div>
+                            <div className={styles.fieldContent}>
+                                <input
+                                    type="email"
+                                    value={draft.email}
+                                    onChange={e => handleInputChange("email", e.target.value)}
+                                    className={styles.fieldInput}
+                                    placeholder="Enter email address"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        {/* Phone Number */}
+                        <div className={styles.fieldRow}>
+                            <div className={styles.fieldMeta}>
+                                <span className={styles.fieldIcon}>
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#64748B" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 14a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 3h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                </span>
+                                <span className={styles.fieldLabel}>Phone Number</span>
+                            </div>
+                            <div className={styles.fieldContent}>
+                                <input
+                                    type="tel"
+                                    value={draft.phone}
+                                    onChange={e => handleInputChange("phone", e.target.value)}
+                                    className={styles.fieldInput}
+                                    placeholder="Enter phone number"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Member Role */}
+                        <div className={styles.fieldRow}>
+                            <div className={styles.fieldMeta}>
+                                <span className={styles.fieldIcon}>
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#64748B" strokeWidth="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/></svg>
+                                </span>
+                                <span className={styles.fieldLabel}>Team Member Role</span>
+                            </div>
+                            <div className={styles.fieldContent}>
+                                <select
+                                    value={draft.role}
+                                    onChange={e => handleInputChange("role", e.target.value)}
+                                    className={styles.fieldInput}
+                                >
+                                    {ROLES.map(r => (
+                                        <option key={r} value={r}>{r}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Password */}
+                        <div className={styles.fieldRow}>
+                            <div className={styles.fieldMeta}>
+                                <span className={styles.fieldIcon}>
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#64748B" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                </span>
+                                <span className={styles.fieldLabel}>Password</span>
+                            </div>
+                            <div className={styles.fieldContent}>
+                                <input
+                                    type="password"
+                                    value={draft.password}
+                                    onChange={e => handleInputChange("password", e.target.value)}
+                                    className={styles.fieldInput}
+                                    placeholder="Enter new password"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Group / Club (Read-Only) */}
+                        <div className={styles.fieldRow}>
+                            <div className={styles.fieldMeta}>
+                                <span className={styles.fieldIcon}>
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#64748B" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                </span>
+                                <span className={styles.fieldLabel}>Group / Club</span>
+                            </div>
+                            <div className={styles.fieldContent}>
+                                <input
+                                    type="text"
+                                    value={member?.group_name || "No Group"}
+                                    disabled
+                                    className={`${styles.fieldInput} ${styles.disabledInput}`}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Bottom action bar */}
+                        <div className={styles.bottomBar}>
+                            <button
+                                type="button"
+                                className={styles.btnCancelAll}
+                                onClick={() => router.push("/dashboard/members")}
+                            >
+                                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                Cancel
+                            </button>
                             <button
                                 type="submit"
-                                className="submit-btn"
-                                disabled={isSubmitting}
-                                style={{
-                                    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                                    boxShadow: "0 4px 14px rgba(16, 185, 129, 0.25)",
-                                    fontWeight: "600",
-                                    fontSize: "16px",
-                                    padding: "16px",
-                                    borderRadius: "14px",
-                                }}
+                                className={styles.btnSaveAll}
+                                disabled={globalSaving}
                             >
-                                {isSubmitting ? "Saving Profile..." : "Update Member"}
+                                {globalSaving ? (
+                                    <><span className={styles.spinner} /> Saving…</>
+                                ) : (
+                                    <><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save Changes</>
+                                )}
                             </button>
-                        </form>
-                    )}
-                </div>
+                        </div>
+                    </form>
+                </main>
             </div>
         </div>
     );

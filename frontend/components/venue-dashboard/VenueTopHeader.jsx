@@ -38,7 +38,7 @@ export default function VenueTopHeader() {
             <span className="vd-header-logo">Mukijo</span>
             <span className="vd-header-title">Venue Partner Dashboard</span>
             <div className="vd-header-right" style={{ position: "relative", display: "flex", alignItems: "center", gap: "12px" }}>
-                <NotificationBell mode="empty" />
+                <NotificationBell mode="venue" bookingsHref="/venue-dashboard/bookings" />
                 <div
                     className="vd-owner-badge"
                     onClick={(e) => {

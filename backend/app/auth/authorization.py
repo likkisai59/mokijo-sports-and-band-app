@@ -184,6 +184,12 @@ def validate_role_and_permission(db, current_user: dict, allowed_roles: list[str
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Access denied: You do not own this venue resource."
                 )
+        elif role == "trainer":
+            if user_id_int != resource_owner_id_int:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied: You do not own this trainer resource."
+                )
         elif role == "user":
             if user_id_int != resource_owner_id_int:
                 raise HTTPException(

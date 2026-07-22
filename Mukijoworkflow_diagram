@@ -1,0 +1,255 @@
+# 🏟️ Mokijo Sports & Band App — End-to-End Workflow
+
+A complete visual guide to how the system works, from user entry to data storage.
+
+---
+
+## 🗺️ System Architecture Overview
+
+```mermaid
+graph TB
+    subgraph CLIENTS["👥 Clients / Users"]
+        WEB["🌐 Web App\nNext.js · Port 3000"]
+        MOBILE["📱 Flutter Mobile App\nmukijo_app"]
+    end
+
+    subgraph BACKEND["⚙️ Backend — FastAPI · Port 8001"]
+        API["🔌 REST API Router\n/api/v1/..."]
+        AUTH["🔐 Auth Module\nJWT Tokens"]
+        SCHED["⏰ Background Scheduler\nHold Expiry · Every 60s"]
+        LOGGER["📋 Logger\nRequest/Response Middleware"]
+    end
+
+    subgraph SERVICES["🛠️ Business Services"]
+        PAYSVC["💳 Razorpay\nPayment Service"]
+        EMAILSVC["📧 Email Service\nNotifications"]
+        HOLDSVC["🔒 Hold Expiry\nAuto-release seats"]
+    end
+
+    subgraph DATA["🗄️ Data Layer"]
+        POSTGRES["🐘 PostgreSQL\nDatabase"]
+        STORAGE["📦 File Storage\nMedia/Docs"]
+    end
+
+    WEB -->|"HTTP Requests"| API
+    MOBILE -->|"HTTP Requests"| API
+    API --> AUTH
+    AUTH -->|"Validated JWT"| API
+    API --> PAYSVC
+    API --> EMAILSVC
+    API --> HOLDSVC
+    SCHED --> HOLDSVC
+    API --> POSTGRES
+    API --> STORAGE
+    LOGGER -.->|"Logs all traffic"| API
+```
+
+---
+
+## 🔑 User Registration & Login Flow
+
+```mermaid
+flowchart TD
+    START([👤 New User Visits App]) --> CHOOSE{Choose Role}
+
+    CHOOSE -->|"Club Admin"| REG_ADMIN["📋 Register as Club Owner\n/register"]
+    CHOOSE -->|"Member\n(Player/Coach/Parent/Referee)"| REG_MEMBER["📋 Register as Member\n/register-member"]
+    CHOOSE -->|"Venue Owner"| REG_VENUE["📋 Register as Venue Owner\n/register-venue"]
+    CHOOSE -->|"Trainer"| REG_TRAINER["📋 Register as Trainer\n/register-trainer"]
+
+    REG_ADMIN --> EMAIL_VER["📧 Email Verification\n/verify"]
+    REG_MEMBER --> EMAIL_VER
+    REG_VENUE --> EMAIL_VER
+    REG_TRAINER --> LOGIN_TRAINER["/login-trainer"]
+
+    EMAIL_VER --> LOGIN{Login Page}
+
+    LOGIN -->|"Club Admin login"| LOGIN_ADMIN["/login"]
+    LOGIN -->|"Member login"| LOGIN_MEMBER["/login-member"]
+    LOGIN -->|"Venue Owner login"| LOGIN_VENUE["/login-venue"]
+    LOGIN -->|"Trainer login"| LOGIN_TRAINER
+
+    LOGIN_ADMIN --> JWT["🔑 JWT Token Issued\nStored in localStorage"]
+    LOGIN_MEMBER --> JWT
+    LOGIN_VENUE --> JWT
+    LOGIN_TRAINER --> JWT_T["🔑 JWT role trainer"]
+
+    JWT --> DASHBOARD{Routed to Dashboard}
+    JWT_T --> TRAINER_DASH["🏃 Trainer Dashboard\n/trainer-dashboard"]
+    DASHBOARD -->|"Admin"| ADMIN_DASH["🏠 Club Admin Dashboard\n/dashboard"]
+    DASHBOARD -->|"Member"| MEMBER_DASH["👤 Member Dashboard\n(Role-based view)"]
+    DASHBOARD -->|"Venue Owner"| VENUE_DASH["🏟️ Venue Owner Dashboard\n/venue-dashboard"]
+```
+
+Trainer trainings (open) appear for club admin, user, parent, and player; candidates register and pay via Razorpay.
+
+---
+
+## 🏠 Admin Dashboard Workflow
+
+```mermaid
+flowchart LR
+    ADMIN(["👨‍💼 Club Admin"]) --> OVW["📊 Overview\nStats & KPIs"]
+
+    ADMIN --> GRP["👥 Groups\nCreate / Manage\nImport Members"]
+    ADMIN --> MEM["🧑 Members\nAdd / Approve / Manage\nSend Signup Forms"]
+    ADMIN --> EVT["📅 Events\nCreate Matches\nSessions & Practices"]
+    ADMIN --> CRS["📚 Courses\nTraining Programs\nBatch Management"]
+    ADMIN --> ACT["🏃 Activities\nActivity Tracking"]
+    ADMIN --> PAY["💰 Payments\nTrack Dues\nView History"]
+    ADMIN --> FUND["🎗️ Fundraising\nCreate Campaigns\nTrack Donations"]
+    ADMIN --> VEN["🏟️ Venues\nFind & Book\nVenue Management"]
+    ADMIN --> MSG["💬 Messages\nBroadcast to Club"]
+    ADMIN --> SET["⚙️ Settings\nClub Profile\nPreferences"]
+
+    PAY --> RAZ["💳 Razorpay\nPayment Gateway"]
+    FUND --> RAZ
+    VEN --> BOOK["📆 Booking System\n/bookings"]
+```
+
+---
+
+## 👤 Member Dashboard — Role-Based Views
+
+```mermaid
+flowchart TD
+    MEM(["🧑 Member Logs In"]) --> ROLE{What is your role?}
+
+    ROLE -->|"Player"| PLAYER["⚽ Athlete Space\n• View game schedule\n• Accept/Decline events\n• Training batches\n• Support club dues"]
+
+    ROLE -->|"Coach"| COACH["🎽 Coach Console\n• View squad players\n• Schedule sessions\n• Manage practices\n• Broadcast announcements"]
+
+    ROLE -->|"Parent"| PARENT["👨‍👩‍👦 Guardian Portal\n• View children's events\n• Track upcoming games\n• Pay outstanding dues\n• Donate to campaigns"]
+
+    ROLE -->|"Referee"| REF["🟡 Match Official Desk\n• View assigned matches\n• Toggle availability\n• Input scores\n• Access courses"]
+
+    PLAYER --> EVENTS["📅 Events Module"]
+    COACH --> EVENTS
+    PARENT --> EVENTS
+    REF --> EVENTS
+
+    EVENTS --> RESPOND["✅ RSVP / Respond\nAccept · Maybe · Decline"]
+    EVENTS --> BACKEND_API["→ POST /events/{id}/respond"]
+```
+
+---
+
+## 💳 Payment & Fundraising Flow
+
+```mermaid
+sequenceDiagram
+    participant U as 👤 User (Web/Mobile)
+    participant FE as 🌐 Frontend
+    participant BE as ⚙️ FastAPI Backend
+    participant RZP as 💳 Razorpay
+    participant DB as 🐘 PostgreSQL
+
+    Note over U,DB: 🎗️ Donation / Fee Payment Flow
+
+    U->>FE: Clicks "Donate" or "Pay Fee"
+    FE->>BE: POST /payments/create-order
+    BE->>RZP: Create Razorpay Order
+    RZP-->>BE: Order ID + Details
+    BE-->>FE: Return Order ID
+    FE->>U: Opens Razorpay Checkout Modal
+    U->>RZP: Completes Payment (Card/UPI/etc)
+    RZP-->>FE: Payment Success Callback
+    FE->>BE: POST /payments/verify
+    BE->>RZP: Verify Signature
+    RZP-->>BE: Signature Valid ✅
+    BE->>DB: Save Transaction Record
+    DB-->>BE: Saved
+    BE-->>FE: 200 OK · Payment Confirmed
+    FE-->>U: "Payment Successful! 🎉"
+```
+
+---
+
+## 🏟️ Venue Booking Flow
+
+```mermaid
+flowchart TD
+    USER(["👤 User / Admin"]) --> BROWSE["🔍 Browse Venues\n/dashboard/venues"]
+    BROWSE --> SELECT["📋 Select a Venue\nView availability slots"]
+    SELECT --> HOLD["🔒 Place a Hold\nTemporary seat reservation\n(60s auto-expiry check)"]
+    HOLD --> CHECKOUT["🛒 Checkout\n/checkout"]
+    CHECKOUT --> PAYMENT["💳 Pay via Razorpay"]
+    PAYMENT -->|Success| CONFIRM["✅ Booking Confirmed\n/bookings"]
+    PAYMENT -->|Failure| CANCEL["❌ Hold Released\nSlot available again"]
+
+    subgraph BACKGROUND["⏰ Background Job (Every 60s)"]
+        SCHED["Hold Expiry Service\nAuto-releases expired holds"]
+    end
+    HOLD -.->|"If not paid in time"| SCHED
+    SCHED -.->|"Releases hold"| SELECT
+```
+
+---
+
+## 📱 Flutter Mobile App Structure
+
+```mermaid
+graph TD
+    APP(["📱 Mukijo Mobile App\nmukijo_app/"]) --> SCREENS["📺 Screens\nscreens/"]
+    APP --> PROVIDERS["🔄 State Providers\nproviders/"]
+    APP --> MODELS["📐 Data Models\nmodels/"]
+    APP --> WIDGETS["🧩 UI Widgets\nwidgets/"]
+    APP --> CORE["🔧 Core Utilities\ncore/"]
+
+    SCREENS --> SAPI["REST API calls\nto FastAPI backend"]
+    PROVIDERS --> SAPI
+    SAPI --> BEAPI["⚙️ FastAPI\nPort 8001"]
+```
+
+---
+
+## 🗄️ Backend Module Map
+
+```mermaid
+graph TD
+    MAIN(["main.py\nFastAPI App"]) --> ROUTER["API Router\n/api/..."]
+
+    ROUTER --> R1["/auth — Login, Register, Verify"]
+    ROUTER --> R2["/dashboard — Overview Stats"]
+    ROUTER --> R3["/members — Member CRUD"]
+    ROUTER --> R4["/groups — Group Management"]
+    ROUTER --> R5["/events — Events & Responses"]
+    ROUTER --> R6["/matches — Match Scheduling"]
+    ROUTER --> R7["/courses — Training Programs"]
+    ROUTER --> R8["/activities — Activity Tracking"]
+    ROUTER --> R9["/payments — Fee Collection"]
+    ROUTER --> R10["/fundraising — Campaigns & Donations"]
+    ROUTER --> R11["/venues — Venue Discovery"]
+    ROUTER --> R12["/venue_owner — Venue Owner APIs"]
+    ROUTER --> R13["/messages — Messaging System"]
+    ROUTER --> R14["/onboarding — Signup Flow"]
+    ROUTER --> R15["/games — Game Data"]
+    ROUTER --> R16["/trainer — Trainer Auth & Trainings"]
+
+    R1 --> JWT["🔑 JWT Module"]
+    R9 --> RAZ["💳 Razorpay Service"]
+    R10 --> RAZ
+
+    MAIN --> DB["🐘 PostgreSQL\nSQLAlchemy ORM"]
+    MAIN --> SCHED["⏰ APScheduler\nBackground Jobs"]
+```
+
+---
+
+## 📊 Complete System At a Glance
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Web Frontend** | Next.js 14 (React) | Club admin & member dashboards |
+| **Mobile App** | Flutter (Dart) | Cross-platform mobile experience |
+| **Backend API** | FastAPI (Python) | REST API, business logic |
+| **Database** | PostgreSQL | All persistent data |
+| **Auth** | JWT Tokens | Stateless authentication |
+| **Payments** | Razorpay | Fee collection & donations |
+| **File Storage** | Cloud Storage | Documents, media files |
+| **Background Jobs** | APScheduler | Hold expiry, cleanup |
+| **Email** | Email Service | Verification & notifications |
+
+---
+
+> **Three User Roles at Entry:** Club Admin → Full control · Members (Player/Coach/Parent/Referee) → Role-based access · Venue Owners → Venue management

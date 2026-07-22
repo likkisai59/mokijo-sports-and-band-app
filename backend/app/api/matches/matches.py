@@ -127,7 +127,7 @@ class MatchesRouting(ConnectionService):
             endpoint=self.get_match,
             methods=["GET"],
             response_model=schemas.MatchResponse,
-            summary="Retrieve details for a specific match.",
+            summary="Retrieve details for a specific match (public for live scoreboard viewing).",
             tags=["Matches"]
         )
         self.router.add_api_route(
@@ -192,10 +192,11 @@ class MatchesRouting(ConnectionService):
         logic = MatchesLogic()
         return await logic.get_matches(request, owner_id, status, current_user)
 
-    async def get_match(self, request: Request, match_id: int, current_user: dict = Depends(check_user_authorization)):
-        await logger.log_message(request=request, message="Get match router start", step="ROUTER_START", user_info=current_user)
+    async def get_match(self, request: Request, match_id: int):
+        # Public: scoreboard pages load match data without requiring login.
+        await logger.log_message(request=request, message="Get match router start", step="ROUTER_START")
         logic = MatchesLogic()
-        return await logic.get_match(request, match_id, current_user)
+        return await logic.get_match(request, match_id, current_user={})
 
     async def update_match(self, request: Request, match_id: int, match_update: schemas.MatchUpdate, current_user: dict = Depends(check_user_authorization)):
         await logger.log_message(request=request, message="Update match router start", step="ROUTER_START", user_info=current_user)
@@ -223,13 +224,18 @@ class MatchesRouting(ConnectionService):
         return await logic.get_match_events(request, match_id, current_user)
 
     async def websocket_scoreboard(self, websocket: WebSocket, match_id: int):
+        # Accept first so the browser handshake can complete (closing before accept fails WS).
+        await websocket.accept()
+
         db = self.db_driver
         db_match = db.fetch_one("SELECT * FROM matches WHERE id = %s", (match_id,))
         if not db_match:
             await websocket.close(code=4004)
             return
 
-        await manager.connect(match_id, websocket)
+        if match_id not in manager.active_connections:
+            manager.active_connections[match_id] = []
+        manager.active_connections[match_id].append(websocket)
 
         try:
             teams = db.fetch_all("SELECT * FROM match_teams WHERE match_id = %s ORDER BY id ASC", (match_id,))

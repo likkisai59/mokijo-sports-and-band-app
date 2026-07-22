@@ -156,6 +156,9 @@ class GroupCreate(BaseModel):
     description: Optional[str] = None
     owner_id: int # ID of the user who owns this group
 
+class GroupUpdate(BaseModel):
+    avatar: Optional[str] = None
+
 class GroupResponse(BaseModel):
     id: int
     activity: str
@@ -163,6 +166,7 @@ class GroupResponse(BaseModel):
     group_name: str
     sub_group: Optional[str]
     description: Optional[str]
+    avatar: Optional[str] = None
     members: List[MemberResponse] = []
     events: List[EventResponse] = []
 
@@ -310,7 +314,8 @@ class RazorpayVerifyRequest(BaseModel):
 
 class CourseCreate(BaseModel):
     title: str
-    owner_id: int
+    owner_id: Optional[int] = None
+    trainer_id: Optional[int] = None
     code: Optional[str] = None
     category: Optional[str] = "Training"
     level: Optional[str] = None
@@ -343,7 +348,8 @@ class CourseUpdate(BaseModel):
 
 class CourseResponse(BaseModel):
     id: int
-    owner_id: int
+    owner_id: Optional[int] = None
+    trainer_id: Optional[int] = None
     group_id: Optional[int]
     title: str
     code: Optional[str]
@@ -360,16 +366,22 @@ class CourseResponse(BaseModel):
     status: str
     created_at: Optional[str] = None
     group_name: Optional[str] = None
+    trainer_name: Optional[str] = None
     registration_count: int = 0
     available_seats: int = 0
     paid_count: int = 0
+    cover_image: Optional[str] = None
+    reschedule_reason: Optional[str] = None
+    rescheduled_at: Optional[str] = None
 
     class Config:
         from_attributes = True
 
 class CourseRegistrationCreate(BaseModel):
-    owner_id: int
+    owner_id: Optional[int] = None
+    trainer_id: Optional[int] = None
     member_id: Optional[int] = None
+    user_id: Optional[int] = None
     participant_name: Optional[str] = None
     participant_email: Optional[str] = None
     participant_phone: Optional[str] = None
@@ -384,9 +396,11 @@ class CourseRegistrationUpdate(BaseModel):
 
 class CourseRegistrationResponse(BaseModel):
     id: int
-    owner_id: int
+    owner_id: Optional[int] = None
+    trainer_id: Optional[int] = None
     course_id: int
     member_id: Optional[int]
+    user_id: Optional[int] = None
     participant_name: str
     participant_email: Optional[str]
     participant_phone: Optional[str]
@@ -440,6 +454,12 @@ class CourtCreate(BaseModel):
     capacity: Optional[int] = 4
     price_per_hour: Optional[int] = None
 
+class CourtUpdate(BaseModel):
+    name: Optional[str] = None
+    sport_type: Optional[str] = None
+    capacity: Optional[int] = None
+    price_per_hour: Optional[int] = None
+
 class CourtResponse(BaseModel):
     id: int
     venue_id: int
@@ -450,6 +470,12 @@ class CourtResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class SlotUpdate(BaseModel):
+    base_price: Optional[int] = None
+    current_price: Optional[int] = None
+    is_blocked: Optional[bool] = None
+    status: Optional[str] = None
 
 class ReviewCreate(BaseModel):
     user_id: int
@@ -764,6 +790,65 @@ class VenueInput(BaseModel):
 class VenueOwnerRegister(BaseModel):
     owner: VenueOwnerCreate
     venues: List[VenueInput]
+
+
+class TrainerRegister(BaseModel):
+    first_name: str
+    last_name: str
+    dob: Optional[str] = None
+    gender: Optional[str] = None
+    email: str
+    password: str
+    phone: str
+    aadhar_number: Optional[str] = None
+    experience_years: Optional[int] = None
+    sports: Optional[List[str]] = None
+
+
+class TrainerLogin(BaseModel):
+    email: str
+    password: str
+
+
+class TrainerTrainingCreate(BaseModel):
+    title: str
+    category: Optional[str] = "Training"
+    level: Optional[str] = None
+    description: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    schedule: Optional[str] = None
+    location: Optional[str] = None
+    capacity: Optional[int] = 20
+    fee: Optional[int] = 0
+    status: Optional[str] = "open"
+    cover_image: Optional[str] = None
+
+
+class TrainerTrainingUpdate(BaseModel):
+    title: Optional[str] = None
+    category: Optional[str] = None
+    level: Optional[str] = None
+    description: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    schedule: Optional[str] = None
+    location: Optional[str] = None
+    capacity: Optional[int] = None
+    fee: Optional[int] = None
+    status: Optional[str] = None
+    cover_image: Optional[str] = None
+
+
+class PublicTrainingRegister(BaseModel):
+    participant_name: Optional[str] = None
+    participant_email: Optional[str] = None
+    participant_phone: Optional[str] = None
+
+
+class TrainingPaymentCreate(BaseModel):
+    registration_id: int
+
 
 class VenueBookingOrderCreate(BaseModel):
     booking_id: int

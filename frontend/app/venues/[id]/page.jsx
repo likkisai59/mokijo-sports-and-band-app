@@ -64,10 +64,16 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                     const found = allVenues.find((v) => v.id.toString() === id.toString());
                     if (found) {
                         setVenue(found);
-                        setCourts(found.courts || []);
                         setReviews(found.reviews || []);
-                        if (found.courts && found.courts.length > 0) {
-                            setSelectedCourt(found.courts[0]);
+                        const courtsRes = await fetch(`${API_BASE_URL}/venues/${id}/courts`).catch(() => null);
+                        let courtList = found.courts || [];
+                        if (courtsRes?.ok) {
+                            const courtData = await courtsRes.json();
+                            if (Array.isArray(courtData)) courtList = courtData;
+                        }
+                        setCourts(courtList);
+                        if (courtList.length > 0) {
+                            setSelectedCourt(courtList[0]);
                         }
                     } else {
                         setError("Venue not found.");
@@ -214,7 +220,26 @@ export default function VenueDetailPage({ params: paramsPromise }) {
         );
     }
 
-    const totalPrice = slots.filter((s) => selectedSlots.includes(s.id)).reduce((sum, s) => sum + s.current_price, 0);
+    const selectedSlotRows = slots.filter((s) => selectedSlots.includes(s.id));
+    const totalPrice = selectedSlotRows.reduce((sum, s) => sum + (s.current_price || 0), 0);
+    const totalHours = selectedSlotRows.reduce((sum, s) => {
+        if (!s.start_time || !s.end_time) return sum;
+        const hrs = (new Date(s.end_time) - new Date(s.start_time)) / (1000 * 60 * 60);
+        return sum + (Number.isFinite(hrs) && hrs > 0 ? hrs : 0);
+    }, 0);
+    const hourlyRates = [
+        ...new Set(
+            selectedSlotRows
+                .map((s) => {
+                    if (!s.start_time || !s.end_time) return null;
+                    const hrs = (new Date(s.end_time) - new Date(s.start_time)) / (1000 * 60 * 60);
+                    if (!hrs || hrs <= 0) return null;
+                    return Math.round((s.current_price || 0) / hrs);
+                })
+                .filter((v) => v != null)
+        ),
+    ];
+    const knownHourlyRate = hourlyRates.length === 1 ? hourlyRates[0] : null;
 
     return (
         <div style={styles.container}>
@@ -289,6 +314,11 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                                             <h3 style={styles.courtName}>{court.name}</h3>
                                             <span style={styles.courtType}>{court.sport_type}</span>
                                             <span style={styles.courtCap}>Capacity: {court.capacity} players</span>
+                                            {court.price_per_hour != null && (
+                                                <span style={{ ...styles.courtCap, color: "#bffe00" }}>
+                                                    ₹{court.price_per_hour}/hr
+                                                </span>
+                                            )}
                                         </button>
                                     ))}
                                 </div>
@@ -498,6 +528,15 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                                     <span style={styles.summaryLabel}>Slots Selected</span>
                                     <span style={styles.summaryVal}>{selectedSlots.length} slot(s)</span>
                                 </div>
+                                {knownHourlyRate != null && totalHours > 0 && (
+                                    <div style={styles.summaryRow}>
+                                        <span style={styles.summaryLabel}>Duration × rate</span>
+                                        <span style={styles.summaryVal}>
+                                            {totalHours % 1 === 0 ? totalHours : totalHours.toFixed(1)}h × ₹
+                                            {knownHourlyRate}/hr
+                                        </span>
+                                    </div>
+                                )}
                             </div>
 
                             <div style={styles.totalRow}>

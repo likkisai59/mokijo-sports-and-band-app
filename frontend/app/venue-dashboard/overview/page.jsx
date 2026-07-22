@@ -17,7 +17,23 @@ function StatCard({ icon, value, label, color }) {
 export default function VenueOverviewPage() {
     const [venues, setVenues] = useState([]);
     const [analytics, setAnalytics] = useState([]);
+    const [pendingBookings, setPendingBookings] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState(null);
+
+    const fetchPending = async (ownerId) => {
+        try {
+            const res = await fetch(`${API}/bookings/venue-owner/${ownerId}`);
+            if (res.ok) {
+                const data = await res.json();
+                setPendingBookings(
+                    (Array.isArray(data) ? data : []).filter((b) => b.booking_status === "pending_approval")
+                );
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
 
     useEffect(() => {
         const ownerId = localStorage.getItem("venueOwnerId");
@@ -37,6 +53,7 @@ export default function VenueOverviewPage() {
                     )
                 );
                 setAnalytics(analyticsArr.filter(Boolean));
+                await fetchPending(ownerId);
             } catch (e) {
                 console.error(e);
             } finally {
@@ -45,6 +62,25 @@ export default function VenueOverviewPage() {
         };
         load();
     }, []);
+
+    const handleBookingAction = async (bookingId, action) => {
+        setActionLoading(bookingId);
+        try {
+            const res = await fetch(`${API}/bookings/${bookingId}/${action}`, { method: "POST" });
+            if (res.ok) {
+                const ownerId = localStorage.getItem("venueOwnerId");
+                if (ownerId) await fetchPending(ownerId);
+            } else {
+                const data = await res.json().catch(() => ({}));
+                alert(data.detail || `Failed to ${action} booking.`);
+            }
+        } catch (err) {
+            console.error(err);
+            alert(`Network error: could not ${action} booking.`);
+        } finally {
+            setActionLoading(null);
+        }
+    };
 
     const totalBookings = analytics.reduce((s, a) => s + (a?.total_bookings || 0), 0);
     const totalRevenue = analytics.reduce((s, a) => s + (a?.total_revenue || 0), 0);
@@ -62,14 +98,76 @@ export default function VenueOverviewPage() {
     if (loading)
         return (
             <div className="vd-loading">
-                <div className="vd-spinner" /> Loading overview…
+                <div className="vd-spinner" /> Loading home…
             </div>
         );
 
     return (
         <>
-            <h1 className="vd-page-title">Overview</h1>
+            <h1 className="vd-page-title">Home</h1>
             <p className="vd-page-sub">Your venue performance at a glance</p>
+
+            <div className="vd-card" style={{ marginBottom: 20 }}>
+                <div className="vd-card-header">
+                    <span className="vd-card-title">Pending booking requests</span>
+                    <a href="/venue-dashboard/bookings" className="vd-card-action">
+                        View all →
+                    </a>
+                </div>
+                {pendingBookings.length === 0 ? (
+                    <div className="vd-empty" style={{ padding: "24px 0" }}>
+                        <div className="vd-empty-text">No pending requests</div>
+                        <div className="vd-empty-sub">New booking requests will show up here</div>
+                    </div>
+                ) : (
+                    <div className="vd-table-wrap">
+                        <table className="vd-table">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Venue</th>
+                                    <th>Sport</th>
+                                    <th>Amount</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {pendingBookings.slice(0, 8).map((b) => (
+                                    <tr key={b.booking_id}>
+                                        <td>
+                                            <div style={{ fontWeight: 600 }}>{b.customer_name}</div>
+                                            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
+                                                {b.customer_email}
+                                            </div>
+                                        </td>
+                                        <td>{b.venue_name}</td>
+                                        <td style={{ textTransform: "capitalize" }}>{b.sport}</td>
+                                        <td style={{ color: "#bffe00", fontWeight: 600 }}>₹{b.amount_paid}</td>
+                                        <td style={{ whiteSpace: "nowrap" }}>
+                                            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                                                <button
+                                                    className="vd-action-btn vd-action-approve"
+                                                    onClick={() => handleBookingAction(b.booking_id, "approve")}
+                                                    disabled={actionLoading === b.booking_id}
+                                                >
+                                                    {actionLoading === b.booking_id ? "…" : "Approve"}
+                                                </button>
+                                                <button
+                                                    className="vd-action-btn vd-action-reject"
+                                                    onClick={() => handleBookingAction(b.booking_id, "reject")}
+                                                    disabled={actionLoading === b.booking_id}
+                                                >
+                                                    {actionLoading === b.booking_id ? "…" : "Reject"}
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
 
             {/* Stats */}
             <div className="vd-stats-row">

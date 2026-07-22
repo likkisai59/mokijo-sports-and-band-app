@@ -1,6 +1,6 @@
 "use client";
 import { API_BASE_URL } from "@/lib/api";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
     Plus,
@@ -20,6 +20,8 @@ const API = API_BASE_URL;
 
 export default function DashboardMatchesPage() {
     const [matches, setMatches] = useState([]);
+    const [groups, setGroups] = useState([]);
+    const [groupFilter, setGroupFilter] = useState("all");
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({ total: 0, live: 0, scheduled: 0, completed: 0 });
 
@@ -50,7 +52,24 @@ export default function DashboardMatchesPage() {
 
     useEffect(() => {
         loadMatches();
+        if (!ownerId) return;
+        fetch(`${API}/groups?owner_id=${ownerId}`)
+            .then((r) => (r.ok ? r.json() : []))
+            .then((data) => setGroups(Array.isArray(data) ? data : []))
+            .catch(() => setGroups([]));
     }, []);
+
+    const filteredMatches = useMemo(() => {
+        if (groupFilter === "all") return matches;
+        return matches.filter((m) => {
+            const teams = Array.isArray(m.teams) ? m.teams : [];
+            return teams.some(
+                (t) =>
+                    String(t.group_id || t.team_a_group_id || "") === String(groupFilter) ||
+                    String(t.group_id || "") === String(groupFilter)
+            );
+        });
+    }, [matches, groupFilter]);
 
     const startMatch = async (matchId) => {
         if (!confirm("Are you sure you want to start this match? It will go LIVE and live scoring will be enabled."))
@@ -210,8 +229,31 @@ export default function DashboardMatchesPage() {
             </div>
 
             {/* Actions & Filters */}
-            <div className="m-header-actions">
-                <h2 style={{ fontSize: "18px", fontWeight: "700", color: "#fff" }}>Match Schedule</h2>
+            <div
+                className="m-header-actions"
+                style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", flexWrap: "wrap" }}
+            >
+                <h2 style={{ fontSize: "18px", fontWeight: "700", color: "#fff", margin: 0 }}>Match Schedule</h2>
+                <select
+                    value={groupFilter}
+                    onChange={(e) => setGroupFilter(e.target.value)}
+                    aria-label="Filter by group"
+                    style={{
+                        backgroundColor: "rgba(255, 255, 255, 0.04)",
+                        borderRadius: "10px",
+                        padding: "8px 12px",
+                        border: "1px solid rgba(255, 255, 255, 0.08)",
+                        color: "#f1f5f9",
+                        fontSize: "14px",
+                    }}
+                >
+                    <option value="all">All groups / teams</option>
+                    {groups.map((g) => (
+                        <option key={g.id} value={String(g.id)}>
+                            {g.group_name || g.name || `Group ${g.id}`}
+                        </option>
+                    ))}
+                </select>
             </div>
 
             {/* Matches List Grid */}
@@ -248,9 +290,27 @@ export default function DashboardMatchesPage() {
                         </div>
                     </div>
                 </div>
+            ) : filteredMatches.length === 0 ? (
+                <div
+                    className="vd-card"
+                    style={{
+                        padding: 48,
+                        textAlign: "center",
+                        background: "var(--vd-surface)",
+                        border: "1px solid var(--vd-border)",
+                        borderRadius: "16px",
+                    }}
+                >
+                    <div className="vd-empty-text" style={{ fontSize: "16px", color: "#fff", fontWeight: "600" }}>
+                        No matches for this group
+                    </div>
+                    <div className="vd-empty-sub" style={{ color: "var(--vd-muted)", fontSize: "14px", marginTop: "8px" }}>
+                        Try another group filter or clear it to see all matches.
+                    </div>
+                </div>
             ) : (
                 <div className="m-grid">
-                    {matches.map((match) => {
+                    {filteredMatches.map((match) => {
                         const teamA = match.teams[0] || { team_name: "Team A", score: 0 };
                         const teamB = match.teams[1] || { team_name: "Team B", score: 0 };
                         const dateFormatted = match.scheduled_at
