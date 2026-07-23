@@ -53,16 +53,7 @@ export default function MemberSection() {
                         // Only surface members who actually have a group/roster assignment,
                         // not a random dump of every role in the system.
                         const rosteredMembers = data.filter((m) => m.group_id);
-                        const storedName = localStorage.getItem("userName") || "Admin";
-                        const adminMember = {
-                            id: "admin",
-                            first_name: storedName.split(" ")[0] || storedName,
-                            last_name: storedName.split(" ")[1] || "",
-                            email: "Admin Email",
-                            role: "Club Admin",
-                            group_name: "All Groups",
-                        };
-                        setMembers([adminMember, ...rosteredMembers]);
+                        setMembers(rosteredMembers);
                     }
                 }
             } catch (error) {
@@ -120,6 +111,172 @@ export default function MemberSection() {
 
         return matchesSearch && matchesRole;
     });
+
+    // Club admin view: Group Name → member list, Group Name → member list
+    const membersByGroup = (() => {
+        const map = new Map();
+        filteredMembers.forEach((m) => {
+            const name = (m.group_name || "").trim() || "Ungrouped";
+            if (!map.has(name)) map.set(name, []);
+            map.get(name).push(m);
+        });
+        return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
+    })();
+
+    const renderMemberRows = (list) =>
+        list.map((member) => (
+            <tr
+                key={member.id}
+                style={{
+                    borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
+                    backgroundColor: "transparent",
+                }}
+            >
+                <td
+                    style={{
+                        padding: "16px",
+                        color: "#f4f4f5",
+                        fontSize: "15px",
+                        fontWeight: "500",
+                    }}
+                >
+                    {member.first_name}
+                </td>
+                <td style={{ padding: "16px", color: "#f4f4f5", fontSize: "15px" }}>
+                    {member.last_name || "-"}
+                </td>
+                <td style={{ padding: "16px", color: "#94a3b8", fontSize: "15px" }}>
+                    {member.email || "-"}
+                </td>
+                <td style={{ padding: "16px", color: "#94a3b8", fontSize: "15px" }}>
+                    {member.phone || "-"}
+                </td>
+                <td style={{ padding: "16px" }}>
+                    <span
+                        style={{
+                            fontSize: "13px",
+                            padding: "4px 10px",
+                            backgroundColor: "rgba(99, 179, 237, 0.12)",
+                            color: "#7dd3fc",
+                            borderRadius: "12px",
+                            fontWeight: "500",
+                        }}
+                    >
+                        {member.role || "Member"}
+                    </span>
+                </td>
+                {!isMember && (
+                    <td style={{ padding: "16px", textAlign: "center" }}>
+                        <div
+                            style={{
+                                display: "flex",
+                                gap: "10px",
+                                justifyContent: "center",
+                                alignItems: "center",
+                            }}
+                        >
+                            <button
+                                onClick={() => router.push(`/dashboard/members/${member.id}/edit`)}
+                                style={{
+                                    background: "none",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    color: "#94a3b8",
+                                    padding: "6px",
+                                    borderRadius: "6px",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    transition: "all 0.2s ease",
+                                }}
+                                title="Edit Member"
+                                onMouseOver={(e) => {
+                                    e.currentTarget.style.color = "#c6ff3d";
+                                    e.currentTarget.style.backgroundColor = "rgba(198, 255, 61, 0.1)";
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.color = "#94a3b8";
+                                    e.currentTarget.style.backgroundColor = "transparent";
+                                }}
+                            >
+                                <Edit2 size={16} />
+                            </button>
+                            <button
+                                onClick={() =>
+                                    handleDeleteMember(
+                                        member.id,
+                                        `${member.first_name} ${member.last_name || ""}`
+                                    )
+                                }
+                                style={{
+                                    background: "none",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    color: "#94a3b8",
+                                    padding: "6px",
+                                    borderRadius: "6px",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    transition: "all 0.2s ease",
+                                }}
+                                title="Delete Member"
+                                onMouseOver={(e) => {
+                                    e.currentTarget.style.color = "#ef4444";
+                                    e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.12)";
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.color = "#94a3b8";
+                                    e.currentTarget.style.backgroundColor = "transparent";
+                                }}
+                            >
+                                <Trash2 size={16} />
+                            </button>
+                        </div>
+                    </td>
+                )}
+            </tr>
+        ));
+
+    const tableHeader = (
+        <thead
+            style={{
+                backgroundColor: "rgba(255, 255, 255, 0.04)",
+                borderBottom: "1px solid rgba(255, 255, 255, 0.07)",
+            }}
+        >
+            <tr>
+                <th style={{ padding: "16px", fontWeight: "600", color: "#94a3b8", fontSize: "14px" }}>
+                    First Name
+                </th>
+                <th style={{ padding: "16px", fontWeight: "600", color: "#94a3b8", fontSize: "14px" }}>
+                    Last Name
+                </th>
+                <th style={{ padding: "16px", fontWeight: "600", color: "#94a3b8", fontSize: "14px" }}>
+                    Email
+                </th>
+                <th style={{ padding: "16px", fontWeight: "600", color: "#94a3b8", fontSize: "14px" }}>
+                    Phone Number
+                </th>
+                <th style={{ padding: "16px", fontWeight: "600", color: "#94a3b8", fontSize: "14px" }}>
+                    Role
+                </th>
+                {!isMember && (
+                    <th
+                        style={{
+                            padding: "16px",
+                            fontWeight: "600",
+                            color: "#94a3b8",
+                            fontSize: "14px",
+                            textAlign: "center",
+                        }}
+                    >
+                        Actions
+                    </th>
+                )}
+            </tr>
+        </thead>
+    );
 
     return (
         <section
@@ -197,204 +354,38 @@ export default function MemberSection() {
                 >
                     Loading members list...
                 </div>
-            ) : filteredMembers.length > 0 ? (
-                <div
-                    className="members-table-container"
-                    style={{
-                        marginTop: "15px",
-                        width: "100%",
-                        backgroundColor: "rgba(20, 20, 31, 0.85)",
-                        borderRadius: "12px",
-                        border: "1px solid rgba(255, 255, 255, 0.07)",
-                        overflow: "visible",
-                    }}
-                >
-                    <table style={{ width: "100%", textAlign: "left", borderCollapse: "collapse" }}>
-                        <thead
-                            style={{
-                                backgroundColor: "rgba(255, 255, 255, 0.04)",
-                                borderBottom: "1px solid rgba(255, 255, 255, 0.07)",
-                                borderTopLeftRadius: "12px",
-                                borderTopRightRadius: "12px",
-                            }}
-                        >
-                            <tr>
-                                <th style={{ padding: "16px", fontWeight: "600", color: "#94a3b8", fontSize: "14px" }}>
-                                    First Name
-                                </th>
-                                <th style={{ padding: "16px", fontWeight: "600", color: "#94a3b8", fontSize: "14px" }}>
-                                    Last Name
-                                </th>
-                                <th style={{ padding: "16px", fontWeight: "600", color: "#94a3b8", fontSize: "14px" }}>
-                                    Email
-                                </th>
-                                <th style={{ padding: "16px", fontWeight: "600", color: "#94a3b8", fontSize: "14px" }}>
-                                    Phone Number
-                                </th>
-                                <th style={{ padding: "16px", fontWeight: "600", color: "#94a3b8", fontSize: "14px" }}>
-                                    Group
-                                </th>
-                                <th style={{ padding: "16px", fontWeight: "600", color: "#94a3b8", fontSize: "14px" }}>
-                                    Role
-                                </th>
-                                {!isMember && (
-                                    <th
-                                        style={{
-                                            padding: "16px",
-                                            fontWeight: "600",
-                                            color: "#94a3b8",
-                                            fontSize: "14px",
-                                            textAlign: "center",
-                                        }}
-                                    >
-                                        Actions
-                                    </th>
-                                )}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredMembers.map((member, index) => (
-                                <tr
-                                    key={index}
-                                    style={{
-                                        borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
-                                        backgroundColor: "transparent",
-                                    }}
-                                >
-                                    <td
-                                        style={{
-                                            padding: "16px",
-                                            color: "#f4f4f5",
-                                            fontSize: "15px",
-                                            fontWeight: "500",
-                                        }}
-                                    >
-                                        {member.first_name}
-                                    </td>
-                                    <td style={{ padding: "16px", color: "#f4f4f5", fontSize: "15px" }}>
-                                        {member.last_name || "-"}
-                                    </td>
-                                    <td style={{ padding: "16px", color: "#94a3b8", fontSize: "15px" }}>
-                                        {member.email || "-"}
-                                    </td>
-                                    <td style={{ padding: "16px", color: "#94a3b8", fontSize: "15px" }}>
-                                        {member.phone || "-"}
-                                    </td>
-                                    <td style={{ padding: "16px" }}>
-                                        <span
-                                            style={{
-                                                fontSize: "13px",
-                                                padding: "4px 10px",
-                                                backgroundColor:
-                                                    member.role === "Club Admin"
-                                                        ? "rgba(198, 255, 61, 0.12)"
-                                                        : "rgba(255, 255, 255, 0.06)",
-                                                color:
-                                                    member.role === "Club Admin" ? "#c6ff3d" : "#94a3b8",
-                                                borderRadius: "12px",
-                                                fontWeight: "500",
-                                            }}
-                                        >
-                                            {member.group_name}
-                                        </span>
-                                    </td>
-                                    <td style={{ padding: "16px" }}>
-                                        <span
-                                            style={{
-                                                fontSize: "13px",
-                                                padding: "4px 10px",
-                                                backgroundColor:
-                                                    member.role === "Club Admin"
-                                                        ? "rgba(198, 255, 61, 0.12)"
-                                                        : "rgba(99, 179, 237, 0.12)",
-                                                color: member.role === "Club Admin" ? "#c6ff3d" : "#7dd3fc",
-                                                borderRadius: "12px",
-                                                fontWeight: "500",
-                                            }}
-                                        >
-                                            {member.role || "Member"}
-                                        </span>
-                                    </td>
-                                    {!isMember && (
-                                        <td style={{ padding: "16px", textAlign: "center" }}>
-                                            {member.role !== "Club Admin" && (
-                                                <div
-                                                    style={{
-                                                        display: "flex",
-                                                        gap: "10px",
-                                                        justifyContent: "center",
-                                                        alignItems: "center",
-                                                    }}
-                                                >
-                                                    <button
-                                                        onClick={() =>
-                                                            router.push(`/dashboard/members/${member.id}/edit`)
-                                                        }
-                                                        style={{
-                                                            background: "none",
-                                                            border: "none",
-                                                            cursor: "pointer",
-                                                            color: "#94a3b8",
-                                                            padding: "6px",
-                                                            borderRadius: "6px",
-                                                            display: "inline-flex",
-                                                            alignItems: "center",
-                                                            justifyContent: "center",
-                                                            transition: "all 0.2s ease",
-                                                        }}
-                                                        title="Edit Member"
-                                                        onMouseOver={(e) => {
-                                                            e.currentTarget.style.color = "#c6ff3d";
-                                                            e.currentTarget.style.backgroundColor =
-                                                                "rgba(198, 255, 61, 0.1)";
-                                                        }}
-                                                        onMouseOut={(e) => {
-                                                            e.currentTarget.style.color = "#94a3b8";
-                                                            e.currentTarget.style.backgroundColor = "transparent";
-                                                        }}
-                                                    >
-                                                        <Edit2 size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleDeleteMember(
-                                                                member.id,
-                                                                `${member.first_name} ${member.last_name || ""}`
-                                                            )
-                                                        }
-                                                        style={{
-                                                            background: "none",
-                                                            border: "none",
-                                                            cursor: "pointer",
-                                                            color: "#94a3b8",
-                                                            padding: "6px",
-                                                            borderRadius: "6px",
-                                                            display: "inline-flex",
-                                                            alignItems: "center",
-                                                            justifyContent: "center",
-                                                            transition: "all 0.2s ease",
-                                                        }}
-                                                        title="Delete Member"
-                                                        onMouseOver={(e) => {
-                                                            e.currentTarget.style.color = "#ef4444";
-                                                            e.currentTarget.style.backgroundColor =
-                                                                "rgba(239, 68, 68, 0.12)";
-                                                        }}
-                                                        onMouseOut={(e) => {
-                                                            e.currentTarget.style.color = "#94a3b8";
-                                                            e.currentTarget.style.backgroundColor = "transparent";
-                                                        }}
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </td>
-                                    )}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+            ) : membersByGroup.length > 0 ? (
+                <div style={{ marginTop: "15px", display: "flex", flexDirection: "column", gap: "28px" }}>
+                    {membersByGroup.map(([groupName, groupMembers]) => (
+                        <div key={groupName}>
+                            <h3
+                                style={{
+                                    margin: "0 0 12px 0",
+                                    fontSize: "18px",
+                                    fontWeight: 700,
+                                    color: "#f4f4f5",
+                                    letterSpacing: "0.01em",
+                                }}
+                            >
+                                {groupName}
+                            </h3>
+                            <div
+                                className="members-table-container"
+                                style={{
+                                    width: "100%",
+                                    backgroundColor: "rgba(20, 20, 31, 0.85)",
+                                    borderRadius: "12px",
+                                    border: "1px solid rgba(255, 255, 255, 0.07)",
+                                    overflow: "visible",
+                                }}
+                            >
+                                <table style={{ width: "100%", textAlign: "left", borderCollapse: "collapse" }}>
+                                    {tableHeader}
+                                    <tbody>{renderMemberRows(groupMembers)}</tbody>
+                                </table>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             ) : (
                 <div className="empty-box">

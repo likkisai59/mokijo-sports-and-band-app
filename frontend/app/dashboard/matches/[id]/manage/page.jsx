@@ -40,6 +40,8 @@ export default function DashboardMatchManagePage() {
 
     const wsRef = useRef(null);
     const reconnectTimerRef = useRef(null);
+    const intentionalCloseRef = useRef(false);
+    const mountedRef = useRef(true);
 
     // Fetch match info (fallback / initial load)
     const fetchMatch = async () => {
@@ -60,13 +62,22 @@ export default function DashboardMatchManagePage() {
 
     // WebSocket Connection logic
     const connectWS = () => {
-        if (!matchId) return;
+        if (!matchId || !mountedRef.current) return;
 
-        if (wsRef.current) {
-            wsRef.current.close();
+        if (reconnectTimerRef.current) {
+            clearTimeout(reconnectTimerRef.current);
+            reconnectTimerRef.current = null;
         }
 
-        const socket = new WebSocket(`${WS_API}/ws/scoreboard/${matchId}`);
+        if (wsRef.current) {
+            intentionalCloseRef.current = true;
+            wsRef.current.close();
+            wsRef.current = null;
+            intentionalCloseRef.current = false;
+        }
+
+        const wsUrl = `${WS_API}/ws/scoreboard/${matchId}`;
+        const socket = new WebSocket(wsUrl);
         wsRef.current = socket;
 
         socket.onopen = () => {
@@ -81,31 +92,42 @@ export default function DashboardMatchManagePage() {
         socket.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
+                if (data?.error) {
+                    console.warn("Scoreboard feed:", data.error);
+                    return;
+                }
                 setMatch(data);
             } catch (err) {
                 console.error("Error parsing WebSocket scoreboard data:", err);
             }
         };
 
-        socket.onclose = () => {
-            console.log("WebSocket connection closed, reconnecting in 3 seconds...");
+        socket.onclose = (event) => {
             setWsConnected(false);
+            if (intentionalCloseRef.current || !mountedRef.current) return;
+            if (event.code === 4004) {
+                console.warn("Scoreboard feed closed: match not found");
+                return;
+            }
+            console.log("WebSocket connection closed, reconnecting in 3 seconds...");
             reconnectTimerRef.current = setTimeout(() => {
                 connectWS();
             }, 3000);
         };
 
-        socket.onerror = (err) => {
-            console.error("WebSocket error:", err);
-            socket.close();
+        socket.onerror = () => {
+            console.warn(`WebSocket connection failed (${wsUrl}), readyState=${socket.readyState}`);
         };
     };
 
     useEffect(() => {
+        mountedRef.current = true;
         fetchMatch();
         connectWS();
 
         return () => {
+            mountedRef.current = false;
+            intentionalCloseRef.current = true;
             if (wsRef.current) {
                 wsRef.current.close();
             }

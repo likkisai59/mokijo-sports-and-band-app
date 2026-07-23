@@ -11,6 +11,9 @@ import {
     isValidPhone,
     isValidAadhaar,
     composePhone,
+    digitsOnly,
+    applyNameInput,
+    applyEmailInput,
     PERSON_NAME_MESSAGE,
     EMAIL_MESSAGE,
     STRONG_PASSWORD_MESSAGE,
@@ -18,55 +21,95 @@ import {
     phoneLengthMessage,
 } from "@/lib/validation";
 
+const fieldErrorStyle = { color: "#ef4444", fontSize: "12px", marginTop: "6px", marginBottom: 0 };
+
 export default function Step2({ formData, onChange, onPrevious, onSubmit, loading }) {
     const [phoneCode, setPhoneCode] = useState("+91");
     const [phoneDigits, setPhoneDigits] = useState("");
+    const [fieldErrors, setFieldErrors] = useState({});
+    const [formError, setFormError] = useState("");
 
     function syncPhone(code, digits) {
         setPhoneCode(code);
         setPhoneDigits(digits);
         onChange("phone", composePhone(code, digits));
+        setFieldErrors((prev) => ({
+            ...prev,
+            phone: digits && !isValidPhone(digits, code) ? phoneLengthMessage(code) : "",
+        }));
+    }
+
+    function handleNameChange(field, raw) {
+        const { sanitized, error } = applyNameInput(raw);
+        onChange(field, sanitized);
+        setFieldErrors((prev) => ({ ...prev, [field]: error }));
+        setFormError("");
+    }
+
+    function handleAadhaarChange(raw) {
+        const next = digitsOnly(raw).slice(0, 12);
+        onChange("aadharNumber", next);
+        setFieldErrors((prev) => ({
+            ...prev,
+            aadharNumber: next && next.length !== 12 ? AADHAAR_MESSAGE : "",
+        }));
+        setFormError("");
     }
 
     function handleSubmit() {
         if (loading) return;
-        if (
-            !formData.firstName ||
-            !formData.lastName ||
-            !formData.email ||
-            !formData.password ||
-            !phoneDigits ||
-            !formData.aadharNumber ||
-            !formData.hearAbout ||
-            !formData.termsAgreed
-        ) {
-            alert("Please fill in all fields before submitting.");
-            return;
+
+        const nextErrors = {};
+        if (!formData.firstName?.trim()) {
+            nextErrors.firstName = "First name is required.";
+        } else if (!isValidPersonName(formData.firstName)) {
+            nextErrors.firstName = PERSON_NAME_MESSAGE;
         }
-        if (!isValidPersonName(formData.firstName) || !isValidPersonName(formData.lastName)) {
-            alert(PERSON_NAME_MESSAGE);
-            return;
+        if (!formData.lastName?.trim()) {
+            nextErrors.lastName = "Last name is required.";
+        } else if (!isValidPersonName(formData.lastName)) {
+            nextErrors.lastName = PERSON_NAME_MESSAGE;
         }
-        if (!isValidEmail(formData.email)) {
-            alert(EMAIL_MESSAGE);
-            return;
+        if (!formData.email) {
+            nextErrors.email = "Email is required.";
+        } else if (!isValidEmail(formData.email)) {
+            nextErrors.email = EMAIL_MESSAGE;
         }
-        if (!isStrongPassword(formData.password)) {
-            alert(STRONG_PASSWORD_MESSAGE);
-            return;
+        if (!formData.password) {
+            nextErrors.password = "Password is required.";
+        } else if (!isStrongPassword(formData.password)) {
+            nextErrors.password = STRONG_PASSWORD_MESSAGE;
         }
-        if (!isValidPhone(phoneDigits, phoneCode)) {
-            alert(phoneLengthMessage(phoneCode));
-            return;
+        if (!phoneDigits) {
+            nextErrors.phone = "Phone number is required.";
+        } else if (!isValidPhone(phoneDigits, phoneCode)) {
+            nextErrors.phone = phoneLengthMessage(phoneCode);
         }
-        if (!isValidAadhaar(formData.aadharNumber)) {
-            alert(AADHAAR_MESSAGE);
-            return;
+        if (!formData.aadharNumber) {
+            nextErrors.aadharNumber = "Aadhaar number is required.";
+        } else if (!isValidAadhaar(formData.aadharNumber)) {
+            nextErrors.aadharNumber = AADHAAR_MESSAGE;
         }
+
+        const missingOther = !formData.hearAbout || !formData.termsAgreed;
         if (formData.termsAgreed === "No") {
-            alert("You must agree to the terms and conditions to sign up.");
+            nextErrors.termsAgreed = "You must agree to the terms and conditions to sign up.";
+        }
+
+        setFieldErrors(nextErrors);
+
+        if (Object.keys(nextErrors).length || missingOther) {
+            if (missingOther && !Object.keys(nextErrors).length) {
+                setFormError("Please fill in all fields before submitting.");
+            } else if (missingOther) {
+                setFormError("Please fill in all fields before submitting.");
+            } else {
+                setFormError("");
+            }
             return;
         }
+
+        setFormError("");
         onChange("phone", composePhone(phoneCode, phoneDigits));
         onSubmit();
     }
@@ -90,9 +133,10 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                         className={styles.input}
                         placeholder="First name"
                         value={formData.firstName}
-                        onChange={(e) => onChange("firstName", e.target.value)}
+                        onChange={(e) => handleNameChange("firstName", e.target.value)}
                         disabled={loading}
                     />
+                    {fieldErrors.firstName ? <p style={fieldErrorStyle}>{fieldErrors.firstName}</p> : null}
                 </div>
                 <div className={styles.fieldGroup}>
                     <label className={styles.label}>Last Name *</label>
@@ -101,9 +145,10 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                         className={styles.input}
                         placeholder="Last name"
                         value={formData.lastName}
-                        onChange={(e) => onChange("lastName", e.target.value)}
+                        onChange={(e) => handleNameChange("lastName", e.target.value)}
                         disabled={loading}
                     />
+                    {fieldErrors.lastName ? <p style={fieldErrorStyle}>{fieldErrors.lastName}</p> : null}
                 </div>
             </div>
 
@@ -114,9 +159,15 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                     className={styles.input}
                     placeholder="admin@yourclub.com"
                     value={formData.email}
-                    onChange={(e) => onChange("email", e.target.value)}
+                    onChange={(e) => {
+                        const { value, error } = applyEmailInput(e.target.value);
+                        onChange("email", value);
+                        setFieldErrors((prev) => ({ ...prev, email: error }));
+                        setFormError("");
+                    }}
                     disabled={loading}
                 />
+                {fieldErrors.email ? <p style={fieldErrorStyle}>{fieldErrors.email}</p> : null}
             </div>
 
             <div className={styles.fieldGroup}>
@@ -125,9 +176,13 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                     className={styles.input}
                     placeholder="Create a strong password"
                     value={formData.password}
-                    onChange={(e) => onChange("password", e.target.value)}
+                    onChange={(e) => {
+                        onChange("password", e.target.value);
+                        setFieldErrors((prev) => ({ ...prev, password: "" }));
+                    }}
                     disabled={loading}
                 />
+                {fieldErrors.password ? <p style={fieldErrorStyle}>{fieldErrors.password}</p> : null}
             </div>
 
             <div className={styles.fieldGroup}>
@@ -142,6 +197,7 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                     onDigitsChange={(digits) => syncPhone(phoneCode, digits)}
                     disabled={loading}
                 />
+                {fieldErrors.phone ? <p style={fieldErrorStyle}>{fieldErrors.phone}</p> : null}
             </div>
 
             <div className={styles.fieldGroup}>
@@ -150,11 +206,13 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                     type="text"
                     className={styles.input}
                     placeholder="12-digit Aadhar Number"
+                    inputMode="numeric"
                     maxLength={12}
                     value={formData.aadharNumber}
-                    onChange={(e) => onChange("aadharNumber", e.target.value.replace(/\D/g, ""))}
+                    onChange={(e) => handleAadhaarChange(e.target.value)}
                     disabled={loading}
                 />
+                {fieldErrors.aadharNumber ? <p style={fieldErrorStyle}>{fieldErrors.aadharNumber}</p> : null}
             </div>
 
             <div className={styles.fieldGroup}>
@@ -183,7 +241,10 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                 <select
                     className={styles.select}
                     value={formData.termsAgreed}
-                    onChange={(e) => onChange("termsAgreed", e.target.value)}
+                    onChange={(e) => {
+                        onChange("termsAgreed", e.target.value);
+                        setFieldErrors((prev) => ({ ...prev, termsAgreed: "" }));
+                    }}
                     disabled={loading}
                 >
                     <option value="">-- Select --</option>
@@ -193,7 +254,10 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                         </option>
                     ))}
                 </select>
+                {fieldErrors.termsAgreed ? <p style={fieldErrorStyle}>{fieldErrors.termsAgreed}</p> : null}
             </div>
+
+            {formError ? <p style={fieldErrorStyle}>{formError}</p> : null}
 
             <div className={styles.buttonRow}>
                 <button type="button" className={styles.prevButton} onClick={onPrevious} disabled={loading}>

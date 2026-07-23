@@ -99,9 +99,10 @@
 .form-actions {
     display: flex;
     justify-content: flex-end;
+    align-items: center;
     gap: 12px;
     padding-top: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 }
 
 .cancel-link {

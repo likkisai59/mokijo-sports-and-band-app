@@ -18,6 +18,9 @@ import {
     phoneLengthMessage,
     formatDobInput,
     isValidDob,
+    applyNameInput,
+    applyEmailInput,
+    PHONE_LENGTH_BY_CODE,
     EMAIL_MESSAGE,
     PERSON_NAME_MESSAGE,
     STRONG_PASSWORD_MESSAGE,
@@ -104,30 +107,57 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
         fetchFormConfig();
     }, [selectedClub, role]);
 
-    function handleFieldChange(name, value) {
+    function handleFieldChange(name, value, fieldMeta = null) {
+        let nextValue = value;
+        let fieldError = null;
+
+        if (fieldMeta && isPersonNameField(fieldMeta)) {
+            const result = applyNameInput(value);
+            nextValue = result.sanitized;
+            fieldError = result.error || null;
+        } else if (fieldMeta && fieldMeta.name?.toLowerCase() === "email") {
+            const result = applyEmailInput(value);
+            nextValue = result.value;
+            fieldError = result.error || null;
+        } else if (fieldMeta && isAadhaarField(fieldMeta)) {
+            nextValue = digitsOnly(value).slice(0, 12);
+            fieldError = nextValue && nextValue.length !== 12 ? AADHAAR_MESSAGE : null;
+        }
+
         setFormData((prev) => ({
             ...prev,
-            [name]: value,
+            [name]: nextValue,
         }));
-        if (errors[name]) {
-            setErrors((prev) => ({
-                ...prev,
-                [name]: null,
-            }));
-        }
+        setErrors((prev) => ({
+            ...prev,
+            [name]: fieldError,
+        }));
     }
 
     function handlePhoneMetaChange(name, partial) {
-        setPhoneMeta((prev) => ({
-            ...prev,
-            [name]: { ...(prev[name] || { countryCode: "+91", digits: "" }), ...partial },
-        }));
-        if (errors[name]) {
-            setErrors((prev) => ({
+        setPhoneMeta((prev) => {
+            const merged = { ...(prev[name] || { countryCode: "+91", digits: "" }), ...partial };
+            const code = merged.countryCode || "+91";
+            const range = PHONE_LENGTH_BY_CODE[code] || [8, 15];
+            const digits = digitsOnly(merged.digits || "").slice(0, range[1]);
+            return {
                 ...prev,
-                [name]: null,
-            }));
-        }
+                [name]: { ...merged, digits },
+            };
+        });
+        const countryCode = partial.countryCode;
+        const current = phoneMeta[name] || { countryCode: "+91", digits: "" };
+        const code = countryCode || current.countryCode;
+        const range = PHONE_LENGTH_BY_CODE[code] || [8, 15];
+        const digits =
+            partial.digits !== undefined ? digitsOnly(partial.digits).slice(0, range[1]) : undefined;
+        setErrors((prev) => {
+            const d = digits !== undefined ? digits : current.digits;
+            return {
+                ...prev,
+                [name]: d && !isValidPhone(d, code) ? phoneLengthMessage(code) : null,
+            };
+        });
     }
 
     async function handleSubmit(e) {
@@ -383,9 +413,10 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                             inputMode="numeric"
                                             className={styles.input}
                                             placeholder={field.placeholder || "12-digit Aadhaar number"}
+                                            maxLength={12}
                                             value={formData[field.name] || ""}
                                             onChange={(e) =>
-                                                handleFieldChange(field.name, digitsOnly(e.target.value).slice(0, 12))
+                                                handleFieldChange(field.name, e.target.value, field)
                                             }
                                         />
                                     ) : isDobField(field) ? (
@@ -405,7 +436,9 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                             className={styles.input}
                                             placeholder={field.placeholder || ""}
                                             value={formData[field.name] || ""}
-                                            onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                                            onChange={(e) =>
+                                                handleFieldChange(field.name, e.target.value, field)
+                                            }
                                         />
                                     )}
                                     {errors[field.name] && (

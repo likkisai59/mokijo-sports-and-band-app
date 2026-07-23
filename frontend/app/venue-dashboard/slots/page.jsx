@@ -189,7 +189,25 @@ export default function SlotsPage() {
 
             {showForm && (
                 <div className="vd-card" style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 14 }}>Create a new slot for {date}</div>
+                    <div
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: 12,
+                            marginBottom: 14,
+                        }}
+                    >
+                        <div style={{ fontSize: 14, fontWeight: 700 }}>Create a new slot for {date}</div>
+                        <button
+                            className="vd-btn-primary"
+                            onClick={createSlot}
+                            disabled={creating}
+                            style={{ flexShrink: 0 }}
+                        >
+                            {creating ? "Creating…" : "Create Slot"}
+                        </button>
+                    </div>
                     <div className="vd-form-grid" style={{ gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14, marginBottom: 14 }}>
                         <div className="vd-field">
                             <label className="vd-label">Sport</label>
@@ -234,10 +252,7 @@ export default function SlotsPage() {
                             />
                         </div>
                     </div>
-                    {createError && <p style={{ color: "#f87171", fontSize: 13, marginBottom: 10 }}>{createError}</p>}
-                    <button className="vd-btn-primary" onClick={createSlot} disabled={creating}>
-                        {creating ? "Creating…" : "Create Slot"}
-                    </button>
+                    {createError && <p style={{ color: "#f87171", fontSize: 13, marginBottom: 0 }}>{createError}</p>}
                 </div>
             )}
 

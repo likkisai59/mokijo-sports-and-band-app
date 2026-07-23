@@ -337,9 +337,9 @@ body {
 
 .sidebar-section h4 {
     color: var(--text-muted);
-    font-size: 10px;
+    font-size: 19px;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     margin-bottom: 10px;
     font-weight: 700;
     padding: 0 6px;

@@ -1,12 +1,21 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { API_BASE_URL } from "@/lib/api";
 import styles from "../../app/styles/signup.module.css";
 import { countries, getStatesForCountry, memberOptions, sportsOptions } from "./constants";
-import { isValidClubName, CLUB_NAME_MESSAGE, generateClubId } from "@/lib/validation";
+import {
+    isValidClubName,
+    CLUB_NAME_MESSAGE,
+    generateClubId,
+    applyClubNameInput,
+} from "@/lib/validation";
+
+const fieldErrorStyle = { color: "#ef4444", fontSize: "12px", marginTop: "6px", marginBottom: 0 };
 
 export default function Step1({ formData, onChange, onNext }) {
     const stateList = getStatesForCountry(formData.country);
+    const [fieldErrors, setFieldErrors] = useState({});
+    const [formError, setFormError] = useState("");
 
     useEffect(() => {
         if (!formData.clubId) {
@@ -27,22 +36,40 @@ export default function Step1({ formData, onChange, onNext }) {
         onChange("state", "");
     }
 
+    function handleClubNameChange(raw) {
+        const { sanitized, error } = applyClubNameInput(raw);
+        onChange("clubName", sanitized);
+        setFieldErrors((prev) => ({ ...prev, clubName: error }));
+        setFormError("");
+    }
+
     function handleNext() {
+        const nextErrors = {};
+        if (!formData.clubName?.trim()) {
+            nextErrors.clubName = "Club name is required.";
+        } else if (!isValidClubName(formData.clubName)) {
+            nextErrors.clubName = CLUB_NAME_MESSAGE;
+        }
+
         if (
-            !formData.clubName ||
             !formData.country ||
             !formData.state ||
             !formData.memberCount ||
             !formData.sport ||
             (Array.isArray(formData.sport) && formData.sport.length === 0)
         ) {
-            alert("Please fill in all fields before continuing.");
+            setFormError("Please fill in all fields before continuing.");
+            setFieldErrors((prev) => ({ ...prev, ...nextErrors }));
             return;
         }
-        if (!isValidClubName(formData.clubName)) {
-            alert(CLUB_NAME_MESSAGE);
+
+        if (Object.keys(nextErrors).length) {
+            setFieldErrors((prev) => ({ ...prev, ...nextErrors }));
+            setFormError("");
             return;
         }
+
+        setFormError("");
         onNext();
     }
 
@@ -64,8 +91,9 @@ export default function Step1({ formData, onChange, onNext }) {
                     className={styles.input}
                     placeholder="Enter your club name"
                     value={formData.clubName}
-                    onChange={(e) => onChange("clubName", e.target.value)}
+                    onChange={(e) => handleClubNameChange(e.target.value)}
                 />
+                {fieldErrors.clubName ? <p style={fieldErrorStyle}>{fieldErrors.clubName}</p> : null}
             </div>
 
             <div className={styles.fieldGroup}>
@@ -196,6 +224,8 @@ export default function Step1({ formData, onChange, onNext }) {
                     })}
                 </div>
             </div>
+
+            {formError ? <p style={fieldErrorStyle}>{formError}</p> : null}
 
             <div className={styles.buttonRow}>
                 <div></div>

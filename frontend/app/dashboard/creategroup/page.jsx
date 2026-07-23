@@ -11,7 +11,6 @@ export default function CreateGroupPage() {
     const [step, setStep] = useState(1);
     const [activity, setActivity] = useState("");
     const [groupName, setGroupName] = useState("");
-    const [subGroup, setSubGroup] = useState("");
     const [description, setDescription] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -48,7 +47,6 @@ export default function CreateGroupPage() {
         const groupData = {
             activity: activity,
             group_name: groupName,
-            sub_group: subGroup,
             description: description,
             owner_id: userId,
         };
@@ -144,16 +142,6 @@ export default function CreateGroupPage() {
                                                 placeholder="e.g. Morning Tigers FC"
                                                 value={groupName}
                                                 onChange={(e) => setGroupName(e.target.value)}
-                                            />
-                                        </div>
-
-                                        <div className="input-group">
-                                            <label>Sub Group (Optional)</label>
-                                            <input
-                                                type="text"
-                                                placeholder="e.g. Beginners"
-                                                value={subGroup}
-                                                onChange={(e) => setSubGroup(e.target.value)}
                                             />
                                         </div>
 

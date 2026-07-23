@@ -3,8 +3,24 @@ import { API_BASE_URL } from "@/lib/api";
 import { useState } from "react";
 import Link from "next/link";
 import styles from "../styles/signup.module.css";
+import PhoneInput from "@/components/ui/PhoneInput";
+import {
+    digitsOnly,
+    applyNameInput,
+    applyEmailInput,
+    isValidPersonName,
+    isValidEmail,
+    isValidPhone,
+    isValidAadhaar,
+    composePhone,
+    PERSON_NAME_MESSAGE,
+    EMAIL_MESSAGE,
+    AADHAAR_MESSAGE,
+    phoneLengthMessage,
+} from "@/lib/validation";
 
 const SPORTS = ["Tennis", "Cricket", "Football (Soccer)", "Basketball", "Badminton", "Swimming"];
+const fieldErrorStyle = { color: "#ef4444", fontSize: "12px", marginTop: "4px", display: "block" };
 
 const emptyForm = {
     first_name: "",
@@ -24,12 +40,38 @@ export default function RegisterTrainerPage() {
     const [loading, setLoading] = useState(false);
     const [submitError, setSubmitError] = useState("");
     const [submitted, setSubmitted] = useState(false);
+    const [phoneCode, setPhoneCode] = useState("+91");
+    const [phoneDigits, setPhoneDigits] = useState("");
+
+    function syncPhone(code, digits) {
+        setPhoneCode(code);
+        setPhoneDigits(digits);
+        setFormData((prev) => ({ ...prev, phone: composePhone(code, digits) }));
+        setErrors((prev) => ({
+            ...prev,
+            phone: digits && !isValidPhone(digits, code) ? phoneLengthMessage(code) : null,
+        }));
+    }
 
     function handleFieldChange(name, value) {
-        setFormData((prev) => ({ ...prev, [name]: value }));
-        if (errors[name]) {
-            setErrors((prev) => ({ ...prev, [name]: null }));
+        let nextValue = value;
+        let fieldError = null;
+
+        if (name === "first_name" || name === "last_name") {
+            const result = applyNameInput(value);
+            nextValue = result.sanitized;
+            fieldError = result.error || null;
+        } else if (name === "email") {
+            const result = applyEmailInput(value);
+            nextValue = result.value;
+            fieldError = result.error || null;
+        } else if (name === "aadhar") {
+            nextValue = digitsOnly(value).slice(0, 12);
+            fieldError = nextValue && nextValue.length !== 12 ? AADHAAR_MESSAGE : null;
         }
+
+        setFormData((prev) => ({ ...prev, [name]: nextValue }));
+        setErrors((prev) => ({ ...prev, [name]: fieldError }));
     }
 
     async function handleSubmit(e) {
@@ -37,12 +79,33 @@ export default function RegisterTrainerPage() {
         setSubmitError("");
 
         const newErrors = {};
-        if (!String(formData.first_name || "").trim()) newErrors.first_name = "First Name is required";
-        if (!String(formData.last_name || "").trim()) newErrors.last_name = "Last Name is required";
-        if (!String(formData.email || "").trim()) newErrors.email = "Email Address is required";
+        if (!String(formData.first_name || "").trim()) {
+            newErrors.first_name = "First Name is required";
+        } else if (!isValidPersonName(formData.first_name)) {
+            newErrors.first_name = PERSON_NAME_MESSAGE;
+        }
+        if (!String(formData.last_name || "").trim()) {
+            newErrors.last_name = "Last Name is required";
+        } else if (!isValidPersonName(formData.last_name)) {
+            newErrors.last_name = PERSON_NAME_MESSAGE;
+        }
+        if (!String(formData.email || "").trim()) {
+            newErrors.email = "Email Address is required";
+        } else if (!isValidEmail(formData.email)) {
+            newErrors.email = EMAIL_MESSAGE;
+        }
         if (!String(formData.password || "").trim()) newErrors.password = "Password is required";
-        if (!String(formData.phone || "").trim()) newErrors.phone = "Phone Number is required";
-        if (!String(formData.specialization || "").trim()) newErrors.specialization = "Specialization / Sport is required";
+        if (!phoneDigits) {
+            newErrors.phone = "Phone Number is required";
+        } else if (!isValidPhone(phoneDigits, phoneCode)) {
+            newErrors.phone = phoneLengthMessage(phoneCode);
+        }
+        if (formData.aadhar && !isValidAadhaar(formData.aadhar)) {
+            newErrors.aadhar = AADHAAR_MESSAGE;
+        }
+        if (!String(formData.specialization || "").trim()) {
+            newErrors.specialization = "Specialization / Sport is required";
+        }
         if (!(formData.sports && formData.sports.length > 0)) {
             newErrors.sports = "Selecting at least one sport is required";
         }
@@ -62,7 +125,7 @@ export default function RegisterTrainerPage() {
                     last_name: formData.last_name.trim(),
                     email: formData.email.trim().toLowerCase(),
                     password: formData.password.trim(),
-                    phone: formData.phone.trim(),
+                    phone: composePhone(phoneCode, phoneDigits),
                     specialization: formData.specialization.trim(),
                     experience: formData.experience ? String(formData.experience).trim() : null,
                     aadhar: formData.aadhar ? formData.aadhar.trim() : null,
@@ -156,11 +219,7 @@ export default function RegisterTrainerPage() {
                                     value={formData.first_name}
                                     onChange={(e) => handleFieldChange("first_name", e.target.value)}
                                 />
-                                {errors.first_name && (
-                                    <span style={{ color: "#ef4444", fontSize: "12px", marginTop: "4px", display: "block" }}>
-                                        {errors.first_name}
-                                    </span>
-                                )}
+                                {errors.first_name && <span style={fieldErrorStyle}>{errors.first_name}</span>}
                             </div>
 
                             <div className={styles.fieldGroup}>
@@ -174,11 +233,7 @@ export default function RegisterTrainerPage() {
                                     value={formData.last_name}
                                     onChange={(e) => handleFieldChange("last_name", e.target.value)}
                                 />
-                                {errors.last_name && (
-                                    <span style={{ color: "#ef4444", fontSize: "12px", marginTop: "4px", display: "block" }}>
-                                        {errors.last_name}
-                                    </span>
-                                )}
+                                {errors.last_name && <span style={fieldErrorStyle}>{errors.last_name}</span>}
                             </div>
 
                             <div className={styles.fieldGroup}>
@@ -192,11 +247,7 @@ export default function RegisterTrainerPage() {
                                     value={formData.email}
                                     onChange={(e) => handleFieldChange("email", e.target.value)}
                                 />
-                                {errors.email && (
-                                    <span style={{ color: "#ef4444", fontSize: "12px", marginTop: "4px", display: "block" }}>
-                                        {errors.email}
-                                    </span>
-                                )}
+                                {errors.email && <span style={fieldErrorStyle}>{errors.email}</span>}
                             </div>
 
                             <div className={styles.fieldGroup}>
@@ -210,29 +261,23 @@ export default function RegisterTrainerPage() {
                                     value={formData.password}
                                     onChange={(e) => handleFieldChange("password", e.target.value)}
                                 />
-                                {errors.password && (
-                                    <span style={{ color: "#ef4444", fontSize: "12px", marginTop: "4px", display: "block" }}>
-                                        {errors.password}
-                                    </span>
-                                )}
+                                {errors.password && <span style={fieldErrorStyle}>{errors.password}</span>}
                             </div>
 
                             <div className={styles.fieldGroup}>
                                 <label className={styles.label}>
                                     Phone Number <span style={{ color: "#ef4444" }}>*</span>
                                 </label>
-                                <input
-                                    type="tel"
+                                <PhoneInput
+                                    id="trainer-register-phone"
                                     className={styles.input}
-                                    placeholder="10-digit number"
-                                    value={formData.phone}
-                                    onChange={(e) => handleFieldChange("phone", e.target.value)}
+                                    selectClassName={styles.select}
+                                    countryCode={phoneCode}
+                                    digits={phoneDigits}
+                                    onCountryCodeChange={(code) => syncPhone(code, phoneDigits)}
+                                    onDigitsChange={(digits) => syncPhone(phoneCode, digits)}
                                 />
-                                {errors.phone && (
-                                    <span style={{ color: "#ef4444", fontSize: "12px", marginTop: "4px", display: "block" }}>
-                                        {errors.phone}
-                                    </span>
-                                )}
+                                {errors.phone && <span style={fieldErrorStyle}>{errors.phone}</span>}
                             </div>
 
                             <div className={styles.fieldGroup}>
@@ -247,9 +292,7 @@ export default function RegisterTrainerPage() {
                                     onChange={(e) => handleFieldChange("specialization", e.target.value)}
                                 />
                                 {errors.specialization && (
-                                    <span style={{ color: "#ef4444", fontSize: "12px", marginTop: "4px", display: "block" }}>
-                                        {errors.specialization}
-                                    </span>
+                                    <span style={fieldErrorStyle}>{errors.specialization}</span>
                                 )}
                             </div>
 
@@ -268,11 +311,14 @@ export default function RegisterTrainerPage() {
                                 <label className={styles.label}>Aadhar Number</label>
                                 <input
                                     type="text"
+                                    inputMode="numeric"
                                     className={styles.input}
                                     placeholder="12-digit Aadhar"
+                                    maxLength={12}
                                     value={formData.aadhar}
                                     onChange={(e) => handleFieldChange("aadhar", e.target.value)}
                                 />
+                                {errors.aadhar && <span style={fieldErrorStyle}>{errors.aadhar}</span>}
                             </div>
 
                             <div className={styles.fieldGroup}>
@@ -332,11 +378,7 @@ export default function RegisterTrainerPage() {
                                         );
                                     })}
                                 </div>
-                                {errors.sports && (
-                                    <span style={{ color: "#ef4444", fontSize: "12px", marginTop: "4px", display: "block" }}>
-                                        {errors.sports}
-                                    </span>
-                                )}
+                                {errors.sports && <span style={fieldErrorStyle}>{errors.sports}</span>}
                             </div>
 
                             <button

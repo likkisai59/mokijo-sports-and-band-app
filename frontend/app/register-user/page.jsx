@@ -4,21 +4,34 @@ import { API_BASE_URL } from "@/lib/api";
 import { useState } from "react";
 import Link from "next/link";
 import styles from "../styles/signup.module.css";
+import PhoneInput from "@/components/ui/PhoneInput";
 import {
     digitsOnly,
     isValidPhone,
     isValidAadhaar,
+    isValidPersonName,
+    isValidEmail,
     formatDobInput,
     isValidDob,
+    applyNameInput,
+    applyEmailInput,
+    composePhone,
     AADHAAR_MESSAGE,
     DOB_MESSAGE,
+    PERSON_NAME_MESSAGE,
+    EMAIL_MESSAGE,
     phoneLengthMessage,
 } from "@/lib/validation";
+
+const fieldErrorStyle = { color: "#ef4444", fontSize: "12px", marginTop: "6px", marginBottom: 0 };
 
 export default function RegisterUserPage() {
     const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [fieldErrors, setFieldErrors] = useState({});
+    const [phoneCode, setPhoneCode] = useState("+91");
+    const [phoneDigits, setPhoneDigits] = useState("");
 
     const [formData, setFormData] = useState({
         firstName: "",
@@ -30,23 +43,46 @@ export default function RegisterUserPage() {
         aadharNumber: "",
     });
 
+    const syncPhone = (code, digits) => {
+        setPhoneCode(code);
+        setPhoneDigits(digits);
+        setFormData((prev) => ({ ...prev, phone: composePhone(code, digits) }));
+        setFieldErrors((prev) => ({
+            ...prev,
+            phone: digits && !isValidPhone(digits, code) ? phoneLengthMessage(code) : "",
+        }));
+        setError(null);
+    };
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setError(null);
 
         let nextValue = value;
-        if (name === "dob") {
+        let fieldError = "";
+
+        if (name === "firstName" || name === "lastName") {
+            const result = applyNameInput(value);
+            nextValue = result.sanitized;
+            fieldError = result.error;
+        } else if (name === "email") {
+            const result = applyEmailInput(value);
+            nextValue = result.value;
+            fieldError = result.error;
+        } else if (name === "dob") {
             nextValue = formatDobInput(value);
-        } else if (name === "phone") {
-            nextValue = digitsOnly(value).slice(0, 10);
         } else if (name === "aadharNumber") {
             nextValue = digitsOnly(value).slice(0, 12);
+            if (nextValue && nextValue.length !== 12) {
+                fieldError = AADHAAR_MESSAGE;
+            }
         }
 
         setFormData((prev) => ({
             ...prev,
             [name]: nextValue,
         }));
+        setFieldErrors((prev) => ({ ...prev, [name]: fieldError }));
     };
 
     const handleSubmit = async (e) => {
@@ -54,38 +90,49 @@ export default function RegisterUserPage() {
         setLoading(true);
         setError(null);
 
-        // Simple validation
-        if (
-            !formData.firstName ||
-            !formData.lastName ||
-            !formData.dob ||
-            !formData.email ||
-            !formData.password ||
-            !formData.phone ||
-            !formData.aadharNumber
-        ) {
-            setError("All fields are required.");
+        const nextErrors = {};
+        if (!formData.firstName?.trim()) {
+            nextErrors.firstName = "First name is required.";
+        } else if (!isValidPersonName(formData.firstName)) {
+            nextErrors.firstName = PERSON_NAME_MESSAGE;
+        }
+        if (!formData.lastName?.trim()) {
+            nextErrors.lastName = "Last name is required.";
+        } else if (!isValidPersonName(formData.lastName)) {
+            nextErrors.lastName = PERSON_NAME_MESSAGE;
+        }
+        if (!formData.dob) {
+            nextErrors.dob = "Date of birth is required.";
+        } else if (!isValidDob(formData.dob)) {
+            nextErrors.dob = DOB_MESSAGE;
+        }
+        if (!formData.email?.trim()) {
+            nextErrors.email = "Email is required.";
+        } else if (!isValidEmail(formData.email)) {
+            nextErrors.email = EMAIL_MESSAGE;
+        }
+        if (!formData.password) nextErrors.password = "Password is required.";
+        if (!phoneDigits) {
+            nextErrors.phone = "Phone number is required.";
+        } else if (!isValidPhone(phoneDigits, phoneCode)) {
+            nextErrors.phone = phoneLengthMessage(phoneCode);
+        }
+        if (!formData.aadharNumber) {
+            nextErrors.aadharNumber = "Aadhaar number is required.";
+        } else if (!isValidAadhaar(formData.aadharNumber)) {
+            nextErrors.aadharNumber = AADHAAR_MESSAGE;
+        }
+
+        if (Object.keys(nextErrors).length) {
+            setFieldErrors(nextErrors);
             setLoading(false);
             return;
         }
 
-        if (!isValidDob(formData.dob)) {
-            setError(DOB_MESSAGE);
-            setLoading(false);
-            return;
-        }
-
-        if (!isValidPhone(formData.phone, "+91")) {
-            setError(phoneLengthMessage("+91"));
-            setLoading(false);
-            return;
-        }
-
-        if (!isValidAadhaar(formData.aadharNumber)) {
-            setError(AADHAAR_MESSAGE);
-            setLoading(false);
-            return;
-        }
+        const payload = {
+            ...formData,
+            phone: composePhone(phoneCode, phoneDigits),
+        };
 
         try {
             const apiUrl = `${API_BASE_URL}/user/register`;
@@ -94,7 +141,7 @@ export default function RegisterUserPage() {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(payload),
             });
 
             if (response.ok) {
@@ -202,6 +249,7 @@ export default function RegisterUserPage() {
                                     className={styles.input}
                                     required
                                 />
+                                {fieldErrors.firstName ? <p style={fieldErrorStyle}>{fieldErrors.firstName}</p> : null}
                             </div>
                             <div className={styles.fieldGroup}>
                                 <label className={styles.label}>Last Name</label>
@@ -214,6 +262,7 @@ export default function RegisterUserPage() {
                                     className={styles.input}
                                     required
                                 />
+                                {fieldErrors.lastName ? <p style={fieldErrorStyle}>{fieldErrors.lastName}</p> : null}
                             </div>
                         </div>
 
@@ -229,6 +278,7 @@ export default function RegisterUserPage() {
                                 className={styles.input}
                                 required
                             />
+                            {fieldErrors.dob ? <p style={fieldErrorStyle}>{fieldErrors.dob}</p> : null}
                         </div>
 
                         <div className={styles.twoColumns}>
@@ -243,22 +293,20 @@ export default function RegisterUserPage() {
                                     className={styles.input}
                                     required
                                 />
+                                {fieldErrors.email ? <p style={fieldErrorStyle}>{fieldErrors.email}</p> : null}
                             </div>
                             <div className={styles.fieldGroup}>
                                 <label className={styles.label}>Phone Number</label>
-                                <input
-                                    type="tel"
-                                    name="phone"
-                                    inputMode="numeric"
-                                    value={formData.phone}
-                                    onChange={handleChange}
-                                    placeholder="10-digit number"
+                                <PhoneInput
+                                    id="user-register-phone"
                                     className={styles.input}
-                                    maxLength={10}
-                                    pattern="[0-9]{10}"
-                                    title="Enter a 10-digit phone number"
-                                    required
+                                    selectClassName={styles.select}
+                                    countryCode={phoneCode}
+                                    digits={phoneDigits}
+                                    onCountryCodeChange={(code) => syncPhone(code, phoneDigits)}
+                                    onDigitsChange={(digits) => syncPhone(phoneCode, digits)}
                                 />
+                                {fieldErrors.phone ? <p style={fieldErrorStyle}>{fieldErrors.phone}</p> : null}
                             </div>
                         </div>
 
@@ -274,6 +322,7 @@ export default function RegisterUserPage() {
                                     className={styles.input}
                                     required
                                 />
+                                {fieldErrors.password ? <p style={fieldErrorStyle}>{fieldErrors.password}</p> : null}
                             </div>
                             <div className={styles.fieldGroup}>
                                 <label className={styles.label}>Aadhar Number</label>
@@ -286,10 +335,11 @@ export default function RegisterUserPage() {
                                     placeholder="12-digit number"
                                     className={styles.input}
                                     maxLength={12}
-                                    pattern="[0-9]{12}"
-                                    title="Enter a 12-digit Aadhaar number"
                                     required
                                 />
+                                {fieldErrors.aadharNumber ? (
+                                    <p style={fieldErrorStyle}>{fieldErrors.aadharNumber}</p>
+                                ) : null}
                             </div>
                         </div>
 

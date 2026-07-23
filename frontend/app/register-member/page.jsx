@@ -185,9 +185,9 @@ export default function RegisterMemberPage() {
                                                 ? "Loading clubs..."
                                                 : (() => {
                                                       const c = clubs.find((club) => club.id === Number(pendingClubId));
-                                                      return c
-                                                          ? `${c.club_name} [ID: ${c.club_id || "MKJ-" + String(c.id).padStart(3, "0")}]`
-                                                          : "Choose your club...";
+                                                      if (!c) return "Choose your club...";
+                                                      const cid = c.club_id || `MKJ-${String(c.id).padStart(3, "0")}`;
+                                                      return `${cid} - ${c.club_name}`;
                                                   })()}
                                         </span>
                                         <span style={{ color: "#c6ff3d", fontWeight: 800 }}>v</span>
@@ -233,11 +233,7 @@ export default function RegisterMemberPage() {
                                                             fontWeight: Number(pendingClubId) === club.id ? 700 : 500,
                                                         }}
                                                     >
-                                                        {club.club_name}{" "}
-                                                        <span style={{ color: "#0284c7", fontWeight: 700, marginLeft: "4px" }}>
-                                                            [ID: {cid}]
-                                                        </span>{" "}
-                                                        {club.sport ? `(${club.sport})` : ""}
+                                                        {cid} - {club.club_name}
                                                     </button>
                                                 );
                                             })}

@@ -3,28 +3,29 @@
 export const STRONG_PASSWORD_MESSAGE =
     "Password must be at least 8 characters long and contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.";
 
-export const EMAIL_MESSAGE = "Please enter a valid email address (e.g., name@example.com).";
+export const EMAIL_MESSAGE = "Please enter a valid email address (e.g., name@gmail.com).";
 
-export const PERSON_NAME_MESSAGE =
-    "Name can only contain alphabetic characters, spaces, hyphens, and apostrophes.";
+export const PERSON_NAME_MESSAGE = "Numbers and special characters are not allowed.";
 
-export const CLUB_NAME_MESSAGE =
-    "Club name cannot be only numbers and must use valid characters.";
+export const CLUB_NAME_MESSAGE = "Numbers and special characters are not allowed.";
 
 export const PHONE_DIGITS_MESSAGE = "Phone number can only contain digits.";
 
-export const AADHAAR_MESSAGE = "Please enter a valid 12-digit Aadhaar number.";
+export const PHONE_LENGTH_FIXED_MESSAGE = "Phone number must be exactly 10 digits.";
+
+export const AADHAAR_MESSAGE = "Aadhaar number must be exactly 12 digits.";
 
 export const CITY_STATE_MESSAGE = "This field can only contain alphabetic characters, spaces, hyphens, and periods.";
 
 export const POSTAL_CODE_MESSAGE = "Please enter a valid postal code (4-10 digits).";
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_RE = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 const PERSON_NAME_RE = /^[A-Za-z][A-Za-z\s'-]*$/;
 const CITY_STATE_RE = /^[A-Za-z][A-Za-z\s.'-]*$/;
-const CLUB_NAME_RE = /^(?=.*[A-Za-z])[A-Za-z0-9][A-Za-z0-9\s.&'\-]*$/;
+const CLUB_NAME_RE = /^[A-Za-z][A-Za-z\s'-]*$/;
 const STRONG_PASSWORD_RE =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+const NAME_ALLOWED_CHARS_RE = /[^A-Za-z\s'-]/g;
 
 /** Country dial code → expected national number length (min, max). */
 export const PHONE_LENGTH_BY_CODE = {
@@ -34,24 +35,78 @@ export const PHONE_LENGTH_BY_CODE = {
     "+49": [10, 11],
     "+61": [9, 9],
     "+971": [9, 9],
+    "+81": [10, 11],
+    "+86": [11, 11],
+    "+33": [9, 9],
+    "+39": [9, 10],
+    "+34": [9, 9],
+    "+55": [10, 11],
+    "+52": [10, 10],
+    "+27": [9, 9],
+    "+82": [9, 10],
+    "+65": [8, 8],
+    "+60": [9, 10],
+    "+62": [9, 12],
+    "+66": [9, 9],
+    "+63": [10, 10],
+    "+92": [10, 10],
+    "+880": [10, 10],
+    "+94": [9, 9],
+    "+977": [10, 10],
 };
 
-export const PHONE_COUNTRY_CODES = [
-    { code: "+91", label: "India (+91)" },
-    { code: "+1", label: "US/Canada (+1)" },
-    { code: "+44", label: "UK (+44)" },
-    { code: "+49", label: "Germany (+49)" },
-    { code: "+61", label: "Australia (+61)" },
-    { code: "+971", label: "UAE (+971)" },
-];
+export { PHONE_COUNTRY_CODES, PHONE_COUNTRY_CODES_SORTED } from "./countryDialCodes";
 
 export function digitsOnly(value) {
     return String(value || "").replace(/\D/g, "");
 }
 
+/** Strip digits/specials; keep letters, spaces, hyphen, apostrophe. */
+export function sanitizePersonName(value) {
+    return String(value || "").replace(NAME_ALLOWED_CHARS_RE, "");
+}
+
+/** Same sanitize rules as person name (alphabetic club names). */
+export function sanitizeClubName(value) {
+    return sanitizePersonName(value);
+}
+
+/**
+ * Returns error message if raw input contained disallowed chars, else "".
+ * Always returns the sanitized value via result.sanitized.
+ */
+export function applyNameInput(rawValue) {
+    const raw = String(rawValue || "");
+    const sanitized = sanitizePersonName(raw);
+    const hadInvalid = raw !== sanitized;
+    return {
+        sanitized,
+        error: hadInvalid ? PERSON_NAME_MESSAGE : "",
+    };
+}
+
+export function applyClubNameInput(rawValue) {
+    const raw = String(rawValue || "");
+    const sanitized = sanitizeClubName(raw);
+    const hadInvalid = raw !== sanitized;
+    return {
+        sanitized,
+        error: hadInvalid ? CLUB_NAME_MESSAGE : "",
+    };
+}
+
 export function isValidEmail(value) {
     const v = String(value || "").trim();
     return EMAIL_RE.test(v);
+}
+
+/** Live email format check — empty is allowed (required handled separately). */
+export function applyEmailInput(rawValue) {
+    const value = String(rawValue || "").trim();
+    return {
+        value: String(rawValue || ""),
+        error: value && !isValidEmail(value) ? EMAIL_MESSAGE : "",
+    };
 }
 
 export function isValidPersonName(value) {
@@ -71,7 +126,7 @@ export function isValidPostalCode(value) {
 
 export function isValidClubName(value) {
     const v = String(value || "").trim();
-    if (!v || /^\d+$/.test(v)) return false;
+    if (!v || /\d/.test(v)) return false;
     return CLUB_NAME_RE.test(v);
 }
 
@@ -98,9 +153,6 @@ export function formatAadhaar(value) {
  */
 export function isValidPhone(digits, countryCode = "+91") {
     const d = digitsOnly(digits);
-    if (!d || /\D/.test(String(digits || "").replace(/[\s\-()]/g, ""))) {
-        // allow formatted input if digits-only portion is valid
-    }
     if (!/^\d+$/.test(d)) return false;
     const range = PHONE_LENGTH_BY_CODE[countryCode] || [8, 15];
     return d.length >= range[0] && d.length <= range[1];
@@ -166,5 +218,3 @@ export function generateClubId(seq = 1) {
     const padded = String(num).padStart(3, "0");
     return `MKJ-${padded}`;
 }
-
-
