@@ -183,8 +183,12 @@ export default function RegisterMemberPage() {
                                         <span>
                                             {loadingClubs
                                                 ? "Loading clubs..."
-                                                : clubs.find((club) => club.id === Number(pendingClubId))?.club_name ||
-                                                  "Choose your club..."}
+                                                : (() => {
+                                                      const c = clubs.find((club) => club.id === Number(pendingClubId));
+                                                      return c
+                                                          ? `${c.club_name} [ID: ${c.club_id || "MKJ-" + String(c.id).padStart(3, "0")}]`
+                                                          : "Choose your club...";
+                                                  })()}
                                         </span>
                                         <span style={{ color: "#c6ff3d", fontWeight: 800 }}>v</span>
                                     </button>
@@ -205,31 +209,38 @@ export default function RegisterMemberPage() {
                                                 boxShadow: "0 12px 24px rgba(15, 23, 42, 0.12)",
                                             }}
                                         >
-                                            {clubs.map((club) => (
-                                                <button
-                                                    type="button"
-                                                    key={club.id}
-                                                    onClick={() => {
-                                                        setPendingClubId(String(club.id));
-                                                        setClubDropdownOpen(false);
-                                                    }}
-                                                    style={{
-                                                        width: "100%",
-                                                        padding: "11px 14px",
-                                                        border: "none",
-                                                        borderBottom: "1px solid #f4f4f5",
-                                                        background:
-                                                            Number(pendingClubId) === club.id ? "#eff6ff" : "#ffffff",
-                                                        color: "#0f172a",
-                                                        cursor: "pointer",
-                                                        textAlign: "left",
-                                                        fontSize: "14px",
-                                                        fontWeight: Number(pendingClubId) === club.id ? 700 : 500,
-                                                    }}
-                                                >
-                                                    {club.club_name} {club.sport ? `(${club.sport})` : ""}
-                                                </button>
-                                            ))}
+                                            {clubs.map((club) => {
+                                                const cid = club.club_id || `MKJ-${String(club.id).padStart(3, "0")}`;
+                                                return (
+                                                    <button
+                                                        type="button"
+                                                        key={club.id}
+                                                        onClick={() => {
+                                                            setPendingClubId(String(club.id));
+                                                            setClubDropdownOpen(false);
+                                                        }}
+                                                        style={{
+                                                            width: "100%",
+                                                            padding: "11px 14px",
+                                                            border: "none",
+                                                            borderBottom: "1px solid #f4f4f5",
+                                                            background:
+                                                                Number(pendingClubId) === club.id ? "#eff6ff" : "#ffffff",
+                                                            color: "#0f172a",
+                                                            cursor: "pointer",
+                                                            textAlign: "left",
+                                                            fontSize: "14px",
+                                                            fontWeight: Number(pendingClubId) === club.id ? 700 : 500,
+                                                        }}
+                                                    >
+                                                        {club.club_name}{" "}
+                                                        <span style={{ color: "#0284c7", fontWeight: 700, marginLeft: "4px" }}>
+                                                            [ID: {cid}]
+                                                        </span>{" "}
+                                                        {club.sport ? `(${club.sport})` : ""}
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                     )}
                                 </div>

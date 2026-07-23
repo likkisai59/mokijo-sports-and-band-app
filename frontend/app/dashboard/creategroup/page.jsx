@@ -10,7 +10,6 @@ export default function CreateGroupPage() {
 
     const [step, setStep] = useState(1);
     const [activity, setActivity] = useState("");
-    const [ageGroup, setAgeGroup] = useState("");
     const [groupName, setGroupName] = useState("");
     const [subGroup, setSubGroup] = useState("");
     const [description, setDescription] = useState("");
@@ -28,20 +27,9 @@ export default function CreateGroupPage() {
         { name: "Football", icon: "⚽" },
     ];
 
-    const ageGroups = ["Children", "Youth", "Adults", "Mixed"];
-
     const handleActivitySelect = (item) => {
         setActivity(item.name);
         setStep(2);
-    };
-
-    const handleNext = () => {
-        if (step === 2 && !ageGroup) {
-            alert("Please select an age group");
-            return;
-        }
-
-        setStep(step + 1);
     };
 
     const handleBack = () => {
@@ -59,7 +47,6 @@ export default function CreateGroupPage() {
 
         const groupData = {
             activity: activity,
-            age_group: ageGroup,
             group_name: groupName,
             sub_group: subGroup,
             description: description,
@@ -84,13 +71,10 @@ export default function CreateGroupPage() {
             const data = await response.json();
             console.log("Saved group:", data);
 
-            alert("Group created successfully!");
             window.dispatchEvent(new Event("groupsUpdated")); // Refresh sidebar
 
-            // Show success state instead of alert
             setShowSuccess(true);
 
-            // Wait 2 seconds then redirect
             setTimeout(() => {
                 router.push("/dashboard");
             }, 2000);
@@ -104,13 +88,10 @@ export default function CreateGroupPage() {
     return (
         <div className="create-group-page">
             <div className="create-group-container">
-                {/* Progress Bar */}
                 <div className="progress-stepper">
                     <div className={`step-dot ${step >= 1 ? "active" : ""}`}>1</div>
                     <div className={`step-line ${step >= 2 ? "active" : ""}`}></div>
                     <div className={`step-dot ${step >= 2 ? "active" : ""}`}>2</div>
-                    <div className={`step-line ${step >= 3 ? "active" : ""}`}></div>
-                    <div className={`step-dot ${step >= 3 ? "active" : ""}`}>3</div>
                 </div>
 
                 <div className="form-card">
@@ -137,35 +118,6 @@ export default function CreateGroupPage() {
                     )}
 
                     {step === 2 && (
-                        <div className="step-content fade-in">
-                            <div className="step-header">
-                                <button className="back-btn" onClick={handleBack}>
-                                    ← Back
-                                </button>
-
-                                <h1>Age Group</h1>
-                                <p>Who is this group for?</p>
-                            </div>
-
-                            <div className="age-grid">
-                                {ageGroups.map((item) => (
-                                    <button
-                                        key={item}
-                                        className={`age-card ${ageGroup === item ? "selected" : ""}`}
-                                        onClick={() => setAgeGroup(item)}
-                                    >
-                                        {item}
-                                    </button>
-                                ))}
-                            </div>
-
-                            <button className="next-btn" onClick={handleNext}>
-                                Next Step
-                            </button>
-                        </div>
-                    )}
-
-                    {step === 3 && (
                         <div className="step-content fade-in">
                             {showSuccess ? (
                                 <div className="success-message">
@@ -199,7 +151,7 @@ export default function CreateGroupPage() {
                                             <label>Sub Group (Optional)</label>
                                             <input
                                                 type="text"
-                                                placeholder="e.g. Under 18s"
+                                                placeholder="e.g. Beginners"
                                                 value={subGroup}
                                                 onChange={(e) => setSubGroup(e.target.value)}
                                             />

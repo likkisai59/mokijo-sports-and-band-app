@@ -29,8 +29,19 @@ export default function EditMemberPage() {
 
     useEffect(() => {
         const fetchMember = async () => {
+            const ownerId = localStorage.getItem("userId");
+            if (!ownerId) {
+                setError("Please sign in again to edit this member.");
+                setLoading(false);
+                return;
+            }
             try {
-                const response = await fetch(`${API_BASE_URL}/members/${id}`);
+                const token = localStorage.getItem("accessToken");
+                const response = await fetch(`${API_BASE_URL}/members/${id}?owner_id=${ownerId}`, {
+                    headers: {
+                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                    },
+                });
                 if (response.ok) {
                     const data = await response.json();
                     setFirstName(data.first_name || "");
@@ -80,6 +91,12 @@ export default function EditMemberPage() {
             return;
         }
 
+        const ownerId = localStorage.getItem("userId");
+        if (!ownerId) {
+            setError("Please sign in again to update this member.");
+            return;
+        }
+
         setIsSubmitting(true);
         setError("");
 
@@ -93,10 +110,12 @@ export default function EditMemberPage() {
         };
 
         try {
-            const response = await fetch(`${API_BASE_URL}/members/${id}`, {
+            const token = localStorage.getItem("accessToken");
+            const response = await fetch(`${API_BASE_URL}/members/${id}?owner_id=${ownerId}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
                 body: JSON.stringify(updatedData),
             });

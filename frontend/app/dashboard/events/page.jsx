@@ -24,7 +24,10 @@ export default function EventsPage() {
             }
 
             try {
-                const response = await fetch(`${API_BASE_URL}/events?owner_id=${userId}`);
+                const token = localStorage.getItem("accessToken");
+                const response = await fetch(`${API_BASE_URL}/events?owner_id=${userId}`, {
+                    headers: token ? { Authorization: `Bearer ${token}` } : {},
+                });
                 if (response.ok) {
                     const data = await response.json();
                     const visibleEvents = Array.isArray(data)
@@ -46,9 +49,11 @@ export default function EventsPage() {
         if (!confirm("Are you sure you want to delete this event?")) return;
 
         const userId = localStorage.getItem("userId");
+        const token = localStorage.getItem("accessToken");
         try {
             const response = await fetch(`${API_BASE_URL}/events/${eventId}?owner_id=${userId}`, {
                 method: "DELETE",
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
             });
 
             if (response.ok) {
@@ -61,11 +66,19 @@ export default function EventsPage() {
         }
     };
 
+    // Resolve an event's effective date, falling back to start_time when the plain
+    // date field wasn't populated, so admin-created events aren't hidden from members.
+    const getEventDateStr = (event) => {
+        if (event.date) return String(event.date).slice(0, 10);
+        if (event.start_time) return String(event.start_time).slice(0, 10);
+        return null;
+    };
+
     // Filter events by status based on date
     const getFilteredEvents = () => {
         return events.filter((event) => {
-            if (!event.date) return false;
-            const eventDate = event.date; // e.g. "2026-05-18"
+            const eventDate = getEventDateStr(event);
+            if (!eventDate) return activeTab === "upcoming"; // undated events default to "upcoming" instead of vanishing
 
             if (activeTab === "upcoming") {
                 return eventDate > todayStr;
@@ -78,9 +91,15 @@ export default function EventsPage() {
         });
     };
 
-    const upcomingCount = events.filter((e) => e.date && e.date > todayStr).length;
-    const ongoingCount = events.filter((e) => e.date && e.date === todayStr).length;
-    const pastCount = events.filter((e) => e.date && e.date < todayStr).length;
+    const upcomingCount = events.filter((e) => {
+        const d = getEventDateStr(e);
+        return !d || d > todayStr;
+    }).length;
+    const ongoingCount = events.filter((e) => getEventDateStr(e) === todayStr).length;
+    const pastCount = events.filter((e) => {
+        const d = getEventDateStr(e);
+        return d && d < todayStr;
+    }).length;
 
     const filtered = getFilteredEvents();
 

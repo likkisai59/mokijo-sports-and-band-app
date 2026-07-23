@@ -2,6 +2,16 @@
 import { API_BASE_URL } from "@/lib/api";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import {
+    digitsOnly,
+    isValidEmail,
+    isValidCityOrState,
+    isValidPostalCode,
+    EMAIL_MESSAGE,
+    CITY_STATE_MESSAGE,
+    POSTAL_CODE_MESSAGE,
+    PHONE_DIGITS_MESSAGE,
+} from "@/lib/validation";
 
 const API = API_BASE_URL;
 
@@ -16,6 +26,7 @@ export default function VerificationWizardPage() {
     const [submitting, setSubmitting] = useState(false);
     const [msg, setMsg] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
+    const [fieldErrors, setFieldErrors] = useState({});
 
     // Venue fields
     const [venue, setVenue] = useState(null);
@@ -29,6 +40,38 @@ export default function VerificationWizardPage() {
         postal_code: "",
         description: ""
     });
+
+    const validateContactInfo = () => {
+        const errors = {};
+        const phoneDigits = digitsOnly(contactInfo.contact_phone);
+        if (!phoneDigits) {
+            errors.contact_phone = "Contact phone is required.";
+        } else if (phoneDigits.length < 8) {
+            errors.contact_phone = PHONE_DIGITS_MESSAGE;
+        }
+        if (!contactInfo.contact_email) {
+            errors.contact_email = "Contact email is required.";
+        } else if (!isValidEmail(contactInfo.contact_email)) {
+            errors.contact_email = EMAIL_MESSAGE;
+        }
+        if (!contactInfo.city) {
+            errors.city = "City is required.";
+        } else if (!isValidCityOrState(contactInfo.city)) {
+            errors.city = CITY_STATE_MESSAGE;
+        }
+        if (!contactInfo.state_name) {
+            errors.state_name = "State is required.";
+        } else if (!isValidCityOrState(contactInfo.state_name)) {
+            errors.state_name = CITY_STATE_MESSAGE;
+        }
+        if (!contactInfo.postal_code) {
+            errors.postal_code = "Postal code is required.";
+        } else if (!isValidPostalCode(contactInfo.postal_code)) {
+            errors.postal_code = POSTAL_CODE_MESSAGE;
+        }
+        setFieldErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
 
     // Step 2: Location / GPS
     const [locationCaptured, setLocationCaptured] = useState(false);
@@ -334,10 +377,14 @@ export default function VerificationWizardPage() {
                             <label className="vd-label">Contact Phone Number *</label>
                             <input
                                 className="vd-input"
-                                placeholder="+91 XXXXX XXXXX"
+                                placeholder="9876543210"
+                                inputMode="numeric"
                                 value={contactInfo.contact_phone}
-                                onChange={(e) => setContactInfo(prev => ({ ...prev, contact_phone: e.target.value }))}
+                                onChange={(e) => setContactInfo(prev => ({ ...prev, contact_phone: digitsOnly(e.target.value).slice(0, 15) }))}
                             />
+                            {fieldErrors.contact_phone && (
+                                <span style={{ fontSize: 11, color: "#f87171", marginTop: 4, display: "block" }}>{fieldErrors.contact_phone}</span>
+                            )}
                         </div>
                         <div className="vd-field">
                             <label className="vd-label">Contact Email Address *</label>
@@ -348,6 +395,9 @@ export default function VerificationWizardPage() {
                                 value={contactInfo.contact_email}
                                 onChange={(e) => setContactInfo(prev => ({ ...prev, contact_email: e.target.value }))}
                             />
+                            {fieldErrors.contact_email && (
+                                <span style={{ fontSize: 11, color: "#f87171", marginTop: 4, display: "block" }}>{fieldErrors.contact_email}</span>
+                            )}
                         </div>
                     </div>
                     <div className="vd-form-grid" style={{ gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 16 }}>
@@ -357,8 +407,11 @@ export default function VerificationWizardPage() {
                                 className="vd-input"
                                 placeholder="Bengaluru"
                                 value={contactInfo.city}
-                                onChange={(e) => setContactInfo(prev => ({ ...prev, city: e.target.value }))}
+                                onChange={(e) => setContactInfo(prev => ({ ...prev, city: e.target.value.replace(/[^A-Za-z\s.'-]/g, "") }))}
                             />
+                            {fieldErrors.city && (
+                                <span style={{ fontSize: 11, color: "#f87171", marginTop: 4, display: "block" }}>{fieldErrors.city}</span>
+                            )}
                         </div>
                         <div className="vd-field">
                             <label className="vd-label">State *</label>
@@ -366,17 +419,24 @@ export default function VerificationWizardPage() {
                                 className="vd-input"
                                 placeholder="Karnataka"
                                 value={contactInfo.state_name}
-                                onChange={(e) => setContactInfo(prev => ({ ...prev, state_name: e.target.value }))}
+                                onChange={(e) => setContactInfo(prev => ({ ...prev, state_name: e.target.value.replace(/[^A-Za-z\s.'-]/g, "") }))}
                             />
+                            {fieldErrors.state_name && (
+                                <span style={{ fontSize: 11, color: "#f87171", marginTop: 4, display: "block" }}>{fieldErrors.state_name}</span>
+                            )}
                         </div>
                         <div className="vd-field">
                             <label className="vd-label">Postal Code *</label>
                             <input
                                 className="vd-input"
                                 placeholder="560001"
+                                inputMode="numeric"
                                 value={contactInfo.postal_code}
-                                onChange={(e) => setContactInfo(prev => ({ ...prev, postal_code: e.target.value }))}
+                                onChange={(e) => setContactInfo(prev => ({ ...prev, postal_code: digitsOnly(e.target.value).slice(0, 10) }))}
                             />
+                            {fieldErrors.postal_code && (
+                                <span style={{ fontSize: 11, color: "#f87171", marginTop: 4, display: "block" }}>{fieldErrors.postal_code}</span>
+                            )}
                         </div>
                     </div>
                     <div className="vd-field">
@@ -581,8 +641,7 @@ export default function VerificationWizardPage() {
                     <button
                         className="vd-btn-primary"
                         onClick={() => {
-                            if (activeStep === 1 && (!contactInfo.contact_phone || !contactInfo.contact_email || !contactInfo.city || !contactInfo.state_name || !contactInfo.postal_code)) {
-                                alert("Please fill in all required fields.");
+                            if (activeStep === 1 && !validateContactInfo()) {
                                 return;
                             }
                             if (activeStep === 2 && !locationCaptured) {

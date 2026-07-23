@@ -349,7 +349,7 @@ function VenueSearchContent() {
                                             <span style={styles.priceUnit}>/hr onwards</span>
                                         </div>
                                         <Link href={`/venues/${venue.id}`} style={styles.bookBtn}>
-                                            <span>Book Slot</span>
+                                            <span>Book Now</span>
                                         </Link>
                                     </div>
                                 </div>

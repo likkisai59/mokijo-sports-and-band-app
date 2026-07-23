@@ -492,27 +492,33 @@ export default function SignupFormsDashboard() {
                                                 </span>
                                             </td>
                                             <td>{dateStr}</td>
-                                            <td>
-                                                <button
-                                                    className="app-action-btn btn-view"
-                                                    onClick={() => setSelectedSubmission(sub)}
-                                                >
-                                                    <Eye size={12} style={{ marginRight: "4px" }} /> View
-                                                </button>
-                                                <button
-                                                    className="app-action-btn btn-approve"
-                                                    onClick={() => {
-                                                        setApprovingSubmission(sub);
-                                                    }}
-                                                >
-                                                    <Check size={12} style={{ marginRight: "4px" }} /> Accept
-                                                </button>
-                                                <button
-                                                    className="app-action-btn btn-reject"
-                                                    onClick={() => handleDeleteSubmission(sub.id)}
-                                                >
-                                                    <X size={12} style={{ marginRight: "4px" }} /> Reject
-                                                </button>
+                                            <td className="app-actions-cell">
+                                                <div className="app-action-row">
+                                                    <button
+                                                        type="button"
+                                                        className="app-action-btn btn-view"
+                                                        onClick={() => setSelectedSubmission(sub)}
+                                                    >
+                                                        <Eye size={12} />
+                                                        <span>View</span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="app-action-btn btn-approve"
+                                                        onClick={() => setApprovingSubmission(sub)}
+                                                    >
+                                                        <Check size={12} />
+                                                        <span>Accept</span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="app-action-btn btn-reject"
+                                                        onClick={() => handleDeleteSubmission(sub.id)}
+                                                    >
+                                                        <X size={12} />
+                                                        <span>Reject</span>
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     );
@@ -581,9 +587,28 @@ export default function SignupFormsDashboard() {
                         })}
                     </div>
 
-                    <div className="modal-actions">
+                    <div className="modal-actions app-action-pair">
+                        <button
+                            className="app-action-btn btn-approve"
+                            onClick={() => {
+                                setApprovingSubmission(selectedSubmission);
+                                setSelectedSubmission(null);
+                            }}
+                        >
+                            <Check size={14} style={{ marginRight: "4px" }} /> Accept
+                        </button>
+                        <button
+                            className="app-action-btn btn-reject"
+                            onClick={() => {
+                                const id = selectedSubmission.id;
+                                setSelectedSubmission(null);
+                                handleDeleteSubmission(id);
+                            }}
+                        >
+                            <X size={14} style={{ marginRight: "4px" }} /> Reject
+                        </button>
                         <button className="cancel-btn" onClick={() => setSelectedSubmission(null)}>
-                            Close Profile
+                            Close
                         </button>
                     </div>
                 </div>

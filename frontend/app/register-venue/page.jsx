@@ -3,6 +3,16 @@ import { API_BASE_URL } from "@/lib/api";
 import { useState } from "react";
 import Link from "next/link";
 import "../styles/venue-register.css";
+import {
+    digitsOnly,
+    isValidPhone,
+    isValidAadhaar,
+    formatDobInput,
+    isValidDob,
+    AADHAAR_MESSAGE,
+    DOB_MESSAGE,
+    phoneLengthMessage,
+} from "@/lib/validation";
 
 // ─── Constants ───────────────────────────────────────────────────────
 const SPORTS = [
@@ -332,6 +342,18 @@ export default function RegisterVenuePage() {
     // Submit
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!isValidPhone(owner.phone, "+91")) {
+            setError(phoneLengthMessage("+91"));
+            return;
+        }
+        if (owner.dob && !isValidDob(owner.dob)) {
+            setError(DOB_MESSAGE);
+            return;
+        }
+        if (owner.aadhar && !isValidAadhaar(owner.aadhar)) {
+            setError(AADHAAR_MESSAGE);
+            return;
+        }
         if (owner.password !== owner.confirmPassword) {
             setError("Passwords do not match.");
             return;
@@ -516,12 +538,14 @@ export default function RegisterVenuePage() {
                             />
                         </div>
                         <div className="vr-field">
-                            <label className="vr-label">Date of Birth</label>
+                            <label className="vr-label">Date of Birth (DD/MM/YYYY)</label>
                             <input
-                                type="date"
+                                type="text"
                                 className="vr-input"
+                                placeholder="DD/MM/YYYY"
+                                maxLength={10}
                                 value={owner.dob}
-                                onChange={(e) => setOwner((p) => ({ ...p, dob: e.target.value }))}
+                                onChange={(e) => setOwner((p) => ({ ...p, dob: formatDobInput(e.target.value) }))}
                             />
                         </div>
                         <div className="vr-field">
@@ -539,20 +563,22 @@ export default function RegisterVenuePage() {
                             <label className="vr-label">Phone Number *</label>
                             <input
                                 type="tel"
+                                inputMode="numeric"
                                 className="vr-input"
                                 required
                                 placeholder="10-digit mobile number"
                                 value={owner.phone}
-                                onChange={(e) => setOwner((p) => ({ ...p, phone: e.target.value }))}
+                                onChange={(e) => setOwner((p) => ({ ...p, phone: digitsOnly(e.target.value).slice(0, 15) }))}
                             />
                         </div>
                         <div className="vr-field">
                             <label className="vr-label">Aadhar Number</label>
                             <input
                                 className="vr-input"
+                                inputMode="numeric"
                                 placeholder="12-digit Aadhar"
                                 value={owner.aadhar}
-                                onChange={(e) => setOwner((p) => ({ ...p, aadhar: e.target.value }))}
+                                onChange={(e) => setOwner((p) => ({ ...p, aadhar: digitsOnly(e.target.value).slice(0, 12) }))}
                             />
                         </div>
                         <div className="vr-field">

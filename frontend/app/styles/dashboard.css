@@ -474,6 +474,10 @@ body {
     flex-direction: column;
     overflow-y: auto;
     background: var(--bg-page);
+    min-width: 0;
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
 }
 
 /* ─── ACTION BAR ─────────────────────────────────────────────────── */

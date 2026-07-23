@@ -1,6 +1,7 @@
 "use client";
 import { API_BASE_URL } from "@/lib/api";
 import { useEffect, useState } from "react";
+import { IndianRupee } from "lucide-react";
 
 const API = API_BASE_URL;
 
@@ -115,19 +116,7 @@ export default function VenueOverviewPage() {
                     color="orange"
                     value={`₹${totalRevenue.toLocaleString()}`}
                     label="Total Revenue"
-                    icon={
-                        <svg
-                            viewBox="0 0 24 24"
-                            width="20"
-                            height="20"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                        >
-                            <line x1="12" y1="1" x2="12" y2="23" />
-                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                        </svg>
-                    }
+                    icon={<IndianRupee size={20} strokeWidth={2} />}
                 />
                 <StatCard
                     color="blue"

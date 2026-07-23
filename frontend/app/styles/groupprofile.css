@@ -71,6 +71,10 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
+.group-profile-stats--single {
+    grid-template-columns: minmax(180px, 280px);
+}
+
 .group-profile-stats div {
     padding: 16px;
     background: rgba(255, 255, 255, 0.04);
@@ -164,6 +168,10 @@
     padding: 30px 40px;
     flex: 1;
     overflow-y: auto;
+}
+
+.profile-content--full {
+    grid-template-columns: 1fr;
 }
 
 .group-overview-grid {
@@ -822,8 +830,16 @@
         grid-template-columns: 1fr;
     }
 
-    .group-profile-stats {
+    .group-profile-stats:not(.group-profile-stats--single) {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .group-profile-stats--single {
+        grid-template-columns: minmax(180px, 280px);
+    }
+
+    .profile-content--full {
+        grid-template-columns: 1fr;
     }
 
     .right-widgets {

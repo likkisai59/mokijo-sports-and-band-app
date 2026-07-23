@@ -1,10 +1,18 @@
 /* Mukijo Signup Forms Module CSS */
 
+/* Stretch signup/onboarding page across the full main content area */
+.main-content:has(.signup-forms-container) {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    max-width: none !important;
+    width: 100% !important;
+}
+
 .signup-forms-container {
-    padding: 24px 32px !important;
-    max-width: 100% !important;
-    width: auto !important;
-    margin: 0 -48px -48px -48px !important;
+    padding: 8px 8px 32px !important;
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
     font-family:
         "Outfit",
         "Inter",
@@ -489,17 +497,20 @@
     cursor: not-allowed;
 }
 
-/* Applications Table View */
+/* Applications Table View — outer onboarding queue card */
 .applications-container {
     background: var(--bg-surface, #0c0c16);
     border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
     border-radius: 16px;
-    padding: 28px 24px;
+    padding: 28px 32px;
     box-shadow:
         0 4px 6px -1px rgba(0, 0, 0, 0.05),
         0 2px 4px -2px rgba(0, 0, 0, 0.05);
     width: 100%;
+    max-width: none;
+    min-width: 100%;
     box-sizing: border-box;
+    display: block;
 }
 
 .applications-filter-row {
@@ -526,10 +537,24 @@
 
 .app-table {
     width: 100%;
-    min-width: 800px;
+    min-width: 1100px;
     border-collapse: collapse;
     text-align: left;
     font-size: 14px;
+    table-layout: auto;
+}
+
+.app-table th:last-child,
+.app-table td.app-actions-cell {
+    min-width: 300px;
+    width: 300px;
+    white-space: nowrap;
+    overflow: visible;
+    position: sticky;
+    right: 0;
+    background: var(--bg-surface, #0c0c16);
+    z-index: 2;
+    box-shadow: -8px 0 12px rgba(0, 0, 0, 0.25);
 }
 
 .app-table th {
@@ -586,44 +611,82 @@
     color: #e6007a;
 }
 
+.app-action-row {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 8px;
+    width: 100%;
+}
+
+.app-action-pair {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 8px;
+}
+
 .app-action-btn {
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
+    flex: 1 1 0;
+    min-width: 84px;
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
     cursor: pointer;
-    border: none;
-    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    transition: filter 0.15s ease, transform 0.1s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    white-space: nowrap;
+    box-sizing: border-box;
+    line-height: 1;
+    margin: 0;
+    opacity: 1 !important;
+    visibility: visible !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.app-action-btn span {
+    display: inline-block;
+    color: inherit;
 }
 
 .btn-view {
-    background: var(--bg-surface-2, #14141f);
-    color: #475569;
-    margin-right: 8px;
+    background: #3b82f6 !important;
+    border-color: #60a5fa !important;
+    color: #ffffff !important;
 }
 
 .btn-view:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--text-primary, #f4f4f5);
+    filter: brightness(1.1);
 }
 
 .btn-approve {
-    background: #10b981;
-    color: #ffffff;
-    margin-right: 8px;
+    background: #16a34a !important;
+    border-color: #4ade80 !important;
+    color: #ffffff !important;
 }
 
 .btn-approve:hover {
-    background: #059669;
+    filter: brightness(1.1);
 }
 
 .btn-reject {
-    background: #ef4444;
-    color: #ffffff;
+    background: #dc2626 !important;
+    border-color: #f87171 !important;
+    color: #ffffff !important;
 }
 
 .btn-reject:hover {
-    background: #dc2626;
+    filter: brightness(1.1);
 }
 
 .no-apps-state {
@@ -720,8 +783,17 @@
 
 .modal-actions {
     display: flex;
+    flex-wrap: nowrap;
     justify-content: flex-end;
+    align-items: center;
     gap: 12px;
+}
+
+.modal-actions.app-action-pair .btn-approve,
+.modal-actions.app-action-pair .btn-reject {
+    flex: 0 0 110px;
+    min-width: 110px;
+    width: 110px;
 }
 
 @media (max-width: 768px) {
@@ -778,8 +850,19 @@
     }
 
     .app-action-btn {
-        min-height: 38px;
-        margin-bottom: 6px;
+        min-width: 78px;
+        height: 32px;
+        margin-bottom: 0;
+    }
+
+    .app-action-row {
+        flex-wrap: nowrap;
+    }
+
+    .app-table th:last-child,
+    .app-table td.app-actions-cell {
+        min-width: 280px;
+        width: 280px;
     }
 
     .modal-overlay {

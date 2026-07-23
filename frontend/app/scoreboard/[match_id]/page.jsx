@@ -99,8 +99,9 @@ export default function PublicScoreboardPage() {
         if (!match) return;
 
         const loadTeamMembers = async () => {
-            const tA = match.teams[0];
-            const tB = match.teams[1];
+            const teams = Array.isArray(match.teams) ? match.teams : [];
+            const tA = teams[0];
+            const tB = teams[1];
             const owner = match.owner_id;
 
             if (tA && tA.group_id) {
@@ -159,8 +160,9 @@ export default function PublicScoreboardPage() {
         );
     }
 
-    const teamA = match.teams[0] || { team_name: "Team A", score: 0 };
-    const teamB = match.teams[1] || { team_name: "Team B", score: 0 };
+    const matchTeams = Array.isArray(match.teams) ? match.teams : [];
+    const teamA = matchTeams[0] || { team_name: "Team A", score: 0 };
+    const teamB = matchTeams[1] || { team_name: "Team B", score: 0 };
     const scheduledDate = match.scheduled_at
         ? new Date(match.scheduled_at).toLocaleDateString(undefined, {
               weekday: "long",
@@ -392,7 +394,7 @@ export default function PublicScoreboardPage() {
                                         {teamAMembers.map((m) => (
                                             <div key={m.id} style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(255, 255, 255, 0.02)", padding: "8px 12px", borderRadius: "8px" }}>
                                                 <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: teamA.color || "var(--vd-brand)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "800" }}>
-                                                    {m.first_name[0].toUpperCase()}
+                                                    {(m.first_name || "?")[0].toUpperCase()}
                                                 </div>
                                                 <span style={{ fontSize: "13px", fontWeight: "500", color: "#e2e8f0" }}>{m.first_name} {m.last_name || ""}</span>
                                             </div>
@@ -413,7 +415,7 @@ export default function PublicScoreboardPage() {
                                         {teamBMembers.map((m) => (
                                             <div key={m.id} style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(255, 255, 255, 0.02)", padding: "8px 12px", borderRadius: "8px" }}>
                                                 <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: teamB.color || "var(--vd-cyan)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "800" }}>
-                                                    {m.first_name[0].toUpperCase()}
+                                                    {(m.first_name || "?")[0].toUpperCase()}
                                                 </div>
                                                 <span style={{ fontSize: "13px", fontWeight: "500", color: "#e2e8f0" }}>{m.first_name} {m.last_name || ""}</span>
                                             </div>

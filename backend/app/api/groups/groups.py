@@ -20,7 +20,7 @@ class GroupsRouting(ConnectionService):
             endpoint=self.create_group,
             methods=["POST"],
             response_model=schemas.GroupResponse,
-            summary="Create a new club group/team with custom activity type and age group constraint.",
+            summary="Create a new club group/team with custom activity type.",
             tags=["Groups"]
         )
         self.router.add_api_route(
@@ -81,6 +81,27 @@ class GroupsRouting(ConnectionService):
             endpoint=self.get_all_members,
             methods=["GET"],
             summary="Retrieve all members across all groups for the given club administrator.",
+            tags=["Groups"]
+        )
+        self.router.add_api_route(
+            path="/members/{member_id}",
+            endpoint=self.get_member,
+            methods=["GET"],
+            summary="Retrieve a single member by ID, scoped to the requesting club administrator.",
+            tags=["Groups"]
+        )
+        self.router.add_api_route(
+            path="/members/{member_id}",
+            endpoint=self.update_member,
+            methods=["PUT"],
+            summary="Update a single member's profile fields.",
+            tags=["Groups"]
+        )
+        self.router.add_api_route(
+            path="/members/{member_id}",
+            endpoint=self.delete_member,
+            methods=["DELETE"],
+            summary="Delete a single member and clear references to it in dependent tables.",
             tags=["Groups"]
         )
 
@@ -182,6 +203,40 @@ class GroupsRouting(ConnectionService):
         logic = GroupsLogic()
         return await logic.get_all_members(request, owner_id, current_user)
 
+    async def get_member(
+        self,
+        request: Request,
+        member_id: int,
+        owner_id: int,
+        current_user: dict = Depends(check_user_authorization)
+    ):
+        await logger.log_message(request=request, message="Get member router start", step="ROUTER_START", user_info=current_user)
+        logic = GroupsLogic()
+        return await logic.get_member(request, member_id, owner_id, current_user)
+
+    async def update_member(
+        self,
+        request: Request,
+        member_id: int,
+        owner_id: int,
+        member: schemas.MemberUpdate,
+        current_user: dict = Depends(check_user_authorization)
+    ):
+        await logger.log_message(request=request, message="Update member router start", step="ROUTER_START", user_info=current_user)
+        logic = GroupsLogic()
+        return await logic.update_member(request, member_id, owner_id, member, current_user)
+
+    async def delete_member(
+        self,
+        request: Request,
+        member_id: int,
+        owner_id: int,
+        current_user: dict = Depends(check_user_authorization)
+    ):
+        await logger.log_message(request=request, message="Delete member router start", step="ROUTER_START", user_info=current_user)
+        logic = GroupsLogic()
+        return await logic.delete_member(request, member_id, owner_id, current_user)
+
 
 class GroupsLogic(ConnectionService):
     def __init__(self) -> None:
@@ -195,7 +250,7 @@ class GroupsLogic(ConnectionService):
                 validate_role_and_permission(db, current_user, ["admin"], group.owner_id)
                 insert_data = {
                     "activity": group.activity,
-                    "age_group": group.age_group,
+                    "age_group": group.age_group or "All Ages",
                     "group_name": group.group_name,
                     "sub_group": group.sub_group,
                     "description": group.description,
@@ -523,4 +578,93 @@ class GroupsLogic(ConnectionService):
             raise he
         except Exception as e:
             await logger.log_error(request=request, message=f"Failed to get all members: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+
+    async def get_member(self, request: Request, member_id: int, owner_id: int, current_user: dict):
+        try:
+            with logger.time_operation("GET_MEMBER", request=request):
+                db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin"], owner_id)
+                member = db.fetch_one(
+                    "SELECT m.*, g.group_name FROM members m JOIN groups g ON m.group_id = g.id "
+                    "WHERE m.id = %s AND g.owner_id = %s",
+                    (member_id, owner_id)
+                )
+                if not member:
+                    raise HTTPException(status_code=404, detail="Member not found or access denied")
+                return member
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            await logger.log_error(request=request, message=f"Failed to get member: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+
+    async def update_member(self, request: Request, member_id: int, owner_id: int, member: schemas.MemberUpdate, current_user: dict):
+        try:
+            with logger.time_operation("UPDATE_MEMBER", request=request):
+                db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin"], owner_id)
+                existing = db.fetch_one(
+                    "SELECT m.* FROM members m JOIN groups g ON m.group_id = g.id "
+                    "WHERE m.id = %s AND g.owner_id = %s",
+                    (member_id, owner_id)
+                )
+                if not existing:
+                    raise HTTPException(status_code=404, detail="Member not found or access denied")
+
+                update_data = member.dict(exclude_unset=True)
+                update_data = {k: v for k, v in update_data.items() if v is not None}
+
+                if "first_name" in update_data and not update_data["first_name"].strip():
+                    raise HTTPException(status_code=400, detail="First name is required")
+
+                if update_data:
+                    set_clauses = []
+                    params = []
+                    for key, val in update_data.items():
+                        set_clauses.append(f"{key} = %s")
+                        params.append(val)
+                    params.append(member_id)
+                    db.execute_query(
+                        f"UPDATE members SET {', '.join(set_clauses)} WHERE id = %s",
+                        tuple(params)
+                    )
+
+                updated = db.fetch_one(
+                    "SELECT m.*, g.group_name FROM members m JOIN groups g ON m.group_id = g.id WHERE m.id = %s",
+                    (member_id,)
+                )
+                return updated
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            await logger.log_error(request=request, message=f"Failed to update member: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+
+    async def delete_member(self, request: Request, member_id: int, owner_id: int, current_user: dict):
+        try:
+            with logger.time_operation("DELETE_MEMBER", request=request):
+                db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin"], owner_id)
+                existing = db.fetch_one(
+                    "SELECT m.* FROM members m JOIN groups g ON m.group_id = g.id "
+                    "WHERE m.id = %s AND g.owner_id = %s",
+                    (member_id, owner_id)
+                )
+                if not existing:
+                    raise HTTPException(status_code=404, detail="Member not found or access denied")
+
+                with db.get_connection() as conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute("UPDATE event_registrations SET member_id = NULL WHERE member_id = %s", (member_id,))
+                        cursor.execute("UPDATE payments SET member_id = NULL WHERE member_id = %s", (member_id,))
+                        cursor.execute("UPDATE course_registrations SET member_id = NULL WHERE member_id = %s", (member_id,))
+                        cursor.execute("DELETE FROM members WHERE id = %s", (member_id,))
+                    conn.commit()
+
+                return {"message": "Member deleted successfully"}
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            await logger.log_error(request=request, message=f"Failed to delete member: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")

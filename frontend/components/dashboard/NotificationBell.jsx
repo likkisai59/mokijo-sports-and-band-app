@@ -17,27 +17,62 @@ function parseApplicantName(sub) {
     return `${firstName} ${lastName}`.trim();
 }
 
+function applicationNotifId(sub) {
+    return `app-${sub.id}`;
+}
+
+function activityNotifId(activity, index) {
+    return `activity-${activity.match_id ?? "x"}-${activity.member_name ?? index}`;
+}
+
+function bookingNotifId(booking) {
+    return `booking-${booking.booking_id}`;
+}
+
 /**
  * Gold notification bell for dashboard headers.
- * Club admins see signup applications; other roles see an empty state.
+ * Club admins see signup applications; club members (players/parents/coaches)
+ * see their own pending event invitations; venue partners see bookings awaiting
+ * their approval — each with per-user read-state tracking.
  */
 export default function NotificationBell({
-    mode = "auto", // "admin" | "empty" | "auto"
+    mode = "auto", // "admin" | "member" | "venue_owner" | "empty" | "auto"
     applicationsHref = "/dashboard/signup-forms",
 }) {
     const [open, setOpen] = useState(false);
     const [isAdmin, setIsAdmin] = useState(mode === "admin");
+    const [isMemberMode, setIsMemberMode] = useState(mode === "member");
+    const [isVenueOwnerMode, setIsVenueOwnerMode] = useState(mode === "venue_owner");
     const [applications, setApplications] = useState([]);
     const [liveActivities, setLiveActivities] = useState([]);
+    const [pendingInvites, setPendingInvites] = useState([]);
+    const [pendingBookings, setPendingBookings] = useState([]);
+    const [readIds, setReadIds] = useState([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (mode === "admin") {
             setIsAdmin(true);
+            setIsMemberMode(false);
+            setIsVenueOwnerMode(false);
+            return;
+        }
+        if (mode === "member") {
+            setIsAdmin(false);
+            setIsMemberMode(true);
+            setIsVenueOwnerMode(false);
+            return;
+        }
+        if (mode === "venue_owner") {
+            setIsAdmin(false);
+            setIsMemberMode(false);
+            setIsVenueOwnerMode(true);
             return;
         }
         if (mode === "empty") {
             setIsAdmin(false);
+            setIsMemberMode(false);
+            setIsVenueOwnerMode(false);
             return;
         }
         const role = (localStorage.getItem("userRole") || "").toLowerCase();
@@ -45,13 +80,137 @@ export default function NotificationBell({
         const admin =
             !isMember &&
             (role === "club_admin" || role === "admin" || role === "owner" || role === "" || !!localStorage.getItem("userId"));
-        // Prefer explicit non-admin roles for empty state
-        if (role === "venue_owner" || role === "user" || role === "player" || isMember) {
+        if (isMember) {
             setIsAdmin(false);
+            setIsMemberMode(true);
+            setIsVenueOwnerMode(false);
+        } else if (role === "venue_owner") {
+            setIsAdmin(false);
+            setIsMemberMode(false);
+            setIsVenueOwnerMode(true);
+        } else if (role === "user" || role === "player") {
+            setIsAdmin(false);
+            setIsMemberMode(false);
+            setIsVenueOwnerMode(false);
         } else {
-            setIsAdmin(admin && !isMember);
+            setIsAdmin(admin);
+            setIsMemberMode(false);
+            setIsVenueOwnerMode(false);
         }
     }, [mode]);
+
+    const readStateKey = () => {
+        if (typeof window === "undefined") return "notifications_read_guest";
+        const identity =
+            localStorage.getItem("venueOwnerId") || localStorage.getItem("userEmail") || localStorage.getItem("userId") || "guest";
+        return `notifications_read_${identity}`;
+    };
+
+    useEffect(() => {
+        if (!isMemberMode && !isAdmin && !isVenueOwnerMode) return;
+        try {
+            const stored = JSON.parse(localStorage.getItem(readStateKey()) || "[]");
+            setReadIds(Array.isArray(stored) ? stored : []);
+        } catch {
+            setReadIds([]);
+        }
+    }, [isMemberMode, isAdmin, isVenueOwnerMode]);
+
+    useEffect(() => {
+        if (!isVenueOwnerMode) return;
+        const ownerId = localStorage.getItem("venueOwnerId");
+        if (!ownerId) return;
+
+        let cancelled = false;
+        const load = async () => {
+            setLoading(true);
+            try {
+                const res = await fetch(`${API_BASE_URL}/bookings/venue-owner/${ownerId}`).catch(() => null);
+                if (res?.ok) {
+                    const data = await res.json();
+                    const pending = Array.isArray(data)
+                        ? data.filter((b) => b.booking_status === "pending_approval")
+                        : [];
+                    if (!cancelled) setPendingBookings(pending);
+                }
+            } catch (err) {
+                console.error("Error loading venue owner notifications:", err);
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        };
+
+        load();
+        const intervalId = window.setInterval(load, 15000);
+
+        return () => {
+            cancelled = true;
+            window.clearInterval(intervalId);
+        };
+    }, [isVenueOwnerMode]);
+
+    useEffect(() => {
+        if (!isMemberMode) return;
+        const email = localStorage.getItem("userEmail");
+        if (!email) return;
+
+        let cancelled = false;
+        const load = async () => {
+            setLoading(true);
+            try {
+                const token = localStorage.getItem("accessToken");
+                const res = await fetch(
+                    `${API_BASE_URL}/members/registrations?member_email=${encodeURIComponent(email)}`,
+                    { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+                ).catch(() => null);
+
+                if (res?.ok) {
+                    const data = await res.json();
+                    const pending = Array.isArray(data) ? data.filter((r) => r.status === "pending") : [];
+                    if (!cancelled) setPendingInvites(pending);
+                }
+            } catch (err) {
+                console.error("Error loading member notifications:", err);
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        };
+
+        load();
+        const intervalId = window.setInterval(load, 15000);
+
+        return () => {
+            cancelled = true;
+            window.clearInterval(intervalId);
+        };
+    }, [isMemberMode]);
+
+    const unreadInvites = pendingInvites.filter((r) => !readIds.includes(r.event_id));
+    const unreadBookings = pendingBookings.filter((b) => !readIds.includes(bookingNotifId(b)));
+
+    const adminNotifIds = isAdmin
+        ? [
+              ...applications.map(applicationNotifId),
+              ...liveActivities.map((activity, index) => activityNotifId(activity, index)),
+          ]
+        : [];
+    const unreadAdminCount = adminNotifIds.filter((id) => !readIds.includes(id)).length;
+
+    const markAllRead = () => {
+        const idsToMark = isAdmin
+            ? adminNotifIds
+            : isVenueOwnerMode
+              ? pendingBookings.map(bookingNotifId)
+              : pendingInvites.map((r) => r.event_id);
+        if (idsToMark.length === 0) return;
+        const merged = Array.from(new Set([...readIds, ...idsToMark]));
+        setReadIds(merged);
+        try {
+            localStorage.setItem(readStateKey(), JSON.stringify(merged));
+        } catch {
+            // ignore storage errors (e.g. private browsing quota)
+        }
+    };
 
     useEffect(() => {
         if (!open) return;
@@ -102,14 +261,26 @@ export default function NotificationBell({
         };
     }, [isAdmin]);
 
-    const pendingCount = isAdmin ? applications.length + liveActivities.length : 0;
+    const pendingCount = isAdmin
+        ? unreadAdminCount
+        : isMemberMode
+          ? unreadInvites.length
+          : isVenueOwnerMode
+            ? unreadBookings.length
+            : 0;
 
     return (
         <div style={{ position: "relative" }} onClick={(e) => e.stopPropagation()}>
             <button
                 type="button"
                 aria-label="Notifications"
-                onClick={() => setOpen((prev) => !prev)}
+                onClick={() => {
+                    setOpen((prev) => {
+                        const next = !prev;
+                        if (next && (isMemberMode || isAdmin || isVenueOwnerMode)) markAllRead();
+                        return next;
+                    });
+                }}
                 style={{
                     position: "relative",
                     display: "inline-flex",
@@ -188,13 +359,72 @@ export default function NotificationBell({
                                 View all
                             </Link>
                         )}
+                        {isMemberMode && (
+                            <Link
+                                href="/dashboard/events"
+                                onClick={() => setOpen(false)}
+                                style={{ fontSize: 12, color: "#facc15", textDecoration: "none" }}
+                            >
+                                View all
+                            </Link>
+                        )}
+                        {isVenueOwnerMode && (
+                            <Link
+                                href="/venue-dashboard/bookings"
+                                onClick={() => setOpen(false)}
+                                style={{ fontSize: 12, color: "#facc15", textDecoration: "none" }}
+                            >
+                                View all
+                            </Link>
+                        )}
                     </div>
 
-                    {!isAdmin && (
+                    {!isAdmin && !isMemberMode && !isVenueOwnerMode && (
                         <p style={{ margin: 0, padding: "16px 10px", fontSize: 13, color: "rgba(148,163,184,0.7)" }}>
                             No notifications
                         </p>
                     )}
+
+                    {isVenueOwnerMode && loading && (
+                        <p style={{ margin: 0, padding: "16px 10px", fontSize: 13, color: "rgba(148,163,184,0.7)" }}>
+                            Loading...
+                        </p>
+                    )}
+
+                    {isVenueOwnerMode && !loading && pendingBookings.length === 0 && (
+                        <p style={{ margin: 0, padding: "16px 10px", fontSize: 13, color: "rgba(148,163,184,0.7)" }}>
+                            No notifications
+                        </p>
+                    )}
+
+                    {isVenueOwnerMode &&
+                        !loading &&
+                        pendingBookings.slice(0, 8).map((booking) => {
+                            const isRead = readIds.includes(bookingNotifId(booking));
+                            return (
+                                <Link
+                                    key={bookingNotifId(booking)}
+                                    href="/venue-dashboard/bookings"
+                                    onClick={() => setOpen(false)}
+                                    style={{
+                                        display: "block",
+                                        padding: "10px",
+                                        borderRadius: 8,
+                                        textDecoration: "none",
+                                        color: "#e2e8f0",
+                                        marginBottom: 4,
+                                        background: isRead ? "rgba(255,255,255,0.02)" : "rgba(250, 204, 21, 0.08)",
+                                    }}
+                                >
+                                    <div style={{ fontSize: 13, fontWeight: isRead ? 500 : 700 }}>
+                                        Booking request — {booking.customer_name || "Guest"}
+                                    </div>
+                                    <div style={{ fontSize: 11, color: "rgba(148,163,184,0.75)", marginTop: 2 }}>
+                                        {booking.venue_name || "Venue"} · {booking.sport || "Sport"} · Awaiting approval
+                                    </div>
+                                </Link>
+                            );
+                        })}
 
                     {isAdmin && loading && (
                         <p style={{ margin: 0, padding: "16px 10px", fontSize: 13, color: "rgba(148,163,184,0.7)" }}>
@@ -208,57 +438,104 @@ export default function NotificationBell({
                         </p>
                     )}
 
+                    {isMemberMode && loading && (
+                        <p style={{ margin: 0, padding: "16px 10px", fontSize: 13, color: "rgba(148,163,184,0.7)" }}>
+                            Loading...
+                        </p>
+                    )}
+
+                    {isMemberMode && !loading && pendingInvites.length === 0 && (
+                        <p style={{ margin: 0, padding: "16px 10px", fontSize: 13, color: "rgba(148,163,184,0.7)" }}>
+                            No notifications
+                        </p>
+                    )}
+
+                    {isMemberMode &&
+                        !loading &&
+                        pendingInvites.slice(0, 8).map((invite) => {
+                            const isRead = readIds.includes(invite.event_id);
+                            return (
+                                <Link
+                                    key={invite.id}
+                                    href={`/dashboard/events/${invite.event_id}`}
+                                    onClick={() => setOpen(false)}
+                                    style={{
+                                        display: "block",
+                                        padding: "10px",
+                                        borderRadius: 8,
+                                        textDecoration: "none",
+                                        color: "#e2e8f0",
+                                        marginBottom: 4,
+                                        background: isRead ? "rgba(255,255,255,0.02)" : "rgba(250, 204, 21, 0.08)",
+                                    }}
+                                >
+                                    <div style={{ fontSize: 13, fontWeight: isRead ? 500 : 700 }}>
+                                        New event invite
+                                    </div>
+                                    <div style={{ fontSize: 11, color: "rgba(148,163,184,0.75)", marginTop: 2 }}>
+                                        Awaiting your RSVP · Tap to respond
+                                    </div>
+                                </Link>
+                            );
+                        })}
+
                     {isAdmin && liveActivities.length > 0 && (
                         <div style={{ marginBottom: 8 }}>
                             <div style={{ fontSize: 11, fontWeight: 700, color: "#facc15", textTransform: "uppercase", letterSpacing: "0.04em", padding: "6px 10px" }}>
                                 Live team activity
                             </div>
-                            {liveActivities.map((activity, index) => (
-                                <div
-                                    key={`${activity.match_id}-${activity.member_name}-${index}`}
-                                    style={{
-                                        padding: "10px",
-                                        borderRadius: 8,
-                                        background: "rgba(250, 204, 21, 0.08)",
-                                        color: "#e2e8f0",
-                                        marginBottom: 4,
-                                    }}
-                                >
-                                    <div style={{ fontSize: 13, fontWeight: 600 }}>{activity.member_name}</div>
-                                    <div style={{ fontSize: 11, color: "rgba(148,163,184,0.75)", marginTop: 2 }}>
-                                        {activity.match_title} · {activity.venue}
+                            {liveActivities.map((activity, index) => {
+                                const isRead = readIds.includes(activityNotifId(activity, index));
+                                return (
+                                    <div
+                                        key={activityNotifId(activity, index)}
+                                        style={{
+                                            padding: "10px",
+                                            borderRadius: 8,
+                                            background: isRead ? "rgba(255,255,255,0.02)" : "rgba(250, 204, 21, 0.08)",
+                                            color: "#e2e8f0",
+                                            marginBottom: 4,
+                                        }}
+                                    >
+                                        <div style={{ fontSize: 13, fontWeight: isRead ? 500 : 700 }}>{activity.member_name}</div>
+                                        <div style={{ fontSize: 11, color: "rgba(148,163,184,0.75)", marginTop: 2 }}>
+                                            {activity.match_title} · {activity.venue}
+                                        </div>
+                                        <div style={{ fontSize: 11, color: "#facc15", marginTop: 2 }}>
+                                            {activity.timing || "Live now"}
+                                        </div>
                                     </div>
-                                    <div style={{ fontSize: 11, color: "#facc15", marginTop: 2 }}>
-                                        {activity.timing || "Live now"}
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
 
                     {isAdmin &&
                         !loading &&
-                        applications.slice(0, 8).map((sub) => (
-                            <Link
-                                key={sub.id}
-                                href={applicationsHref}
-                                onClick={() => setOpen(false)}
-                                style={{
-                                    display: "block",
-                                    padding: "10px",
-                                    borderRadius: 8,
-                                    textDecoration: "none",
-                                    color: "#e2e8f0",
-                                    marginBottom: 4,
-                                    background: "rgba(255,255,255,0.03)",
-                                }}
-                            >
-                                <div style={{ fontSize: 13, fontWeight: 600 }}>{parseApplicantName(sub)}</div>
-                                <div style={{ fontSize: 11, color: "rgba(148,163,184,0.75)", marginTop: 2 }}>
-                                    {sub.role || "Applicant"} · Waiting approval
-                                </div>
-                            </Link>
-                        ))}
+                        applications.slice(0, 8).map((sub) => {
+                            const isRead = readIds.includes(applicationNotifId(sub));
+                            return (
+                                <Link
+                                    key={applicationNotifId(sub)}
+                                    href={applicationsHref}
+                                    onClick={() => setOpen(false)}
+                                    style={{
+                                        display: "block",
+                                        padding: "10px",
+                                        borderRadius: 8,
+                                        textDecoration: "none",
+                                        color: "#e2e8f0",
+                                        marginBottom: 4,
+                                        background: isRead ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.03)",
+                                    }}
+                                >
+                                    <div style={{ fontSize: 13, fontWeight: isRead ? 500 : 700 }}>{parseApplicantName(sub)}</div>
+                                    <div style={{ fontSize: 11, color: "rgba(148,163,184,0.75)", marginTop: 2 }}>
+                                        {sub.role || "Applicant"} · Waiting approval
+                                    </div>
+                                </Link>
+                            );
+                        })}
                 </div>
             )}
         </div>

@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, Request, HTTPException, Form, status
+from fastapi import APIRouter, Depends, Request, HTTPException, Form, status, BackgroundTasks
 from typing import List, Optional
 import json
+import secrets
+from datetime import datetime, timezone
 
 from app.models import schemas
 from app.connectors.connection_service import ConnectionService
@@ -15,6 +17,19 @@ from app.core.helpers import (
 )
 from app.logger import logger
 from app.core.security import hash_password
+from app.core.validators import (
+    is_valid_email,
+    is_strong_password,
+    is_valid_person_name,
+    is_valid_phone,
+    is_valid_aadhaar,
+    EMAIL_MESSAGE,
+    STRONG_PASSWORD_MESSAGE,
+    PERSON_NAME_MESSAGE,
+    AADHAAR_MESSAGE,
+    phone_length_message,
+)
+from app.services.email import send_signup_verification_email
 
 
 def get_default_fields(role: str):
@@ -27,7 +42,7 @@ def get_default_fields(role: str):
             {"name": "phone", "label": "Phone Number", "type": "tel", "required": True, "placeholder": "10-digit number"},
             {"name": "specialization", "label": "Specialization / Sport", "type": "text", "required": True, "placeholder": "e.g., Football, Cricket"},
             {"name": "experience", "label": "Coaching Experience (Years)", "type": "number", "required": False, "placeholder": "e.g., 5"},
-            {"name": "aadhar", "label": "Aadhar Number", "type": "text", "required": False, "placeholder": "12-digit Aadhar"}
+            {"name": "aadhar", "label": "Aadhar Number", "type": "text", "required": True, "placeholder": "12-digit Aadhar"}
         ]
         title = "Coach Registration"
         desc = "Apply to become a coach for our club. Fill in your details below."
@@ -49,7 +64,7 @@ def get_default_fields(role: str):
             {"name": "last_name", "label": "Last Name", "type": "text", "required": True, "placeholder": "Enter last name"},
             {"name": "email", "label": "Email Address", "type": "email", "required": True, "placeholder": "player@example.com"},
             {"name": "phone", "label": "Phone Number", "type": "tel", "required": True, "placeholder": "10-digit number"},
-            {"name": "dob", "label": "Date of Birth", "type": "date", "required": True, "placeholder": "Select date of birth"},
+            {"name": "dob", "label": "Date of Birth (DD/MM/YYYY)", "type": "date", "required": True, "placeholder": "DD/MM/YYYY"},
             {"name": "gender", "label": "Gender", "type": "select", "required": True, "options": ["Male", "Female", "Other"], "placeholder": "Select gender"},
             {"name": "position", "label": "Play Position / Skill", "type": "text", "required": False, "placeholder": "e.g., Striker, Goalkeeper, Batsman"}
         ]
@@ -63,7 +78,7 @@ def get_default_fields(role: str):
             {"name": "phone", "label": "Phone Number", "type": "tel", "required": True, "placeholder": "10-digit number"},
             {"name": "certification", "label": "Certification Level", "type": "text", "required": True, "placeholder": "e.g., State Level, National Level"},
             {"name": "experience", "label": "Officiating Experience (Years)", "type": "number", "required": False, "placeholder": "e.g., 3"},
-            {"name": "aadhar", "label": "Aadhar Number", "type": "text", "required": False, "placeholder": "12-digit Aadhar"}
+            {"name": "aadhar", "label": "Aadhar Number", "type": "text", "required": True, "placeholder": "12-digit Aadhar"}
         ]
         title = "Referee Registration"
         desc = "Apply to become a referee for our club. Fill in your details below."
@@ -108,6 +123,13 @@ class OnboardingRouting(ConnectionService):
             endpoint=self.get_signup_submissions,
             methods=["GET"],
             summary="Retrieve all pending onboarding application submissions for a club administrator.",
+            tags=["Onboarding"]
+        )
+        self.router.add_api_route(
+            path="/signup-submissions/verify-email",
+            endpoint=self.verify_signup_submission_email,
+            methods=["GET"],
+            summary="Verify the applicant's email address for a pending onboarding application using a token.",
             tags=["Onboarding"]
         )
         self.router.add_api_route(
@@ -158,11 +180,21 @@ class OnboardingRouting(ConnectionService):
     async def create_signup_submission(
         self,
         request: Request,
-        submission: schemas.SignupSubmissionCreate
+        submission: schemas.SignupSubmissionCreate,
+        background_tasks: BackgroundTasks
     ):
         await logger.log_message(request=request, message="Create signup submission router start", step="ROUTER_START")
         logic = OnboardingLogic()
-        return await logic.create_signup_submission(request, submission)
+        return await logic.create_signup_submission(request, submission, background_tasks)
+
+    async def verify_signup_submission_email(
+        self,
+        request: Request,
+        token: str
+    ):
+        await logger.log_message(request=request, message="Verify signup submission email router start", step="ROUTER_START")
+        logic = OnboardingLogic()
+        return await logic.verify_signup_submission_email(request, token)
 
     async def get_signup_submissions(
         self,
@@ -303,7 +335,7 @@ class OnboardingLogic(ConnectionService):
             await logger.log_error(request=request, message=f"Failed to upsert signup form: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
 
-    async def create_signup_submission(self, request: Request, submission: schemas.SignupSubmissionCreate):
+    async def create_signup_submission(self, request: Request, submission: schemas.SignupSubmissionCreate, background_tasks: BackgroundTasks):
         try:
             with logger.time_operation("CREATE_SIGNUP_SUBMISSION", request=request):
                 db = self.db_driver
@@ -321,11 +353,34 @@ class OnboardingLogic(ConnectionService):
 
                 email_clean = get_submission_email(submitted_data)
                 password_clean = normalize_text(get_case_insensitive_value(submitted_data, "password"))
+                first_name = normalize_text(get_case_insensitive_value(submitted_data, "first_name") or get_case_insensitive_value(submitted_data, "firstName"))
+                last_name = normalize_text(get_case_insensitive_value(submitted_data, "last_name") or get_case_insensitive_value(submitted_data, "lastName"))
+                phone = normalize_text(get_case_insensitive_value(submitted_data, "phone"))
+                aadhaar = normalize_text(get_case_insensitive_value(submitted_data, "aadhar") or get_case_insensitive_value(submitted_data, "aadharNumber"))
 
                 if not email_clean:
                     raise HTTPException(status_code=400, detail="Email is required for member approval and login.")
+                if not is_valid_email(email_clean):
+                    raise HTTPException(status_code=400, detail=EMAIL_MESSAGE)
                 if not password_clean:
                     raise HTTPException(status_code=400, detail="Password is required for member approval and login.")
+                if not is_strong_password(password_clean):
+                    raise HTTPException(status_code=400, detail=STRONG_PASSWORD_MESSAGE)
+                if first_name and not is_valid_person_name(first_name):
+                    raise HTTPException(status_code=400, detail=PERSON_NAME_MESSAGE)
+                if last_name and not is_valid_person_name(last_name):
+                    raise HTTPException(status_code=400, detail=PERSON_NAME_MESSAGE)
+                if phone and not is_valid_phone(phone):
+                    raise HTTPException(status_code=400, detail=phone_length_message())
+
+                role_lower = (submission.role or "").lower()
+                if role_lower in ("coach", "referee"):
+                    if not aadhaar:
+                        raise HTTPException(status_code=400, detail="Aadhaar number is required for this role.")
+                    if not is_valid_aadhaar(aadhaar):
+                        raise HTTPException(status_code=400, detail=AADHAAR_MESSAGE)
+                elif aadhaar and not is_valid_aadhaar(aadhaar):
+                    raise HTTPException(status_code=400, detail=AADHAAR_MESSAGE)
 
                 if find_approved_member_by_email(db, email_clean, submission.owner_id):
                     raise HTTPException(status_code=400, detail="This email is already approved as a club member. Please log in.")
@@ -336,8 +391,12 @@ class OnboardingLogic(ConnectionService):
                         detail="Your application is already in the onboarding queue. Club admin has to approve your application before you can log in."
                     )
 
+                verify_token = secrets.token_urlsafe(32)
+
                 submitted_data["email"] = email_clean
                 submitted_data["password"] = password_clean
+                submitted_data["email_verify_token"] = verify_token
+                submitted_data["email_verified_at"] = None
 
                 insert_data = {
                     "owner_id": submission.owner_id,
@@ -345,9 +404,11 @@ class OnboardingLogic(ConnectionService):
                     "submitted_data": json.dumps(submitted_data)
                 }
                 sub_id = db.insert("signup_submissions", insert_data)
-                
+
+                background_tasks.add_task(send_signup_verification_email, email_clean, verify_token)
+
                 return {
-                    "message": "Application submitted. Club admin has to approve your application before you can log in.",
+                    "message": "Application submitted. Please check your email to verify your address. Club admin still has to approve your application before you can log in.",
                     "id": sub_id,
                     "role": submission.role,
                     "status": "pending"
@@ -356,6 +417,44 @@ class OnboardingLogic(ConnectionService):
             raise he
         except Exception as e:
             await logger.log_error(request=request, message=f"Failed to create signup submission: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+
+    async def verify_signup_submission_email(self, request: Request, token: str):
+        try:
+            with logger.time_operation("VERIFY_SIGNUP_SUBMISSION_EMAIL", request=request):
+                db = self.db_driver
+                submissions = db.fetch_all("SELECT * FROM signup_submissions")
+
+                matched_submission = None
+                matched_data = None
+                for sub in submissions:
+                    try:
+                        data = json.loads(sub.get("submitted_data"))
+                    except Exception:
+                        continue
+                    if isinstance(data, dict) and data.get("email_verify_token") == token:
+                        matched_submission = sub
+                        matched_data = data
+                        break
+
+                if not matched_submission:
+                    raise HTTPException(status_code=400, detail="Invalid or expired verification link.")
+
+                if matched_data.get("email_verified_at"):
+                    return {"message": "Your email has already been verified."}
+
+                matched_data["email_verified_at"] = datetime.now(timezone.utc).isoformat()
+
+                db.execute_query(
+                    "UPDATE signup_submissions SET submitted_data = %s WHERE id = %s",
+                    (json.dumps(matched_data), matched_submission.get("id"))
+                )
+
+                return {"message": "Your email has been successfully verified! Club admin still has to approve your application before you can log in."}
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            await logger.log_error(request=request, message=f"Failed to verify signup submission email: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
 
     async def get_signup_submissions(self, request: Request, owner_id: int, current_user: dict):

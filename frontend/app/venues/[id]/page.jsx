@@ -514,9 +514,9 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                                     cursor: selectedSlots.length === 0 || submitting ? "not-allowed" : "pointer",
                                 }}
                             >
-                                {submitting ? "Holding Slots..." : "Proceed to Hold Slots →"}
+                                {submitting ? "Booking..." : "Book Now"}
                             </button>
-                            <p style={styles.summaryTip}>* Slots will be held for 5 minutes during payment checkout.</p>
+                            <p style={styles.summaryTip}>* Slots are held for 5 minutes while you pay with Razorpay.</p>
                         </div>
                     </div>
                 </div>

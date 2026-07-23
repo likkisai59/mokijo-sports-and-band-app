@@ -313,119 +313,8 @@ export default function FundraisingPage() {
                 </div>
             </div>
 
-            {/* Payments Section (Moved to top) */}
-            {!isMember && (
-                <div className="payments-container" style={{ marginBottom: "48px", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "40px" }}>
-                    <div className="payments-header" style={{ marginBottom: "20px" }}>
-                        <div>
-                            <h2 style={{ margin: "0 0 4px", fontSize: "20px", fontWeight: "700", color: "#f4f4f5" }}>Member Payments</h2>
-                            <p style={{ margin: 0, fontSize: "14px", color: "rgba(148,163,184,0.55)" }}>All club group members with full name, email, role, sport, payment, amount, and paid status.</p>
-                        </div>
-                    </div>
-
-                    <div className="payments-table-toolbar" style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "stretch", marginBottom: "16px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <span style={{ fontSize: "14px", color: "rgba(148, 163, 184, 0.55)", margin: 0 }}>{filteredPayments.length} records found</span>
-                        </div>
-                        <div className="search-wrapper" style={{ width: "100%", maxWidth: "100%", flex: "1 1 auto" }}>
-                            <span className="search-icon">
-                                <svg
-                                    viewBox="0 0 24 24"
-                                    width="18"
-                                    height="18"
-                                    stroke="currentColor"
-                                    strokeWidth="2.5"
-                                    fill="none"
-                                >
-                                    <circle cx="11" cy="11" r="8" />
-                                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                                </svg>
-                            </span>
-                            <input
-                                type="text"
-                                className="search-input"
-                                style={{ width: "100%", maxWidth: "100%" }}
-                                placeholder="Search payments by name, email, group, status..."
-                                value={searchQuery}
-                                onChange={(event) => setSearchQuery(event.target.value)}
-                                aria-label="Search payments"
-                            />
-                        </div>
-                    </div>
-
-                    {paymentsError && <div className="payments-error" style={{ color: "#ef4444", marginBottom: "16px" }}>{paymentsError}</div>}
-
-                    {paymentsLoading ? (
-                        <div className="loading-wrapper" style={{ padding: "40px 0", textAlign: "center" }}>
-                            <div className="spinner" style={{ margin: "0 auto 12px" }} />
-                            <p className="loading-text" style={{ color: "rgba(148,163,184,0.55)", fontSize: "14px" }}>Loading member payments...</p>
-                        </div>
-                    ) : filteredPayments.length > 0 ? (
-                        <div className="table-responsive">
-                            <table className="payments-table">
-                                <thead>
-                                    <tr>
-                                        <th>Full Name</th>
-                                        <th>Email</th>
-                                        <th>Role</th>
-                                        <th>Sports</th>
-                                        <th>Group</th>
-                                        <th>Payment For</th>
-                                        <th>Amount</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredPayments.map((payment, index) => (
-                                        <tr key={`${payment.member_id}-${payment.payment_id || "none"}-${index}`}>
-                                            <td>
-                                                <span className="member-name">{payment.full_name || "-"}</span>
-                                            </td>
-                                            <td>
-                                                <span className="member-email">{payment.email || "-"}</span>
-                                            </td>
-                                            <td>
-                                                <span className="role-badge">{payment.role || "Member"}</span>
-                                            </td>
-                                            <td>
-                                                <div className="sport-cell">
-                                                    <span className="sport-badge">{payment.sport || "N/A"}</span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <span className="group-badge">{payment.member_group_name || "N/A"}</span>
-                                            </td>
-                                            <td>
-                                                <span className="payment-title">
-                                                    {payment.payment_for || "No Assigned Payments"}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span className="amount-text">{formatMoney(payment.amount)}</span>
-                                            </td>
-                                            <td>
-                                                <span
-                                                    className={`status-pill status-${payment.status === "paid" ? "paid" : "unpaid"}`}
-                                                >
-                                                    {displayStatus(payment.status)}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    ) : (
-                        <div className="empty-state" style={{ padding: "40px 0", textAlign: "center", border: "1.5px dashed rgba(255,255,255,0.08)", borderRadius: "12px" }}>
-                            <h3 style={{ margin: "0 0 4px", fontSize: "16px", color: "#f4f4f5" }}>No Records Found</h3>
-                            <p style={{ margin: 0, fontSize: "14px", color: "rgba(148,163,184,0.55)" }}>Try another search or add members and payments to the club.</p>
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* Fundraising Campaigns Section (Moved to bottom) */}
-            <div style={{ marginTop: "24px" }}>
+            {/* Fundraising Campaigns Section */}
+            <div style={{ marginBottom: "48px", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "40px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px", marginBottom: "24px" }}>
                     <div>
                         <h2 style={{ margin: "0 0 4px", fontSize: "20px", fontWeight: "700", color: "#f4f4f5" }}>Fundraising Campaigns</h2>
@@ -550,6 +439,117 @@ export default function FundraisingPage() {
                     </div>
                 )}
             </div>
+
+            {/* Member Payments Section */}
+            {!isMember && (
+                <div className="payments-container">
+                    <div className="payments-header" style={{ marginBottom: "20px" }}>
+                        <div>
+                            <h2 style={{ margin: "0 0 4px", fontSize: "20px", fontWeight: "700", color: "#f4f4f5" }}>Member Payments</h2>
+                            <p style={{ margin: 0, fontSize: "14px", color: "rgba(148,163,184,0.55)" }}>All club group members with full name, email, role, sport, payment, amount, and paid status.</p>
+                        </div>
+                    </div>
+
+                    <div className="payments-table-toolbar" style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "stretch", marginBottom: "16px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span style={{ fontSize: "14px", color: "rgba(148, 163, 184, 0.55)", margin: 0 }}>{filteredPayments.length} records found</span>
+                        </div>
+                        <div className="search-wrapper" style={{ width: "100%", maxWidth: "100%", flex: "1 1 auto" }}>
+                            <span className="search-icon">
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    width="18"
+                                    height="18"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                    fill="none"
+                                >
+                                    <circle cx="11" cy="11" r="8" />
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                </svg>
+                            </span>
+                            <input
+                                type="text"
+                                className="search-input"
+                                style={{ width: "100%", maxWidth: "100%" }}
+                                placeholder="Search payments by name, email, group, status..."
+                                value={searchQuery}
+                                onChange={(event) => setSearchQuery(event.target.value)}
+                                aria-label="Search payments"
+                            />
+                        </div>
+                    </div>
+
+                    {paymentsError && <div className="payments-error" style={{ color: "#ef4444", marginBottom: "16px" }}>{paymentsError}</div>}
+
+                    {paymentsLoading ? (
+                        <div className="loading-wrapper" style={{ padding: "40px 0", textAlign: "center" }}>
+                            <div className="spinner" style={{ margin: "0 auto 12px" }} />
+                            <p className="loading-text" style={{ color: "rgba(148,163,184,0.55)", fontSize: "14px" }}>Loading member payments...</p>
+                        </div>
+                    ) : filteredPayments.length > 0 ? (
+                        <div className="table-responsive">
+                            <table className="payments-table">
+                                <thead>
+                                    <tr>
+                                        <th>Full Name</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Sports</th>
+                                        <th>Group</th>
+                                        <th>Payment For</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredPayments.map((payment, index) => (
+                                        <tr key={`${payment.member_id}-${payment.payment_id || "none"}-${index}`}>
+                                            <td>
+                                                <span className="member-name">{payment.full_name || "-"}</span>
+                                            </td>
+                                            <td>
+                                                <span className="member-email">{payment.email || "-"}</span>
+                                            </td>
+                                            <td>
+                                                <span className="role-badge">{payment.role || "Member"}</span>
+                                            </td>
+                                            <td>
+                                                <div className="sport-cell">
+                                                    <span className="sport-badge">{payment.sport || "N/A"}</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span className="group-badge">{payment.member_group_name || "N/A"}</span>
+                                            </td>
+                                            <td>
+                                                <span className="payment-title">
+                                                    {payment.payment_for || "No Assigned Payments"}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span className="amount-text">{formatMoney(payment.amount)}</span>
+                                            </td>
+                                            <td>
+                                                <span
+                                                    className={`status-pill status-${payment.status === "paid" ? "paid" : "unpaid"}`}
+                                                >
+                                                    {displayStatus(payment.status)}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="empty-state" style={{ padding: "40px 0", textAlign: "center", border: "1.5px dashed rgba(255,255,255,0.08)", borderRadius: "12px" }}>
+                            <h3 style={{ margin: "0 0 4px", fontSize: "16px", color: "#f4f4f5" }}>No Records Found</h3>
+                            <p style={{ margin: 0, fontSize: "14px", color: "rgba(148,163,184,0.55)" }}>Try another search or add members and payments to the club.</p>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

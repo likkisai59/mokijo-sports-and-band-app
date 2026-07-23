@@ -4,6 +4,16 @@ import { API_BASE_URL } from "@/lib/api";
 import { useState } from "react";
 import Link from "next/link";
 import styles from "../styles/signup.module.css";
+import {
+    digitsOnly,
+    isValidPhone,
+    isValidAadhaar,
+    formatDobInput,
+    isValidDob,
+    AADHAAR_MESSAGE,
+    DOB_MESSAGE,
+    phoneLengthMessage,
+} from "@/lib/validation";
 
 export default function RegisterUserPage() {
     const [submitted, setSubmitted] = useState(false);
@@ -23,9 +33,19 @@ export default function RegisterUserPage() {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setError(null);
+
+        let nextValue = value;
+        if (name === "dob") {
+            nextValue = formatDobInput(value);
+        } else if (name === "phone") {
+            nextValue = digitsOnly(value).slice(0, 10);
+        } else if (name === "aadharNumber") {
+            nextValue = digitsOnly(value).slice(0, 12);
+        }
+
         setFormData((prev) => ({
             ...prev,
-            [name]: value,
+            [name]: nextValue,
         }));
     };
 
@@ -45,6 +65,24 @@ export default function RegisterUserPage() {
             !formData.aadharNumber
         ) {
             setError("All fields are required.");
+            setLoading(false);
+            return;
+        }
+
+        if (!isValidDob(formData.dob)) {
+            setError(DOB_MESSAGE);
+            setLoading(false);
+            return;
+        }
+
+        if (!isValidPhone(formData.phone, "+91")) {
+            setError(phoneLengthMessage("+91"));
+            setLoading(false);
+            return;
+        }
+
+        if (!isValidAadhaar(formData.aadharNumber)) {
+            setError(AADHAAR_MESSAGE);
             setLoading(false);
             return;
         }
@@ -180,12 +218,14 @@ export default function RegisterUserPage() {
                         </div>
 
                         <div className={styles.fieldGroup}>
-                            <label className={styles.label}>Date of Birth</label>
+                            <label className={styles.label}>Date of Birth (DD/MM/YYYY)</label>
                             <input
-                                type="date"
+                                type="text"
                                 name="dob"
                                 value={formData.dob}
                                 onChange={handleChange}
+                                placeholder="DD/MM/YYYY"
+                                maxLength={10}
                                 className={styles.input}
                                 required
                             />
@@ -209,10 +249,14 @@ export default function RegisterUserPage() {
                                 <input
                                     type="tel"
                                     name="phone"
+                                    inputMode="numeric"
                                     value={formData.phone}
                                     onChange={handleChange}
                                     placeholder="10-digit number"
                                     className={styles.input}
+                                    maxLength={10}
+                                    pattern="[0-9]{10}"
+                                    title="Enter a 10-digit phone number"
                                     required
                                 />
                             </div>
@@ -236,10 +280,14 @@ export default function RegisterUserPage() {
                                 <input
                                     type="text"
                                     name="aadharNumber"
+                                    inputMode="numeric"
                                     value={formData.aadharNumber}
                                     onChange={handleChange}
                                     placeholder="12-digit number"
                                     className={styles.input}
+                                    maxLength={12}
+                                    pattern="[0-9]{12}"
+                                    title="Enter a 12-digit Aadhaar number"
                                     required
                                 />
                             </div>

@@ -1,8 +1,32 @@
 "use client";
+import { useEffect } from "react";
+import { API_BASE_URL } from "@/lib/api";
 import styles from "../../app/styles/signup.module.css";
-import { countries, indianStates, memberOptions, sportsOptions } from "./constants";
+import { countries, getStatesForCountry, memberOptions, sportsOptions } from "./constants";
+import { isValidClubName, CLUB_NAME_MESSAGE, generateClubId } from "@/lib/validation";
 
 export default function Step1({ formData, onChange, onNext }) {
+    const stateList = getStatesForCountry(formData.country);
+
+    useEffect(() => {
+        if (!formData.clubId) {
+            fetch(`${API_BASE_URL}/clubs`)
+                .then((res) => res.json())
+                .then((clubs) => {
+                    const count = (clubs || []).length + 1;
+                    onChange("clubId", generateClubId(count));
+                })
+                .catch(() => {
+                    onChange("clubId", generateClubId(1));
+                });
+        }
+    }, []);
+
+    function handleCountryChange(value) {
+        onChange("country", value);
+        onChange("state", "");
+    }
+
     function handleNext() {
         if (
             !formData.clubName ||
@@ -13,6 +37,10 @@ export default function Step1({ formData, onChange, onNext }) {
             (Array.isArray(formData.sport) && formData.sport.length === 0)
         ) {
             alert("Please fill in all fields before continuing.");
+            return;
+        }
+        if (!isValidClubName(formData.clubName)) {
+            alert(CLUB_NAME_MESSAGE);
             return;
         }
         onNext();
@@ -41,11 +69,30 @@ export default function Step1({ formData, onChange, onNext }) {
             </div>
 
             <div className={styles.fieldGroup}>
+                <label className={styles.label}>
+                    Club ID <span style={{ fontSize: "12px", color: "#c6ff3d", marginLeft: "4px" }}>(Auto-Generated)</span>
+                </label>
+                <input
+                    type="text"
+                    className={styles.input}
+                    value={formData.clubId || "Auto-generating..."}
+                    readOnly
+                    style={{
+                        background: "rgba(255, 255, 255, 0.08)",
+                        color: "#c6ff3d",
+                        fontWeight: 700,
+                        cursor: "not-allowed",
+                        letterSpacing: "1px",
+                    }}
+                />
+            </div>
+
+            <div className={styles.fieldGroup}>
                 <label className={styles.label}>Country *</label>
                 <select
                     className={styles.select}
                     value={formData.country}
-                    onChange={(e) => onChange("country", e.target.value)}
+                    onChange={(e) => handleCountryChange(e.target.value)}
                 >
                     <option value="">-- Select Country --</option>
                     {countries.map((country) => (
@@ -58,18 +105,29 @@ export default function Step1({ formData, onChange, onNext }) {
 
             <div className={styles.fieldGroup}>
                 <label className={styles.label}>State *</label>
-                <select
-                    className={styles.select}
-                    value={formData.state}
-                    onChange={(e) => onChange("state", e.target.value)}
-                >
-                    <option value="">-- Select State --</option>
-                    {indianStates.map((state) => (
-                        <option key={state} value={state}>
-                            {state}
-                        </option>
-                    ))}
-                </select>
+                {stateList ? (
+                    <select
+                        className={styles.select}
+                        value={formData.state}
+                        onChange={(e) => onChange("state", e.target.value)}
+                    >
+                        <option value="">-- Select State --</option>
+                        {stateList.map((state) => (
+                            <option key={state} value={state}>
+                                {state}
+                            </option>
+                        ))}
+                    </select>
+                ) : (
+                    <input
+                        type="text"
+                        className={styles.input}
+                        placeholder={formData.country ? "Enter state / province" : "Select a country first"}
+                        value={formData.state}
+                        onChange={(e) => onChange("state", e.target.value)}
+                        disabled={!formData.country}
+                    />
+                )}
             </div>
 
             <div className={styles.fieldGroup}>

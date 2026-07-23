@@ -63,6 +63,7 @@ export default function Home() {
                                     <Link href="/login-member" className="auth-btn auth-btn--login">Member</Link>
                                     <Link href="/login-venue" className="auth-btn auth-btn--login">Venue Owner</Link>
                                     <Link href="/login-user" className="auth-btn auth-btn--login">User</Link>
+                                    <Link href="/login-trainer" className="auth-btn auth-btn--login">Trainer</Link>
                                 </div>
                             </div>
 
@@ -80,6 +81,7 @@ export default function Home() {
                                     <Link href="/register-member" className="auth-btn auth-btn--reg">Member</Link>
                                     <Link href="/register-venue" className="auth-btn auth-btn--reg">Venue Owner</Link>
                                     <Link href="/register-user" className="auth-btn auth-btn--reg">User</Link>
+                                    <Link href="/register-trainer" className="auth-btn auth-btn--reg">Trainer</Link>
                                 </div>
                             </div>
                         </div>

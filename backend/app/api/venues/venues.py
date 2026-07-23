@@ -1,13 +1,18 @@
 from fastapi import APIRouter, Depends, Request, HTTPException, status
 from typing import List, Optional
 from datetime import date, datetime, timedelta
-import json
 import math
+import hmac
+import uuid
 
 from app.models import schemas
 from app.connectors.connection_service import ConnectionService
-from app.auth.authorization import check_user_authorization
+from app.auth.authorization import check_user_authorization, validate_role_and_permission
+from app.core.config import get_settings
+from app.services.razorpay import call_razorpay_api, build_razorpay_signature, get_razorpay_credentials
 from app.logger import logger
+
+settings = get_settings()
 
 
 def serialize_venue(venue, db):
@@ -197,6 +202,22 @@ class VenuesRouting(ConnectionService):
             tags=["Venues"]
         )
         self.router.add_api_route(
+            path="/bookings/razorpay/order",
+            endpoint=self.create_venue_booking_razorpay_order,
+            methods=["POST"],
+            response_model=schemas.VenueBookingOrderResponse,
+            summary="Create a Razorpay order for a pending venue booking payment.",
+            tags=["Venues"]
+        )
+        self.router.add_api_route(
+            path="/bookings/razorpay/verify",
+            endpoint=self.verify_venue_booking_razorpay_payment,
+            methods=["POST"],
+            response_model=schemas.BookingResponse,
+            summary="Verify Razorpay payment and confirm the venue booking.",
+            tags=["Venues"]
+        )
+        self.router.add_api_route(
             path="/bookings/{booking_id}/approve",
             endpoint=self.approve_booking,
             methods=["POST"],
@@ -334,6 +355,26 @@ class VenuesRouting(ConnectionService):
         logic = VenuesLogic()
         return await logic.confirm_booking(request, req, current_user)
 
+    async def create_venue_booking_razorpay_order(
+        self,
+        request: Request,
+        order_request: schemas.VenueBookingOrderCreate,
+        current_user: dict = Depends(check_user_authorization),
+    ):
+        await logger.log_message(request=request, message="Create venue booking razorpay order router start", step="ROUTER_START", user_info=current_user)
+        logic = VenuesLogic()
+        return await logic.create_venue_booking_razorpay_order(request, order_request, current_user)
+
+    async def verify_venue_booking_razorpay_payment(
+        self,
+        request: Request,
+        verification: schemas.VenueBookingVerifyRequest,
+        current_user: dict = Depends(check_user_authorization),
+    ):
+        await logger.log_message(request=request, message="Verify venue booking razorpay payment router start", step="ROUTER_START", user_info=current_user)
+        logic = VenuesLogic()
+        return await logic.verify_venue_booking_razorpay_payment(request, verification, current_user)
+
     async def approve_booking(self, request: Request, booking_id: int, current_user: dict = Depends(check_user_authorization)):
         await logger.log_message(request=request, message="Approve booking router start", step="ROUTER_START", user_info=current_user)
         logic = VenuesLogic()
@@ -409,10 +450,8 @@ class VenuesLogic(ConnectionService):
             with logger.time_operation("GET_VENUES", request=request):
                 db = self.db_driver
                 # Club admin / discovery of owner-registered venues vs public verified-only list
-                if registered:
-                    query = "SELECT * FROM venues WHERE venue_owner_id IS NOT NULL"
-                else:
-                    query = "SELECT * FROM venues WHERE venue_owner_id IS NOT NULL AND verification_status = 'VERIFIED'"
+                # Verification gating deferred — all owner-registered venues are bookable for now
+                query = "SELECT * FROM venues WHERE venue_owner_id IS NOT NULL"
                 params = []
 
                 if sport and sport != "all":
@@ -578,50 +617,9 @@ class VenuesLogic(ConnectionService):
                         tuple(expired_ids)
                     )
 
-                slots_count_res = db.fetch_one(
-                    "SELECT COUNT(*) as count FROM slots WHERE venue_id = %s AND DATE(start_time) = %s",
-                    (venue_id, target_date)
-                )
-                existing_slots_count = slots_count_res.get("count", 0) if slots_count_res else 0
-
-                if existing_slots_count == 0:
-                    sports = ["badminton"]
-                    supported = venue.get("sports_supported")
-                    if supported:
-                        try:
-                            parsed = json.loads(supported)
-                            if isinstance(parsed, list) and len(parsed) > 0:
-                                sports = parsed
-                        except Exception:
-                            if "," in supported:
-                                sports = [s.strip() for s in supported.split(",") if s.strip()]
-                            elif supported.strip():
-                                sports = [supported.strip()]
-
-                    default_times = [
-                        ("07:00", "08:00", 1200),
-                        ("09:00", "10:00", 1000),
-                        ("17:00", "18:00", 1500),
-                        ("19:00", "20:00", 1800)
-                    ]
-
-                    for i, (start_t, end_t, price) in enumerate(default_times):
-                        sport = sports[i % len(sports)]
-                        start_dt = datetime.combine(target_date, datetime.strptime(start_t, "%H:%M").time())
-                        end_dt = datetime.combine(target_date, datetime.strptime(end_t, "%H:%M").time())
-                        
-                        insert_data = {
-                            "venue_id": venue_id,
-                            "sport": sport,
-                            "start_time": start_dt,
-                            "end_time": end_dt,
-                            "base_price": price,
-                            "current_price": price,
-                            "is_blocked": False,
-                            "status": "AVAILABLE"
-                        }
-                        db.insert("slots", insert_data)
-
+                # NOTE: Slots are no longer auto-seeded with hardcoded defaults here.
+                # Venue owners must explicitly create slots via POST /venues/{venue_id}/slots.
+                # If none exist yet for the requested date, this simply returns an empty list.
                 slots = db.fetch_all(
                     "SELECT * FROM slots WHERE venue_id = %s AND DATE(start_time) = %s",
                     (venue_id, target_date)
@@ -655,14 +653,6 @@ class VenuesLogic(ConnectionService):
                 db = self.db_driver
                 if not booking.slot_ids:
                     raise HTTPException(status_code=400, detail="No slot IDs specified")
-
-                # ── Verify the venue is VERIFIED before booking ──────────────
-                first_slot = db.fetch_one("SELECT venue_id FROM slots WHERE id = %s LIMIT 1", (booking.slot_ids[0],))
-                if first_slot:
-                    venue_check = db.fetch_one("SELECT verification_status FROM venues WHERE id = %s LIMIT 1", (first_slot.get("venue_id"),))
-                    if not venue_check or venue_check.get("verification_status") != "VERIFIED":
-                        raise HTTPException(status_code=400, detail="This venue is not verified and cannot accept bookings.")
-                # ─────────────────────────────────────────────────────────────
 
                 placeholders = ", ".join(["%s"] * len(booking.slot_ids))
                 slots = db.fetch_all(
@@ -1042,14 +1032,6 @@ class VenuesLogic(ConnectionService):
                 if not req.slot_ids:
                     raise HTTPException(status_code=400, detail="No slot IDs provided")
 
-                # ── Verify venue is VERIFIED before allowing hold ──────────────
-                first_slot_row = db.fetch_one("SELECT venue_id FROM slots WHERE id = %s LIMIT 1", (req.slot_ids[0],))
-                if first_slot_row:
-                    v_check = db.fetch_one("SELECT verification_status FROM venues WHERE id = %s LIMIT 1", (first_slot_row.get("venue_id"),))
-                    if not v_check or v_check.get("verification_status") != "VERIFIED":
-                        raise HTTPException(status_code=400, detail="This venue is not verified and cannot accept bookings.")
-                # ──────────────────────────────────────────────────────────────
-
                 # Lock slot rows for update
                 placeholders = ", ".join(["%s"] * len(req.slot_ids))
                 slots = db.fetch_all(
@@ -1151,6 +1133,145 @@ class VenuesLogic(ConnectionService):
             raise he
         except Exception as e:
             await logger.log_error(request=request, message=f"Failed to confirm booking: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+
+    async def create_venue_booking_razorpay_order(
+        self,
+        request: Request,
+        order_request: schemas.VenueBookingOrderCreate,
+        current_user: dict,
+    ):
+        try:
+            with logger.time_operation("CREATE_VENUE_BOOKING_RAZORPAY_ORDER", request=request):
+                db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member", "user", "venue_owner"])
+                key_id, _ = get_razorpay_credentials()
+
+                booking = db.fetch_one(
+                    "SELECT * FROM bookings WHERE id = %s AND user_id = %s",
+                    (order_request.booking_id, order_request.user_id),
+                )
+                if not booking:
+                    raise HTTPException(status_code=404, detail="Booking not found")
+                if booking.get("status") == "confirmed" or booking.get("payment_status") == "paid":
+                    raise HTTPException(status_code=400, detail="This booking is already paid")
+                if booking.get("status") not in ("pending_payment", "pending_approval"):
+                    raise HTTPException(status_code=400, detail="This booking cannot be paid online")
+
+                amount_rupees = int(booking.get("amount_paid") or 0)
+                if amount_rupees <= 0:
+                    raise HTTPException(status_code=400, detail="Booking amount must be greater than zero")
+
+                amount_in_paise = amount_rupees * 100
+                receipt = f"venue_bk_{booking.get('id')}_{uuid.uuid4().hex[:10]}"
+
+                razorpay_order = call_razorpay_api("POST", "/orders", {
+                    "amount": amount_in_paise,
+                    "currency": settings.RAZORPAY_CURRENCY,
+                    "receipt": receipt,
+                    "notes": {
+                        "booking_id": str(booking.get("id")),
+                        "user_id": str(booking.get("user_id")),
+                        "type": "venue_booking",
+                    },
+                })
+
+                local_order_id = db.insert("venue_booking_orders", {
+                    "booking_id": booking.get("id"),
+                    "user_id": booking.get("user_id"),
+                    "razorpay_order_id": razorpay_order["id"],
+                    "amount": amount_in_paise,
+                    "currency": razorpay_order.get("currency", settings.RAZORPAY_CURRENCY),
+                    "status": razorpay_order.get("status", "created"),
+                })
+
+                user = db.fetch_one("SELECT * FROM users WHERE id = %s", (booking.get("user_id"),))
+                prefill_name = None
+                prefill_email = None
+                prefill_contact = None
+                if user:
+                    first = user.get("first_name") or ""
+                    last = user.get("last_name") or ""
+                    prefill_name = f"{first} {last}".strip() or user.get("club_name")
+                    prefill_email = user.get("email")
+                    prefill_contact = user.get("phone")
+
+                return {
+                    "key_id": key_id,
+                    "razorpay_order_id": razorpay_order["id"],
+                    "local_order_id": local_order_id,
+                    "booking_id": booking.get("id"),
+                    "amount": amount_in_paise,
+                    "currency": razorpay_order.get("currency", settings.RAZORPAY_CURRENCY),
+                    "name": "Mukijo Venues",
+                    "description": f"Venue booking #{booking.get('id')}",
+                    "prefill_name": prefill_name,
+                    "prefill_email": prefill_email,
+                    "prefill_contact": prefill_contact,
+                }
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            await logger.log_error(request=request, message=f"Failed to create venue booking Razorpay order: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+
+    async def verify_venue_booking_razorpay_payment(
+        self,
+        request: Request,
+        verification: schemas.VenueBookingVerifyRequest,
+        current_user: dict,
+    ):
+        try:
+            with logger.time_operation("VERIFY_VENUE_BOOKING_RAZORPAY_PAYMENT", request=request):
+                db = self.db_driver
+                validate_role_and_permission(db, current_user, ["admin", "team_member", "user", "venue_owner"])
+
+                booking = db.fetch_one("SELECT * FROM bookings WHERE id = %s", (verification.booking_id,))
+                if not booking:
+                    raise HTTPException(status_code=404, detail="Booking not found")
+
+                gateway_order = db.fetch_one(
+                    "SELECT * FROM venue_booking_orders WHERE booking_id = %s AND razorpay_order_id = %s",
+                    (verification.booking_id, verification.razorpay_order_id),
+                )
+                if not gateway_order:
+                    raise HTTPException(status_code=404, detail="Razorpay order not found for this booking")
+
+                expected_signature = build_razorpay_signature(
+                    gateway_order.get("razorpay_order_id"),
+                    verification.razorpay_payment_id,
+                )
+                if not hmac.compare_digest(expected_signature, verification.razorpay_signature):
+                    db.execute_query(
+                        "UPDATE venue_booking_orders SET status = 'signature_failed', razorpay_payment_id = %s, razorpay_signature = %s WHERE id = %s",
+                        (verification.razorpay_payment_id, verification.razorpay_signature, gateway_order.get("id")),
+                    )
+                    raise HTTPException(status_code=400, detail="Payment verification failed")
+
+                db.execute_query(
+                    "UPDATE venue_booking_orders SET status = 'paid', razorpay_payment_id = %s, razorpay_signature = %s, verified_at = %s WHERE id = %s",
+                    (
+                        verification.razorpay_payment_id,
+                        verification.razorpay_signature,
+                        datetime.utcnow(),
+                        gateway_order.get("id"),
+                    ),
+                )
+
+                return await self.confirm_booking(
+                    request,
+                    schemas.BookingConfirmRequest(
+                        booking_id=verification.booking_id,
+                        payment_id=verification.razorpay_payment_id,
+                        razorpay_order_id=verification.razorpay_order_id,
+                        razorpay_signature=verification.razorpay_signature,
+                    ),
+                    current_user,
+                )
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            await logger.log_error(request=request, message=f"Failed to verify venue booking Razorpay payment: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
 
     async def cancel_booking(self, request: Request, booking_id: int, reason: Optional[str], current_user: dict):

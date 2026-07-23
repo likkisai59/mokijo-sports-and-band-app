@@ -68,6 +68,10 @@ export default function UserDashboard() {
     const [loadingBookings, setLoadingBookings] = useState(true);
     const [cancellingId, setCancellingId] = useState(null);
 
+    // Trainer trainings (Training tab)
+    const [trainerTrainings, setTrainerTrainings] = useState([]);
+    const [loadingTrainings, setLoadingTrainings] = useState(false);
+
     // Create / Host Game form states
     const [gameSport, setGameSport] = useState("badminton");
     const [gameDate, setGameDate] = useState("");
@@ -251,6 +255,27 @@ export default function UserDashboard() {
         }
     };
 
+    const fetchTrainerTrainings = async () => {
+        setLoadingTrainings(true);
+        try {
+            const token = localStorage.getItem("accessToken");
+            const res = await fetch(`${API_BASE_URL}/courses/trainer-trainings`, {
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setTrainerTrainings(Array.isArray(data) ? data : []);
+            } else {
+                setTrainerTrainings([]);
+            }
+        } catch (err) {
+            console.error("Error loading trainings:", err);
+            setTrainerTrainings([]);
+        } finally {
+            setLoadingTrainings(false);
+        }
+    };
+
     const handleJoinGame = async (gameId) => {
         if (!userId) return;
         setJoiningGameId(gameId);
@@ -314,6 +339,8 @@ export default function UserDashboard() {
             } else if (gameSubTab === "explore") {
                 fetchPublicGames();
             }
+        } else if (activeTab === "training") {
+            fetchTrainerTrainings();
         }
     }, [activeTab, gameSubTab]);
 
@@ -487,17 +514,8 @@ export default function UserDashboard() {
         { name: "Fencing", emoji: "🤺", color: "#cbd5e1" },
     ];
 
-    const mockTrainers = [
-        { name: "Rahul Sharma", sport: "Cricket Coach", exp: "8 Yrs" },
-        { name: "Priya Patel", sport: "Badminton Pro", exp: "5 Yrs" },
-        { name: "David Miller", sport: "Football Instructor", exp: "10 Yrs" },
-    ];
-
-    const mockTeams = [
-        { name: "Strikers FC", sport: "Football", members: "18/22" },
-        { name: "Spin Wizards", sport: "Table Tennis", members: "4/6" },
-        { name: "Court Kings", sport: "Basketball", members: "12/15" },
-    ];
+    // Top-rated venues currently available for booking (real data, no mocks)
+    const featuredVenues = venues.slice(0, 3);
 
     // Get sport emoji mapping helper
     const getSportEmoji = (sportName) => {
@@ -667,52 +685,60 @@ export default function UserDashboard() {
                             </div>
                         </div>
 
-                        {/* Trainers Box and Join Team Column Layout */}
+                        {/* Featured Venues and Host/Join a Game Column Layout */}
                         <div style={styles.homeTwoColumns}>
-                            {/* Trainers Box */}
+                            {/* Featured Venues Box (real venues from the discovery API) */}
                             <div style={styles.boxCard}>
                                 <div style={styles.boxHeader}>
                                     <UserCheck size={20} style={{ color: "#d9ff6e" }} />
-                                    <h3 style={styles.boxTitle}>Certified Trainers</h3>
+                                    <h3 style={styles.boxTitle}>Featured Venues</h3>
                                 </div>
-                                <div style={styles.trainersList}>
-                                    {mockTrainers.map((trainer, idx) => (
-                                        <div key={idx} style={styles.trainerItem}>
-                                            <div style={styles.trainerAvatar}>{trainer.name.charAt(0)}</div>
-                                            <div style={styles.trainerInfo}>
-                                                <span style={styles.trainerName}>{trainer.name}</span>
-                                                <span style={styles.trainerSport}>
-                                                    {trainer.sport} • {trainer.exp} Exp
-                                                </span>
+                                {loadingVenues ? (
+                                    <div style={{ padding: "16px 4px", color: "rgba(148,163,184,0.6)", fontSize: 13 }}>
+                                        Loading venues…
+                                    </div>
+                                ) : featuredVenues.length === 0 ? (
+                                    <div style={{ padding: "16px 4px", color: "rgba(148,163,184,0.6)", fontSize: 13 }}>
+                                        No venues available yet. Check back soon!
+                                    </div>
+                                ) : (
+                                    <div style={styles.trainersList}>
+                                        {featuredVenues.map((venue) => (
+                                            <div key={venue.id} style={styles.trainerItem}>
+                                                <div style={styles.trainerAvatar}>{venue.name?.charAt(0) || "V"}</div>
+                                                <div style={styles.trainerInfo}>
+                                                    <span style={styles.trainerName}>{venue.name}</span>
+                                                    <span style={styles.trainerSport}>
+                                                        {venue.location} • ⭐ {venue.rating ?? "New"}
+                                                    </span>
+                                                </div>
+                                                <button
+                                                    style={styles.trainerBtn}
+                                                    onClick={() => router.push(`/venues/${venue.id}`)}
+                                                >
+                                                    Book Now
+                                                </button>
                                             </div>
-                                            <button style={styles.trainerBtn}>Book Session</button>
-                                        </div>
-                                    ))}
-                                </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
-                            {/* Join Team Box */}
+                            {/* Host or Join a Game Box */}
                             <div style={styles.boxCard}>
                                 <div style={styles.boxHeader}>
                                     <Users size={20} style={{ color: "#c6ff3d" }} />
-                                    <h3 style={styles.boxTitle}>Teams Near You</h3>
+                                    <h3 style={styles.boxTitle}>Host or Join a Game</h3>
                                 </div>
-                                <div style={styles.teamsList}>
-                                    {mockTeams.map((team, idx) => (
-                                        <div key={idx} style={styles.teamItem}>
-                                            <div style={styles.teamAvatar}>
-                                                {team.name.substring(0, 2).toUpperCase()}
-                                            </div>
-                                            <div style={styles.teamInfo}>
-                                                <span style={styles.teamName}>{team.name}</span>
-                                                <span style={styles.teamSport}>
-                                                    {team.sport} • {team.members} players
-                                                </span>
-                                            </div>
-                                            <button style={styles.teamJoinBtn}>Join Team</button>
-                                        </div>
-                                    ))}
+                                <div style={{ padding: "8px 4px 4px", color: "rgba(148,163,184,0.6)", fontSize: 13 }}>
+                                    Team discovery is coming soon. Meanwhile, host your own match or join an open lobby.
                                 </div>
+                                <button
+                                    style={{ ...styles.trainerBtn, marginTop: 14 }}
+                                    onClick={() => setActiveTab("game")}
+                                >
+                                    Go to Game Tab
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -908,7 +934,7 @@ export default function UserDashboard() {
                                                     <span style={styles.priceUnit}>/hr onwards</span>
                                                 </div>
                                                 <Link href={`/venues/${venue.id}`} style={styles.bookBtn}>
-                                                    <span>Book Slot</span>
+                                                    <span>Book Now</span>
                                                 </Link>
                                             </div>
                                         </div>
@@ -1638,16 +1664,123 @@ export default function UserDashboard() {
                 )}
 
                 {activeTab === "training" && (
-                    /* Training: coaching sessions & workshops */
-                    <div style={styles.bookingsSection}>
-                        <h2 style={styles.sectionTitle}>My Training Programs</h2>
-                        <div style={styles.emptyContainer}>
-                            <Award size={48} style={{ color: "rgba(148, 163, 184, 0.15)", marginBottom: "16px" }} />
-                            <h3>No Active Training Enrolments</h3>
-                            <p style={{ color: "rgba(148, 163, 184, 0.4)", fontSize: "14px", marginTop: "8px" }}>
-                                You are not enrolled in any coaching academies or workshops at the moment.
-                            </p>
-                        </div>
+                    /* Training: coaching sessions & workshops from platform trainers */
+                    <div style={{ ...styles.bookingsSection, maxWidth: "1100px" }}>
+                        <h2 style={styles.sectionTitle}>Discover Trainings</h2>
+                        <p
+                            style={{
+                                color: "rgba(148, 163, 184, 0.55)",
+                                fontSize: "14px",
+                                marginTop: "-8px",
+                                marginBottom: "20px",
+                            }}
+                        >
+                            Independent trainings created by platform trainers
+                        </p>
+
+                        {loadingTrainings ? (
+                            <div style={styles.emptyContainer}>
+                                <Loader2
+                                    size={32}
+                                    style={{ color: "#c6ff3d", marginBottom: "12px", animation: "spin 1s linear infinite" }}
+                                />
+                                <p style={{ color: "rgba(148, 163, 184, 0.5)", fontSize: "14px" }}>Loading trainings...</p>
+                            </div>
+                        ) : trainerTrainings.length === 0 ? (
+                            <div style={styles.emptyContainer}>
+                                <Award size={48} style={{ color: "rgba(148, 163, 184, 0.15)", marginBottom: "16px" }} />
+                                <h3>No Trainings Available</h3>
+                                <p style={{ color: "rgba(148, 163, 184, 0.4)", fontSize: "14px", marginTop: "8px" }}>
+                                    Trainers have not published any sessions yet. Check back soon.
+                                </p>
+                            </div>
+                        ) : (
+                            <div style={styles.grid}>
+                                {trainerTrainings.map((training) => (
+                                    <Link
+                                        key={training.id}
+                                        href={`/trainings/${training.id}`}
+                                        style={{ ...styles.card, textDecoration: "none", color: "inherit", display: "block" }}
+                                    >
+                                        <div style={styles.cardImageWrapper}>
+                                            <img
+                                                src={
+                                                    training.cover_image ||
+                                                    "https://images.unsplash.com/photo-1517649763962-0c6238842e77?q=80&w=600&auto=format&fit=crop"
+                                                }
+                                                alt={training.title}
+                                                style={styles.cardImage}
+                                            />
+                                            <div style={styles.ratingBadge}>
+                                                <span style={{ textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                                                    {training.status || "open"}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div style={styles.cardBody}>
+                                            <h3 style={styles.cardName}>{training.title}</h3>
+                                            <div style={styles.cardLoc}>
+                                                <MapPin size={12} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
+                                                <span>
+                                                    {training.trainer_name
+                                                        ? `Trainer · ${training.trainer_name}`
+                                                        : training.instructor || "Trainer session"}
+                                                </span>
+                                            </div>
+
+                                            <p
+                                                style={{
+                                                    margin: "0 0 12px",
+                                                    fontSize: "13px",
+                                                    color: "rgba(226, 232, 240, 0.7)",
+                                                    lineHeight: 1.45,
+                                                    display: "-webkit-box",
+                                                    WebkitLineClamp: 2,
+                                                    WebkitBoxOrient: "vertical",
+                                                    overflow: "hidden",
+                                                }}
+                                            >
+                                                {training.description || "No description added."}
+                                            </p>
+
+                                            <div style={styles.cardSports}>
+                                                {training.location && (
+                                                    <span style={styles.cardSportChip}>{training.location}</span>
+                                                )}
+                                                {training.schedule && (
+                                                    <span style={styles.cardSportChip}>{training.schedule}</span>
+                                                )}
+                                                {training.level && (
+                                                    <span style={styles.cardSportChip}>{training.level}</span>
+                                                )}
+                                            </div>
+
+                                            {training.reschedule_reason && (
+                                                <p style={{ margin: "0 0 10px", fontSize: "12px", color: "#fb923c" }}>
+                                                    Rescheduled: {training.reschedule_reason}
+                                                </p>
+                                            )}
+
+                                            <div style={styles.cardFooter}>
+                                                <div style={styles.priceSec}>
+                                                    <span style={styles.priceVal}>
+                                                        {Number(training.fee || 0) > 0
+                                                            ? `\u20B9${Number(training.fee).toLocaleString("en-IN")}`
+                                                            : "Free"}
+                                                    </span>
+                                                    <span style={styles.priceUnit}>
+                                                        {training.available_seats != null
+                                                            ? `${training.available_seats} seats left`
+                                                            : training.start_date || "Open enrollment"}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
             </main>

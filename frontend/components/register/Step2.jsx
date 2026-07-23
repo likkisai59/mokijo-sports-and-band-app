@@ -1,8 +1,33 @@
 "use client";
+import { useState } from "react";
 import styles from "../../app/styles/signup.module.css";
 import { hearAboutOptions, termsOptions } from "./constants";
+import PasswordField from "@/components/ui/PasswordField";
+import PhoneInput from "@/components/ui/PhoneInput";
+import {
+    isValidPersonName,
+    isValidEmail,
+    isStrongPassword,
+    isValidPhone,
+    isValidAadhaar,
+    composePhone,
+    PERSON_NAME_MESSAGE,
+    EMAIL_MESSAGE,
+    STRONG_PASSWORD_MESSAGE,
+    AADHAAR_MESSAGE,
+    phoneLengthMessage,
+} from "@/lib/validation";
 
 export default function Step2({ formData, onChange, onPrevious, onSubmit, loading }) {
+    const [phoneCode, setPhoneCode] = useState("+91");
+    const [phoneDigits, setPhoneDigits] = useState("");
+
+    function syncPhone(code, digits) {
+        setPhoneCode(code);
+        setPhoneDigits(digits);
+        onChange("phone", composePhone(code, digits));
+    }
+
     function handleSubmit() {
         if (loading) return;
         if (
@@ -10,7 +35,7 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
             !formData.lastName ||
             !formData.email ||
             !formData.password ||
-            !formData.phone ||
+            !phoneDigits ||
             !formData.aadharNumber ||
             !formData.hearAbout ||
             !formData.termsAgreed
@@ -18,17 +43,31 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
             alert("Please fill in all fields before submitting.");
             return;
         }
-
-        // Validate Aadhar Number (exactly 12 digits)
-        const aadharRegex = /^\d{12}$/;
-        if (!aadharRegex.test(formData.aadharNumber)) {
-            alert("Aadhar Number must be exactly 12 digits.");
+        if (!isValidPersonName(formData.firstName) || !isValidPersonName(formData.lastName)) {
+            alert(PERSON_NAME_MESSAGE);
+            return;
+        }
+        if (!isValidEmail(formData.email)) {
+            alert(EMAIL_MESSAGE);
+            return;
+        }
+        if (!isStrongPassword(formData.password)) {
+            alert(STRONG_PASSWORD_MESSAGE);
+            return;
+        }
+        if (!isValidPhone(phoneDigits, phoneCode)) {
+            alert(phoneLengthMessage(phoneCode));
+            return;
+        }
+        if (!isValidAadhaar(formData.aadharNumber)) {
+            alert(AADHAAR_MESSAGE);
             return;
         }
         if (formData.termsAgreed === "No") {
             alert("You must agree to the terms and conditions to sign up.");
             return;
         }
+        onChange("phone", composePhone(phoneCode, phoneDigits));
         onSubmit();
     }
 
@@ -82,8 +121,7 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
 
             <div className={styles.fieldGroup}>
                 <label className={styles.label}>Password *</label>
-                <input
-                    type="password"
+                <PasswordField
                     className={styles.input}
                     placeholder="Create a strong password"
                     value={formData.password}
@@ -94,12 +132,14 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
 
             <div className={styles.fieldGroup}>
                 <label className={styles.label}>Club Admin Phone Number *</label>
-                <input
-                    type="tel"
+                <PhoneInput
+                    id="club-admin-phone"
                     className={styles.input}
-                    placeholder="+91 00000 00000"
-                    value={formData.phone}
-                    onChange={(e) => onChange("phone", e.target.value)}
+                    selectClassName={styles.select}
+                    countryCode={phoneCode}
+                    digits={phoneDigits}
+                    onCountryCodeChange={(code) => syncPhone(code, phoneDigits)}
+                    onDigitsChange={(digits) => syncPhone(phoneCode, digits)}
                     disabled={loading}
                 />
             </div>
@@ -112,11 +152,7 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                     placeholder="12-digit Aadhar Number"
                     maxLength={12}
                     value={formData.aadharNumber}
-                    onChange={(e) => {
-                        // Automatically strip non-digits to prevent frustration
-                        const val = e.target.value.replace(/\D/g, "");
-                        onChange("aadharNumber", val);
-                    }}
+                    onChange={(e) => onChange("aadharNumber", e.target.value.replace(/\D/g, ""))}
                     disabled={loading}
                 />
             </div>

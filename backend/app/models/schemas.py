@@ -1,6 +1,21 @@
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel, computed_field, field_validator
 from typing import Optional, List
 from datetime import datetime
+
+from app.core.validators import (
+    is_valid_club_name,
+    is_valid_person_name,
+    is_valid_email,
+    is_strong_password,
+    is_valid_phone,
+    is_valid_aadhaar,
+    CLUB_NAME_MESSAGE,
+    PERSON_NAME_MESSAGE,
+    EMAIL_MESSAGE,
+    STRONG_PASSWORD_MESSAGE,
+    AADHAAR_MESSAGE,
+    phone_length_message,
+)
 
 class MemberCreate(BaseModel):
     first_name: str
@@ -150,7 +165,7 @@ class EventRegistrationResponse(BaseModel):
 
 class GroupCreate(BaseModel):
     activity: str
-    age_group: str
+    age_group: Optional[str] = "All Ages"
     group_name: str
     sub_group: Optional[str] = None
     description: Optional[str] = None
@@ -171,6 +186,7 @@ class GroupResponse(BaseModel):
 
 class UserCreate(BaseModel):
     clubName: str
+    clubId: Optional[str] = None
     country: str
     state: Optional[str] = None
     memberCount: Optional[str] = None
@@ -182,6 +198,48 @@ class UserCreate(BaseModel):
     phone: Optional[str] = None
     aadharNumber: Optional[str] = None
     hearAbout: Optional[str] = None
+
+    @field_validator("clubName")
+    @classmethod
+    def validate_club_name(cls, v: str) -> str:
+        if not is_valid_club_name(v):
+            raise ValueError(CLUB_NAME_MESSAGE)
+        return v
+
+    @field_validator("firstName", "lastName")
+    @classmethod
+    def validate_person_name(cls, v: str) -> str:
+        if not is_valid_person_name(v):
+            raise ValueError(PERSON_NAME_MESSAGE)
+        return v
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        if not is_valid_email(v):
+            raise ValueError(EMAIL_MESSAGE)
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        if not is_strong_password(v):
+            raise ValueError(STRONG_PASSWORD_MESSAGE)
+        return v
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v: Optional[str]) -> Optional[str]:
+        if v and not is_valid_phone(v):
+            raise ValueError(phone_length_message())
+        return v
+
+    @field_validator("aadharNumber")
+    @classmethod
+    def validate_aadhar(cls, v: Optional[str]) -> Optional[str]:
+        if v and not is_valid_aadhaar(v):
+            raise ValueError(AADHAAR_MESSAGE)
+        return v
 
 class StandardUserRegister(BaseModel):
     firstName: str
@@ -310,7 +368,7 @@ class RazorpayVerifyRequest(BaseModel):
 
 class CourseCreate(BaseModel):
     title: str
-    owner_id: int
+    owner_id: Optional[int] = None
     code: Optional[str] = None
     category: Optional[str] = "Training"
     level: Optional[str] = None
@@ -324,6 +382,10 @@ class CourseCreate(BaseModel):
     fee: Optional[int] = 0
     status: Optional[str] = "open"
     group_id: Optional[int] = None
+    cover_image: Optional[str] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    days: Optional[List[str]] = None
 
 class CourseUpdate(BaseModel):
     title: Optional[str] = None
@@ -340,21 +402,37 @@ class CourseUpdate(BaseModel):
     fee: Optional[int] = None
     status: Optional[str] = None
     group_id: Optional[int] = None
+    cover_image: Optional[str] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    days: Optional[List[str]] = None
+
+class CourseReschedule(BaseModel):
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    schedule: Optional[str] = None
+    reason: Optional[str] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    days: Optional[List[str]] = None
 
 class CourseResponse(BaseModel):
     id: int
-    owner_id: int
-    group_id: Optional[int]
+    owner_id: Optional[int] = None
+    trainer_id: Optional[int] = None
+    is_trainer_training: bool = False
+    trainer_name: Optional[str] = None
+    group_id: Optional[int] = None
     title: str
-    code: Optional[str]
+    code: Optional[str] = None
     category: str
-    level: Optional[str]
-    description: Optional[str]
-    instructor: Optional[str]
-    start_date: Optional[str]
-    end_date: Optional[str]
-    schedule: Optional[str]
-    location: Optional[str]
+    level: Optional[str] = None
+    description: Optional[str] = None
+    instructor: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    schedule: Optional[str] = None
+    location: Optional[str] = None
     capacity: int
     fee: int
     status: str
@@ -363,12 +441,84 @@ class CourseResponse(BaseModel):
     registration_count: int = 0
     available_seats: int = 0
     paid_count: int = 0
+    reschedule_reason: Optional[str] = None
+    rescheduled_at: Optional[str] = None
+    cover_image: Optional[str] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    days: Optional[List[str]] = None
 
     class Config:
         from_attributes = True
 
+class TrainerRegister(BaseModel):
+    first_name: str
+    last_name: str
+    email: str
+    phone: str
+    password: str
+    specialization: str
+    experience: Optional[str] = None
+    aadhar: Optional[str] = None
+    sports: List[str] = []
+
+class TrainerLogin(BaseModel):
+    email: str
+    password: str
+
+class CourseRegistrationResponse(BaseModel):
+    id: int
+    owner_id: Optional[int] = None
+    course_id: int
+    member_id: Optional[int] = None
+    participant_name: str
+    participant_email: Optional[str] = None
+    participant_phone: Optional[str] = None
+    status: str
+    payment_status: str
+    notes: Optional[str] = None
+    registered_at: Optional[str] = None
+    course_title: Optional[str] = None
+    group_name: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class TrainerPublicProfile(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    specialization: Optional[str] = None
+    experience: Optional[str] = None
+    sports: Optional[List[str]] = None
+    phone: Optional[str] = None
+
+class TrainerTrainingDetailResponse(CourseResponse):
+    trainer: Optional[TrainerPublicProfile] = None
+
+class TrainingEnrollOrderResponse(BaseModel):
+    free: bool = False
+    registration_id: int
+    registration: Optional[CourseRegistrationResponse] = None
+    key_id: Optional[str] = None
+    razorpay_order_id: Optional[str] = None
+    local_order_id: Optional[int] = None
+    amount: Optional[int] = None
+    currency: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    prefill_name: Optional[str] = None
+    prefill_email: Optional[str] = None
+    prefill_contact: Optional[str] = None
+
+class TrainingEnrollVerifyRequest(BaseModel):
+    registration_id: int
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+
 class CourseRegistrationCreate(BaseModel):
-    owner_id: int
+    owner_id: Optional[int] = None
     member_id: Optional[int] = None
     participant_name: Optional[str] = None
     participant_email: Optional[str] = None
@@ -381,24 +531,6 @@ class CourseRegistrationUpdate(BaseModel):
     status: Optional[str] = None
     payment_status: Optional[str] = None
     notes: Optional[str] = None
-
-class CourseRegistrationResponse(BaseModel):
-    id: int
-    owner_id: int
-    course_id: int
-    member_id: Optional[int]
-    participant_name: str
-    participant_email: Optional[str]
-    participant_phone: Optional[str]
-    status: str
-    payment_status: str
-    notes: Optional[str]
-    registered_at: Optional[str] = None
-    course_title: Optional[str] = None
-    group_name: Optional[str] = None
-
-    class Config:
-        from_attributes = True
 
 class SignupFormCreate(BaseModel):
     owner_id: int

@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { IndianRupee } from "lucide-react";
 
 const NAV = [
     {
@@ -29,7 +30,7 @@ const NAV = [
                 ),
             },
             {
-                href: "/venue-dashboard/my-venues",
+                href: "/venue-dashboard/verification",
                 label: "Verification Status",
                 icon: (
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
@@ -62,20 +63,7 @@ const NAV = [
             {
                 href: "/venue-dashboard/payouts",
                 label: "Payouts",
-                icon: (
-                    <svg
-                        viewBox="0 0 24 24"
-                        width="18"
-                        height="18"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    >
-                        <path d="M6 9h12M6 5h12M6 5c8.3 0 8.3 8 0 8M12 13L6 21" />
-                    </svg>
-                ),
+                icon: <IndianRupee size={18} strokeWidth={2} />,
             },
         ],
     },
@@ -83,14 +71,6 @@ const NAV = [
 
 export default function VenueSidebar() {
     const pathname = usePathname();
-    const router = useRouter();
-
-    const handleLogout = () => {
-        localStorage.removeItem("venueOwnerId");
-        localStorage.removeItem("venueOwnerName");
-        localStorage.removeItem("isVenueOwner");
-        router.push("/login-venue");
-    };
 
     return (
         <aside className="vd-sidebar">
@@ -109,30 +89,6 @@ export default function VenueSidebar() {
                     ))}
                 </div>
             ))}
-
-            <div style={{ marginTop: "auto", paddingTop: 24 }}>
-                <button
-                    className="vd-nav-item"
-                    style={{ width: "100%", border: "none", background: "transparent", cursor: "pointer" }}
-                    onClick={handleLogout}
-                >
-                    <span className="vd-nav-icon">
-                        <svg
-                            viewBox="0 0 24 24"
-                            width="18"
-                            height="18"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                        >
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                            <polyline points="16 17 21 12 16 7" />
-                            <line x1="21" y1="12" x2="9" y2="12" />
-                        </svg>
-                    </span>
-                    Logout
-                </button>
-            </div>
         </aside>
     );
 }

@@ -29,7 +29,7 @@ def test_role_authentication_and_authorization():
         "firstName": "Auth",
         "lastName": "Admin",
         "email": "role_test_admin@mukijo.com",
-        "password": "Password123"
+        "password": "Password123!"
     }
     response = client.post("/register", json=admin_register_payload)
     assert response.status_code == 200
@@ -45,7 +45,7 @@ def test_role_authentication_and_authorization():
         "firstName": "Other",
         "lastName": "Admin",
         "email": "other_admin@mukijo.com",
-        "password": "Password123"
+        "password": "Password123!"
     }
     response = client.post("/register", json=other_admin_payload)
     assert response.status_code == 200
@@ -57,7 +57,7 @@ def test_role_authentication_and_authorization():
     # 3. Log in as Auth Admin and get token
     login_payload = {
         "email": "role_test_admin@mukijo.com",
-        "password": "Password123"
+        "password": "Password123!"
     }
     response = client.post("/login", json=login_payload)
     assert response.status_code == 200
@@ -66,7 +66,7 @@ def test_role_authentication_and_authorization():
     # Log in as Other Admin and get token
     other_login_payload = {
         "email": "other_admin@mukijo.com",
-        "password": "Password123"
+        "password": "Password123!"
     }
     response = client.post("/login", json=other_login_payload)
     assert response.status_code == 200

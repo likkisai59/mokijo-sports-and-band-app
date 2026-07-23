@@ -216,9 +216,13 @@ export default function EventDetailPage() {
         }
 
         try {
+            const token = localStorage.getItem("accessToken");
             const response = await fetch(`${API_BASE_URL}/events/${id}/respond`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
                 body: JSON.stringify({
                     member_email: userEmail,
                     status: status,
@@ -228,7 +232,9 @@ export default function EventDetailPage() {
             if (response.ok) {
                 alert(`Your response has been successfully saved: ${status.toUpperCase()}!`);
                 // Reload registrations
-                const regRes = await fetch(`${API_BASE_URL}/events/${id}/participants`);
+                const regRes = await fetch(`${API_BASE_URL}/events/${id}/participants`, {
+                    headers: token ? { Authorization: `Bearer ${token}` } : {},
+                });
                 if (regRes.ok) {
                     const regData = await regRes.json();
                     setRegistrations(regData);

@@ -1,0 +1,54 @@
+# Mukijo Workflow Diagram
+
+## Personas (entry)
+
+```
+Landing (/)
+ ├─ Club Admin     → /login | /register
+ ├─ Member         → /login-member | /register-member
+ ├─ Venue Owner    → /login-venue | /register-venue
+ ├─ Trainer        → /login-trainer | /register-trainer   ← NEW
+ └─ User           → /login-user | /register-user
+```
+
+## Trainer MVP flow
+
+```mermaid
+flowchart LR
+  subgraph entry [Entry]
+    Reg["/register-trainer"]
+    Login["/login-trainer"]
+  end
+  subgraph dash [Trainer Dashboard]
+    Home["Overview lists trainings"]
+    Create["Create Training"]
+    Resched["Reschedule Training"]
+  end
+  subgraph data [courses table]
+    AdminCourse["owner_id set\ntrainer_id NULL"]
+    TrainerCourse["trainer_id set\nowner_id NULL"]
+  end
+  Reg --> Login --> Home
+  Home --> Create --> TrainerCourse
+  Home --> Resched --> TrainerCourse
+  AdminCourse -.->|"untouched"| AdminUI["/dashboard/courses"]
+```
+
+### Steps
+
+1. Trainer registers at `/register-trainer` → `POST /trainer/register` (creates `trainers` row).
+2. Trainer signs in at `/login-trainer` → `POST /trainer/login` (JWT `role: trainer`) → `/trainer-dashboard`.
+3. Overview (`/trainer-dashboard/overview`) lists all trainings for that trainer + Create CTA.
+4. Trainings (`/trainer-dashboard/trainings`):
+   - Create training → `POST /trainer/{id}/courses` (`trainer_id` set, `owner_id` NULL).
+   - Reschedule → `POST /trainer/{id}/courses/{course_id}/reschedule` (dates/schedule + reason).
+5. Club admin `/courses` flows remain unchanged (`WHERE owner_id = …`); trainer rows never appear there.
+
+## Compatibility
+
+| Area | Behavior |
+|------|----------|
+| Club courses | Still use `owner_id`; `trainer_id` stays NULL |
+| Trainer courses | Use `trainer_id`; `owner_id` is NULL |
+| Reschedule columns | Nullable; unused by club admin APIs |
+| Club Coach role | Unchanged (`members.role = Coach`) |
