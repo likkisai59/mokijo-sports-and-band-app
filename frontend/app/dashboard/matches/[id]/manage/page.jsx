@@ -95,8 +95,8 @@ export default function DashboardMatchManagePage() {
             }, 3000);
         };
 
-        socket.onerror = (err) => {
-            console.error("WebSocket error:", err);
+        socket.onerror = () => {
+            console.warn("WebSocket: connection lost, will retry...");
             socket.close();
         };
     };
