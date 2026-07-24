@@ -1,10 +1,33 @@
 "use client";
 import { API_BASE_URL } from "@/lib/api";
 
-import { useEffect, useState, Suspense, use } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { ArrowLeft, Clock, CreditCard, CheckCircle2, AlertTriangle, HelpCircle } from "lucide-react";
+import { ArrowLeft, Clock, CreditCard, CheckCircle2 } from "lucide-react";
+
+function loadRazorpayCheckout() {
+    if (typeof window === "undefined") return Promise.resolve();
+    if (window.Razorpay) return Promise.resolve();
+
+    return new Promise((resolve, reject) => {
+        const existingScript = document.querySelector("script[src='https://checkout.razorpay.com/v1/checkout.js']");
+        if (existingScript) {
+            existingScript.addEventListener("load", () => resolve(), { once: true });
+            existingScript.addEventListener("error", () => reject(new Error("Could not load Razorpay Checkout.")), {
+                once: true,
+            });
+            return;
+        }
+
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.async = true;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error("Could not load Razorpay Checkout."));
+        document.body.appendChild(script);
+    });
+}
 
 function CheckoutContent() {
     const searchParams = useSearchParams();
@@ -102,24 +125,90 @@ function CheckoutContent() {
 
         try {
             if (bookingId) {
-                const res = await fetch(`${API_BASE_URL}/bookings/confirm`, {
+                const userId = localStorage.getItem("userId");
+                if (!userId) {
+                    setError("Please sign in to complete payment.");
+                    setPaying(false);
+                    router.push("/login-user");
+                    return;
+                }
+
+                await loadRazorpayCheckout();
+
+                const orderRes = await fetch(`${API_BASE_URL}/bookings/razorpay/order`, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         booking_id: Number(bookingId),
-                        payment_id: "pay_mock_" + Math.random().toString(36).substring(2, 9).toUpperCase(),
+                        user_id: Number(userId),
                     }),
                 });
 
-                if (res.ok) {
-                    setPaid(true);
-                } else {
-                    const errorData = await res.json().catch(() => ({}));
-                    setError(errorData.detail || "Payment verification failed or slots expired.");
+                if (!orderRes.ok) {
+                    const errorData = await orderRes.json().catch(() => ({}));
+                    throw new Error(errorData.detail || "Failed to create Razorpay order.");
                 }
-            } else if (gameId) {
+
+                const order = await orderRes.json();
+
+                const checkout = new window.Razorpay({
+                    key: order.key_id,
+                    amount: order.amount,
+                    currency: order.currency,
+                    name: order.name || "Mukijo Venues",
+                    description: order.description || `Venue booking #${bookingId}`,
+                    order_id: order.razorpay_order_id,
+                    prefill: {
+                        name: order.prefill_name || "",
+                        email: order.prefill_email || "",
+                        contact: order.prefill_contact || "",
+                    },
+                    theme: { color: "#c6ff3d" },
+                    handler: async (response) => {
+                        try {
+                            const verifyRes = await fetch(`${API_BASE_URL}/bookings/razorpay/verify`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    booking_id: Number(bookingId),
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                }),
+                            });
+
+                            if (!verifyRes.ok) {
+                                const errorData = await verifyRes.json().catch(() => ({}));
+                                setError(errorData.detail || "Payment verification failed or slots expired.");
+                                setPaying(false);
+                                return;
+                            }
+
+                            const confirmed = await verifyRes.json();
+                            setBooking(confirmed);
+                            setPaid(true);
+                        } catch (verifyErr) {
+                            console.error(verifyErr);
+                            setError("Payment completed but verification failed. Contact support with your payment ID.");
+                        } finally {
+                            setPaying(false);
+                        }
+                    },
+                    modal: {
+                        ondismiss: () => setPaying(false),
+                    },
+                });
+
+                checkout.on("payment.failed", (response) => {
+                    setError(response?.error?.description || "Payment failed. Please try again.");
+                    setPaying(false);
+                });
+
+                checkout.open();
+                return;
+            }
+
+            if (gameId) {
                 const res = await fetch(`${API_BASE_URL}/webhooks/payments/game-join`, {
                     method: "POST",
                     headers: {
@@ -141,9 +230,9 @@ function CheckoutContent() {
             }
         } catch (err) {
             console.error(err);
-            setError("Connection issue. Please verify and try again.");
+            setError(err?.message || "Connection issue. Please verify and try again.");
         } finally {
-            setPaying(false);
+            if (!bookingId) setPaying(false);
         }
     };
 
@@ -189,7 +278,7 @@ function CheckoutContent() {
                 {paid ? (
                     /* Success screen */
                     <div style={styles.successCard}>
-                        <CheckCircle2 size={56} style={{ color: "#bffe00", marginBottom: "16px" }} />
+                        <CheckCircle2 size={56} style={{ color: "#c6ff3d", marginBottom: "16px" }} />
                         <h1 style={styles.successTitle}>Booking Confirmed!</h1>
                         <p style={styles.successSubtitle}>
                             Your slots are successfully reserved. Get ready for your game!
@@ -202,7 +291,7 @@ function CheckoutContent() {
                             </div>
                             <div style={styles.receiptRow}>
                                 <span style={styles.receiptLabel}>Amount Paid</span>
-                                <span style={{ ...styles.receiptVal, color: "#bffe00" }}>₹{booking?.amount_paid}</span>
+                                <span style={{ ...styles.receiptVal, color: "#c6ff3d" }}>₹{booking?.amount_paid}</span>
                             </div>
                             <div style={styles.receiptRow}>
                                 <span style={styles.receiptLabel}>Payment Reference</span>
@@ -290,9 +379,9 @@ function CheckoutContent() {
                             <section style={styles.section}>
                                 <h2 style={styles.sectionTitle}>Payment Method</h2>
                                 <div style={styles.paymentCard}>
-                                    <CreditCard size={20} style={{ color: "#00f0ff" }} />
+                                    <CreditCard size={20} style={{ color: "#d9ff6e" }} />
                                     <div style={{ flexGrow: 1 }}>
-                                        <h3 style={{ fontSize: "14px", fontWeight: "700" }}>Mock Payment Gateway</h3>
+                                        <h3 style={{ fontSize: "14px", fontWeight: "700" }}>Razorpay</h3>
                                         <p
                                             style={{
                                                 fontSize: "12px",
@@ -300,10 +389,10 @@ function CheckoutContent() {
                                                 marginTop: "4px",
                                             }}
                                         >
-                                            Simulate successful checkout completion in one click.
+                                            Pay securely with UPI, cards, wallets, or netbanking.
                                         </p>
                                     </div>
-                                    <CheckCircle2 size={20} style={{ color: "#bffe00" }} />
+                                    <CheckCircle2 size={20} style={{ color: "#c6ff3d" }} />
                                 </div>
                             </section>
                         </div>
@@ -344,7 +433,7 @@ function CheckoutContent() {
                                         cursor: expired || paying ? "not-allowed" : "pointer",
                                     }}
                                 >
-                                    {paying ? "Processing..." : `Pay ₹${booking?.amount_paid} Now`}
+                                    {paying ? "Opening Razorpay..." : `Book Now · Pay ₹${booking?.amount_paid}`}
                                 </button>
 
                                 {expired && (
@@ -373,7 +462,7 @@ const styles = {
     container: {
         minHeight: "100vh",
         backgroundColor: "#08080f",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         fontFamily: "'Outfit', sans-serif",
         paddingBottom: "80px",
     },
@@ -382,7 +471,7 @@ const styles = {
         justifyContent: "space-between",
         alignItems: "center",
         padding: "16px 40px",
-        background: "rgba(15, 15, 26, 0.8)",
+        background: "rgba(20, 20, 31, 0.8)",
         backdropFilter: "blur(12px)",
         borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
         position: "sticky",
@@ -424,7 +513,7 @@ const styles = {
         width: "40px",
         height: "40px",
         border: "4px solid rgba(255,255,255,0.1)",
-        borderTopColor: "#bffe00",
+        borderTopColor: "#c6ff3d",
         borderRadius: "50%",
         animation: "spin 1s linear infinite",
         marginBottom: "16px",
@@ -446,12 +535,12 @@ const styles = {
         textAlign: "center",
     },
     backLink: {
-        color: "#00f0ff",
+        color: "#d9ff6e",
         fontWeight: "600",
         textDecoration: "none",
     },
     successCard: {
-        background: "rgba(15, 15, 26, 0.9)",
+        background: "rgba(20, 20, 31, 0.9)",
         border: "1px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "16px",
         padding: "40px",
@@ -499,8 +588,8 @@ const styles = {
         color: "#ffffff",
     },
     primaryBtn: {
-        background: "linear-gradient(135deg, #bffe00, #00f0ff)",
-        color: "#050508",
+        background: "linear-gradient(135deg, #c6ff3d, #d9ff6e)",
+        color: "#08080f",
         border: "none",
         padding: "12px 24px",
         borderRadius: "8px",
@@ -510,12 +599,12 @@ const styles = {
         textTransform: "uppercase",
         textDecoration: "none",
         transform: "skewX(-6deg)",
-        boxShadow: "0 4px 12px rgba(191, 254, 0, 0.2)",
+        boxShadow: "0 4px 12px rgba(198, 255, 61, 0.2)",
     },
     secondaryBtn: {
         background: "transparent",
-        color: "#00f0ff",
-        border: "1.5px solid rgba(0, 240, 255, 0.3)",
+        color: "#d9ff6e",
+        border: "1.5px solid rgba(217, 255, 110, 0.3)",
         padding: "11px 24px",
         borderRadius: "8px",
         fontSize: "13px",
@@ -558,11 +647,11 @@ const styles = {
     sectionTitle: {
         fontSize: "16px",
         fontWeight: "700",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         marginBottom: "16px",
         textTransform: "uppercase",
         letterSpacing: "0.05em",
-        borderLeft: "3px solid #bffe00",
+        borderLeft: "3px solid #c6ff3d",
         paddingLeft: "8px",
     },
     slotsList: {
@@ -587,7 +676,7 @@ const styles = {
     slotSport: {
         fontSize: "11px",
         fontWeight: "700",
-        color: "#00f0ff",
+        color: "#d9ff6e",
         letterSpacing: "0.05em",
     },
     slotTime: {
@@ -598,11 +687,11 @@ const styles = {
     slotCost: {
         fontSize: "15px",
         fontWeight: "700",
-        color: "#bffe00",
+        color: "#c6ff3d",
     },
     paymentCard: {
         background: "rgba(255, 255, 255, 0.03)",
-        border: "1px solid rgba(0, 240, 255, 0.15)",
+        border: "1px solid rgba(217, 255, 110, 0.15)",
         borderRadius: "12px",
         padding: "20px",
         display: "flex",
@@ -624,7 +713,7 @@ const styles = {
         fontSize: "15px",
         fontWeight: "700",
         textTransform: "uppercase",
-        color: "rgba(241, 245, 249, 0.6)",
+        color: "rgba(244, 244, 245, 0.6)",
         marginBottom: "20px",
         letterSpacing: "0.05em",
     },
@@ -647,12 +736,12 @@ const styles = {
         alignItems: "center",
         fontSize: "18px",
         fontWeight: "800",
-        color: "#bffe00",
+        color: "#c6ff3d",
         marginBottom: "24px",
     },
     payBtn: {
-        background: "linear-gradient(135deg, #bffe00, #00f0ff)",
-        color: "#050508",
+        background: "linear-gradient(135deg, #c6ff3d, #d9ff6e)",
+        color: "#08080f",
         border: "none",
         padding: "14px",
         borderRadius: "10px",
@@ -663,13 +752,13 @@ const styles = {
         width: "100%",
         transition: "all 0.25s ease",
         transform: "skewX(-6deg)",
-        boxShadow: "0 6px 20px rgba(191, 254, 0, 0.25)",
+        boxShadow: "0 6px 20px rgba(198, 255, 61, 0.25)",
     },
     rebookBtn: {
         display: "block",
         textAlign: "center",
         marginTop: "12px",
-        color: "#00f0ff",
+        color: "#d9ff6e",
         fontSize: "13px",
         fontWeight: "700",
         textDecoration: "none",

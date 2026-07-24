@@ -13,7 +13,6 @@ export default function NewCampaignPage() {
         goal: "",
         description: "",
         deadline: "",
-        group: "",
     });
     const [loading, setLoading] = useState(false);
 
@@ -36,7 +35,6 @@ export default function NewCampaignPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     ...form,
-                    group_name: form.group,
                     owner_id: parseInt(userId),
                     goal: parseInt(form.goal),
                 }),
@@ -115,17 +113,6 @@ export default function NewCampaignPage() {
                                 onChange={handleChange}
                             />
                         </div>
-                    </div>
-
-                    <div>
-                        <label className="form-label">Group (optional)</label>
-                        <input
-                            className="form-input"
-                            name="group"
-                            value={form.group}
-                            onChange={handleChange}
-                            placeholder="e.g. Weekend Warriors"
-                        />
                     </div>
 
                     <div>

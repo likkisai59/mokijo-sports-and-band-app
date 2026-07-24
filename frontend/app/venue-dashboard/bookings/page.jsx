@@ -165,7 +165,7 @@ export default function BookingsPage() {
                                             {fmt(b.start_time)} – {fmt(b.end_time)}
                                         </td>
                                         <td style={{ whiteSpace: "nowrap" }}>{fmtDate(b.booking_date)}</td>
-                                        <td style={{ color: "#bffe00", fontWeight: 600 }}>₹{b.amount_paid}</td>
+                                        <td style={{ color: "#c6ff3d", fontWeight: 600 }}>₹{b.amount_paid}</td>
                                         <td>{statusBadge(b.payment_status)}</td>
                                         <td>{statusBadge(b.booking_status)}</td>
                                         <td style={{ whiteSpace: "nowrap" }}>

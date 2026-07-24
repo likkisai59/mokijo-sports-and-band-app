@@ -68,6 +68,10 @@ export default function UserDashboard() {
     const [loadingBookings, setLoadingBookings] = useState(true);
     const [cancellingId, setCancellingId] = useState(null);
 
+    // Trainer trainings (Training tab)
+    const [trainerTrainings, setTrainerTrainings] = useState([]);
+    const [loadingTrainings, setLoadingTrainings] = useState(false);
+
     // Create / Host Game form states
     const [gameSport, setGameSport] = useState("badminton");
     const [gameDate, setGameDate] = useState("");
@@ -251,6 +255,27 @@ export default function UserDashboard() {
         }
     };
 
+    const fetchTrainerTrainings = async () => {
+        setLoadingTrainings(true);
+        try {
+            const token = localStorage.getItem("accessToken");
+            const res = await fetch(`${API_BASE_URL}/courses/trainer-trainings`, {
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setTrainerTrainings(Array.isArray(data) ? data : []);
+            } else {
+                setTrainerTrainings([]);
+            }
+        } catch (err) {
+            console.error("Error loading trainings:", err);
+            setTrainerTrainings([]);
+        } finally {
+            setLoadingTrainings(false);
+        }
+    };
+
     const handleJoinGame = async (gameId) => {
         if (!userId) return;
         setJoiningGameId(gameId);
@@ -314,6 +339,8 @@ export default function UserDashboard() {
             } else if (gameSubTab === "explore") {
                 fetchPublicGames();
             }
+        } else if (activeTab === "training") {
+            fetchTrainerTrainings();
         }
     }, [activeTab, gameSubTab]);
 
@@ -466,38 +493,29 @@ export default function UserDashboard() {
     // 20 Sports definition with distinct icons
     const twentySports = [
         { name: "Cricket", emoji: "🏏", color: "#f59e0b" },
-        { name: "Football", emoji: "⚽", color: "#3b82f6" },
-        { name: "Badminton", emoji: "🏸", color: "#ec4899" },
+        { name: "Football", emoji: "⚽", color: "#c6ff3d" },
+        { name: "Badminton", emoji: "🏸", color: "#ff2e93" },
         { name: "Basketball", emoji: "🏀", color: "#f97316" },
         { name: "Tennis", emoji: "🎾", color: "#84cc16" },
-        { name: "Swimming", emoji: "🏊", color: "#06b6d4" },
+        { name: "Swimming", emoji: "🏊", color: "#d9ff6e" },
         { name: "Volleyball", emoji: "🏐", color: "#eab308" },
         { name: "Table Tennis", emoji: "🏓", color: "#ef4444" },
-        { name: "Squash", emoji: "🥎", color: "#a855f7" },
-        { name: "Rugby", emoji: "🏉", color: "#6366f1" },
+        { name: "Squash", emoji: "🥎", color: "#ff2e93" },
+        { name: "Rugby", emoji: "🏉", color: "#c6ff3d" },
         { name: "Hockey", emoji: "🏑", color: "#14b8a6" },
         { name: "Baseball", emoji: "⚾", color: "#eab308" },
         { name: "Golf", emoji: "⛳", color: "#22c55e" },
-        { name: "Athletics", emoji: "🏃", color: "#f43f5e" },
+        { name: "Athletics", emoji: "🏃", color: "#ff2e93" },
         { name: "Boxing", emoji: "🥊", color: "#dc2626" },
-        { name: "Wrestling", emoji: "🤼", color: "#8b5cf6" },
-        { name: "Karate", emoji: "🥋", color: "#f43f5e" },
-        { name: "Archery", emoji: "🏹", color: "#00f0ff" },
-        { name: "Cycling", emoji: "🚴", color: "#06b6d4" },
+        { name: "Wrestling", emoji: "🤼", color: "#c6ff3d" },
+        { name: "Karate", emoji: "🥋", color: "#ff2e93" },
+        { name: "Archery", emoji: "🏹", color: "#d9ff6e" },
+        { name: "Cycling", emoji: "🚴", color: "#d9ff6e" },
         { name: "Fencing", emoji: "🤺", color: "#cbd5e1" },
     ];
 
-    const mockTrainers = [
-        { name: "Rahul Sharma", sport: "Cricket Coach", exp: "8 Yrs" },
-        { name: "Priya Patel", sport: "Badminton Pro", exp: "5 Yrs" },
-        { name: "David Miller", sport: "Football Instructor", exp: "10 Yrs" },
-    ];
-
-    const mockTeams = [
-        { name: "Strikers FC", sport: "Football", members: "18/22" },
-        { name: "Spin Wizards", sport: "Table Tennis", members: "4/6" },
-        { name: "Court Kings", sport: "Basketball", members: "12/15" },
-    ];
+    // Top-rated venues currently available for booking (real data, no mocks)
+    const featuredVenues = venues.slice(0, 3);
 
     // Get sport emoji mapping helper
     const getSportEmoji = (sportName) => {
@@ -520,8 +538,8 @@ export default function UserDashboard() {
                         onClick={() => setActiveTab("home")}
                         style={{
                             ...styles.headerTabBtn,
-                            color: activeTab === "home" ? "#bffe00" : "rgba(241, 245, 249, 0.6)",
-                            borderBottomColor: activeTab === "home" ? "#bffe00" : "transparent",
+                            color: activeTab === "home" ? "#c6ff3d" : "rgba(244, 244, 245, 0.6)",
+                            borderBottomColor: activeTab === "home" ? "#c6ff3d" : "transparent",
                         }}
                     >
                         <HomeIcon size={16} />
@@ -532,8 +550,8 @@ export default function UserDashboard() {
                         onClick={() => setActiveTab("game")}
                         style={{
                             ...styles.headerTabBtn,
-                            color: activeTab === "game" ? "#bffe00" : "rgba(241, 245, 249, 0.6)",
-                            borderBottomColor: activeTab === "game" ? "#bffe00" : "transparent",
+                            color: activeTab === "game" ? "#c6ff3d" : "rgba(244, 244, 245, 0.6)",
+                            borderBottomColor: activeTab === "game" ? "#c6ff3d" : "transparent",
                         }}
                     >
                         <Trophy size={16} />
@@ -544,8 +562,8 @@ export default function UserDashboard() {
                         onClick={() => setActiveTab("booking")}
                         style={{
                             ...styles.headerTabBtn,
-                            color: activeTab === "booking" ? "#bffe00" : "rgba(241, 245, 249, 0.6)",
-                            borderBottomColor: activeTab === "booking" ? "#bffe00" : "transparent",
+                            color: activeTab === "booking" ? "#c6ff3d" : "rgba(244, 244, 245, 0.6)",
+                            borderBottomColor: activeTab === "booking" ? "#c6ff3d" : "transparent",
                         }}
                     >
                         <Calendar size={16} />
@@ -556,8 +574,8 @@ export default function UserDashboard() {
                         onClick={() => setActiveTab("my-bookings")}
                         style={{
                             ...styles.headerTabBtn,
-                            color: activeTab === "my-bookings" ? "#bffe00" : "rgba(241, 245, 249, 0.6)",
-                            borderBottomColor: activeTab === "my-bookings" ? "#bffe00" : "transparent",
+                            color: activeTab === "my-bookings" ? "#c6ff3d" : "rgba(244, 244, 245, 0.6)",
+                            borderBottomColor: activeTab === "my-bookings" ? "#c6ff3d" : "transparent",
                         }}
                     >
                         <CalendarCheck size={16} />
@@ -568,8 +586,8 @@ export default function UserDashboard() {
                         onClick={() => setActiveTab("training")}
                         style={{
                             ...styles.headerTabBtn,
-                            color: activeTab === "training" ? "#bffe00" : "rgba(241, 245, 249, 0.6)",
-                            borderBottomColor: activeTab === "training" ? "#bffe00" : "transparent",
+                            color: activeTab === "training" ? "#c6ff3d" : "rgba(244, 244, 245, 0.6)",
+                            borderBottomColor: activeTab === "training" ? "#c6ff3d" : "transparent",
                         }}
                     >
                         <Award size={16} />
@@ -667,52 +685,60 @@ export default function UserDashboard() {
                             </div>
                         </div>
 
-                        {/* Trainers Box and Join Team Column Layout */}
+                        {/* Featured Venues and Host/Join a Game Column Layout */}
                         <div style={styles.homeTwoColumns}>
-                            {/* Trainers Box */}
+                            {/* Featured Venues Box (real venues from the discovery API) */}
                             <div style={styles.boxCard}>
                                 <div style={styles.boxHeader}>
-                                    <UserCheck size={20} style={{ color: "#00f0ff" }} />
-                                    <h3 style={styles.boxTitle}>Certified Trainers</h3>
+                                    <UserCheck size={20} style={{ color: "#d9ff6e" }} />
+                                    <h3 style={styles.boxTitle}>Featured Venues</h3>
                                 </div>
-                                <div style={styles.trainersList}>
-                                    {mockTrainers.map((trainer, idx) => (
-                                        <div key={idx} style={styles.trainerItem}>
-                                            <div style={styles.trainerAvatar}>{trainer.name.charAt(0)}</div>
-                                            <div style={styles.trainerInfo}>
-                                                <span style={styles.trainerName}>{trainer.name}</span>
-                                                <span style={styles.trainerSport}>
-                                                    {trainer.sport} • {trainer.exp} Exp
-                                                </span>
+                                {loadingVenues ? (
+                                    <div style={{ padding: "16px 4px", color: "rgba(148,163,184,0.6)", fontSize: 13 }}>
+                                        Loading venues…
+                                    </div>
+                                ) : featuredVenues.length === 0 ? (
+                                    <div style={{ padding: "16px 4px", color: "rgba(148,163,184,0.6)", fontSize: 13 }}>
+                                        No venues available yet. Check back soon!
+                                    </div>
+                                ) : (
+                                    <div style={styles.trainersList}>
+                                        {featuredVenues.map((venue) => (
+                                            <div key={venue.id} style={styles.trainerItem}>
+                                                <div style={styles.trainerAvatar}>{venue.name?.charAt(0) || "V"}</div>
+                                                <div style={styles.trainerInfo}>
+                                                    <span style={styles.trainerName}>{venue.name}</span>
+                                                    <span style={styles.trainerSport}>
+                                                        {venue.location} • ⭐ {venue.rating ?? "New"}
+                                                    </span>
+                                                </div>
+                                                <button
+                                                    style={styles.trainerBtn}
+                                                    onClick={() => router.push(`/venues/${venue.id}`)}
+                                                >
+                                                    Book Now
+                                                </button>
                                             </div>
-                                            <button style={styles.trainerBtn}>Book Session</button>
-                                        </div>
-                                    ))}
-                                </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
-                            {/* Join Team Box */}
+                            {/* Host or Join a Game Box */}
                             <div style={styles.boxCard}>
                                 <div style={styles.boxHeader}>
-                                    <Users size={20} style={{ color: "#bffe00" }} />
-                                    <h3 style={styles.boxTitle}>Teams Near You</h3>
+                                    <Users size={20} style={{ color: "#c6ff3d" }} />
+                                    <h3 style={styles.boxTitle}>Host or Join a Game</h3>
                                 </div>
-                                <div style={styles.teamsList}>
-                                    {mockTeams.map((team, idx) => (
-                                        <div key={idx} style={styles.teamItem}>
-                                            <div style={styles.teamAvatar}>
-                                                {team.name.substring(0, 2).toUpperCase()}
-                                            </div>
-                                            <div style={styles.teamInfo}>
-                                                <span style={styles.teamName}>{team.name}</span>
-                                                <span style={styles.teamSport}>
-                                                    {team.sport} • {team.members} players
-                                                </span>
-                                            </div>
-                                            <button style={styles.teamJoinBtn}>Join Team</button>
-                                        </div>
-                                    ))}
+                                <div style={{ padding: "8px 4px 4px", color: "rgba(148,163,184,0.6)", fontSize: 13 }}>
+                                    Team discovery is coming soon. Meanwhile, host your own match or join an open lobby.
                                 </div>
+                                <button
+                                    style={{ ...styles.trainerBtn, marginTop: 14 }}
+                                    onClick={() => setActiveTab("game")}
+                                >
+                                    Go to Game Tab
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -840,7 +866,7 @@ export default function UserDashboard() {
                         {/* Venue Cards Grid */}
                         {loadingVenues ? (
                             <div style={styles.loadingContainer}>
-                                <Loader2 className="animate-spin" size={32} style={{ color: "#bffe00" }} />
+                                <Loader2 className="animate-spin" size={32} style={{ color: "#c6ff3d" }} />
                                 <p style={{ marginTop: "16px", color: "rgba(148, 163, 184, 0.6)" }}>
                                     Searching sports arenas nearby...
                                 </p>
@@ -875,7 +901,7 @@ export default function UserDashboard() {
                                             </div>
                                             {venue.distance !== undefined && venue.distance !== null && (
                                                 <div style={styles.distanceBadge}>
-                                                    <MapPin size={12} style={{ color: "#00f0ff" }} />
+                                                    <MapPin size={12} style={{ color: "#d9ff6e" }} />
                                                     <span>{venue.distance} km</span>
                                                 </div>
                                             )}
@@ -908,7 +934,7 @@ export default function UserDashboard() {
                                                     <span style={styles.priceUnit}>/hr onwards</span>
                                                 </div>
                                                 <Link href={`/venues/${venue.id}`} style={styles.bookBtn}>
-                                                    <span>Book Slot</span>
+                                                    <span>Book Now</span>
                                                 </Link>
                                             </div>
                                         </div>
@@ -927,9 +953,9 @@ export default function UserDashboard() {
                                 onClick={() => setGameSubTab("host")}
                                 style={{
                                     ...styles.gameSubNavBtn,
-                                    backgroundColor: gameSubTab === "host" ? "rgba(191, 254, 0, 0.1)" : "transparent",
-                                    color: gameSubTab === "host" ? "#bffe00" : "rgba(241, 245, 249, 0.7)",
-                                    borderColor: gameSubTab === "host" ? "#bffe00" : "rgba(255, 255, 255, 0.1)",
+                                    backgroundColor: gameSubTab === "host" ? "rgba(198, 255, 61, 0.1)" : "transparent",
+                                    color: gameSubTab === "host" ? "#c6ff3d" : "rgba(244, 244, 245, 0.7)",
+                                    borderColor: gameSubTab === "host" ? "#c6ff3d" : "rgba(255, 255, 255, 0.1)",
                                 }}
                             >
                                 <PlusCircle size={14} />
@@ -940,9 +966,9 @@ export default function UserDashboard() {
                                 onClick={() => setGameSubTab("joined")}
                                 style={{
                                     ...styles.gameSubNavBtn,
-                                    backgroundColor: gameSubTab === "joined" ? "rgba(191, 254, 0, 0.1)" : "transparent",
-                                    color: gameSubTab === "joined" ? "#bffe00" : "rgba(241, 245, 249, 0.7)",
-                                    borderColor: gameSubTab === "joined" ? "#bffe00" : "rgba(255, 255, 255, 0.1)",
+                                    backgroundColor: gameSubTab === "joined" ? "rgba(198, 255, 61, 0.1)" : "transparent",
+                                    color: gameSubTab === "joined" ? "#c6ff3d" : "rgba(244, 244, 245, 0.7)",
+                                    borderColor: gameSubTab === "joined" ? "#c6ff3d" : "rgba(255, 255, 255, 0.1)",
                                 }}
                             >
                                 <Users size={14} />
@@ -954,9 +980,9 @@ export default function UserDashboard() {
                                 style={{
                                     ...styles.gameSubNavBtn,
                                     backgroundColor:
-                                        gameSubTab === "explore" ? "rgba(191, 254, 0, 0.1)" : "transparent",
-                                    color: gameSubTab === "explore" ? "#bffe00" : "rgba(241, 245, 249, 0.7)",
-                                    borderColor: gameSubTab === "explore" ? "#bffe00" : "rgba(255, 255, 255, 0.1)",
+                                        gameSubTab === "explore" ? "rgba(198, 255, 61, 0.1)" : "transparent",
+                                    color: gameSubTab === "explore" ? "#c6ff3d" : "rgba(244, 244, 245, 0.7)",
+                                    borderColor: gameSubTab === "explore" ? "#c6ff3d" : "rgba(255, 255, 255, 0.1)",
                                 }}
                             >
                                 <Compass size={14} />
@@ -968,7 +994,7 @@ export default function UserDashboard() {
                             /* Host a Game Form (Create Game Match) */
                             <div style={styles.boxCard}>
                                 <div style={styles.boxHeader}>
-                                    <PlusCircle size={20} style={{ color: "#bffe00" }} />
+                                    <PlusCircle size={20} style={{ color: "#c6ff3d" }} />
                                     <h3 style={styles.boxTitle}>Host a Sports Match</h3>
                                 </div>
 
@@ -979,15 +1005,15 @@ export default function UserDashboard() {
                                                 width: "50px",
                                                 height: "50px",
                                                 borderRadius: "50%",
-                                                background: "rgba(191, 254, 0, 0.1)",
-                                                color: "#bffe00",
+                                                background: "rgba(198, 255, 61, 0.1)",
+                                                color: "#c6ff3d",
                                                 fontSize: "20px",
                                                 fontWeight: "bold",
                                                 display: "flex",
                                                 alignItems: "center",
                                                 justifyContent: "center",
                                                 margin: "0 auto 16px auto",
-                                                border: "1px solid #bffe00",
+                                                border: "1px solid #c6ff3d",
                                             }}
                                         >
                                             ✓
@@ -1099,11 +1125,11 @@ export default function UserDashboard() {
                                                         style={{
                                                             ...styles.toggleTabBtn,
                                                             backgroundColor:
-                                                                gamePrivacy === "public" ? "#bffe00" : "transparent",
+                                                                gamePrivacy === "public" ? "#c6ff3d" : "transparent",
                                                             color:
                                                                 gamePrivacy === "public"
-                                                                    ? "#050508"
-                                                                    : "rgba(241, 245, 249, 0.6)",
+                                                                    ? "#08080f"
+                                                                    : "rgba(244, 244, 245, 0.6)",
                                                         }}
                                                     >
                                                         🌍 Public Match
@@ -1114,11 +1140,11 @@ export default function UserDashboard() {
                                                         style={{
                                                             ...styles.toggleTabBtn,
                                                             backgroundColor:
-                                                                gamePrivacy === "private" ? "#bffe00" : "transparent",
+                                                                gamePrivacy === "private" ? "#c6ff3d" : "transparent",
                                                             color:
                                                                 gamePrivacy === "private"
-                                                                    ? "#050508"
-                                                                    : "rgba(241, 245, 249, 0.6)",
+                                                                    ? "#08080f"
+                                                                    : "rgba(244, 244, 245, 0.6)",
                                                         }}
                                                     >
                                                         🔒 Invite-Only
@@ -1151,7 +1177,7 @@ export default function UserDashboard() {
                                 <h2 style={styles.sectionTitle}>My Hosted & Joined Matches</h2>
                                 {loadingHostedGames ? (
                                     <div style={styles.loadingContainer}>
-                                        <Loader2 className="animate-spin" size={32} style={{ color: "#bffe00" }} />
+                                        <Loader2 className="animate-spin" size={32} style={{ color: "#c6ff3d" }} />
                                         <p style={{ marginTop: "16px" }}>Fetching hosted matches...</p>
                                     </div>
                                 ) : hostedGames.length === 0 ? (
@@ -1192,9 +1218,9 @@ export default function UserDashboard() {
                                                                 <span
                                                                     style={{
                                                                         ...styles.badge,
-                                                                        backgroundColor: "rgba(0, 240, 255, 0.1)",
-                                                                        color: "#00f0ff",
-                                                                        borderColor: "rgba(0, 240, 255, 0.2)",
+                                                                        backgroundColor: "rgba(217, 255, 110, 0.1)",
+                                                                        color: "#d9ff6e",
+                                                                        borderColor: "rgba(217, 255, 110, 0.2)",
                                                                         marginLeft: "10px",
                                                                     }}
                                                                 >
@@ -1260,7 +1286,7 @@ export default function UserDashboard() {
                                                             <p
                                                                 style={{
                                                                     fontSize: "13px",
-                                                                    color: "rgba(241, 245, 249, 0.6)",
+                                                                    color: "rgba(244, 244, 245, 0.6)",
                                                                     fontStyle: "italic",
                                                                     marginTop: "6px",
                                                                 }}
@@ -1302,7 +1328,7 @@ export default function UserDashboard() {
                                 <h2 style={styles.sectionTitle}>Explore Open Game Lobbies</h2>
                                 {loadingPublicGames ? (
                                     <div style={styles.loadingContainer}>
-                                        <Loader2 className="animate-spin" size={32} style={{ color: "#bffe00" }} />
+                                        <Loader2 className="animate-spin" size={32} style={{ color: "#c6ff3d" }} />
                                         <p style={{ marginTop: "16px" }}>Searching for matches near you...</p>
                                     </div>
                                 ) : publicGames.length === 0 ? (
@@ -1362,11 +1388,11 @@ export default function UserDashboard() {
                                                                 ...styles.badge,
                                                                 backgroundColor: isFull
                                                                     ? "rgba(239, 68, 68, 0.1)"
-                                                                    : "rgba(191, 254, 0, 0.1)",
-                                                                color: isFull ? "#f87171" : "#bffe00",
+                                                                    : "rgba(198, 255, 61, 0.1)",
+                                                                color: isFull ? "#f87171" : "#c6ff3d",
                                                                 borderColor: isFull
                                                                     ? "rgba(239, 68, 68, 0.2)"
-                                                                    : "rgba(191, 254, 0, 0.2)",
+                                                                    : "rgba(198, 255, 61, 0.2)",
                                                             }}
                                                         >
                                                             {isFull ? "FULL" : "JOINABLE"}
@@ -1390,7 +1416,7 @@ export default function UserDashboard() {
                                                             />
                                                             <span>
                                                                 Split Cost:{" "}
-                                                                <strong style={{ color: "#bffe00" }}>
+                                                                <strong style={{ color: "#c6ff3d" }}>
                                                                     ₹{game.price_per_player}
                                                                 </strong>{" "}
                                                                 per player
@@ -1424,7 +1450,7 @@ export default function UserDashboard() {
                                                                 style={{
                                                                     width: `${(game.current_players / game.total_spots) * 100}%`,
                                                                     height: "100%",
-                                                                    backgroundColor: isFull ? "#f87171" : "#bffe00",
+                                                                    backgroundColor: isFull ? "#f87171" : "#c6ff3d",
                                                                     transition: "width 0.4s ease",
                                                                 }}
                                                             />
@@ -1469,7 +1495,7 @@ export default function UserDashboard() {
                                                                 disabled={joiningGameId === game.id}
                                                                 style={{
                                                                     ...styles.cancelBtn,
-                                                                    backgroundColor: "#bffe00",
+                                                                    backgroundColor: "#c6ff3d",
                                                                     color: "#0f172a",
                                                                     fontWeight: "bold",
                                                                     borderColor: "transparent",
@@ -1497,7 +1523,7 @@ export default function UserDashboard() {
                         <h2 style={styles.sectionTitle}>My Venue Bookings</h2>
                         {loadingBookings ? (
                             <div style={styles.loadingContainer}>
-                                <Loader2 className="animate-spin" size={32} style={{ color: "#bffe00" }} />
+                                <Loader2 className="animate-spin" size={32} style={{ color: "#c6ff3d" }} />
                                 <p style={{ marginTop: "16px" }}>Fetching your venue bookings...</p>
                             </div>
                         ) : bookings.length === 0 ? (
@@ -1638,16 +1664,123 @@ export default function UserDashboard() {
                 )}
 
                 {activeTab === "training" && (
-                    /* Training: coaching sessions & workshops */
-                    <div style={styles.bookingsSection}>
-                        <h2 style={styles.sectionTitle}>My Training Programs</h2>
-                        <div style={styles.emptyContainer}>
-                            <Award size={48} style={{ color: "rgba(148, 163, 184, 0.15)", marginBottom: "16px" }} />
-                            <h3>No Active Training Enrolments</h3>
-                            <p style={{ color: "rgba(148, 163, 184, 0.4)", fontSize: "14px", marginTop: "8px" }}>
-                                You are not enrolled in any coaching academies or workshops at the moment.
-                            </p>
-                        </div>
+                    /* Training: coaching sessions & workshops from platform trainers */
+                    <div style={{ ...styles.bookingsSection, maxWidth: "1100px" }}>
+                        <h2 style={styles.sectionTitle}>Discover Trainings</h2>
+                        <p
+                            style={{
+                                color: "rgba(148, 163, 184, 0.55)",
+                                fontSize: "14px",
+                                marginTop: "-8px",
+                                marginBottom: "20px",
+                            }}
+                        >
+                            Independent trainings created by platform trainers
+                        </p>
+
+                        {loadingTrainings ? (
+                            <div style={styles.emptyContainer}>
+                                <Loader2
+                                    size={32}
+                                    style={{ color: "#c6ff3d", marginBottom: "12px", animation: "spin 1s linear infinite" }}
+                                />
+                                <p style={{ color: "rgba(148, 163, 184, 0.5)", fontSize: "14px" }}>Loading trainings...</p>
+                            </div>
+                        ) : trainerTrainings.length === 0 ? (
+                            <div style={styles.emptyContainer}>
+                                <Award size={48} style={{ color: "rgba(148, 163, 184, 0.15)", marginBottom: "16px" }} />
+                                <h3>No Trainings Available</h3>
+                                <p style={{ color: "rgba(148, 163, 184, 0.4)", fontSize: "14px", marginTop: "8px" }}>
+                                    Trainers have not published any sessions yet. Check back soon.
+                                </p>
+                            </div>
+                        ) : (
+                            <div style={styles.grid}>
+                                {trainerTrainings.map((training) => (
+                                    <Link
+                                        key={training.id}
+                                        href={`/trainings/${training.id}`}
+                                        style={{ ...styles.card, textDecoration: "none", color: "inherit", display: "block" }}
+                                    >
+                                        <div style={styles.cardImageWrapper}>
+                                            <img
+                                                src={
+                                                    training.cover_image ||
+                                                    "https://images.unsplash.com/photo-1517649763962-0c6238842e77?q=80&w=600&auto=format&fit=crop"
+                                                }
+                                                alt={training.title}
+                                                style={styles.cardImage}
+                                            />
+                                            <div style={styles.ratingBadge}>
+                                                <span style={{ textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                                                    {training.status || "open"}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div style={styles.cardBody}>
+                                            <h3 style={styles.cardName}>{training.title}</h3>
+                                            <div style={styles.cardLoc}>
+                                                <MapPin size={12} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
+                                                <span>
+                                                    {training.trainer_name
+                                                        ? `Trainer · ${training.trainer_name}`
+                                                        : training.instructor || "Trainer session"}
+                                                </span>
+                                            </div>
+
+                                            <p
+                                                style={{
+                                                    margin: "0 0 12px",
+                                                    fontSize: "13px",
+                                                    color: "rgba(226, 232, 240, 0.7)",
+                                                    lineHeight: 1.45,
+                                                    display: "-webkit-box",
+                                                    WebkitLineClamp: 2,
+                                                    WebkitBoxOrient: "vertical",
+                                                    overflow: "hidden",
+                                                }}
+                                            >
+                                                {training.description || "No description added."}
+                                            </p>
+
+                                            <div style={styles.cardSports}>
+                                                {training.location && (
+                                                    <span style={styles.cardSportChip}>{training.location}</span>
+                                                )}
+                                                {training.schedule && (
+                                                    <span style={styles.cardSportChip}>{training.schedule}</span>
+                                                )}
+                                                {training.level && (
+                                                    <span style={styles.cardSportChip}>{training.level}</span>
+                                                )}
+                                            </div>
+
+                                            {training.reschedule_reason && (
+                                                <p style={{ margin: "0 0 10px", fontSize: "12px", color: "#fb923c" }}>
+                                                    Rescheduled: {training.reschedule_reason}
+                                                </p>
+                                            )}
+
+                                            <div style={styles.cardFooter}>
+                                                <div style={styles.priceSec}>
+                                                    <span style={styles.priceVal}>
+                                                        {Number(training.fee || 0) > 0
+                                                            ? `\u20B9${Number(training.fee).toLocaleString("en-IN")}`
+                                                            : "Free"}
+                                                    </span>
+                                                    <span style={styles.priceUnit}>
+                                                        {training.available_seats != null
+                                                            ? `${training.available_seats} seats left`
+                                                            : training.start_date || "Open enrollment"}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
             </main>
@@ -1659,7 +1792,7 @@ const styles = {
     dashboardContainer: {
         minHeight: "100vh",
         backgroundColor: "#08080f",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         fontFamily: "'Outfit', sans-serif",
     },
     topbar: {
@@ -1728,8 +1861,8 @@ const styles = {
         width: "36px",
         height: "36px",
         borderRadius: "50%",
-        background: "linear-gradient(135deg, #bffe00, #00f0ff)",
-        color: "#050508",
+        background: "linear-gradient(135deg, #c6ff3d, #d9ff6e)",
+        color: "#08080f",
         fontWeight: "700",
         display: "flex",
         alignItems: "center",
@@ -1743,7 +1876,7 @@ const styles = {
     userName: {
         fontSize: "14px",
         fontWeight: "600",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
     },
     userEmail: {
         fontSize: "11px",
@@ -1783,13 +1916,13 @@ const styles = {
         border: "1.5px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "12px",
         fontSize: "15px",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         outline: "none",
         transition: "all 0.25s ease",
         fontFamily: "'Outfit', sans-serif",
     },
     sportsCardContainer: {
-        background: "rgba(15, 15, 26, 0.6)",
+        background: "rgba(20, 20, 31, 0.6)",
         border: "1px solid rgba(255, 255, 255, 0.05)",
         borderRadius: "16px",
         padding: "30px",
@@ -1798,11 +1931,11 @@ const styles = {
     homeTitle: {
         fontSize: "18px",
         fontWeight: "700",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         marginBottom: "24px",
         textTransform: "uppercase",
         letterSpacing: "0.05em",
-        borderLeft: "3px solid #bffe00",
+        borderLeft: "3px solid #c6ff3d",
         paddingLeft: "10px",
     },
     sportsGrid20: {
@@ -1822,7 +1955,7 @@ const styles = {
     sportItemName: {
         fontSize: "15px",
         fontWeight: "500",
-        color: "rgba(241, 245, 249, 0.9)",
+        color: "rgba(244, 244, 245, 0.9)",
         textAlign: "center",
     },
     homeTwoColumns: {
@@ -1831,7 +1964,7 @@ const styles = {
         gap: "30px",
     },
     boxCard: {
-        background: "rgba(15, 15, 26, 0.6)",
+        background: "rgba(20, 20, 31, 0.6)",
         border: "1px solid rgba(255, 255, 255, 0.05)",
         borderRadius: "16px",
         padding: "24px",
@@ -1870,8 +2003,8 @@ const styles = {
         width: "40px",
         height: "40px",
         borderRadius: "50%",
-        background: "rgba(0, 240, 255, 0.1)",
-        color: "#00f0ff",
+        background: "rgba(217, 255, 110, 0.1)",
+        color: "#d9ff6e",
         fontWeight: "700",
         display: "flex",
         alignItems: "center",
@@ -1893,9 +2026,9 @@ const styles = {
         color: "rgba(148, 163, 184, 0.5)",
     },
     trainerBtn: {
-        background: "rgba(0, 240, 255, 0.1)",
-        border: "1px solid rgba(0, 240, 255, 0.2)",
-        color: "#00f0ff",
+        background: "rgba(217, 255, 110, 0.1)",
+        border: "1px solid rgba(217, 255, 110, 0.2)",
+        color: "#d9ff6e",
         padding: "6px 14px",
         borderRadius: "6px",
         fontSize: "12px",
@@ -1921,8 +2054,8 @@ const styles = {
         width: "40px",
         height: "40px",
         borderRadius: "8px",
-        background: "rgba(191, 254, 0, 0.1)",
-        color: "#bffe00",
+        background: "rgba(198, 255, 61, 0.1)",
+        color: "#c6ff3d",
         fontWeight: "700",
         display: "flex",
         alignItems: "center",
@@ -1944,9 +2077,9 @@ const styles = {
         color: "rgba(148, 163, 184, 0.5)",
     },
     teamJoinBtn: {
-        background: "rgba(191, 254, 0, 0.1)",
-        border: "1px solid rgba(191, 254, 0, 0.2)",
-        color: "#bffe00",
+        background: "rgba(198, 255, 61, 0.1)",
+        border: "1px solid rgba(198, 255, 61, 0.2)",
+        color: "#c6ff3d",
         padding: "6px 14px",
         borderRadius: "6px",
         fontSize: "12px",
@@ -1955,7 +2088,7 @@ const styles = {
         transition: "all 0.2s ease",
     },
     filterSection: {
-        background: "linear-gradient(135deg, rgba(15, 15, 26, 0.9) 0%, rgba(20, 20, 35, 0.7) 100%)",
+        background: "linear-gradient(135deg, rgba(20, 20, 31, 0.9) 0%, rgba(20, 20, 35, 0.7) 100%)",
         border: "1px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "16px",
         padding: "30px",
@@ -1983,7 +2116,7 @@ const styles = {
         border: "1.5px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "12px",
         fontSize: "15px",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         outline: "none",
         transition: "all 0.25s ease",
         fontFamily: "'Outfit', sans-serif",
@@ -2017,8 +2150,8 @@ const styles = {
         padding: "80px 0",
     },
     exploreLinkBtn: {
-        background: "linear-gradient(135deg, #bffe00, #00f0ff)",
-        color: "#050508",
+        background: "linear-gradient(135deg, #c6ff3d, #d9ff6e)",
+        color: "#08080f",
         border: "none",
         padding: "10px 24px",
         borderRadius: "8px",
@@ -2036,7 +2169,7 @@ const styles = {
         gap: "24px",
     },
     card: {
-        background: "rgba(15, 15, 26, 0.6)",
+        background: "rgba(20, 20, 31, 0.6)",
         border: "1px solid rgba(255, 255, 255, 0.05)",
         borderRadius: "14px",
         overflow: "hidden",
@@ -2060,7 +2193,7 @@ const styles = {
         position: "absolute",
         top: "12px",
         right: "12px",
-        background: "rgba(15, 15, 26, 0.8)",
+        background: "rgba(20, 20, 31, 0.8)",
         backdropFilter: "blur(4px)",
         borderRadius: "8px",
         padding: "4px 8px",
@@ -2101,11 +2234,11 @@ const styles = {
     cardSportChip: {
         fontSize: "10px",
         fontWeight: "700",
-        color: "#00f0ff",
-        background: "rgba(0, 240, 255, 0.06)",
+        color: "#d9ff6e",
+        background: "rgba(217, 255, 110, 0.06)",
         padding: "3px 8px",
         borderRadius: "4px",
-        border: "1px solid rgba(0, 240, 255, 0.12)",
+        border: "1px solid rgba(217, 255, 110, 0.12)",
         textTransform: "uppercase",
     },
     cardFooter: {
@@ -2130,8 +2263,8 @@ const styles = {
         color: "rgba(148, 163, 184, 0.4)",
     },
     bookBtn: {
-        background: "linear-gradient(135deg, #bffe00, #00f0ff)",
-        color: "#050508",
+        background: "linear-gradient(135deg, #c6ff3d, #d9ff6e)",
+        color: "#08080f",
         border: "none",
         padding: "8px 18px",
         borderRadius: "8px",
@@ -2143,7 +2276,7 @@ const styles = {
         cursor: "pointer",
         transition: "all 0.25s ease",
         transform: "skewX(-6deg)",
-        boxShadow: "0 4px 12px rgba(191, 254, 0, 0.25)",
+        boxShadow: "0 4px 12px rgba(198, 255, 61, 0.25)",
     },
     bookingsSection: {
         maxWidth: "800px",
@@ -2152,11 +2285,11 @@ const styles = {
     sectionTitle: {
         fontSize: "18px",
         fontWeight: "700",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         marginBottom: "20px",
         textTransform: "uppercase",
         letterSpacing: "0.05em",
-        borderLeft: "3px solid #bffe00",
+        borderLeft: "3px solid #c6ff3d",
         paddingLeft: "10px",
     },
     list: {
@@ -2244,7 +2377,7 @@ const styles = {
         alignItems: "center",
         gap: "10px",
         fontSize: "14px",
-        color: "rgba(241, 245, 249, 0.8)",
+        color: "rgba(244, 244, 245, 0.8)",
     },
     metaInfo: {
         fontSize: "12px",
@@ -2312,7 +2445,7 @@ const styles = {
     formLabel: {
         fontSize: "13px",
         fontWeight: "700",
-        color: "rgba(241, 245, 249, 0.7)",
+        color: "rgba(244, 244, 245, 0.7)",
         textTransform: "uppercase",
         letterSpacing: "0.03em",
     },
@@ -2328,7 +2461,7 @@ const styles = {
         fontFamily: "'Outfit', sans-serif",
     },
     formSelect: {
-        background: "rgba(15, 15, 26, 0.9)",
+        background: "rgba(20, 20, 31, 0.9)",
         border: "1.5px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "8px",
         padding: "12px 14px",
@@ -2372,8 +2505,8 @@ const styles = {
         fontFamily: "'Outfit', sans-serif",
     },
     formSubmitBtn: {
-        background: "linear-gradient(135deg, #bffe00, #00f0ff)",
-        color: "#050508",
+        background: "linear-gradient(135deg, #c6ff3d, #d9ff6e)",
+        color: "#08080f",
         border: "none",
         padding: "14px 20px",
         borderRadius: "8px",
@@ -2384,7 +2517,7 @@ const styles = {
         cursor: "pointer",
         transition: "all 0.25s ease",
         transform: "skewX(-6deg)",
-        boxShadow: "0 4px 16px rgba(191, 254, 0, 0.25)",
+        boxShadow: "0 4px 16px rgba(198, 255, 61, 0.25)",
         marginTop: "10px",
         width: "fit-content",
         alignSelf: "flex-start",
@@ -2393,7 +2526,7 @@ const styles = {
         position: "absolute",
         top: "12px",
         left: "12px",
-        background: "rgba(15, 15, 26, 0.8)",
+        background: "rgba(20, 20, 31, 0.8)",
         backdropFilter: "blur(4px)",
         borderRadius: "8px",
         padding: "4px 8px",
@@ -2402,7 +2535,7 @@ const styles = {
         gap: "4px",
         fontSize: "12px",
         fontWeight: "700",
-        color: "#00f0ff",
+        color: "#d9ff6e",
         border: "1px solid rgba(255, 255, 255, 0.08)",
     },
     filtersGrid: {
@@ -2421,7 +2554,7 @@ const styles = {
     filterLabel: {
         fontSize: "12px",
         fontWeight: "700",
-        color: "rgba(241, 245, 249, 0.5)",
+        color: "rgba(244, 244, 245, 0.5)",
         textTransform: "uppercase",
         letterSpacing: "0.05em",
     },
@@ -2432,7 +2565,7 @@ const styles = {
         border: "1px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "8px",
         fontSize: "13px",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         outline: "none",
         cursor: "pointer",
         transition: "all 0.2s ease",
@@ -2450,10 +2583,10 @@ const styles = {
         justifyContent: "center",
         gap: "8px",
         padding: "10px 14px",
-        background: "rgba(0, 240, 255, 0.06)",
-        border: "1px solid rgba(0, 240, 255, 0.15)",
+        background: "rgba(217, 255, 110, 0.06)",
+        border: "1px solid rgba(217, 255, 110, 0.15)",
         borderRadius: "8px",
-        color: "#00f0ff",
+        color: "#d9ff6e",
         fontSize: "13px",
         fontWeight: "700",
         cursor: "pointer",
@@ -2494,7 +2627,7 @@ const styles = {
         border: "1px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "8px",
         fontSize: "13px",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         outline: "none",
         fontFamily: "'Outfit', sans-serif",
         colorScheme: "dark",
@@ -2505,14 +2638,14 @@ const styles = {
         gap: "8px",
         fontSize: "12px",
         fontWeight: "700",
-        color: "rgba(241, 245, 249, 0.8)",
+        color: "rgba(244, 244, 245, 0.8)",
         cursor: "pointer",
         userSelect: "none",
     },
     toggleCheckbox: {
         width: "16px",
         height: "16px",
-        accentColor: "#bffe00",
+        accentColor: "#c6ff3d",
         cursor: "pointer",
     },
 };

@@ -3,6 +3,26 @@ import { API_BASE_URL } from "@/lib/api";
 import { useState } from "react";
 import Link from "next/link";
 import "../styles/venue-register.css";
+import PhoneInput from "@/components/ui/PhoneInput";
+import {
+    digitsOnly,
+    isValidPhone,
+    isValidAadhaar,
+    isValidPersonName,
+    isValidEmail,
+    formatDobInput,
+    isValidDob,
+    applyNameInput,
+    applyEmailInput,
+    composePhone,
+    AADHAAR_MESSAGE,
+    DOB_MESSAGE,
+    PERSON_NAME_MESSAGE,
+    EMAIL_MESSAGE,
+    phoneLengthMessage,
+} from "@/lib/validation";
+
+const fieldErrorStyle = { color: "#ef4444", fontSize: "12px", marginTop: "6px", marginBottom: 0 };
 
 // ─── Constants ───────────────────────────────────────────────────────
 const SPORTS = [
@@ -303,8 +323,11 @@ export default function RegisterVenuePage() {
         password: "",
         confirmPassword: "",
     });
+    const [phoneCode, setPhoneCode] = useState("+91");
+    const [phoneDigits, setPhoneDigits] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [fieldErrors, setFieldErrors] = useState({});
 
     // Venue handlers
     const handleVenueChange = (index, updated) => {
@@ -312,6 +335,23 @@ export default function RegisterVenuePage() {
     };
     const addVenue = () => setVenues((prev) => [...prev, emptyVenue()]);
     const removeVenue = (index) => setVenues((prev) => prev.filter((_, i) => i !== index));
+
+    const setOwnerField = (patch, errorPatch = {}) => {
+        setOwner((p) => ({ ...p, ...patch }));
+        setFieldErrors((prev) => ({ ...prev, ...errorPatch }));
+        setError("");
+    };
+
+    const syncOwnerPhone = (code, digits) => {
+        setPhoneCode(code);
+        setPhoneDigits(digits);
+        setOwnerField(
+            { phone: composePhone(code, digits) },
+            {
+                phone: digits && !isValidPhone(digits, code) ? phoneLengthMessage(code) : "",
+            }
+        );
+    };
 
     // Step 1 validation
     const validateStep1 = () => {
@@ -332,19 +372,46 @@ export default function RegisterVenuePage() {
     // Submit
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const nextErrors = {};
+        if (!owner.fullName?.trim()) {
+            nextErrors.fullName = "Full name is required.";
+        } else if (!isValidPersonName(owner.fullName)) {
+            nextErrors.fullName = PERSON_NAME_MESSAGE;
+        }
+        if (!owner.email?.trim()) {
+            nextErrors.email = "Email is required.";
+        } else if (!isValidEmail(owner.email)) {
+            nextErrors.email = EMAIL_MESSAGE;
+        }
+        if (!phoneDigits) {
+            nextErrors.phone = "Phone number is required.";
+        } else if (!isValidPhone(phoneDigits, phoneCode)) {
+            nextErrors.phone = phoneLengthMessage(phoneCode);
+        }
+        if (owner.dob && !isValidDob(owner.dob)) {
+            nextErrors.dob = DOB_MESSAGE;
+        }
+        if (owner.aadhar && !isValidAadhaar(owner.aadhar)) {
+            nextErrors.aadhar = AADHAAR_MESSAGE;
+        }
         if (owner.password !== owner.confirmPassword) {
-            setError("Passwords do not match.");
+            nextErrors.confirmPassword = "Passwords do not match.";
+        }
+        if (Object.keys(nextErrors).length) {
+            setFieldErrors(nextErrors);
+            setError("");
             return;
         }
         setLoading(true);
         setError("");
+        setFieldErrors({});
 
         const payload = {
             owner: {
                 full_name: owner.fullName,
                 dob: owner.dob || null,
                 email: owner.email,
-                phone: owner.phone,
+                phone: composePhone(phoneCode, phoneDigits),
                 aadhar_number: owner.aadhar || null,
                 password: owner.password,
             },
@@ -399,7 +466,7 @@ export default function RegisterVenuePage() {
                                 width="42"
                                 height="42"
                                 fill="none"
-                                stroke="#bffe00"
+                                stroke="#c6ff3d"
                                 strokeWidth="2.5"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -512,17 +579,26 @@ export default function RegisterVenuePage() {
                                 required
                                 placeholder="e.g. Rahul Sharma"
                                 value={owner.fullName}
-                                onChange={(e) => setOwner((p) => ({ ...p, fullName: e.target.value }))}
+                                onChange={(e) => {
+                                    const { sanitized, error: nameErr } = applyNameInput(e.target.value);
+                                    setOwnerField({ fullName: sanitized }, { fullName: nameErr });
+                                }}
                             />
+                            {fieldErrors.fullName ? <p style={fieldErrorStyle}>{fieldErrors.fullName}</p> : null}
                         </div>
                         <div className="vr-field">
-                            <label className="vr-label">Date of Birth</label>
+                            <label className="vr-label">Date of Birth (DD/MM/YYYY)</label>
                             <input
-                                type="date"
+                                type="text"
                                 className="vr-input"
+                                placeholder="DD/MM/YYYY"
+                                maxLength={10}
                                 value={owner.dob}
-                                onChange={(e) => setOwner((p) => ({ ...p, dob: e.target.value }))}
+                                onChange={(e) =>
+                                    setOwnerField({ dob: formatDobInput(e.target.value) }, { dob: "" })
+                                }
                             />
+                            {fieldErrors.dob ? <p style={fieldErrorStyle}>{fieldErrors.dob}</p> : null}
                         </div>
                         <div className="vr-field">
                             <label className="vr-label">Email Address *</label>
@@ -532,28 +608,46 @@ export default function RegisterVenuePage() {
                                 required
                                 placeholder="owner@example.com"
                                 value={owner.email}
-                                onChange={(e) => setOwner((p) => ({ ...p, email: e.target.value }))}
+                                onChange={(e) => {
+                                    const { value, error: emailErr } = applyEmailInput(e.target.value);
+                                    setOwnerField({ email: value }, { email: emailErr });
+                                }}
                             />
+                            {fieldErrors.email ? <p style={fieldErrorStyle}>{fieldErrors.email}</p> : null}
                         </div>
                         <div className="vr-field">
                             <label className="vr-label">Phone Number *</label>
-                            <input
-                                type="tel"
+                            <PhoneInput
+                                id="venue-owner-phone"
                                 className="vr-input"
-                                required
-                                placeholder="10-digit mobile number"
-                                value={owner.phone}
-                                onChange={(e) => setOwner((p) => ({ ...p, phone: e.target.value }))}
+                                selectClassName="vr-input"
+                                countryCode={phoneCode}
+                                digits={phoneDigits}
+                                onCountryCodeChange={(code) => syncOwnerPhone(code, phoneDigits)}
+                                onDigitsChange={(digits) => syncOwnerPhone(phoneCode, digits)}
                             />
+                            {fieldErrors.phone ? <p style={fieldErrorStyle}>{fieldErrors.phone}</p> : null}
                         </div>
                         <div className="vr-field">
                             <label className="vr-label">Aadhar Number</label>
                             <input
                                 className="vr-input"
+                                inputMode="numeric"
+                                maxLength={12}
                                 placeholder="12-digit Aadhar"
                                 value={owner.aadhar}
-                                onChange={(e) => setOwner((p) => ({ ...p, aadhar: e.target.value }))}
+                                onChange={(e) => {
+                                    const aadhar = digitsOnly(e.target.value).slice(0, 12);
+                                    setOwnerField(
+                                        { aadhar },
+                                        {
+                                            aadhar:
+                                                aadhar && aadhar.length !== 12 ? AADHAAR_MESSAGE : "",
+                                        }
+                                    );
+                                }}
                             />
+                            {fieldErrors.aadhar ? <p style={fieldErrorStyle}>{fieldErrors.aadhar}</p> : null}
                         </div>
                         <div className="vr-field">
                             <label className="vr-label">Password *</label>
@@ -563,7 +657,7 @@ export default function RegisterVenuePage() {
                                 required
                                 placeholder="Min 8 characters"
                                 value={owner.password}
-                                onChange={(e) => setOwner((p) => ({ ...p, password: e.target.value }))}
+                                onChange={(e) => setOwnerField({ password: e.target.value })}
                             />
                         </div>
                         <div className="vr-field">
@@ -574,8 +668,16 @@ export default function RegisterVenuePage() {
                                 required
                                 placeholder="Re-enter password"
                                 value={owner.confirmPassword}
-                                onChange={(e) => setOwner((p) => ({ ...p, confirmPassword: e.target.value }))}
+                                onChange={(e) =>
+                                    setOwnerField(
+                                        { confirmPassword: e.target.value },
+                                        { confirmPassword: "" }
+                                    )
+                                }
                             />
+                            {fieldErrors.confirmPassword ? (
+                                <p style={fieldErrorStyle}>{fieldErrors.confirmPassword}</p>
+                            ) : null}
                         </div>
                     </div>
 

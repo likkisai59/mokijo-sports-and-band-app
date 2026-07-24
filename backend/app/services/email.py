@@ -56,6 +56,61 @@ def send_verification_email(to_email: str, token: str) -> bool:
         return False
 
 
+def send_signup_verification_email(to_email: str, token: str) -> bool:
+    """Send an email verification link for an onboarding signup submission."""
+    verify_link = f"{FRONTEND_URL}/verify-signup?token={token}"
+
+    msg = EmailMessage()
+    msg["Subject"] = "Verify your email — Mukijo Signup Application"
+    msg["From"] = EMAIL_USER
+    msg["To"] = to_email
+
+    msg.set_content(f"Click this link to verify your email: {verify_link}")
+
+    html_content = f"""
+    <html>
+      <body style="font-family: 'Outfit', 'Inter', sans-serif; background: #050508; color: #ffffff; padding: 40px 20px; margin: 0;">
+        <div style="max-width: 600px; margin: 0 auto; background: #0c0c14; padding: 40px; border-radius: 16px; border: 1px solid rgba(0, 240, 255, 0.15); text-align: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);">
+          <h1 style="color: #bffe00; font-size: 32px; font-weight: 800; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 2px;">MUKIJO</h1>
+          <p style="color: #00f0ff; font-size: 14px; font-weight: 600; text-transform: uppercase; margin: 0 0 30px 0; letter-spacing: 1px;">Sports &amp; Club Platform</p>
+          <div style="height: 1px; background: linear-gradient(90deg, transparent, #00f0ff, transparent); margin-bottom: 30px;"></div>
+          <h2 style="font-size: 24px; font-weight: 700; margin: 0 0 20px 0; color: #ffffff;">Verify Your Email Address</h2>
+          <p style="color: #a0aec0; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+            Thanks for applying to join a club on Mukijo! Please verify your email address by clicking below.
+            Note that your application will still need to be approved by the club administrator before you can log in.
+          </p>
+          <a href="{verify_link}" style="display: inline-block; padding: 14px 32px; background: #bffe00; color: #050508; font-weight: 700; font-size: 16px; text-decoration: none; border-radius: 8px; text-transform: uppercase; box-shadow: 0 4px 20px rgba(191, 254, 0, 0.4);">
+            Verify Email
+          </a>
+          <p style="color: #718096; font-size: 12px; margin: 40px 0 0 0; line-height: 1.5;">
+            If the button above does not work, copy and paste this URL into your browser:<br/>
+            <a href="{verify_link}" style="color: #00f0ff; text-decoration: none;">{verify_link}</a>
+          </p>
+          <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent); margin: 30px 0;"></div>
+          <p style="color: #4a5568; font-size: 12px; margin: 0;">
+            If you did not submit this application, you can safely ignore this email.
+          </p>
+        </div>
+      </body>
+    </html>
+    """
+    msg.add_alternative(html_content, subtype="html")
+
+    try:
+        from app.logger import logger
+        logger.log_message_sync(message=f"Attempting to send signup verification email to {to_email}...")
+        with smtplib.SMTP(EMAIL_HOST, EMAIL_PORT) as server:
+            server.starttls()
+            server.login(EMAIL_USER, EMAIL_PASSWORD)
+            server.send_message(msg)
+        logger.log_message_sync(message=f"Signup verification email sent successfully to {to_email}")
+        return True
+    except Exception as e:
+        from app.logger import logger
+        logger.log_error_sync(message=f"Failed to send signup verification email to {to_email}: {e}")
+        return False
+
+
 def _send_email(to_email: str, subject: str, html_content: str, text_content: str) -> bool:
     """Shared helper to send HTML emails using existing SMTP config."""
     from app.logger import logger

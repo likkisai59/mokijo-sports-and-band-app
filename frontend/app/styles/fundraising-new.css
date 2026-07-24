@@ -24,12 +24,12 @@
 }
 
 .back-link:hover {
-    color: var(--brand, #bffe00);
+    color: var(--brand, #c6ff3d);
 }
 
 .page-title {
     font-size: 24px;
-    color: var(--text-primary, #f1f5f9);
+    color: var(--text-primary, #f4f4f5);
     margin-bottom: 8px;
 }
 
@@ -38,7 +38,7 @@
 }
 
 .campaign-form-card {
-    background: var(--bg-surface, #0c0c14);
+    background: var(--bg-surface, #0c0c16);
     padding: 32px;
     border-radius: 20px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
@@ -64,7 +64,7 @@
     border-radius: 10px;
     font-size: 14px;
     color: var(--text-primary, #f8fafc);
-    background: var(--bg-surface-2, #121222);
+    background: var(--bg-surface-2, #14141f);
     outline: none;
     box-sizing: border-box;
     transition: all 0.2s;
@@ -76,9 +76,9 @@
 }
 
 .form-input:focus {
-    border-color: rgba(191, 254, 0, 0.4);
-    background: var(--bg-surface-3, #1a1a36);
-    box-shadow: 0 0 0 4px rgba(191, 254, 0, 0.12);
+    border-color: rgba(198, 255, 61, 0.4);
+    background: var(--bg-surface-3, #202032);
+    box-shadow: 0 0 0 4px rgba(198, 255, 61, 0.12);
 }
 
 .card-accent {
@@ -87,7 +87,7 @@
     left: 0;
     right: 0;
     height: 6px;
-    background: linear-gradient(90deg, var(--brand, #bffe00), #00f0ff);
+    background: linear-gradient(90deg, var(--brand, #c6ff3d), #d9ff6e);
 }
 
 .campaign-form {
@@ -99,9 +99,10 @@
 .form-actions {
     display: flex;
     justify-content: flex-end;
+    align-items: center;
     gap: 12px;
     padding-top: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 }
 
 .cancel-link {
@@ -120,7 +121,7 @@
 .cancel-link:hover {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(255, 255, 255, 0.15);
-    color: var(--text-primary, #f1f5f9);
+    color: var(--text-primary, #f4f4f5);
 }
 
 .submit-btn {

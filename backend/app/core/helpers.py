@@ -109,9 +109,40 @@ def serialize_course(course: dict, db_driver):
     if status == "open" and available_seats == 0:
         status = "full"
 
+    trainer_id = course.get("trainer_id")
+    trainer_name = course.get("trainer_name")
+    if trainer_id and not trainer_name:
+        trainer = db_driver.fetch_one(
+            "SELECT first_name, last_name FROM trainers WHERE id = %s LIMIT 1",
+            (trainer_id,)
+        )
+        if trainer:
+            trainer_name = f"{trainer.get('first_name', '')} {trainer.get('last_name', '')}".strip()
+
+    rescheduled_at = course.get("rescheduled_at")
+    if isinstance(rescheduled_at, datetime):
+        rescheduled_at_str = rescheduled_at.isoformat()
+    else:
+        rescheduled_at_str = str(rescheduled_at) if rescheduled_at else None
+
+    days_raw = course.get("days")
+    days_list = None
+    if isinstance(days_raw, list):
+        days_list = days_raw
+    elif isinstance(days_raw, str) and days_raw.strip():
+        try:
+            import json
+            parsed = json.loads(days_raw)
+            days_list = parsed if isinstance(parsed, list) else [d.strip() for d in days_raw.split(",") if d.strip()]
+        except Exception:
+            days_list = [d.strip() for d in days_raw.split(",") if d.strip()]
+
     return {
         "id": course_id,
         "owner_id": course.get("owner_id"),
+        "trainer_id": trainer_id,
+        "is_trainer_training": bool(trainer_id),
+        "trainer_name": trainer_name,
         "group_id": group_id,
         "title": course.get("title"),
         "code": course.get("code"),
@@ -131,6 +162,12 @@ def serialize_course(course: dict, db_driver):
         "registration_count": registration_count,
         "available_seats": available_seats,
         "paid_count": paid_count,
+        "reschedule_reason": course.get("reschedule_reason"),
+        "rescheduled_at": rescheduled_at_str,
+        "cover_image": course.get("cover_image"),
+        "start_time": course.get("start_time"),
+        "end_time": course.get("end_time"),
+        "days": days_list,
     }
 
 def serialize_course_registration(registration: dict, db_driver):

@@ -11,9 +11,6 @@ function LoginUserContent() {
     const [showSuccess, setShowSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const [showResend, setShowResend] = useState(false);
-    const [resendLoading, setResendLoading] = useState(false);
-    const [resendSuccess, setResendSuccess] = useState("");
 
     useEffect(() => {
         if (searchParams.get("registered") === "true") {
@@ -29,35 +26,10 @@ function LoginUserContent() {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleResend = async () => {
-        setResendLoading(true);
-        setError("");
-        setResendSuccess("");
-        try {
-            const response = await fetch(`${API_BASE_URL}/auth/resend-verification`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: formData.email }),
-            });
-            const data = await response.json();
-            if (response.ok) {
-                setResendSuccess(data.message || "Verification email sent successfully!");
-            } else {
-                setError(data.detail || "Failed to resend verification email.");
-            }
-        } catch (err) {
-            setError("Server connection failed.");
-        } finally {
-            setResendLoading(false);
-        }
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError("");
-        setShowResend(false);
-        setResendSuccess("");
         try {
             const response = await fetch(`${API_BASE_URL}/user/login`, {
                 method: "POST",
@@ -85,9 +57,6 @@ function LoginUserContent() {
             } else {
                 const errorData = await response.json().catch(() => ({}));
                 setError(errorData.detail || "Invalid credentials. Please try again.");
-                if (response.status === 403) {
-                    setShowResend(true);
-                }
             }
         } catch (err) {
             setError("Cannot connect to server. Is the backend running?");
@@ -123,7 +92,7 @@ function LoginUserContent() {
                         >
                             <strong>Registration successful!</strong>
                             <br />
-                            A verification link has been sent to your email. Please verify your email before signing in.
+                            You can now sign in to your account.
                         </div>
                     )}
 
@@ -167,48 +136,6 @@ function LoginUserContent() {
                         </div>
 
                         {error && <div className={styles.errorMsg}>{error}</div>}
-
-                        {showResend && !resendSuccess && (
-                            <button
-                                type="button"
-                                onClick={handleResend}
-                                disabled={resendLoading}
-                                style={{
-                                    width: "100%",
-                                    padding: "10px",
-                                    background: "rgba(0, 240, 255, 0.1)",
-                                    border: "1px solid rgba(0, 240, 255, 0.3)",
-                                    borderRadius: "8px",
-                                    color: "#00f0ff",
-                                    fontWeight: "600",
-                                    fontSize: "14px",
-                                    marginTop: "10px",
-                                    marginBottom: "15px",
-                                    cursor: "pointer",
-                                    transition: "all 0.2s ease"
-                                }}
-                            >
-                                {resendLoading ? "Resending..." : "Resend Verification Link"}
-                            </button>
-                        )}
-
-                        {resendSuccess && (
-                            <div
-                                style={{
-                                    background: "rgba(191, 254, 0, 0.1)",
-                                    border: "1px solid rgba(191, 254, 0, 0.3)",
-                                    color: "#bffe00",
-                                    padding: "12px",
-                                    borderRadius: "8px",
-                                    marginTop: "10px",
-                                    marginBottom: "15px",
-                                    fontSize: "14px",
-                                    textAlign: "center"
-                                }}
-                            >
-                                {resendSuccess}
-                            </div>
-                        )}
 
                         <button type="submit" className={styles.loginButton} disabled={loading}>
                             {loading ? "Signing in…" : "Sign in to Dashboard →"}

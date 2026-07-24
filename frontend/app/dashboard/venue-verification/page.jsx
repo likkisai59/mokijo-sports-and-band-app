@@ -76,9 +76,9 @@ export default function VenueVerificationQueuePage() {
                             fontSize: 13,
                             fontWeight: 600,
                             cursor: "pointer",
-                            background: filter === t.value ? "rgba(191,254,0,0.1)" : "transparent",
-                            color: filter === t.value ? "#bffe00" : "rgba(255,255,255,0.5)",
-                            border: filter === t.value ? "1px solid rgba(191,254,0,0.3)" : "1px solid transparent",
+                            background: filter === t.value ? "rgba(198, 255, 61,0.1)" : "transparent",
+                            color: filter === t.value ? "#c6ff3d" : "rgba(255,255,255,0.5)",
+                            border: filter === t.value ? "1px solid rgba(198, 255, 61,0.3)" : "1px solid transparent",
                             transition: "all 0.2s"
                         }}
                     >

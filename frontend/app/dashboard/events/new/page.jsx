@@ -39,8 +39,8 @@ export default function NewEventPage() {
         Match: "linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)",
         Training: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
         Meeting: "linear-gradient(135deg, #4b5563 0%, #1f2937 100%)",
-        Social: "linear-gradient(135deg, #ec4899 0%, #be185d 100%)",
-        Tournament: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
+        Social: "linear-gradient(135deg, #ff2e93 0%, #e6007a 100%)",
+        Tournament: "linear-gradient(135deg, #c6ff3d 0%, #9fcc1f 100%)",
         Ceremony: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
     };
 
@@ -438,7 +438,7 @@ export default function NewEventPage() {
                     <div
                         style={{
                             marginTop: "40px",
-                            borderTop: "1px solid #f1f5f9",
+                            borderTop: "1px solid #f4f4f5",
                             paddingTop: "24px",
                             display: "flex",
                             justifyContent: "flex-end",
@@ -467,7 +467,7 @@ export default function NewEventPage() {
                                 padding: "12px 28px",
                                 borderRadius: "12px",
                                 border: "none",
-                                background: "#6366f1",
+                                background: "#c6ff3d",
                                 color: "white",
                                 fontWeight: "700",
                                 cursor: "pointer",

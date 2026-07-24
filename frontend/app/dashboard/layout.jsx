@@ -39,6 +39,7 @@ export default function DashboardLayout({ children }) {
         const adminOnlyPaths = [
             "/dashboard/creategroup",
             "/dashboard/importgroups",
+            "/dashboard/groups",
             "/dashboard/members",
             "/dashboard/signup-forms",
             "/dashboard/venues"
@@ -47,6 +48,14 @@ export default function DashboardLayout({ children }) {
         const isTryingToAccessAdminOnly = adminOnlyPaths.some(path => pathname.startsWith(path));
 
         if (isMember && isTryingToAccessAdminOnly) {
+            router.replace("/dashboard/overview");
+            return;
+        }
+
+        const memberRole = (localStorage.getItem("memberRole") || "").toLowerCase().trim();
+        const isReferee = isMember && memberRole === "referee";
+        const refereeBlockedPaths = ["/dashboard/events", "/dashboard/members"];
+        if (isReferee && refereeBlockedPaths.some((path) => pathname.startsWith(path))) {
             router.replace("/dashboard/overview");
             return;
         }

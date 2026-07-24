@@ -55,6 +55,7 @@ export default function OverviewPage() {
     const [clubName, setClubName] = useState("My Club");
     const [memberGroupName, setMemberGroupName] = useState("");
     const [approvalStatus, setApprovalStatus] = useState("");
+    const [bannerDismissed, setBannerDismissed] = useState(false);
 
     const [adminData, setAdminData] = useState(null);
     const [coachData, setCoachData] = useState(null);
@@ -67,6 +68,9 @@ export default function OverviewPage() {
 
     const [campaigns, setCampaigns] = useState([]);
     const [liveMatches, setLiveMatches] = useState([]);
+    const [trainerTrainings, setTrainerTrainings] = useState([]);
+    const [registeredCourses, setRegisteredCourses] = useState([]);
+    const [memberRegistrations, setMemberRegistrations] = useState([]);
 
     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
 
@@ -86,12 +90,19 @@ export default function OverviewPage() {
         setMemberGroupName(storedGroupName);
         setApprovalStatus(storedApprovalStatus);
 
+        const dismissKey = `bannerDismissed_${storedEmail || userId || "guest"}`;
+        setBannerDismissed(localStorage.getItem(dismissKey) === "true");
+
         const fetchData = async () => {
             setLoading(true);
+            const token = localStorage.getItem("accessToken");
+            const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
             try {
                 // Fetch active fundraising campaigns for all roles
                 try {
-                    const campaignsRes = await fetch(`${API_BASE_URL}/fundraising?owner_id=${userId || 1}`);
+                    const campaignsRes = await fetch(`${API_BASE_URL}/fundraising?owner_id=${userId || 1}`, {
+                        headers: authHeaders,
+                    });
                     if (campaignsRes.ok) {
                         const camps = await campaignsRes.json();
                         setCampaigns(camps);
@@ -102,7 +113,10 @@ export default function OverviewPage() {
 
                 // Fetch live matches
                 try {
-                    const matchesRes = await fetch(`${API_BASE_URL}/matches?owner_id=${userId || 1}&status=live`);
+                    const matchesRes = await fetch(
+                        `${API_BASE_URL}/matches?owner_id=${userId || 1}&status=live`,
+                        { headers: authHeaders }
+                    );
                     if (matchesRes.ok) {
                         const mData = await matchesRes.json();
                         setLiveMatches(mData || []);
@@ -111,10 +125,25 @@ export default function OverviewPage() {
                     console.error("Error fetching live matches on overview:", e);
                 }
 
+                // Trainer trainings for dashboard cards (admin / player / parent)
+                try {
+                    const trainingsRes = await fetch(
+                        `${API_BASE_URL}/courses/trainer-trainings?owner_id=${userId || 1}`,
+                        { headers: authHeaders }
+                    );
+                    if (trainingsRes.ok) {
+                        const trainings = await trainingsRes.json();
+                        setTrainerTrainings(Array.isArray(trainings) ? trainings : []);
+                    }
+                } catch (e) {
+                    console.error("Error fetching trainer trainings on overview:", e);
+                }
+
                 if (!storedIsMember) {
                     // Admin overview
-                    // Admin overview
-                    const res = await fetch(`${API_BASE_URL}/dashboard/overview?owner_id=${userId}`);
+                    const res = await fetch(`${API_BASE_URL}/dashboard/overview?owner_id=${userId}`, {
+                        headers: authHeaders,
+                    });
                     if (res.ok) {
                         const d = await res.json();
                         setAdminData(d);
@@ -122,17 +151,30 @@ export default function OverviewPage() {
                 } else if (storedRole.toLowerCase() === "coach") {
                     // Coach overview
                     const res = await fetch(
-                        `${API_BASE_URL}/dashboard/coach?owner_id=${userId || 1}&coach_email=${encodeURIComponent(storedEmail)}`
+                        `${API_BASE_URL}/dashboard/coach?owner_id=${userId || 1}&coach_email=${encodeURIComponent(storedEmail)}`,
+                        { headers: authHeaders }
                     );
                     if (res.ok) {
                         const d = await res.json();
                         setCoachData(d);
                     }
                 } else {
-                    // Fetch real events and members for member-based schedules
-                    const [eventsRes, membersRes] = await Promise.all([
-                        fetch(`${API_BASE_URL}/events?owner_id=${userId || 1}`),
-                        fetch(`${API_BASE_URL}/members?owner_id=${userId || 1}`).catch(() => null),
+                    // Fetch real events, teammates, registered courses & attendance for member-based schedules
+                    const [eventsRes, membersRes, coursesRes, registrationsRes] = await Promise.all([
+                        fetch(`${API_BASE_URL}/events?owner_id=${userId || 1}`, { headers: authHeaders }),
+                        fetch(`${API_BASE_URL}/members?owner_id=${userId || 1}`, { headers: authHeaders }).catch(() => null),
+                        storedEmail
+                            ? fetch(
+                                  `${API_BASE_URL}/courses?owner_id=${userId || 1}&member_email=${encodeURIComponent(storedEmail)}`,
+                                  { headers: authHeaders }
+                              ).catch(() => null)
+                            : Promise.resolve(null),
+                        storedEmail
+                            ? fetch(
+                                  `${API_BASE_URL}/members/registrations?member_email=${encodeURIComponent(storedEmail)}`,
+                                  { headers: authHeaders }
+                              ).catch(() => null)
+                            : Promise.resolve(null),
                     ]);
 
                     if (eventsRes && eventsRes.ok) {
@@ -144,7 +186,15 @@ export default function OverviewPage() {
                     }
                     if (membersRes && membersRes.ok) {
                         const mems = await membersRes.json();
-                        setRealMembers(mems);
+                        setRealMembers(Array.isArray(mems) ? mems : []);
+                    }
+                    if (coursesRes && coursesRes.ok) {
+                        const courseData = await coursesRes.json();
+                        setRegisteredCourses(Array.isArray(courseData) ? courseData : []);
+                    }
+                    if (registrationsRes && registrationsRes.ok) {
+                        const regData = await registrationsRes.json();
+                        setMemberRegistrations(Array.isArray(regData) ? regData : []);
                     }
                 }
             } catch (err) {
@@ -195,17 +245,29 @@ export default function OverviewPage() {
         };
     }, [liveMatches.length]);
 
+    // Teammates limited to the member's own group, excluding parents/guardians/coaches
+    const activeTeammates = realMembers.filter((m) => {
+        const sameGroup = memberGroupName
+            ? (m.group_name || "").trim().toLowerCase() === memberGroupName.trim().toLowerCase()
+            : false;
+        const role = (m.role || "").toLowerCase();
+        const isExcludedRole = role.includes("parent") || role.includes("guardian") || role.includes("coach");
+        return sameGroup && !isExcludedRole;
+    });
+
     // Handle interactive player response
     const handlePlayerResponse = async (eventId, responseType) => {
         try {
+            const token = localStorage.getItem("accessToken");
             const res = await fetch(`${API_BASE_URL}/events/${eventId}/respond`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
                 body: JSON.stringify({
-                    participant_name: userName,
-                    participant_email: localStorage.getItem("userEmail") || "player@club.com",
-                    response: responseType, // accepted, declined, maybe
-                    role: memberRole,
+                    member_email: localStorage.getItem("userEmail") || "",
+                    status: responseType, // accepted, declined, maybe
                 }),
             });
             if (res.ok) {
@@ -220,43 +282,169 @@ export default function OverviewPage() {
         }
     };
 
-    const renderMemberApprovalBanner = () => (
-        <div
-            style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: "12px",
-                alignItems: "center",
-                padding: "12px 16px",
-                borderRadius: "8px",
-                border: "1px solid #bbf7d0",
-                background: "#f0fdf4",
-                color: "#166534",
-                marginBottom: "16px",
-                flexWrap: "wrap",
-            }}
-        >
-            <div>
-                <strong style={{ display: "block", fontSize: "14px" }}>Application accepted by club admin</strong>
-                <span style={{ fontSize: "13px" }}>
-                    Your member dashboard is active{memberGroupName ? ` for ${memberGroupName}` : ""}.
-                </span>
-            </div>
-            <span
+    const dismissApprovalBanner = () => {
+        const email = localStorage.getItem("userEmail") || userId || "guest";
+        localStorage.setItem(`bannerDismissed_${email}`, "true");
+        setBannerDismissed(true);
+    };
+
+    const renderMemberApprovalBanner = () => {
+        if (bannerDismissed) return null;
+
+        return (
+            <div
                 style={{
-                    padding: "4px 10px",
-                    borderRadius: "999px",
-                    background: "#dcfce7",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: "12px",
+                    alignItems: "center",
+                    padding: "12px 16px",
+                    borderRadius: "8px",
+                    border: "1px solid #bbf7d0",
+                    background: "#f0fdf4",
                     color: "#166534",
-                    fontSize: "12px",
-                    fontWeight: 800,
-                    textTransform: "uppercase",
+                    marginBottom: "16px",
+                    flexWrap: "wrap",
                 }}
             >
-                {approvalStatus || "accepted"}
-            </span>
-        </div>
-    );
+                <div>
+                    <strong style={{ display: "block", fontSize: "14px" }}>Application accepted by club admin</strong>
+                    <span style={{ fontSize: "13px" }}>
+                        Your member dashboard is active{memberGroupName ? ` for ${memberGroupName}` : ""}.
+                    </span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <span
+                        style={{
+                            padding: "4px 10px",
+                            borderRadius: "999px",
+                            background: "#dcfce7",
+                            color: "#166534",
+                            fontSize: "12px",
+                            fontWeight: 800,
+                            textTransform: "uppercase",
+                        }}
+                    >
+                        {approvalStatus || "accepted"}
+                    </span>
+                    <button
+                        type="button"
+                        onClick={dismissApprovalBanner}
+                        aria-label="Dismiss notification"
+                        title="Dismiss"
+                        style={{
+                            border: "none",
+                            background: "transparent",
+                            color: "#166534",
+                            cursor: "pointer",
+                            fontSize: "18px",
+                            lineHeight: 1,
+                            padding: "2px 6px",
+                            borderRadius: "6px",
+                        }}
+                    >
+                        ×
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
+    const renderTrainerTrainingsSection = () => {
+        const dateText = (value) => {
+            if (!value) return "Not scheduled";
+            return value;
+        };
+
+        return (
+            <>
+                <div className={styles.sectionHeader}>
+                    <h2 className={styles.sectionTitle}>Discover Trainings</h2>
+                    <p className={styles.sectionSubtitle}>Independent trainings created by platform trainers</p>
+                </div>
+
+                {loading ? (
+                    <div className={styles.venuesGrid}>
+                        {[1, 2, 3].map((n) => (
+                            <div key={n} className={styles.venueCard} style={{ minHeight: 160 }}>
+                                <div className={styles.venueCardContent}>
+                                    <div className={styles.skeletonRow} style={{ width: "60%", height: 20 }} />
+                                    <div className={styles.skeletonRow} style={{ width: "80%", height: 15 }} />
+                                    <div className={styles.skeletonRow} style={{ width: "40%", height: 15 }} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : trainerTrainings.length === 0 ? (
+                    <div className={styles.venueCard} style={{ marginBottom: 32, padding: 24 }}>
+                        <div className={styles.venueCardContent}>
+                            <p style={{ margin: 0, color: "rgba(148, 163, 184, 0.8)", fontSize: 14 }}>
+                                No trainings available yet.
+                            </p>
+                        </div>
+                    </div>
+                ) : (
+                    <div className={styles.venuesGrid}>
+                        {trainerTrainings.map((training) => (
+                            <Link
+                                key={training.id}
+                                href={`/trainings/${training.id}`}
+                                className={styles.venueCard}
+                                style={{ textDecoration: "none", color: "inherit", display: "block" }}
+                            >
+                                <div
+                                    style={{
+                                        height: 140,
+                                        overflow: "hidden",
+                                        borderRadius: "12px 12px 0 0",
+                                        background: "rgba(255,255,255,0.04)",
+                                    }}
+                                >
+                                    <img
+                                        src={
+                                            training.cover_image ||
+                                            "https://images.unsplash.com/photo-1517649763962-0c6238842e77?q=80&w=600&auto=format&fit=crop"
+                                        }
+                                        alt={training.title}
+                                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                                    />
+                                </div>
+                                <div className={styles.venueCardContent}>
+                                    <div className={styles.venueCardHeader}>
+                                        <h3 className={styles.venueName}>{training.title}</h3>
+                                        <span className={`${styles.statusBadge} ${styles.verified}`}>
+                                            {training.status || "open"}
+                                        </span>
+                                    </div>
+                                    <p style={{ margin: "0 0 10px", fontSize: 13, color: "rgba(148, 163, 184, 0.85)" }}>
+                                        {training.trainer_name
+                                            ? `Trainer · ${training.trainer_name}`
+                                            : training.instructor || "Trainer session"}
+                                    </p>
+                                    <p style={{ margin: "0 0 12px", fontSize: 13, color: "rgba(226, 232, 240, 0.8)" }}>
+                                        {training.description || "No description added."}
+                                    </p>
+                                    <div style={{ display: "grid", gap: 6, fontSize: 12, color: "rgba(148, 163, 184, 0.9)" }}>
+                                        <span>
+                                            Dates: {dateText(training.start_date)}
+                                            {training.end_date ? ` → ${dateText(training.end_date)}` : ""}
+                                        </span>
+                                        <span>Schedule: {training.schedule || "—"}</span>
+                                        <span>Location: {training.location || "TBA"}</span>
+                                    </div>
+                                    {training.reschedule_reason && (
+                                        <p style={{ margin: "12px 0 0", fontSize: 12, color: "#fb923c" }}>
+                                            Rescheduled: {training.reschedule_reason}
+                                        </p>
+                                    )}
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                )}
+            </>
+        );
+    };
 
     // Render 1: Club Admin Dashboard
     const renderAdminDashboard = () => {
@@ -309,13 +497,6 @@ export default function OverviewPage() {
                         </svg>
                         Create New Campaign
                     </Link>
-                    <Link href="/dashboard/courses" className={styles.actionButton}>
-                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none">
-                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                            <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"></path>
-                        </svg>
-                        Manage Courses
-                    </Link>
                     <Link href="/dashboard/members" className={styles.actionButton}>
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none">
                             <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -342,6 +523,8 @@ export default function OverviewPage() {
                         })}
                     </div>
                 </div>
+
+                {renderTrainerTrainingsSection()}
 
                 {/* Registered Venues */}
                 <div className={styles.sectionHeader}>
@@ -446,20 +629,6 @@ export default function OverviewPage() {
                     />
                     <StatCard
                         loading={loading}
-                        color="indigo"
-                        label="Total Courses"
-                        value={adminData?.total_courses ?? 0}
-                        sub="Active programs"
-                        href="/dashboard/courses"
-                        icon={
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                                <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        loading={loading}
                         color="amber"
                         label="Pending Payments"
                         value={`\u20B9${(adminData?.pending_payments ?? 0).toLocaleString()}`}
@@ -523,7 +692,7 @@ export default function OverviewPage() {
                         label="Live Matches"
                         value={adminData?.live_matches_count ?? 0}
                         sub="Currently in play"
-                        href="/dashboard/scoreboard"
+                        href="/dashboard/matches"
                         icon={
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <circle cx="12" cy="12" r="9" />
@@ -561,18 +730,23 @@ export default function OverviewPage() {
                     <div className={styles.sectionCard} style={{ marginTop: "24px" }}>
                         <div className={styles.sectionHeader}>
                             <h2 className={styles.sectionTitle}>Live Matches</h2>
-                            <Link href="/dashboard/scoreboard" className={styles.viewAllLink}>View scoreboard</Link>
+                            <Link href="/dashboard/matches" className={styles.viewAllLink}>View all matches</Link>
                         </div>
                         <div className={styles.eventList}>
                             {adminData.live_matches.map((match) => (
-                                <div key={match.id} className={styles.eventCard}>
+                                <Link
+                                    key={match.id}
+                                    href={`/scoreboard/${match.id}`}
+                                    className={styles.eventCard}
+                                    style={{ textDecoration: "none", color: "inherit", display: "block" }}
+                                >
                                     <div className={styles.eventMeta}>
                                         <span className={styles.eventTypeBadge}>{match.sport || "Match"}</span>
                                         <span className={styles.eventDate}>{match.status || "Live"}</span>
                                     </div>
                                     <div className={styles.eventTitle}>{match.title || match.summary || "Live match"}</div>
                                     <div className={styles.eventLocation}>{match.summary || match.teams?.join(" vs ") || "In progress"}</div>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     </div>
@@ -583,7 +757,6 @@ export default function OverviewPage() {
 
     // Render 2: Coach Dashboard
     const renderCoachDashboard = () => {
-        const myPlayers = coachData?.squad_players || [];
         const myEvents = coachData?.upcoming_events || [];
         return (
             <div className={styles.page}>
@@ -599,19 +772,15 @@ export default function OverviewPage() {
                         </svg>
                         Schedule Match/Session
                     </Link>
-                    <Link href="/dashboard/members" className={styles.actionButton}>
+                    <Link
+                        href={`/dashboard/members?group=${encodeURIComponent(memberGroupName)}`}
+                        className={styles.actionButton}
+                    >
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none">
                             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                             <circle cx="9" cy="7" r="4"></circle>
                         </svg>
                         Manage Player Members
-                    </Link>
-                    <Link href="/dashboard/courses" className={styles.actionButton}>
-                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none">
-                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                            <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"></path>
-                        </svg>
-                        Coaching Courses
                     </Link>
                 </div>
 
@@ -668,7 +837,7 @@ export default function OverviewPage() {
                         loading={loading}
                         color="emerald"
                         label="Attendance Rating"
-                        value={coachData?.attendance_rating ?? "94.2%"}
+                        value={coachData?.attendance_rating ?? "0%"}
                         sub="Team presence average"
                         icon={
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -682,36 +851,6 @@ export default function OverviewPage() {
                 {/* Content Panels */}
                 <div className={styles.panels}>
                     {renderLiveMatchesWidget()}
-                    <div className={styles.panel}>
-                        <ul className={styles.memberList}>
-                            {(myPlayers.length > 0
-                                ? myPlayers.slice(0, 4)
-                                : [
-                                      { first_name: "Amit", last_name: "Sharma", email: "amit@cricket.com" },
-                                      { first_name: "Rohan", last_name: "Verma", email: "rohan@football.com" },
-                                      { first_name: "Sania", last_name: "Mirza", email: "sania@tennis.com" },
-                                  ]
-                            ).map((mem, idx) => (
-                                <li key={idx} className={styles.memberRow}>
-                                    <div
-                                        className={styles.memberAvatar}
-                                        style={{
-                                            background: idx === 0 ? "#3b82f6" : idx === 1 ? "#8b5cf6" : "#10b981",
-                                        }}
-                                    >
-                                        {mem.first_name[0]}
-                                    </div>
-                                    <div className={styles.memberInfo}>
-                                        <span className={styles.memberName}>
-                                            {mem.first_name} {mem.last_name || ""}
-                                        </span>
-                                        <span className={styles.memberEmail}>{mem.email}</span>
-                                    </div>
-                                    <span className={styles.groupBadge}>Active Player</span>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
 
                     <div className={styles.panel}>
                         <div className={styles.panelHeader}>
@@ -721,91 +860,34 @@ export default function OverviewPage() {
                             </Link>
                         </div>
                         <ul className={styles.eventList}>
-                            {(myEvents.length > 0
-                                ? myEvents.slice(0, 3)
-                                : [
-                                      {
-                                          name: "Weekly Fitness & Stamina Session",
-                                          venue: "Club Grounds",
-                                          category: "Fitness",
-                                          start_time: "2026-05-20T17:00",
-                                      },
-                                      {
-                                          name: "Tactical Defense Drilling",
-                                          venue: "Main Field",
-                                          category: "Match",
-                                          start_time: "2026-05-22T08:30",
-                                      },
-                                  ]
-                            ).map((ev, idx) => {
-                                const { month, day } = getEventDateParts(ev);
+                            {myEvents.length > 0 ? (
+                                myEvents.slice(0, 3).map((ev, idx) => {
+                                    const { month, day } = getEventDateParts(ev);
 
-                                return (
-                                    <li key={idx} className={styles.eventRow}>
-                                        <div className={styles.eventDateBox}>
-                                            <span className={styles.eventMonth}>{month}</span>
-                                            <span className={styles.eventDay}>{day}</span>
-                                        </div>
-                                        <div className={styles.eventInfo}>
-                                            <span className={styles.eventName}>{ev.name || ev.title}</span>
-                                            <div className={styles.eventMeta}>
-                                                <span className={styles.eventType}>
-                                                    {ev.category || ev.type || "Practice"}
-                                                </span>
-                                                <span>Location: {ev.venue || ev.location}</span>
+                                    return (
+                                        <li key={idx} className={styles.eventRow}>
+                                            <div className={styles.eventDateBox}>
+                                                <span className={styles.eventMonth}>{month}</span>
+                                                <span className={styles.eventDay}>{day}</span>
                                             </div>
-                                        </div>
-                                    </li>
-                                );
-                            })}
+                                            <div className={styles.eventInfo}>
+                                                <span className={styles.eventName}>{ev.name || ev.title}</span>
+                                                <div className={styles.eventMeta}>
+                                                    <span className={styles.eventType}>
+                                                        {ev.category || ev.type || "Practice"}
+                                                    </span>
+                                                    <span>Location: {ev.venue || ev.location}</span>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    );
+                                })
+                            ) : (
+                                <li style={{ color: "#94a3b8", fontSize: "13px", padding: "8px 0" }}>
+                                    No upcoming practices or sessions scheduled yet.
+                                </li>
+                            )}
                         </ul>
-                    </div>
-
-                    <div className={styles.panel}>
-                        <div className={styles.panelHeader}>
-                            <h3 className={styles.panelTitle}>Quick Group Announcement</h3>
-                        </div>
-                        <form
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                alert("Broadcast announcement successfully dispatched!");
-                                e.target.reset();
-                            }}
-                            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
-                        >
-                            <textarea
-                                placeholder="Type notice here... (e.g., Please bring extra sports shoes for tomorrow's mud session)"
-                                required
-                                style={{
-                                    padding: "10px",
-                                    borderRadius: "8px",
-                                    border: "1px solid #cbd5e1",
-                                    resize: "none",
-                                    height: "85px",
-                                    fontSize: "13px",
-                                    outline: "none",
-                                }}
-                            />
-                            <button
-                                type="submit"
-                                style={{
-                                    padding: "8px",
-                                    background: "#8b5cf6",
-                                    color: "white",
-                                    border: "none",
-                                    borderRadius: "8px",
-                                    fontWeight: "bold",
-                                    fontSize: "12px",
-                                    cursor: "pointer",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    gap: "6px",
-                                }}
-                            >
-                                Dispatch Announcement
-                            </button>
-                        </form>
                     </div>
 
                     {renderActiveCampaignsPanel()}
@@ -843,7 +925,7 @@ export default function OverviewPage() {
                                 key={c.id}
                                 style={{
                                     padding: "12px",
-                                    border: "1px solid #f1f5f9",
+                                    border: "1px solid #f4f4f5",
                                     borderRadius: "10px",
                                     background: "#f8fafc",
                                 }}
@@ -876,7 +958,7 @@ export default function OverviewPage() {
                                             padding: "2px 6px",
                                             borderRadius: "8px",
                                             background: "#eff6ff",
-                                            color: "#2563eb",
+                                            color: "#c6ff3d",
                                         }}
                                     >
                                         {progress}%
@@ -907,7 +989,7 @@ export default function OverviewPage() {
                                         style={{
                                             height: "100%",
                                             width: `${progress}%`,
-                                            background: "linear-gradient(90deg, #3b82f6, #10b981)",
+                                            background: "linear-gradient(90deg, #c6ff3d, #10b981)",
                                             borderRadius: "99px",
                                         }}
                                     />
@@ -923,7 +1005,7 @@ export default function OverviewPage() {
                                         href={`/dashboard/fundraising/donate/${c.id}`}
                                         style={{
                                             padding: "4px 10px",
-                                            background: "#2563eb",
+                                            background: "#c6ff3d",
                                             color: "white",
                                             textDecoration: "none",
                                             borderRadius: "6px",
@@ -986,7 +1068,7 @@ export default function OverviewPage() {
                                         borderRadius: "6px",
                                         fontSize: "12px",
                                         textDecoration: "none",
-                                        background: "var(--brand, #bffe00)",
+                                        background: "var(--brand, #c6ff3d)",
                                         color: "#000",
                                         fontWeight: "700"
                                     }}
@@ -1011,7 +1093,7 @@ export default function OverviewPage() {
                     <Link
                         href="/dashboard/events"
                         className={styles.actionButton}
-                        style={{ background: "#8b5cf6", boxShadow: "0 4px 12px rgba(139, 92, 246, 0.25)" }}
+                        style={{ background: "#c6ff3d", boxShadow: "0 4px 12px rgba(198, 255, 61, 0.25)" }}
                     >
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none">
                             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -1019,13 +1101,6 @@ export default function OverviewPage() {
                             <line x1="8" y1="2" x2="8" y2="6"></line>
                         </svg>
                         My Game Schedule
-                    </Link>
-                    <Link href="/dashboard/courses" className={styles.actionButton}>
-                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none">
-                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                            <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"></path>
-                        </svg>
-                        Training Batches
                     </Link>
                     <Link
                         href="/dashboard/fundraising"
@@ -1054,243 +1129,11 @@ export default function OverviewPage() {
                     </div>
                 </div>
 
-                {/* Stats */}
-                <div className={styles.statsGrid}>
-                    <StatCard
-                        loading={loading}
-                        color="indigo"
-                        label="Upcoming Games"
-                        value={realEvents.length || 3}
-                        sub="Fixtures this week"
-                        href="/dashboard/events"
-                        icon={
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                <line x1="16" y1="2" x2="16" y2="6" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        loading={loading}
-                        color="emerald"
-                        label="My Presence Rate"
-                        value="96.8%"
-                        sub="Perfect attendance score"
-                        icon={
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                <polyline points="22 4 12 14.01 9 11.01" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        loading={loading}
-                        color="amber"
-                        label="Registered Classes"
-                        value="2 Batches"
-                        sub="Elite Skill Development"
-                        href="/dashboard/courses"
-                        icon={
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                            </svg>
-                        }
-                    />
-                </div>
+                {renderTrainerTrainingsSection()}
 
                 {/* Content Panels */}
                 <div className={styles.panels}>
                     {renderLiveMatchesWidget()}
-                    <div className={styles.panel} style={{ gridColumn: "span 2" }}>
-                        <div className={styles.panelHeader}>
-                            <h3 className={styles.panelTitle}>Respond to Invited Matches & Practices</h3>
-                            <span style={{ fontSize: "12px", color: "#64748b" }}>
-                                Respond here to secure your team day spot
-                            </span>
-                        </div>
-                        <ul className={styles.eventList} style={{ gap: "20px" }}>
-                            {(realEvents.length > 0
-                                ? realEvents.slice(0, 2)
-                                : [
-                                      {
-                                          id: 1,
-                                          name: "Weekend Cup - Semifinals vs Warriors",
-                                          venue: "East Arena Pitch 2",
-                                          start_time: "2026-05-23T09:00",
-                                          category: "Match",
-                                      },
-                                      {
-                                          id: 2,
-                                          name: "Intense Drills with Coach",
-                                          venue: "Indoor Courts",
-                                          start_time: "2026-05-25T18:00",
-                                          category: "Training",
-                                      },
-                                  ]
-                            ).map((ev) => {
-                                const { month, day } = getEventDateParts(ev);
-                                const hasResponded = responses[ev.id];
-
-                                return (
-                                    <li
-                                        key={ev.id}
-                                        className={styles.eventRow}
-                                        style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "16px" }}
-                                    >
-                                        <div className={styles.eventDateBox} style={{ background: "#f5f3ff" }}>
-                                            <span className={styles.eventMonth} style={{ color: "#8b5cf6" }}>
-                                                {month}
-                                            </span>
-                                            <span className={styles.eventDay} style={{ color: "#7c3aed" }}>
-                                                {day}
-                                            </span>
-                                        </div>
-                                        <div className={styles.eventInfo} style={{ flex: 1 }}>
-                                            <span className={styles.eventName}>{ev.name || ev.title}</span>
-                                            <div className={styles.eventMeta}>
-                                                <span className={styles.eventType}>{ev.category || "Practice"}</span>
-                                                <span>Location: {ev.venue || ev.location}</span>
-                                            </div>
-                                        </div>
-                                        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                                            {hasResponded ? (
-                                                <span
-                                                    style={{
-                                                        fontSize: "11px",
-                                                        fontWeight: "bold",
-                                                        background:
-                                                            hasResponded === "accepted"
-                                                                ? "#d1fae5"
-                                                                : hasResponded === "declined"
-                                                                  ? "#fee2e2"
-                                                                  : "#fef3c7",
-                                                        color:
-                                                            hasResponded === "accepted"
-                                                                ? "#065f46"
-                                                                : hasResponded === "declined"
-                                                                  ? "#991b1b"
-                                                                  : "#92400e",
-                                                        padding: "6px 12px",
-                                                        borderRadius: "12px",
-                                                    }}
-                                                >
-                                                    Response: {hasResponded.toUpperCase()}
-                                                </span>
-                                            ) : (
-                                                <>
-                                                    <button
-                                                        onClick={() => handlePlayerResponse(ev.id, "accepted")}
-                                                        style={{
-                                                            padding: "6px 10px",
-                                                            background: "#10b981",
-                                                            color: "white",
-                                                            border: "none",
-                                                            borderRadius: "6px",
-                                                            fontSize: "11px",
-                                                            fontWeight: "bold",
-                                                            cursor: "pointer",
-                                                        }}
-                                                    >
-                                                        Accept
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handlePlayerResponse(ev.id, "maybe")}
-                                                        style={{
-                                                            padding: "6px 10px",
-                                                            background: "#f59e0b",
-                                                            color: "white",
-                                                            border: "none",
-                                                            borderRadius: "6px",
-                                                            fontSize: "11px",
-                                                            fontWeight: "bold",
-                                                            cursor: "pointer",
-                                                        }}
-                                                    >
-                                                        Maybe
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handlePlayerResponse(ev.id, "declined")}
-                                                        style={{
-                                                            padding: "6px 10px",
-                                                            background: "#ef4444",
-                                                            color: "white",
-                                                            border: "none",
-                                                            borderRadius: "6px",
-                                                            fontSize: "11px",
-                                                            fontWeight: "bold",
-                                                            cursor: "pointer",
-                                                        }}
-                                                    >
-                                                        Decline
-                                                    </button>
-                                                </>
-                                            )}
-                                        </div>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    </div>
-
-                    <div className={styles.panel}>
-                        <div className={styles.panelHeader}>
-                            <h3 className={styles.panelTitle}>Active Teammates</h3>
-                            <Link href="/dashboard/members" className={styles.panelLink}>
-                                View Squad
-                            </Link>
-                        </div>
-                        <div
-                            style={{
-                                display: "grid",
-                                gridTemplateColumns: "repeat(4, 1fr)",
-                                gap: "10px",
-                                marginTop: "10px",
-                            }}
-                        >
-                            {(realMembers.length > 0
-                                ? realMembers.slice(0, 8)
-                                : [
-                                      { first_name: "Amit" },
-                                      { first_name: "Sania" },
-                                      { first_name: "Rohan" },
-                                      { first_name: "Vikram" },
-                                      { first_name: "Preeti" },
-                                      { first_name: "Kabir" },
-                                      { first_name: "Rahul" },
-                                      { first_name: "Jyoti" },
-                                  ]
-                            ).map((m, idx) => (
-                                <div
-                                    key={idx}
-                                    style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        alignItems: "center",
-                                        gap: "4px",
-                                    }}
-                                >
-                                    <div
-                                        className={styles.memberAvatar}
-                                        style={{
-                                            background:
-                                                idx % 3 === 0 ? "#3b82f6" : idx % 3 === 1 ? "#10b981" : "#8b5cf6",
-                                            width: "42px",
-                                            height: "42px",
-                                            borderRadius: "50%",
-                                            margin: 0,
-                                        }}
-                                    >
-                                        {m.first_name[0]}
-                                    </div>
-                                    <span style={{ fontSize: "11px", fontWeight: "500", color: "#475569" }}>
-                                        {m.first_name}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {renderActiveCampaignsPanel()}
                 </div>
             </div>
         );
@@ -1303,7 +1146,10 @@ export default function OverviewPage() {
                 {renderMemberApprovalBanner()}
                 {/* Quick Actions */}
                 <div className={styles.actionBar}>
-                    <Link href="/dashboard/members" className={styles.actionButton}>
+                    <Link
+                        href={`/dashboard/members?group=${encodeURIComponent(memberGroupName)}`}
+                        className={styles.actionButton}
+                    >
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none">
                             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                             <circle cx="9" cy="7" r="4"></circle>
@@ -1346,14 +1192,16 @@ export default function OverviewPage() {
                     </div>
                 </div>
 
+                {renderTrainerTrainingsSection()}
+
                 {/* Stats */}
                 <div className={styles.statsGrid}>
                     <StatCard
                         loading={loading}
                         color="blue"
                         label="Children Registered"
-                        value="2 Active Kids"
-                        sub="Coaching & Squad teams"
+                        value={activeTeammates.length}
+                        sub={activeTeammates.length > 0 ? "Linked to your group" : "No linked children yet"}
                         icon={
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -1366,7 +1214,7 @@ export default function OverviewPage() {
                         loading={loading}
                         color="violet"
                         label="Upcoming Events"
-                        value={realEvents.length || 4}
+                        value={realEvents.length}
                         sub="Events scheduled"
                         href="/dashboard/events"
                         icon={
@@ -1380,8 +1228,9 @@ export default function OverviewPage() {
                         loading={loading}
                         color="amber"
                         label="Outstanding Dues"
-                        value="Rs. 1,500"
-                        sub="Awaiting card payment"
+                        value="Rs. 0"
+                        sub="No dues data available"
+                        href="/dashboard/payments"
                         icon={<span className={styles.rupeeIcon}>{"\u20B9"}</span>}
                     />
                 </div>
@@ -1397,76 +1246,19 @@ export default function OverviewPage() {
 
     // Render 5: Referee Dashboard
     const renderRefereeDashboard = () => {
-        const officialButtonStyle = {
-            background: "#2563eb",
-            border: "none",
-            borderRadius: "8px",
-            boxShadow: "0 4px 12px rgba(37, 99, 235, 0.25)",
-            width: "250px",
-            padding: "11px 18px",
-        };
-        const fundraisingTotal = campaigns.reduce((sum, campaign) => sum + Number(campaign.raised || 0), 0);
+        const liveCount = liveMatches.length;
 
         return (
             <div className={styles.page}>
                 {renderMemberApprovalBanner()}
-                {/* Quick Actions */}
-                <div className={styles.actionBar}>
-                    <Link href="/dashboard/events" className={styles.actionButton} style={officialButtonStyle}>
-                        <svg
-                            viewBox="0 0 24 24"
-                            width="20"
-                            height="20"
-                            stroke="currentColor"
-                            fill="none"
-                            strokeWidth="2.4"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <rect x="3" y="4" width="18" height="17" rx="2" ry="2" />
-                            <line x1="16" y1="2" x2="16" y2="6" />
-                            <line x1="8" y1="2" x2="8" y2="6" />
-                            <line x1="3" y1="10" x2="21" y2="10" />
-                            <circle cx="8" cy="15" r="1" fill="currentColor" stroke="none" />
-                            <circle cx="12" cy="15" r="1" fill="currentColor" stroke="none" />
-                            <circle cx="16" cy="15" r="1" fill="currentColor" stroke="none" />
-                        </svg>
-                        Events
-                    </Link>
-                    <Link href="/dashboard/courses" className={styles.actionButton} style={officialButtonStyle}>
-                        <svg
-                            viewBox="0 0 24 24"
-                            width="20"
-                            height="20"
-                            stroke="currentColor"
-                            fill="none"
-                            strokeWidth="2.4"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                            <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z" />
-                            <path d="M8 6h8" />
-                            <path d="M8 10h7" />
-                        </svg>
-                        Courses
-                    </Link>
-                    <button
-                        onClick={() => alert("Availability marked: 100% active!")}
-                        className={styles.actionButton}
-                        style={officialButtonStyle}
-                    >
-                        Toggle Availability (Active)
-                    </button>
-                </div>
 
                 {/* Page heading */}
                 <div className={styles.pageHeader}>
                     <div>
                         <h1 className={styles.pageTitle}>Match Official Desk</h1>
                         <p className={styles.pageSubtitle}>
-                            Welcome back, Referee {userName}! Input game scores, submit match alerts, and track
-                            schedules.
+                            Welcome back, Referee {userName}! Open live matches to input scores and manage the
+                            scoreboard.
                         </p>
                     </div>
                     <div className={styles.dateBadge}>
@@ -1483,50 +1275,16 @@ export default function OverviewPage() {
                 <div className={styles.statsGrid}>
                     <StatCard
                         loading={loading}
-                        color="indigo"
-                        label="Events"
-                        value={realEvents.length || 0}
-                        sub="Officiating this week"
-                        href="/dashboard/events"
-                        icon={
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        loading={loading}
-                        color="emerald"
-                        label="Members"
-                        value={realMembers.length || 0}
-                        sub="Current members"
-                        href="/dashboard/members"
-                        icon={
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                                <circle cx="9" cy="7" r="4" />
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        loading={loading}
                         color="rose"
-                        label="Fundraising"
-                        value={`\u20B9${fundraisingTotal.toLocaleString("en-IN")}`}
-                        sub="Total raised"
-                        href="/dashboard/fundraising"
+                        label="Live Matches"
+                        value={liveCount}
+                        sub="In progress now"
+                        href="/dashboard/matches"
                         icon={
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            >
-                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-                                <polyline points="17 6 23 6 23 12" />
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M8 12h8" />
+                                <path d="M12 8v8" />
                             </svg>
                         }
                     />
@@ -1534,8 +1292,16 @@ export default function OverviewPage() {
 
                 {/* Content Panels */}
                 <div className={styles.panels}>
-                    {renderLiveMatchesWidget()}
-                    {renderActiveCampaignsPanel()}
+                    {renderLiveMatchesWidget() || (
+                        <div className={styles.panel} style={{ gridColumn: "span 2", padding: "28px", textAlign: "center" }}>
+                            <h3 className={styles.panelTitle} style={{ marginBottom: "8px" }}>
+                                No live matches
+                            </h3>
+                            <p style={{ color: "#64748b", marginBottom: "0" }}>
+                                When a match goes live, it will appear here for scoring.
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -1553,7 +1319,7 @@ export default function OverviewPage() {
                             width: "40px",
                             height: "40px",
                             border: "4px solid #cbd5e1",
-                            borderTopColor: "#2563eb",
+                            borderTopColor: "#c6ff3d",
                             borderRadius: "50%",
                             animation: "spin 1s linear infinite",
                             margin: "0 auto 16px",

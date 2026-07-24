@@ -10,7 +10,7 @@ export default function ToastProvider() {
                 style: {
                     borderRadius: "10px",
                     background: "#1e293b",
-                    color: "#f1f5f9",
+                    color: "#f4f4f5",
                     fontSize: "14px",
                     fontWeight: 500,
                     boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
@@ -18,13 +18,13 @@ export default function ToastProvider() {
                 success: {
                     iconTheme: {
                         primary: "#22c55e",
-                        secondary: "#f1f5f9",
+                        secondary: "#f4f4f5",
                     },
                 },
                 error: {
                     iconTheme: {
                         primary: "#ef4444",
-                        secondary: "#f1f5f9",
+                        secondary: "#f4f4f5",
                     },
                 },
             }}

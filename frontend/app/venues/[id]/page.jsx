@@ -235,7 +235,7 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                     <div style={styles.bannerInfo}>
                         <h1 style={styles.title}>{venue?.name}</h1>
                         <div style={styles.locationGroup}>
-                            <MapPin size={16} style={{ color: "#00f0ff" }} />
+                            <MapPin size={16} style={{ color: "#d9ff6e" }} />
                             <span>{venue?.location}</span>
                         </div>
                         <div style={styles.ratingGroup}>
@@ -278,11 +278,11 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                                                 ...styles.courtCard,
                                                 borderColor:
                                                     selectedCourt?.id === court.id
-                                                        ? "#bffe00"
+                                                        ? "#c6ff3d"
                                                         : "rgba(255, 255, 255, 0.08)",
                                                 background:
                                                     selectedCourt?.id === court.id
-                                                        ? "rgba(191, 254, 0, 0.05)"
+                                                        ? "rgba(198, 255, 61, 0.05)"
                                                         : "rgba(255, 255, 255, 0.02)",
                                             }}
                                         >
@@ -306,10 +306,10 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                                         style={{
                                             ...styles.dateChip,
                                             backgroundColor:
-                                                selectedDate === d.iso ? "#00f0ff" : "rgba(255, 255, 255, 0.04)",
-                                            color: selectedDate === d.iso ? "#050508" : "#f1f5f9",
+                                                selectedDate === d.iso ? "#d9ff6e" : "rgba(255, 255, 255, 0.04)",
+                                            color: selectedDate === d.iso ? "#08080f" : "#f4f4f5",
                                             borderColor:
-                                                selectedDate === d.iso ? "#00f0ff" : "rgba(255, 255, 255, 0.08)",
+                                                selectedDate === d.iso ? "#d9ff6e" : "rgba(255, 255, 255, 0.08)",
                                         }}
                                     >
                                         {d.display}
@@ -342,7 +342,7 @@ export default function VenueDetailPage({ params: paramsPromise }) {
 
                                         let slotBg = "rgba(255, 255, 255, 0.03)";
                                         let slotBorder = "rgba(255, 255, 255, 0.06)";
-                                        let slotColor = "#f1f5f9";
+                                        let slotColor = "#f4f4f5";
                                         let cursor = "pointer";
 
                                         if (isBooked) {
@@ -356,9 +356,9 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                                             slotColor = "rgba(148, 163, 184, 0.4)";
                                             cursor = "not-allowed";
                                         } else if (isSelected) {
-                                            slotBg = "rgba(191, 254, 0, 0.1)";
-                                            slotBorder = "#bffe00";
-                                            slotColor = "#bffe00";
+                                            slotBg = "rgba(198, 255, 61, 0.1)";
+                                            slotBorder = "#c6ff3d";
+                                            slotColor = "#c6ff3d";
                                         }
 
                                         return (
@@ -450,7 +450,7 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                                         <div key={rev.id} style={styles.reviewItem}>
                                             <div style={styles.reviewHeader}>
                                                 <div style={styles.reviewUser}>
-                                                    <User size={16} style={{ color: "#00f0ff" }} />
+                                                    <User size={16} style={{ color: "#d9ff6e" }} />
                                                     <span>{rev.user_name || "Verified Athlete"}</span>
                                                 </div>
                                                 <div style={styles.reviewStars}>
@@ -514,9 +514,9 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                                     cursor: selectedSlots.length === 0 || submitting ? "not-allowed" : "pointer",
                                 }}
                             >
-                                {submitting ? "Holding Slots..." : "Proceed to Hold Slots →"}
+                                {submitting ? "Booking..." : "Book Now"}
                             </button>
-                            <p style={styles.summaryTip}>* Slots will be held for 5 minutes during payment checkout.</p>
+                            <p style={styles.summaryTip}>* Slots are held for 5 minutes while you pay with Razorpay.</p>
                         </div>
                     </div>
                 </div>
@@ -529,7 +529,7 @@ const styles = {
     container: {
         minHeight: "100vh",
         backgroundColor: "#08080f",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         fontFamily: "'Outfit', sans-serif",
         paddingBottom: "80px",
     },
@@ -538,7 +538,7 @@ const styles = {
         justifyContent: "space-between",
         alignItems: "center",
         padding: "16px 40px",
-        background: "rgba(15, 15, 26, 0.8)",
+        background: "rgba(20, 20, 31, 0.8)",
         backdropFilter: "blur(12px)",
         borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
         position: "sticky",
@@ -549,7 +549,7 @@ const styles = {
         display: "flex",
         alignItems: "center",
         gap: "8px",
-        color: "#00f0ff",
+        color: "#d9ff6e",
         textDecoration: "none",
         fontSize: "14px",
         fontWeight: "600",
@@ -569,7 +569,7 @@ const styles = {
         padding: "40px",
     },
     banner: {
-        background: "linear-gradient(135deg, rgba(15, 15, 26, 0.9) 0%, rgba(20, 20, 35, 0.7) 100%)",
+        background: "linear-gradient(135deg, rgba(20, 20, 31, 0.9) 0%, rgba(20, 20, 35, 0.7) 100%)",
         border: "1px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "16px",
         padding: "40px",
@@ -618,14 +618,14 @@ const styles = {
     },
     desc: {
         fontSize: "15px",
-        color: "rgba(241, 245, 249, 0.65)",
+        color: "rgba(244, 244, 245, 0.65)",
         lineHeight: "1.6",
     },
     bannerMedia: {
         borderRadius: "12px",
         overflow: "hidden",
         height: "220px",
-        backgroundColor: "#0c0c14",
+        backgroundColor: "#0c0c16",
     },
     coverImg: {
         width: "100%",
@@ -644,7 +644,7 @@ const styles = {
         width: "40px",
         height: "40px",
         border: "4px solid rgba(255,255,255,0.1)",
-        borderTopColor: "#bffe00",
+        borderTopColor: "#c6ff3d",
         borderRadius: "50%",
         animation: "spin 1s linear infinite",
         marginBottom: "16px",
@@ -666,7 +666,7 @@ const styles = {
         textAlign: "center",
     },
     backLink: {
-        color: "#00f0ff",
+        color: "#d9ff6e",
         fontWeight: "600",
         textDecoration: "none",
     },
@@ -691,11 +691,11 @@ const styles = {
     sectionTitle: {
         fontSize: "18px",
         fontWeight: "700",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         marginBottom: "20px",
         textTransform: "uppercase",
         letterSpacing: "0.05em",
-        borderLeft: "3px solid #bffe00",
+        borderLeft: "3px solid #c6ff3d",
         paddingLeft: "10px",
     },
     courtsGrid: {
@@ -713,7 +713,7 @@ const styles = {
         alignItems: "flex-start",
         textAlign: "left",
         fontFamily: "'Outfit', sans-serif",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         transition: "all 0.25s ease",
     },
     courtName: {
@@ -723,7 +723,7 @@ const styles = {
     },
     courtType: {
         fontSize: "12px",
-        color: "#00f0ff",
+        color: "#d9ff6e",
         textTransform: "uppercase",
         fontWeight: "600",
         marginBottom: "8px",
@@ -801,7 +801,7 @@ const styles = {
         fontSize: "16px",
         fontWeight: "700",
         textTransform: "uppercase",
-        color: "rgba(241, 245, 249, 0.6)",
+        color: "rgba(244, 244, 245, 0.6)",
         marginBottom: "20px",
         letterSpacing: "0.05em",
     },
@@ -832,12 +832,12 @@ const styles = {
         alignItems: "center",
         fontSize: "18px",
         fontWeight: "800",
-        color: "#bffe00",
+        color: "#c6ff3d",
         marginBottom: "24px",
     },
     checkoutBtn: {
-        background: "linear-gradient(135deg, #bffe00, #00f0ff)",
-        color: "#050508",
+        background: "linear-gradient(135deg, #c6ff3d, #d9ff6e)",
+        color: "#08080f",
         border: "none",
         padding: "14px",
         borderRadius: "10px",
@@ -848,7 +848,7 @@ const styles = {
         width: "100%",
         transition: "all 0.25s ease",
         transform: "skewX(-6deg)",
-        boxShadow: "0 6px 20px rgba(191, 254, 0, 0.25)",
+        boxShadow: "0 6px 20px rgba(198, 255, 61, 0.25)",
     },
     summaryTip: {
         fontSize: "11px",
@@ -865,8 +865,8 @@ const styles = {
         marginBottom: "24px",
     },
     reviewSelect: {
-        background: "#0c0c14",
-        color: "#f1f5f9",
+        background: "#0c0c16",
+        color: "#f4f4f5",
         border: "1px solid rgba(255,255,255,0.08)",
         borderRadius: "6px",
         padding: "4px 8px",
@@ -881,7 +881,7 @@ const styles = {
         border: "1px solid rgba(255,255,255,0.08)",
         borderRadius: "8px",
         padding: "12px",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         fontSize: "14px",
         outline: "none",
         fontFamily: "'Outfit', sans-serif",
@@ -889,9 +889,9 @@ const styles = {
         marginBottom: "12px",
     },
     reviewSubmitBtn: {
-        background: "rgba(0, 240, 255, 0.1)",
-        border: "1px solid rgba(0, 240, 255, 0.2)",
-        color: "#00f0ff",
+        background: "rgba(217, 255, 110, 0.1)",
+        border: "1px solid rgba(217, 255, 110, 0.2)",
+        color: "#d9ff6e",
         padding: "8px 20px",
         borderRadius: "8px",
         fontSize: "13px",
@@ -929,7 +929,7 @@ const styles = {
     },
     reviewComment: {
         fontSize: "13px",
-        color: "rgba(241, 245, 249, 0.7)",
+        color: "rgba(244, 244, 245, 0.7)",
         lineHeight: "1.5",
         margin: "0 0 8px 0",
     },

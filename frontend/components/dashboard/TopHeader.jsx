@@ -50,7 +50,7 @@ export default function TopHeader({ isMobileMenuOpen = false, onMenuToggle }) {
             </div>
 
             <div className="user-box" style={{ position: "relative" }}>
-                <NotificationBell mode={isMember ? "empty" : "admin"} />
+                <NotificationBell mode={isMember ? "member" : "admin"} />
                 <div
                     className="user-profile-trigger"
                     onClick={(e) => {

@@ -2,6 +2,16 @@
 import { API_BASE_URL } from "@/lib/api";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+    digitsOnly,
+    isValidEmail,
+    isValidCityOrState,
+    isValidPostalCode,
+    EMAIL_MESSAGE,
+    CITY_STATE_MESSAGE,
+    POSTAL_CODE_MESSAGE,
+    PHONE_DIGITS_MESSAGE,
+} from "@/lib/validation";
 
 const API = API_BASE_URL;
 const SPORTS_LIST = [
@@ -83,7 +93,33 @@ export default function MyVenuesPage() {
         setMsg("");
     };
 
+    const validateEditVenue = () => {
+        const phoneDigits = digitsOnly(editVenue.contact_phone);
+        if (editVenue.contact_phone && phoneDigits.length < 8) {
+            setMsg(PHONE_DIGITS_MESSAGE);
+            return false;
+        }
+        if (editVenue.contact_email && !isValidEmail(editVenue.contact_email)) {
+            setMsg(EMAIL_MESSAGE);
+            return false;
+        }
+        if (editVenue.city && !isValidCityOrState(editVenue.city)) {
+            setMsg(CITY_STATE_MESSAGE);
+            return false;
+        }
+        if (editVenue.state_name && !isValidCityOrState(editVenue.state_name)) {
+            setMsg(CITY_STATE_MESSAGE);
+            return false;
+        }
+        if (editVenue.postal_code && !isValidPostalCode(editVenue.postal_code)) {
+            setMsg(POSTAL_CODE_MESSAGE);
+            return false;
+        }
+        return true;
+    };
+
     const saveEdit = async () => {
+        if (!validateEditVenue()) return;
         setSaving(true);
         const body = {
             name: editVenue.name,
@@ -280,9 +316,10 @@ export default function MyVenuesPage() {
                                 <label className="vd-label">Contact Phone</label>
                                 <input
                                     className="vd-input"
-                                    placeholder="+91 99999 99999"
+                                    placeholder="9999999999"
+                                    inputMode="numeric"
                                     value={editVenue.contact_phone || ""}
-                                    onChange={(e) => setEditVenue((p) => ({ ...p, contact_phone: e.target.value }))}
+                                    onChange={(e) => setEditVenue((p) => ({ ...p, contact_phone: digitsOnly(e.target.value).slice(0, 15) }))}
                                 />
                             </div>
                             <div className="vd-field">
@@ -317,7 +354,7 @@ export default function MyVenuesPage() {
                                     className="vd-input"
                                     placeholder="City"
                                     value={editVenue.city || ""}
-                                    onChange={(e) => setEditVenue((p) => ({ ...p, city: e.target.value }))}
+                                    onChange={(e) => setEditVenue((p) => ({ ...p, city: e.target.value.replace(/[^A-Za-z\s.'-]/g, "") }))}
                                 />
                             </div>
                             <div className="vd-field">
@@ -326,7 +363,7 @@ export default function MyVenuesPage() {
                                     className="vd-input"
                                     placeholder="State"
                                     value={editVenue.state_name || ""}
-                                    onChange={(e) => setEditVenue((p) => ({ ...p, state_name: e.target.value }))}
+                                    onChange={(e) => setEditVenue((p) => ({ ...p, state_name: e.target.value.replace(/[^A-Za-z\s.'-]/g, "") }))}
                                 />
                             </div>
                             <div className="vd-field">
@@ -334,8 +371,9 @@ export default function MyVenuesPage() {
                                 <input
                                     className="vd-input"
                                     placeholder="Pincode"
+                                    inputMode="numeric"
                                     value={editVenue.postal_code || ""}
-                                    onChange={(e) => setEditVenue((p) => ({ ...p, postal_code: e.target.value }))}
+                                    onChange={(e) => setEditVenue((p) => ({ ...p, postal_code: digitsOnly(e.target.value).slice(0, 10) }))}
                                 />
                             </div>
                         </div>
@@ -376,12 +414,12 @@ export default function MyVenuesPage() {
                                             fontWeight: 600,
                                             cursor: "pointer",
                                             border: editVenue.sports.includes(s)
-                                                ? "1px solid rgba(191,254,0,0.5)"
+                                                ? "1px solid rgba(198, 255, 61,0.5)"
                                                 : "1px solid rgba(255,255,255,0.1)",
                                             background: editVenue.sports.includes(s)
-                                                ? "rgba(191,254,0,0.1)"
+                                                ? "rgba(198, 255, 61,0.1)"
                                                 : "transparent",
-                                            color: editVenue.sports.includes(s) ? "#bffe00" : "rgba(255,255,255,0.5)",
+                                            color: editVenue.sports.includes(s) ? "#c6ff3d" : "rgba(255,255,255,0.5)",
                                             fontFamily: "Outfit,sans-serif",
                                         }}
                                     >

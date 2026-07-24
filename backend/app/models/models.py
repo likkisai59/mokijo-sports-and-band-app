@@ -114,6 +114,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
+    club_id = Column(String, unique=True, index=True, nullable=True)
     club_name = Column(String)
     country = Column(String)
     state = Column(String)

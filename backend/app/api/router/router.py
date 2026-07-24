@@ -15,6 +15,18 @@ from app.api.venue_owner.venue_owner import VenueOwnerRouting
 from app.api.games.games import GamesRouting
 from app.api.matches.matches import MatchesRouting
 from app.api.venue_verification.venue_verification import VenueVerificationRouting
+from app.api.trainer.trainer import TrainerRouting
+
+# Band module routers (ORM-based, native FastAPI APIRouter)
+from app.api.band_auth.router import router as band_auth_router
+from app.api.band_categories.router import router as band_categories_router
+from app.api.band_locations.router import router as band_locations_router
+from app.api.band_artists.router import router as band_artists_router
+from app.api.band_venues.router import router as band_venues_router
+from app.api.band_bookings.router import router as band_bookings_router
+from app.api.band_reviews.router import router as band_reviews_router
+from app.api.band_earnings.router import router as band_earnings_router
+from app.api.band_settings.router import router as band_settings_router
 
 api_router = APIRouter()
 
@@ -34,6 +46,7 @@ venue_owner = VenueOwnerRouting()
 games = GamesRouting()
 matches = MatchesRouting()
 venue_verification = VenueVerificationRouting()
+trainer = TrainerRouting()
 
 # Register sub-routers
 api_router.include_router(auth.router)
@@ -51,3 +64,15 @@ api_router.include_router(venue_owner.router)
 api_router.include_router(games.router)
 api_router.include_router(matches.router)
 api_router.include_router(venue_verification.router)
+api_router.include_router(trainer.router)
+
+# Band module routers
+api_router.include_router(band_auth_router)
+api_router.include_router(band_categories_router)
+api_router.include_router(band_locations_router)
+api_router.include_router(band_artists_router)
+api_router.include_router(band_venues_router)
+api_router.include_router(band_bookings_router)
+api_router.include_router(band_reviews_router)
+api_router.include_router(band_earnings_router)
+api_router.include_router(band_settings_router)

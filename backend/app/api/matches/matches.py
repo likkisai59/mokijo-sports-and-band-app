@@ -223,13 +223,27 @@ class MatchesRouting(ConnectionService):
         return await logic.get_match_events(request, match_id, current_user)
 
     async def websocket_scoreboard(self, websocket: WebSocket, match_id: int):
+        await websocket.accept()
+
         db = self.db_driver
-        db_match = db.fetch_one("SELECT * FROM matches WHERE id = %s", (match_id,))
+        try:
+            db_match = db.fetch_one("SELECT * FROM matches WHERE id = %s", (match_id,))
+        except Exception as e:
+            print(f"Error looking up match for websocket scoreboard: {e}")
+            await websocket.close(code=1011)
+            return
+
         if not db_match:
+            try:
+                await websocket.send_json({"error": "Match not found", "match_id": match_id})
+            except Exception:
+                pass
             await websocket.close(code=4004)
             return
 
-        await manager.connect(match_id, websocket)
+        if match_id not in manager.active_connections:
+            manager.active_connections[match_id] = []
+        manager.active_connections[match_id].append(websocket)
 
         try:
             teams = db.fetch_all("SELECT * FROM match_teams WHERE match_id = %s ORDER BY id ASC", (match_id,))

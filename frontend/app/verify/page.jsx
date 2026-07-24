@@ -75,7 +75,7 @@ function VerifyContent() {
 
 export default function VerifyPage() {
     return (
-        <Suspense fallback={<div style={{ color: "#ffffff", backgroundColor: "#050508", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>Loading...</div>}>
+        <Suspense fallback={<div style={{ color: "#ffffff", backgroundColor: "#08080f", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>Loading...</div>}>
             <VerifyContent />
         </Suspense>
     );
@@ -87,14 +87,14 @@ const styles = {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#050508",
+        backgroundColor: "#08080f",
         fontFamily: "'Inter', sans-serif",
     },
     card: {
-        backgroundColor: "#0c0c14",
+        backgroundColor: "#0c0c16",
         padding: "48px 40px",
         borderRadius: "16px",
-        border: "1px solid rgba(0, 240, 255, 0.15)",
+        border: "1px solid rgba(217, 255, 110, 0.15)",
         boxShadow: "0 20px 40px rgba(0,0,0,0.6)",
         textAlign: "center",
         maxWidth: "400px",
@@ -108,23 +108,23 @@ const styles = {
     spinner: {
         width: "60px",
         height: "60px",
-        border: "4px solid rgba(0, 240, 255, 0.1)",
-        borderTop: "4px solid #00f0ff",
+        border: "4px solid rgba(217, 255, 110, 0.1)",
+        borderTop: "4px solid #d9ff6e",
         borderRadius: "50%",
         animation: "spin 1s linear infinite",
     },
     successIcon: {
         width: "68px",
         height: "68px",
-        backgroundColor: "rgba(191, 254, 0, 0.15)",
-        border: "2px solid #bffe00",
-        color: "#bffe00",
+        backgroundColor: "rgba(198, 255, 61, 0.15)",
+        border: "2px solid #c6ff3d",
+        color: "#c6ff3d",
         fontSize: "36px",
         borderRadius: "50%",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        boxShadow: "0 0 20px rgba(191, 254, 0, 0.2)",
+        boxShadow: "0 0 20px rgba(198, 255, 61, 0.2)",
     },
     errorIcon: {
         width: "68px",
@@ -157,15 +157,15 @@ const styles = {
     button: {
         display: "inline-block",
         padding: "14px 36px",
-        backgroundColor: "#bffe00",
-        color: "#050508",
+        backgroundColor: "#c6ff3d",
+        color: "#08080f",
         textDecoration: "none",
         borderRadius: "8px",
         fontWeight: "700",
         textTransform: "uppercase",
         fontSize: "14px",
         letterSpacing: "0.5px",
-        boxShadow: "0 4px 15px rgba(191, 254, 0, 0.3)",
+        boxShadow: "0 4px 15px rgba(198, 255, 61, 0.3)",
         transition: "transform 0.2s, box-shadow 0.2s",
     },
 };

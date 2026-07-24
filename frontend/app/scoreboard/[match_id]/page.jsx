@@ -20,6 +20,8 @@ export default function PublicScoreboardPage() {
 
     const wsRef = useRef(null);
     const reconnectTimerRef = useRef(null);
+    const intentionalCloseRef = useRef(false);
+    const mountedRef = useRef(true);
 
     // Initial HTTP fetch
     const fetchMatch = async () => {
@@ -40,13 +42,22 @@ export default function PublicScoreboardPage() {
 
     // WebSocket link to backend for instant updates
     const connectWS = () => {
-        if (!matchId) return;
+        if (!matchId || !mountedRef.current) return;
 
-        if (wsRef.current) {
-            wsRef.current.close();
+        if (reconnectTimerRef.current) {
+            clearTimeout(reconnectTimerRef.current);
+            reconnectTimerRef.current = null;
         }
 
-        const socket = new WebSocket(`${WS_API}/ws/scoreboard/${matchId}`);
+        if (wsRef.current) {
+            intentionalCloseRef.current = true;
+            wsRef.current.close();
+            wsRef.current = null;
+            intentionalCloseRef.current = false;
+        }
+
+        const wsUrl = `${WS_API}/ws/scoreboard/${matchId}`;
+        const socket = new WebSocket(wsUrl);
         wsRef.current = socket;
 
         socket.onopen = () => {
@@ -61,36 +72,48 @@ export default function PublicScoreboardPage() {
         socket.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
+                if (data?.error) {
+                    console.warn("Live feed:", data.error);
+                    return;
+                }
                 setMatch(data);
             } catch (err) {
                 console.error("WebSocket message parsing error:", err);
             }
         };
 
-        socket.onclose = () => {
-            console.log("Live feed disconnected. Retrying connection in 3 seconds...");
+        socket.onclose = (event) => {
             setWsConnected(false);
+            if (intentionalCloseRef.current || !mountedRef.current) return;
+            if (event.code === 4004) {
+                console.warn("Live feed closed: match not found");
+                return;
+            }
+            console.log("Live feed disconnected. Retrying connection in 3 seconds...");
             reconnectTimerRef.current = setTimeout(() => {
                 connectWS();
             }, 3000);
         };
 
         socket.onerror = () => {
-            console.warn("WebSocket: connection lost, will retry...");
+            console.warn(`WebSocket connection failed (${wsUrl}), readyState=${socket.readyState}`);
             socket.close();
         };
     };
 
     useEffect(() => {
+        mountedRef.current = true;
         fetchMatch();
         connectWS();
 
         return () => {
-            if (wsRef.current) {
-                wsRef.current.close();
-            }
+            mountedRef.current = false;
+            intentionalCloseRef.current = true;
             if (reconnectTimerRef.current) {
                 clearTimeout(reconnectTimerRef.current);
+            }
+            if (wsRef.current) {
+                wsRef.current.close();
             }
         };
     }, [matchId]);
@@ -99,8 +122,9 @@ export default function PublicScoreboardPage() {
         if (!match) return;
 
         const loadTeamMembers = async () => {
-            const tA = match.teams[0];
-            const tB = match.teams[1];
+            const teams = Array.isArray(match.teams) ? match.teams : [];
+            const tA = teams[0];
+            const tB = teams[1];
             const owner = match.owner_id;
 
             if (tA && tA.group_id) {
@@ -159,8 +183,9 @@ export default function PublicScoreboardPage() {
         );
     }
 
-    const teamA = match.teams[0] || { team_name: "Team A", score: 0 };
-    const teamB = match.teams[1] || { team_name: "Team B", score: 0 };
+    const matchTeams = Array.isArray(match.teams) ? match.teams : [];
+    const teamA = matchTeams[0] || { team_name: "Team A", score: 0 };
+    const teamB = matchTeams[1] || { team_name: "Team B", score: 0 };
     const scheduledDate = match.scheduled_at
         ? new Date(match.scheduled_at).toLocaleDateString(undefined, {
               weekday: "long",
@@ -199,8 +224,8 @@ export default function PublicScoreboardPage() {
                                 className="pub-live-glow"
                                 style={{
                                     color: "var(--vd-cyan)",
-                                    background: "rgba(0, 240, 255, 0.04)",
-                                    borderColor: "rgba(0, 240, 255, 0.2)",
+                                    background: "rgba(217, 255, 110, 0.04)",
+                                    borderColor: "rgba(217, 255, 110, 0.2)",
                                 }}
                             >
                                 UPCOMING MATCH
@@ -377,7 +402,7 @@ export default function PublicScoreboardPage() {
 
                 {/* Team Squads Panel */}
                 {(teamAMembers.length > 0 || teamBMembers.length > 0) && (
-                    <div className="pub-timeline" style={{ background: "rgba(15, 15, 26, 0.4)", border: "1px solid rgba(255, 255, 255, 0.05)" }}>
+                    <div className="pub-timeline" style={{ background: "rgba(20, 20, 31, 0.4)", border: "1px solid rgba(255, 255, 255, 0.05)" }}>
                         <h2 style={{ fontSize: "16px", fontWeight: "800", color: "#fff", marginBottom: "20px", textAlign: "center", letterSpacing: "1px" }}>
                             TEAM SQUADS & PLAYER ROSTERS
                         </h2>
@@ -392,7 +417,7 @@ export default function PublicScoreboardPage() {
                                         {teamAMembers.map((m) => (
                                             <div key={m.id} style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(255, 255, 255, 0.02)", padding: "8px 12px", borderRadius: "8px" }}>
                                                 <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: teamA.color || "var(--vd-brand)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "800" }}>
-                                                    {m.first_name[0].toUpperCase()}
+                                                    {(m.first_name || "?")[0].toUpperCase()}
                                                 </div>
                                                 <span style={{ fontSize: "13px", fontWeight: "500", color: "#e2e8f0" }}>{m.first_name} {m.last_name || ""}</span>
                                             </div>
@@ -413,7 +438,7 @@ export default function PublicScoreboardPage() {
                                         {teamBMembers.map((m) => (
                                             <div key={m.id} style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(255, 255, 255, 0.02)", padding: "8px 12px", borderRadius: "8px" }}>
                                                 <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: teamB.color || "var(--vd-cyan)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "800" }}>
-                                                    {m.first_name[0].toUpperCase()}
+                                                    {(m.first_name || "?")[0].toUpperCase()}
                                                 </div>
                                                 <span style={{ fontSize: "13px", fontWeight: "500", color: "#e2e8f0" }}>{m.first_name} {m.last_name || ""}</span>
                                             </div>

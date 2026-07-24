@@ -14,7 +14,7 @@
 .vr-page {
     min-height: 100vh;
     background: #08080f;
-    color: #f1f5f9;
+    color: #f4f4f5;
     font-family: "Outfit", "Inter", sans-serif;
     display: flex;
     flex-direction: column;
@@ -28,8 +28,8 @@
     position: fixed;
     inset: 0;
     background:
-        radial-gradient(ellipse 70% 50% at 15% 10%, rgba(191, 254, 0, 0.08) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 70% at 85% 80%, rgba(0, 240, 255, 0.07) 0%, transparent 60%);
+        radial-gradient(ellipse 70% 50% at 15% 10%, rgba(198, 255, 61, 0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 70% at 85% 80%, rgba(217, 255, 110, 0.07) 0%, transparent 60%);
     pointer-events: none;
     z-index: 0;
 }
@@ -92,7 +92,7 @@
     color: #fff;
 }
 .vr-step.done {
-    color: #bffe00;
+    color: #c6ff3d;
 }
 
 .vr-step-circle {
@@ -108,13 +108,13 @@
     transition: all 0.3s;
 }
 .vr-step.active .vr-step-circle {
-    border-color: #bffe00;
-    background: rgba(191, 254, 0, 0.1);
-    color: #bffe00;
+    border-color: #c6ff3d;
+    background: rgba(198, 255, 61, 0.1);
+    color: #c6ff3d;
 }
 .vr-step.done .vr-step-circle {
-    border-color: #bffe00;
-    background: #bffe00;
+    border-color: #c6ff3d;
+    background: #c6ff3d;
     color: #000;
 }
 
@@ -125,7 +125,7 @@
     margin: 0 8px;
 }
 .vr-step-line.done {
-    background: #bffe00;
+    background: #c6ff3d;
 }
 
 /* ─── CARD ───────────────────────────────────────────────────────── */
@@ -171,7 +171,7 @@
 .vr-venue-label {
     font-size: 14px;
     font-weight: 700;
-    color: #bffe00;
+    color: #c6ff3d;
     text-transform: uppercase;
     letter-spacing: 0.06em;
 }
@@ -233,7 +233,7 @@
     border-radius: 10px;
     padding: 12px 14px;
     font-size: 14px;
-    color: #f1f5f9;
+    color: #f4f4f5;
     font-family: "Outfit", sans-serif;
     outline: none;
     transition:
@@ -246,8 +246,8 @@
 }
 .vr-input:focus,
 .vr-select:focus {
-    border-color: rgba(191, 254, 0, 0.5);
-    background: rgba(191, 254, 0, 0.03);
+    border-color: rgba(198, 255, 61, 0.5);
+    background: rgba(198, 255, 61, 0.03);
 }
 .vr-select option {
     background: #111;
@@ -267,8 +267,8 @@
     position: relative;
 }
 .vr-upload:hover {
-    border-color: rgba(191, 254, 0, 0.4);
-    background: rgba(191, 254, 0, 0.02);
+    border-color: rgba(198, 255, 61, 0.4);
+    background: rgba(198, 255, 61, 0.02);
 }
 .vr-upload input[type="file"] {
     position: absolute;
@@ -344,9 +344,9 @@
     transition: all 0.18s;
 }
 .vr-sport-chip.selected {
-    background: rgba(191, 254, 0, 0.12);
-    border-color: rgba(191, 254, 0, 0.5);
-    color: #bffe00;
+    background: rgba(198, 255, 61, 0.12);
+    border-color: rgba(198, 255, 61, 0.5);
+    color: #c6ff3d;
     font-weight: 600;
 }
 
@@ -372,9 +372,9 @@
     justify-content: center;
 }
 .vr-day-chip.selected {
-    background: rgba(191, 254, 0, 0.12);
-    border-color: rgba(191, 254, 0, 0.5);
-    color: #bffe00;
+    background: rgba(198, 255, 61, 0.12);
+    border-color: rgba(198, 255, 61, 0.5);
+    color: #c6ff3d;
 }
 
 /* ─── AMENITIES ──────────────────────────────────────────────────── */
@@ -398,8 +398,8 @@
     border-color: rgba(255, 255, 255, 0.2);
 }
 .vr-amenity-check.checked {
-    border-color: rgba(191, 254, 0, 0.4);
-    background: rgba(191, 254, 0, 0.05);
+    border-color: rgba(198, 255, 61, 0.4);
+    background: rgba(198, 255, 61, 0.05);
 }
 .vr-amenity-check input {
     display: none;
@@ -416,8 +416,8 @@
     transition: all 0.18s;
 }
 .vr-amenity-check.checked .vr-amenity-box {
-    background: #bffe00;
-    border-color: #bffe00;
+    background: #c6ff3d;
+    border-color: #c6ff3d;
 }
 .vr-amenity-check.checked .vr-amenity-box::after {
     content: "";
@@ -467,9 +467,9 @@
     font-family: "Outfit", sans-serif;
 }
 .vr-add-btn:hover {
-    border-color: rgba(191, 254, 0, 0.5);
-    color: #bffe00;
-    background: rgba(191, 254, 0, 0.03);
+    border-color: rgba(198, 255, 61, 0.5);
+    color: #c6ff3d;
+    background: rgba(198, 255, 61, 0.03);
 }
 
 .vr-actions {
@@ -481,7 +481,7 @@
 
 .vr-btn-primary {
     padding: 13px 36px;
-    background: #bffe00;
+    background: #c6ff3d;
     color: #000;
     border: none;
     border-radius: 10px;
@@ -532,8 +532,8 @@
     width: 88px;
     height: 88px;
     border-radius: 50%;
-    background: linear-gradient(135deg, rgba(191, 254, 0, 0.15), rgba(0, 240, 255, 0.1));
-    border: 2px solid rgba(191, 254, 0, 0.4);
+    background: linear-gradient(135deg, rgba(198, 255, 61, 0.15), rgba(217, 255, 110, 0.1));
+    border: 2px solid rgba(198, 255, 61, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -563,7 +563,7 @@
 }
 .vr-success-link {
     padding: 13px 36px;
-    background: #bffe00;
+    background: #c6ff3d;
     color: #000;
     border-radius: 10px;
     text-decoration: none;

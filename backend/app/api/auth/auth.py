@@ -144,10 +144,17 @@ class AuthLogic(ConnectionService):
                     raise HTTPException(status_code=400, detail="Email already registered")
 
                 hashed_password = hash_password(user.password.strip())
-                token = secrets.token_urlsafe(32)
-                expires_at = datetime.utcnow() + timedelta(hours=24)
+
+                # Generate or assign formatted MKJ-001 style club_id
+                if user.clubId and user.clubId.strip():
+                    assigned_club_id = user.clubId.strip()
+                else:
+                    max_user = db.fetch_one("SELECT MAX(id) as max_id FROM users")
+                    next_num = (max_user.get("max_id") or 0) + 1 if max_user else 1
+                    assigned_club_id = f"MKJ-{next_num:03d}"
 
                 insert_data = {
+                    "club_id": assigned_club_id,
                     "club_name": user.clubName,
                     "country": user.country,
                     "state": user.state,
@@ -160,17 +167,15 @@ class AuthLogic(ConnectionService):
                     "phone": user.phone,
                     "aadhar_number": user.aadharNumber,
                     "hear_about": user.hearAbout,
-                    "is_verified": False,
-                    "verification_token": token,
-                    "is_email_verified": False,
-                    "email_verification_token": token,
-                    "email_verification_token_expires_at": expires_at
+                    "is_verified": True,
+                    "verification_token": None,
+                    "is_email_verified": True,
+                    "email_verification_token": None,
+                    "email_verification_token_expires_at": None,
                 }
                 
                 user_id = db.insert("users", insert_data)
                 new_user = db.fetch_one("SELECT * FROM users WHERE id = %s", (user_id,))
-                
-                background_tasks.add_task(send_verification_email, email_clean, token)
                 return new_user
         except HTTPException as he:
             raise he
@@ -221,10 +226,6 @@ class AuthLogic(ConnectionService):
                     hashed = hash_password(password_clean)
                     db.execute_query("UPDATE users SET password = %s WHERE id = %s", (hashed, user.get("id")))
 
-                # Check if email is verified
-                if not user.get("is_email_verified"):
-                    raise HTTPException(status_code=403, detail="Your email is not verified. Please verify your email first.")
-
                 sub_claim = json.dumps({
                     "id": user.get("id"),
                     "userId": user.get("id"),
@@ -238,6 +239,7 @@ class AuthLogic(ConnectionService):
                     "message": "Login successful",
                     "userName": user.get("first_name"),
                     "userId": user.get("id"),
+                    "clubId": user.get("club_id") or f"MKJ-{user.get('id'):03d}",
                     "clubName": user.get("club_name"),
                     "accessToken": access_token
                 }
@@ -266,10 +268,6 @@ class AuthLogic(ConnectionService):
                 if not (current_pw.startswith("$2b$") or current_pw.startswith("$2a$")):
                     hashed = hash_password(password_clean)
                     db.execute_query("UPDATE users SET password = %s WHERE id = %s", (hashed, user.get("id")))
-
-                # Check if email is verified
-                if not user.get("is_email_verified"):
-                    raise HTTPException(status_code=403, detail="Your email is not verified. Please verify your email first.")
 
                 sub_claim = json.dumps({
                     "id": user.get("id"),
@@ -305,8 +303,6 @@ class AuthLogic(ConnectionService):
                     raise HTTPException(status_code=400, detail="Email already registered")
 
                 hashed_password = hash_password(payload.password.strip())
-                token = secrets.token_urlsafe(32)
-                expires_at = datetime.utcnow() + timedelta(hours=24)
 
                 insert_data = {
                     "first_name": payload.firstName,
@@ -316,16 +312,14 @@ class AuthLogic(ConnectionService):
                     "password": hashed_password,
                     "phone": payload.phone,
                     "aadhar_number": payload.aadharNumber,
-                    "is_verified": False,
-                    "verification_token": token,
-                    "is_email_verified": False,
-                    "email_verification_token": token,
-                    "email_verification_token_expires_at": expires_at
+                    "is_verified": True,
+                    "verification_token": None,
+                    "is_email_verified": True,
+                    "email_verification_token": None,
+                    "email_verification_token_expires_at": None,
                 }
                 
                 user_id = db.insert("users", insert_data)
-                
-                background_tasks.add_task(send_verification_email, email_clean, token)
                 return {"message": "User registered successfully", "userId": user_id}
         except HTTPException as he:
             raise he
@@ -371,6 +365,7 @@ class AuthLogic(ConnectionService):
                 return [
                     {
                         "id": u.get("id"),
+                        "club_id": u.get("club_id") or f"MKJ-{u.get('id'):03d}",
                         "club_name": u.get("club_name"),
                         "sport": u.get("sport"),
                         "country": u.get("country"),

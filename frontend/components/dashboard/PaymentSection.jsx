@@ -240,7 +240,7 @@ export default function PaymentSection() {
                     local_payment_id: String(payment.id),
                 },
                 theme: {
-                    color: "#2563eb",
+                    color: "#c6ff3d",
                 },
                 handler: async (response) => {
                     try {

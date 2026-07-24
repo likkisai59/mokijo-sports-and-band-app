@@ -33,7 +33,7 @@ function fmt(n) {
 const STATUS_COLORS = {
     active: { bg: "rgba(16, 185, 129, 0.15)", text: "#34d399", label: "Active", border: "rgba(16,185,129,0.3)" },
     paused: { bg: "rgba(245, 158, 11, 0.15)", text: "#fbbf24", label: "Paused", border: "rgba(245,158,11,0.3)" },
-    completed: { bg: "rgba(139, 92, 246, 0.15)", text: "#a78bfa", label: "Completed", border: "rgba(139,92,246,0.3)" },
+    completed: { bg: "rgba(198, 255, 61, 0.15)", text: "#c6ff3d", label: "Completed", border: "rgba(198, 255, 61,0.3)" },
 };
 
 function CampaignCard({ c, onDelete }) {
@@ -50,10 +50,10 @@ function CampaignCard({ c, onDelete }) {
                     height: "3px",
                     background:
                         c.status === "active"
-                            ? "linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4)"
+                            ? "linear-gradient(90deg, #c6ff3d, #c6ff3d, #d9ff6e)"
                             : c.status === "paused"
                               ? "linear-gradient(90deg, #f59e0b, #fbbf24)"
-                              : "linear-gradient(90deg, #8b5cf6, #a78bfa)",
+                              : "linear-gradient(90deg, #c6ff3d, #c6ff3d)",
                 }}
             />
 
@@ -72,7 +72,7 @@ function CampaignCard({ c, onDelete }) {
                                 margin: "0 0 4px",
                                 fontSize: "17px",
                                 fontWeight: "700",
-                                color: "#f1f5f9",
+                                color: "#f4f4f5",
                                 lineHeight: "1.3",
                             }}
                         >
@@ -130,7 +130,7 @@ function CampaignCard({ c, onDelete }) {
                             style={{
                                 fontSize: "24px",
                                 fontWeight: "800",
-                                color: "#f1f5f9",
+                                color: "#f4f4f5",
                                 letterSpacing: "-0.5px",
                                 lineHeight: 1,
                             }}
@@ -142,7 +142,7 @@ function CampaignCard({ c, onDelete }) {
                         </div>
                     </div>
                     <div style={{ textAlign: "right" }}>
-                        <div style={{ fontSize: "26px", fontWeight: "800", color: "#818cf8", lineHeight: 1 }}>
+                        <div style={{ fontSize: "26px", fontWeight: "800", color: "#c6ff3d", lineHeight: 1 }}>
                             {progress}%
                         </div>
                         <div style={{ fontSize: "12px", color: "rgba(148,163,184,0.45)", marginTop: "3px" }}>
@@ -156,10 +156,10 @@ function CampaignCard({ c, onDelete }) {
                         style={{
                             height: "100%",
                             width: `${progress}%`,
-                            background: "linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4)",
+                            background: "linear-gradient(90deg, #c6ff3d, #c6ff3d, #d9ff6e)",
                             borderRadius: "99px",
                             transition: "width 0.8s ease",
-                            boxShadow: "0 0 8px rgba(99,102,241,0.4)",
+                            boxShadow: "0 0 8px rgba(198, 255, 61,0.4)",
                         }}
                     />
                 </div>
@@ -313,12 +313,139 @@ export default function FundraisingPage() {
                 </div>
             </div>
 
-            {/* Payments Section (Moved to top) */}
+            {/* Fundraising Campaigns Section */}
+            <div style={{ marginBottom: "48px", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "40px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px", marginBottom: "24px" }}>
+                    <div>
+                        <h2 style={{ margin: "0 0 4px", fontSize: "20px", fontWeight: "700", color: "#f4f4f5" }}>Fundraising Campaigns</h2>
+                        <p style={{ margin: 0, fontSize: "14px", color: "rgba(148,163,184,0.55)" }}>
+                            {isMember
+                                ? "Support your sports academy campaigns and track total club contributions"
+                                : "Manage campaigns and track money raised for your club"}
+                        </p>
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <div
+                            className="fr-filter-tabs"
+                            style={{
+                                display: "flex",
+                                gap: "4px",
+                                background: "rgba(255,255,255,0.04)",
+                                border: "1px solid rgba(255,255,255,0.07)",
+                                padding: "4px",
+                                borderRadius: "10px",
+                            }}
+                        >
+                            {["all", "active", "paused", "completed"].map((f) => (
+                                <button
+                                    key={f}
+                                    onClick={() => setFilter(f)}
+                                    style={{
+                                        border: "none",
+                                        background: filter === f ? "rgba(198, 255, 61,0.2)" : "transparent",
+                                        color: filter === f ? "#d9ff6e" : "rgba(148,163,184,0.55)",
+                                        boxShadow: filter === f ? "0 0 12px rgba(198, 255, 61,0.15)" : "none",
+                                        borderRadius: "7px",
+                                        padding: "6px 14px",
+                                        fontSize: "13px",
+                                        fontWeight: "600",
+                                        cursor: "pointer",
+                                        transition: "all .2s",
+                                        fontFamily: "'Outfit', sans-serif",
+                                    }}
+                                >
+                                    {f.charAt(0).toUpperCase() + f.slice(1)}
+                                </button>
+                            ))}
+                        </div>
+                        {!isMember && (
+                            <Link href="/dashboard/fundraising/new" className="btn-primary">
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    width="16"
+                                    height="16"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                >
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                </svg>
+                                New Campaign
+                            </Link>
+                        )}
+                    </div>
+                </div>
+
+                <div style={{ marginBottom: "20px" }}>
+                    <span style={{ fontSize: "14px", color: "rgba(148, 163, 184, 0.55)" }}>
+                        {filtered.length} Campaign{filtered.length !== 1 ? "s" : ""} found
+                    </span>
+                </div>
+
+                {loading ? (
+                    <div
+                        style={{
+                            padding: "80px 40px",
+                            textAlign: "center",
+                            background: "rgba(20, 20, 31,0.85)",
+                            border: "1px solid rgba(255,255,255,0.07)",
+                            borderRadius: "20px",
+                            backdropFilter: "blur(12px)",
+                        }}
+                    >
+                        <h3 style={{ margin: "0 0 8px", fontSize: "20px", fontWeight: "700", color: "#f4f4f5" }}>
+                            Loading campaigns...
+                        </h3>
+                    </div>
+                ) : filtered.length > 0 ? (
+                    <div
+                        className="campaign-grid"
+                        style={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+                            gap: "24px",
+                        }}
+                    >
+                        {filtered.map((c) => (
+                            <CampaignCard key={c.id} c={c} onDelete={handleDelete} />
+                        ))}
+                    </div>
+                ) : (
+                    <div
+                        style={{
+                            padding: "80px 40px",
+                            textAlign: "center",
+                            background: "rgba(20, 20, 31,0.85)",
+                            border: "1.5px dashed rgba(255,255,255,0.08)",
+                            borderRadius: "20px",
+                            backdropFilter: "blur(12px)",
+                        }}
+                    >
+                        <h3 style={{ margin: "0 0 8px", fontSize: "20px", fontWeight: "700", color: "#f4f4f5" }}>
+                            No campaigns yet
+                        </h3>
+                        <p style={{ margin: "0 0 28px", fontSize: "14px", color: "rgba(148,163,184,0.55)" }}>
+                            {isMember
+                                ? "There are currently no active fundraising campaigns scheduled. Check back soon!"
+                                : "Launch your first fundraising campaign today."}
+                        </p>
+                        {!isMember && (
+                            <Link href="/dashboard/fundraising/new" className="btn-primary">
+                                + Create First Campaign
+                            </Link>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Member Payments Section */}
             {!isMember && (
-                <div className="payments-container" style={{ marginBottom: "48px", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "40px" }}>
+                <div className="payments-container">
                     <div className="payments-header" style={{ marginBottom: "20px" }}>
                         <div>
-                            <h2 style={{ margin: "0 0 4px", fontSize: "20px", fontWeight: "700", color: "#f1f5f9" }}>Member Payments</h2>
+                            <h2 style={{ margin: "0 0 4px", fontSize: "20px", fontWeight: "700", color: "#f4f4f5" }}>Member Payments</h2>
                             <p style={{ margin: 0, fontSize: "14px", color: "rgba(148,163,184,0.55)" }}>All club group members with full name, email, role, sport, payment, amount, and paid status.</p>
                         </div>
                     </div>
@@ -417,139 +544,12 @@ export default function FundraisingPage() {
                         </div>
                     ) : (
                         <div className="empty-state" style={{ padding: "40px 0", textAlign: "center", border: "1.5px dashed rgba(255,255,255,0.08)", borderRadius: "12px" }}>
-                            <h3 style={{ margin: "0 0 4px", fontSize: "16px", color: "#f1f5f9" }}>No Records Found</h3>
+                            <h3 style={{ margin: "0 0 4px", fontSize: "16px", color: "#f4f4f5" }}>No Records Found</h3>
                             <p style={{ margin: 0, fontSize: "14px", color: "rgba(148,163,184,0.55)" }}>Try another search or add members and payments to the club.</p>
                         </div>
                     )}
                 </div>
             )}
-
-            {/* Fundraising Campaigns Section (Moved to bottom) */}
-            <div style={{ marginTop: "24px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px", marginBottom: "24px" }}>
-                    <div>
-                        <h2 style={{ margin: "0 0 4px", fontSize: "20px", fontWeight: "700", color: "#f1f5f9" }}>Fundraising Campaigns</h2>
-                        <p style={{ margin: 0, fontSize: "14px", color: "rgba(148,163,184,0.55)" }}>
-                            {isMember
-                                ? "Support your sports academy campaigns and track total club contributions"
-                                : "Manage campaigns and track money raised for your club"}
-                        </p>
-                    </div>
-
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                        <div
-                            className="fr-filter-tabs"
-                            style={{
-                                display: "flex",
-                                gap: "4px",
-                                background: "rgba(255,255,255,0.04)",
-                                border: "1px solid rgba(255,255,255,0.07)",
-                                padding: "4px",
-                                borderRadius: "10px",
-                            }}
-                        >
-                            {["all", "active", "paused", "completed"].map((f) => (
-                                <button
-                                    key={f}
-                                    onClick={() => setFilter(f)}
-                                    style={{
-                                        border: "none",
-                                        background: filter === f ? "rgba(99,102,241,0.2)" : "transparent",
-                                        color: filter === f ? "#a5b4fc" : "rgba(148,163,184,0.55)",
-                                        boxShadow: filter === f ? "0 0 12px rgba(99,102,241,0.15)" : "none",
-                                        borderRadius: "7px",
-                                        padding: "6px 14px",
-                                        fontSize: "13px",
-                                        fontWeight: "600",
-                                        cursor: "pointer",
-                                        transition: "all .2s",
-                                        fontFamily: "'Outfit', sans-serif",
-                                    }}
-                                >
-                                    {f.charAt(0).toUpperCase() + f.slice(1)}
-                                </button>
-                            ))}
-                        </div>
-                        {!isMember && (
-                            <Link href="/dashboard/fundraising/new" className="btn-primary">
-                                <svg
-                                    viewBox="0 0 24 24"
-                                    width="16"
-                                    height="16"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2.5"
-                                >
-                                    <line x1="12" y1="5" x2="12" y2="19" />
-                                    <line x1="5" y1="12" x2="19" y2="12" />
-                                </svg>
-                                New Campaign
-                            </Link>
-                        )}
-                    </div>
-                </div>
-
-                <div style={{ marginBottom: "20px" }}>
-                    <span style={{ fontSize: "14px", color: "rgba(148, 163, 184, 0.55)" }}>
-                        {filtered.length} Campaign{filtered.length !== 1 ? "s" : ""} found
-                    </span>
-                </div>
-
-                {loading ? (
-                    <div
-                        style={{
-                            padding: "80px 40px",
-                            textAlign: "center",
-                            background: "rgba(15,15,26,0.85)",
-                            border: "1px solid rgba(255,255,255,0.07)",
-                            borderRadius: "20px",
-                            backdropFilter: "blur(12px)",
-                        }}
-                    >
-                        <h3 style={{ margin: "0 0 8px", fontSize: "20px", fontWeight: "700", color: "#f1f5f9" }}>
-                            Loading campaigns...
-                        </h3>
-                    </div>
-                ) : filtered.length > 0 ? (
-                    <div
-                        className="campaign-grid"
-                        style={{
-                            display: "grid",
-                            gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
-                            gap: "24px",
-                        }}
-                    >
-                        {filtered.map((c) => (
-                            <CampaignCard key={c.id} c={c} onDelete={handleDelete} />
-                        ))}
-                    </div>
-                ) : (
-                    <div
-                        style={{
-                            padding: "80px 40px",
-                            textAlign: "center",
-                            background: "rgba(15,15,26,0.85)",
-                            border: "1.5px dashed rgba(255,255,255,0.08)",
-                            borderRadius: "20px",
-                            backdropFilter: "blur(12px)",
-                        }}
-                    >
-                        <h3 style={{ margin: "0 0 8px", fontSize: "20px", fontWeight: "700", color: "#f1f5f9" }}>
-                            No campaigns yet
-                        </h3>
-                        <p style={{ margin: "0 0 28px", fontSize: "14px", color: "rgba(148,163,184,0.55)" }}>
-                            {isMember
-                                ? "There are currently no active fundraising campaigns scheduled. Check back soon!"
-                                : "Launch your first fundraising campaign today."}
-                        </p>
-                        {!isMember && (
-                            <Link href="/dashboard/fundraising/new" className="btn-primary">
-                                + Create First Campaign
-                            </Link>
-                        )}
-                    </div>
-                )}
-            </div>
         </div>
     );
 }

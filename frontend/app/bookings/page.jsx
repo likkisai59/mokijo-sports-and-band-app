@@ -108,8 +108,8 @@ export default function MyBookingsPage() {
                         onClick={() => setActiveTab("upcoming")}
                         style={{
                             ...styles.tab,
-                            borderBottomColor: activeTab === "upcoming" ? "#bffe00" : "transparent",
-                            color: activeTab === "upcoming" ? "#bffe00" : "rgba(148, 163, 184, 0.6)",
+                            borderBottomColor: activeTab === "upcoming" ? "#c6ff3d" : "transparent",
+                            color: activeTab === "upcoming" ? "#c6ff3d" : "rgba(148, 163, 184, 0.6)",
                         }}
                     >
                         Upcoming Matches ({upcomingBookings.length})
@@ -118,8 +118,8 @@ export default function MyBookingsPage() {
                         onClick={() => setActiveTab("past")}
                         style={{
                             ...styles.tab,
-                            borderBottomColor: activeTab === "past" ? "#bffe00" : "transparent",
-                            color: activeTab === "past" ? "#bffe00" : "rgba(148, 163, 184, 0.6)",
+                            borderBottomColor: activeTab === "past" ? "#c6ff3d" : "transparent",
+                            color: activeTab === "past" ? "#c6ff3d" : "rgba(148, 163, 184, 0.6)",
                         }}
                     >
                         Past History & Cancelled ({pastBookings.length})
@@ -128,7 +128,7 @@ export default function MyBookingsPage() {
 
                 {loading ? (
                     <div style={styles.loadingContainer}>
-                        <Loader2 className="animate-spin" size={32} style={{ color: "#bffe00" }} />
+                        <Loader2 className="animate-spin" size={32} style={{ color: "#c6ff3d" }} />
                         <p style={{ marginTop: "16px" }}>Fetching reservations history...</p>
                     </div>
                 ) : error ? (
@@ -165,7 +165,7 @@ export default function MyBookingsPage() {
                                 <div key={booking.id} style={styles.bookingCard}>
                                     <div style={styles.cardHeader}>
                                         <div style={styles.sportHeader}>
-                                            <Trophy size={18} style={{ color: "#bffe00" }} />
+                                            <Trophy size={18} style={{ color: "#c6ff3d" }} />
                                             <span style={styles.sportLabel}>
                                                 {booking.slots && booking.slots.length > 0
                                                     ? booking.slots[0].sport.toUpperCase()
@@ -268,7 +268,7 @@ const styles = {
     container: {
         minHeight: "100vh",
         backgroundColor: "#08080f",
-        color: "#f1f5f9",
+        color: "#f4f4f5",
         fontFamily: "'Outfit', sans-serif",
         paddingBottom: "80px",
     },
@@ -277,7 +277,7 @@ const styles = {
         justifyContent: "space-between",
         alignItems: "center",
         padding: "16px 40px",
-        background: "rgba(15, 15, 26, 0.8)",
+        background: "rgba(20, 20, 31, 0.8)",
         backdropFilter: "blur(12px)",
         borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
         position: "sticky",
@@ -288,7 +288,7 @@ const styles = {
         display: "flex",
         alignItems: "center",
         gap: "8px",
-        color: "#00f0ff",
+        color: "#d9ff6e",
         textDecoration: "none",
         fontSize: "14px",
         fontWeight: "600",
@@ -347,10 +347,10 @@ const styles = {
     exploreLink: {
         display: "inline-block",
         marginTop: "16px",
-        color: "#bffe00",
+        color: "#c6ff3d",
         fontWeight: "600",
         textDecoration: "none",
-        borderBottom: "1px solid #bffe00",
+        borderBottom: "1px solid #c6ff3d",
     },
     list: {
         display: "flex",
@@ -402,7 +402,7 @@ const styles = {
         alignItems: "center",
         gap: "10px",
         fontSize: "14px",
-        color: "rgba(241, 245, 249, 0.8)",
+        color: "rgba(244, 244, 245, 0.8)",
     },
     cardFooter: {
         display: "flex",

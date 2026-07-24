@@ -37,6 +37,8 @@ export default function MatchManagePage() {
 
     const wsRef = useRef(null);
     const reconnectTimerRef = useRef(null);
+    const intentionalCloseRef = useRef(false);
+    const mountedRef = useRef(true);
 
     // Fetch match info (fallback / initial load)
     const fetchMatch = async () => {
@@ -57,13 +59,22 @@ export default function MatchManagePage() {
 
     // WebSocket Connection logic
     const connectWS = () => {
-        if (!matchId) return;
+        if (!matchId || !mountedRef.current) return;
 
-        if (wsRef.current) {
-            wsRef.current.close();
+        if (reconnectTimerRef.current) {
+            clearTimeout(reconnectTimerRef.current);
+            reconnectTimerRef.current = null;
         }
 
-        const socket = new WebSocket(`${WS_API}/ws/scoreboard/${matchId}`);
+        if (wsRef.current) {
+            intentionalCloseRef.current = true;
+            wsRef.current.close();
+            wsRef.current = null;
+            intentionalCloseRef.current = false;
+        }
+
+        const wsUrl = `${WS_API}/ws/scoreboard/${matchId}`;
+        const socket = new WebSocket(wsUrl);
         wsRef.current = socket;
 
         socket.onopen = () => {
@@ -78,31 +89,42 @@ export default function MatchManagePage() {
         socket.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
+                if (data?.error) {
+                    console.warn("Scoreboard feed:", data.error);
+                    return;
+                }
                 setMatch(data);
             } catch (err) {
                 console.error("Error parsing WebSocket scoreboard data:", err);
             }
         };
 
-        socket.onclose = () => {
-            console.log("WebSocket connection closed, reconnecting in 3 seconds...");
+        socket.onclose = (event) => {
             setWsConnected(false);
+            if (intentionalCloseRef.current || !mountedRef.current) return;
+            if (event.code === 4004) {
+                console.warn("Scoreboard feed closed: match not found");
+                return;
+            }
+            console.log("WebSocket connection closed, reconnecting in 3 seconds...");
             reconnectTimerRef.current = setTimeout(() => {
                 connectWS();
             }, 3000);
         };
 
-        socket.onerror = (err) => {
-            console.error("WebSocket error:", err);
-            socket.close();
+        socket.onerror = () => {
+            console.warn(`WebSocket connection failed (${wsUrl}), readyState=${socket.readyState}`);
         };
     };
 
     useEffect(() => {
+        mountedRef.current = true;
         fetchMatch();
         connectWS();
 
         return () => {
+            mountedRef.current = false;
+            intentionalCloseRef.current = true;
             if (wsRef.current) {
                 wsRef.current.close();
             }
@@ -272,10 +294,10 @@ export default function MatchManagePage() {
                             fontSize: "12px",
                             fontWeight: "600",
                             color: wsConnected ? "var(--vd-brand)" : "#ff3b30",
-                            background: wsConnected ? "rgba(191, 254, 0, 0.06)" : "rgba(255, 59, 48, 0.06)",
+                            background: wsConnected ? "rgba(198, 255, 61, 0.06)" : "rgba(255, 59, 48, 0.06)",
                             padding: "6px 12px",
                             borderRadius: "8px",
-                            border: `1px solid ${wsConnected ? "rgba(191, 254, 0, 0.2)" : "rgba(255, 59, 48, 0.2)"}`,
+                            border: `1px solid ${wsConnected ? "rgba(198, 255, 61, 0.2)" : "rgba(255, 59, 48, 0.2)"}`,
                         }}
                     >
                         <RefreshCw size={12} className={wsConnected ? "" : "animate-spin"} />

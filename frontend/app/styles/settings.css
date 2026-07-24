@@ -24,7 +24,7 @@
 .settings-container h1 {
     font-size: 26px;
     font-weight: 800;
-    color: #f1f5f9;
+    color: #f4f4f5;
     letter-spacing: -0.4px;
     margin-bottom: 4px;
 }
@@ -37,7 +37,7 @@
 
 /* ─── Cards ──────────────────────────────────────── */
 .settings-card {
-    background: rgba(15, 15, 26, 0.85);
+    background: rgba(20, 20, 31, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.07);
@@ -60,22 +60,22 @@
 }
 
 .settings-danger-card {
-    background: rgba(15, 15, 26, 0.85);
+    background: rgba(20, 20, 31, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(244, 63, 94, 0.2);
+    border: 1px solid rgba(255, 46, 147, 0.2);
     border-radius: 16px;
     padding: 28px;
     box-shadow:
         0 8px 32px rgba(0, 0, 0, 0.4),
-        0 0 20px rgba(244, 63, 94, 0.05);
+        0 0 20px rgba(255, 46, 147, 0.05);
 }
 
 .settings-danger-card h2 {
     font-size: 15px;
     font-weight: 700;
     margin-bottom: 8px;
-    color: #fb7185;
+    color: #ff66b8;
 }
 
 /* ─── Form Fields ─────────────────────────────────── */
@@ -103,7 +103,7 @@
     border-radius: 10px;
     font-size: 14px;
     font-family: "Outfit", sans-serif;
-    color: #f1f5f9;
+    color: #f4f4f5;
     background: rgba(255, 255, 255, 0.05);
     outline: none;
     box-sizing: border-box;
@@ -121,14 +121,14 @@
 }
 
 .form-input-settings:focus {
-    border-color: rgba(99, 102, 241, 0.55);
-    background: rgba(99, 102, 241, 0.07);
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    border-color: rgba(198, 255, 61, 0.55);
+    background: rgba(198, 255, 61, 0.07);
+    box-shadow: 0 0 0 4px rgba(198, 255, 61, 0.1);
 }
 
 /* ─── Buttons ─────────────────────────────────────── */
 .save-btn {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    background: linear-gradient(135deg, #c6ff3d, #c6ff3d);
     color: #fff;
     border: none;
     border-radius: 10px;
@@ -138,19 +138,19 @@
     font-family: "Outfit", sans-serif;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 4px 16px rgba(198, 255, 61, 0.3);
 }
 
 .save-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.45);
-    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    box-shadow: 0 8px 24px rgba(198, 255, 61, 0.45);
+    background: linear-gradient(135deg, #9fcc1f, #e6007a);
 }
 
 .logout-btn {
-    background: rgba(244, 63, 94, 0.1);
-    color: #fb7185;
-    border: 1.5px solid rgba(244, 63, 94, 0.3);
+    background: rgba(255, 46, 147, 0.1);
+    color: #ff66b8;
+    border: 1.5px solid rgba(255, 46, 147, 0.3);
     border-radius: 10px;
     padding: 11px 28px;
     font-size: 14px;
@@ -161,10 +161,10 @@
 }
 
 .logout-btn:hover {
-    background: rgba(244, 63, 94, 0.2);
-    border-color: rgba(244, 63, 94, 0.5);
+    background: rgba(255, 46, 147, 0.2);
+    border-color: rgba(255, 46, 147, 0.5);
     transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(244, 63, 94, 0.2);
+    box-shadow: 0 4px 16px rgba(255, 46, 147, 0.2);
 }
 
 /* ─── Responsive ──────────────────────────────────── */

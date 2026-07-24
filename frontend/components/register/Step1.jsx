@@ -1,20 +1,75 @@
 "use client";
+import { useEffect, useState } from "react";
+import { API_BASE_URL } from "@/lib/api";
 import styles from "../../app/styles/signup.module.css";
-import { countries, indianStates, memberOptions, sportsOptions } from "./constants";
+import { countries, getStatesForCountry, memberOptions, sportsOptions } from "./constants";
+import {
+    isValidClubName,
+    CLUB_NAME_MESSAGE,
+    generateClubId,
+    applyClubNameInput,
+} from "@/lib/validation";
+
+const fieldErrorStyle = { color: "#ef4444", fontSize: "12px", marginTop: "6px", marginBottom: 0 };
 
 export default function Step1({ formData, onChange, onNext }) {
+    const stateList = getStatesForCountry(formData.country);
+    const [fieldErrors, setFieldErrors] = useState({});
+    const [formError, setFormError] = useState("");
+
+    useEffect(() => {
+        if (!formData.clubId) {
+            fetch(`${API_BASE_URL}/clubs`)
+                .then((res) => res.json())
+                .then((clubs) => {
+                    const count = (clubs || []).length + 1;
+                    onChange("clubId", generateClubId(count));
+                })
+                .catch(() => {
+                    onChange("clubId", generateClubId(1));
+                });
+        }
+    }, []);
+
+    function handleCountryChange(value) {
+        onChange("country", value);
+        onChange("state", "");
+    }
+
+    function handleClubNameChange(raw) {
+        const { sanitized, error } = applyClubNameInput(raw);
+        onChange("clubName", sanitized);
+        setFieldErrors((prev) => ({ ...prev, clubName: error }));
+        setFormError("");
+    }
+
     function handleNext() {
+        const nextErrors = {};
+        if (!formData.clubName?.trim()) {
+            nextErrors.clubName = "Club name is required.";
+        } else if (!isValidClubName(formData.clubName)) {
+            nextErrors.clubName = CLUB_NAME_MESSAGE;
+        }
+
         if (
-            !formData.clubName ||
             !formData.country ||
             !formData.state ||
             !formData.memberCount ||
             !formData.sport ||
             (Array.isArray(formData.sport) && formData.sport.length === 0)
         ) {
-            alert("Please fill in all fields before continuing.");
+            setFormError("Please fill in all fields before continuing.");
+            setFieldErrors((prev) => ({ ...prev, ...nextErrors }));
             return;
         }
+
+        if (Object.keys(nextErrors).length) {
+            setFieldErrors((prev) => ({ ...prev, ...nextErrors }));
+            setFormError("");
+            return;
+        }
+
+        setFormError("");
         onNext();
     }
 
@@ -36,7 +91,27 @@ export default function Step1({ formData, onChange, onNext }) {
                     className={styles.input}
                     placeholder="Enter your club name"
                     value={formData.clubName}
-                    onChange={(e) => onChange("clubName", e.target.value)}
+                    onChange={(e) => handleClubNameChange(e.target.value)}
+                />
+                {fieldErrors.clubName ? <p style={fieldErrorStyle}>{fieldErrors.clubName}</p> : null}
+            </div>
+
+            <div className={styles.fieldGroup}>
+                <label className={styles.label}>
+                    Club ID <span style={{ fontSize: "12px", color: "#c6ff3d", marginLeft: "4px" }}>(Auto-Generated)</span>
+                </label>
+                <input
+                    type="text"
+                    className={styles.input}
+                    value={formData.clubId || "Auto-generating..."}
+                    readOnly
+                    style={{
+                        background: "rgba(255, 255, 255, 0.08)",
+                        color: "#c6ff3d",
+                        fontWeight: 700,
+                        cursor: "not-allowed",
+                        letterSpacing: "1px",
+                    }}
                 />
             </div>
 
@@ -45,7 +120,7 @@ export default function Step1({ formData, onChange, onNext }) {
                 <select
                     className={styles.select}
                     value={formData.country}
-                    onChange={(e) => onChange("country", e.target.value)}
+                    onChange={(e) => handleCountryChange(e.target.value)}
                 >
                     <option value="">-- Select Country --</option>
                     {countries.map((country) => (
@@ -58,18 +133,29 @@ export default function Step1({ formData, onChange, onNext }) {
 
             <div className={styles.fieldGroup}>
                 <label className={styles.label}>State *</label>
-                <select
-                    className={styles.select}
-                    value={formData.state}
-                    onChange={(e) => onChange("state", e.target.value)}
-                >
-                    <option value="">-- Select State --</option>
-                    {indianStates.map((state) => (
-                        <option key={state} value={state}>
-                            {state}
-                        </option>
-                    ))}
-                </select>
+                {stateList ? (
+                    <select
+                        className={styles.select}
+                        value={formData.state}
+                        onChange={(e) => onChange("state", e.target.value)}
+                    >
+                        <option value="">-- Select State --</option>
+                        {stateList.map((state) => (
+                            <option key={state} value={state}>
+                                {state}
+                            </option>
+                        ))}
+                    </select>
+                ) : (
+                    <input
+                        type="text"
+                        className={styles.input}
+                        placeholder={formData.country ? "Enter state / province" : "Select a country first"}
+                        value={formData.state}
+                        onChange={(e) => onChange("state", e.target.value)}
+                        disabled={!formData.country}
+                    />
+                )}
             </div>
 
             <div className={styles.fieldGroup}>
@@ -115,7 +201,7 @@ export default function Step1({ formData, onChange, onNext }) {
                                     gap: "10px",
                                     cursor: "pointer",
                                     fontSize: "14px",
-                                    color: "#f1f5f9",
+                                    color: "#f4f4f5",
                                 }}
                             >
                                 <input
@@ -130,7 +216,7 @@ export default function Step1({ formData, onChange, onNext }) {
                                         }
                                         onChange("sport", updated);
                                     }}
-                                    style={{ width: "16px", height: "16px", accentColor: "#bffe00", cursor: "pointer" }}
+                                    style={{ width: "16px", height: "16px", accentColor: "#c6ff3d", cursor: "pointer" }}
                                 />
                                 <span>{sport}</span>
                             </label>
@@ -138,6 +224,8 @@ export default function Step1({ formData, onChange, onNext }) {
                     })}
                 </div>
             </div>
+
+            {formError ? <p style={fieldErrorStyle}>{formError}</p> : null}
 
             <div className={styles.buttonRow}>
                 <div></div>

@@ -1,10 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, CalendarDays, HandCoins, LayoutDashboard, Users } from "lucide-react";
+import { Activity, CalendarDays, HandCoins, LayoutDashboard, Users } from "lucide-react";
 
-const navItems = [
+const defaultNavItems = [
     {
         href: "/dashboard/overview",
         label: "Home",
@@ -16,12 +17,6 @@ const navItems = [
         label: "Team Members",
         icon: Users,
         match: (path) => path.startsWith("/dashboard/members"),
-    },
-    {
-        href: "/dashboard/courses",
-        label: "Courses",
-        icon: BookOpen,
-        match: (path) => path.startsWith("/dashboard/courses"),
     },
     {
         href: "/dashboard/events",
@@ -37,8 +32,32 @@ const navItems = [
     },
 ];
 
+const refereeNavItems = [
+    {
+        href: "/dashboard/overview",
+        label: "Home",
+        icon: LayoutDashboard,
+        match: (path) => path === "/dashboard/overview",
+    },
+    {
+        href: "/dashboard/matches",
+        label: "Live Matches",
+        icon: Activity,
+        match: (path) => path.startsWith("/dashboard/matches"),
+    },
+];
+
 export default function MobileBottomNav() {
     const pathname = usePathname();
+    const [isReferee, setIsReferee] = useState(false);
+
+    useEffect(() => {
+        const isMember = localStorage.getItem("isMember") === "true";
+        const memberRole = (localStorage.getItem("memberRole") || "").toLowerCase().trim();
+        setIsReferee(isMember && memberRole === "referee");
+    }, []);
+
+    const navItems = isReferee ? refereeNavItems : defaultNavItems;
 
     return (
         <nav className="mobile-bottom-nav" aria-label="Main mobile navigation">

@@ -425,7 +425,7 @@ export default function VenuesPage() {
                                 disabled={!selectedSlot}
                                 onClick={handleConfirmBooking}
                             >
-                                Request booking approval
+                                Book Now
                             </button>
                         </div>
                     </div>

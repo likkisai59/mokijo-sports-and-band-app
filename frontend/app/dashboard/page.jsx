@@ -44,7 +44,7 @@ export default function DashboardPage() {
                             width: "40px",
                             height: "40px",
                             border: "4px solid #cbd5e1",
-                            borderTopColor: "#2563eb",
+                            borderTopColor: "#c6ff3d",
                             borderRadius: "50%",
                             animation: "spin 1s linear infinite",
                             margin: "0 auto 16px",

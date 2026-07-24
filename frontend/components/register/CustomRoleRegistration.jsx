@@ -5,12 +5,56 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import styles from "../../app/styles/signup.module.css";
+import PasswordField from "@/components/ui/PasswordField";
+import PhoneInput from "@/components/ui/PhoneInput";
+import {
+    isValidEmail,
+    isValidPersonName,
+    isStrongPassword,
+    isValidPhone,
+    isValidAadhaar,
+    digitsOnly,
+    composePhone,
+    phoneLengthMessage,
+    formatDobInput,
+    isValidDob,
+    applyNameInput,
+    applyEmailInput,
+    PHONE_LENGTH_BY_CODE,
+    EMAIL_MESSAGE,
+    PERSON_NAME_MESSAGE,
+    STRONG_PASSWORD_MESSAGE,
+    AADHAAR_MESSAGE,
+    DOB_MESSAGE,
+} from "@/lib/validation";
+
+const AADHAAR_REQUIRED_ROLES = ["coach", "referee", "trainer"];
+
+function isPersonNameField(field) {
+    return field.type === "text" && /name$/i.test(field.name) && field.name.toLowerCase() !== "username";
+}
+
+function isAadhaarField(field) {
+    const n = field.name.toLowerCase();
+    return n.includes("aadhar") || n.includes("aadhaar");
+}
+
+function isPhoneField(field) {
+    return field.type === "tel";
+}
+
+function isDobField(field) {
+    const n = String(field.name || "").toLowerCase();
+    return n === "dob" || n.includes("birth") || field.type === "date";
+}
 
 export default function CustomRoleRegistration({ role, selectedClub, onBack, onComplete, backLabel = "<- Back" }) {
     const router = useRouter();
     const redirectedRef = useRef(false);
     const [formConfig, setFormConfig] = useState(null);
     const [formData, setFormData] = useState({});
+    const [phoneMeta, setPhoneMeta] = useState({});
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const [submitError, setSubmitError] = useState("");
@@ -41,10 +85,17 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
 
                     // Initialise formData state with empty values
                     const initialData = {};
+                    const initialPhoneMeta = {};
                     parsedFields.forEach((f) => {
                         initialData[f.name] = "";
+                        if (isPhoneField(f)) {
+                            initialPhoneMeta[f.name] = { countryCode: "+91", digits: "" };
+                        }
                     });
                     setFormData(initialData);
+                    setPhoneMeta(initialPhoneMeta);
+                    setConfirmPassword("");
+                    setErrors({});
                 }
             } catch (err) {
                 console.error("Error fetching custom form:", err);
@@ -56,37 +107,130 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
         fetchFormConfig();
     }, [selectedClub, role]);
 
-    function handleFieldChange(name, value) {
+    function handleFieldChange(name, value, fieldMeta = null) {
+        let nextValue = value;
+        let fieldError = null;
+
+        if (fieldMeta && isPersonNameField(fieldMeta)) {
+            const result = applyNameInput(value);
+            nextValue = result.sanitized;
+            fieldError = result.error || null;
+        } else if (fieldMeta && fieldMeta.name?.toLowerCase() === "email") {
+            const result = applyEmailInput(value);
+            nextValue = result.value;
+            fieldError = result.error || null;
+        } else if (fieldMeta && isAadhaarField(fieldMeta)) {
+            nextValue = digitsOnly(value).slice(0, 12);
+            fieldError = nextValue && nextValue.length !== 12 ? AADHAAR_MESSAGE : null;
+        }
+
         setFormData((prev) => ({
             ...prev,
-            [name]: value,
+            [name]: nextValue,
         }));
-        if (errors[name]) {
-            setErrors((prev) => ({
+        setErrors((prev) => ({
+            ...prev,
+            [name]: fieldError,
+        }));
+    }
+
+    function handlePhoneMetaChange(name, partial) {
+        setPhoneMeta((prev) => {
+            const merged = { ...(prev[name] || { countryCode: "+91", digits: "" }), ...partial };
+            const code = merged.countryCode || "+91";
+            const range = PHONE_LENGTH_BY_CODE[code] || [8, 15];
+            const digits = digitsOnly(merged.digits || "").slice(0, range[1]);
+            return {
                 ...prev,
-                [name]: null,
-            }));
-        }
+                [name]: { ...merged, digits },
+            };
+        });
+        const countryCode = partial.countryCode;
+        const current = phoneMeta[name] || { countryCode: "+91", digits: "" };
+        const code = countryCode || current.countryCode;
+        const range = PHONE_LENGTH_BY_CODE[code] || [8, 15];
+        const digits =
+            partial.digits !== undefined ? digitsOnly(partial.digits).slice(0, range[1]) : undefined;
+        setErrors((prev) => {
+            const d = digits !== undefined ? digits : current.digits;
+            return {
+                ...prev,
+                [name]: d && !isValidPhone(d, code) ? phoneLengthMessage(code) : null,
+            };
+        });
     }
 
     async function handleSubmit(e) {
         e.preventDefault();
         setSubmitError("");
 
-        // Simple validation
+        const fields = formConfig?.fields || [];
+        const roleLower = String(role || "").toLowerCase();
         const newErrors = {};
-        if (formConfig && formConfig.fields) {
-            formConfig.fields.forEach((field) => {
-                if (field.required && !String(formData[field.name] || "").trim()) {
-                    newErrors[field.name] = `${field.label} is required`;
-                }
-            });
-        }
 
-        // Validate password if email field exists
-        const hasEmail = formConfig?.fields?.some((f) => f.name.toLowerCase() === "email");
-        if (hasEmail && !String(formData["password"] || "").trim()) {
-            newErrors["password"] = "Password is required";
+        fields.forEach((field) => {
+            if (isPhoneField(field)) {
+                const meta = phoneMeta[field.name] || { countryCode: "+91", digits: "" };
+                if (field.required && !meta.digits) {
+                    newErrors[field.name] = `${field.label} is required`;
+                } else if (meta.digits && !isValidPhone(meta.digits, meta.countryCode)) {
+                    newErrors[field.name] = phoneLengthMessage(meta.countryCode);
+                }
+                return;
+            }
+
+            if (isAadhaarField(field)) {
+                const digits = digitsOnly(formData[field.name]);
+                const isRequired = field.required || AADHAAR_REQUIRED_ROLES.includes(roleLower);
+                if (isRequired && !digits) {
+                    newErrors[field.name] = `${field.label} is required`;
+                } else if (digits && !isValidAadhaar(digits)) {
+                    newErrors[field.name] = AADHAAR_MESSAGE;
+                }
+                return;
+            }
+
+            if (isDobField(field)) {
+                const rawValue = formData[field.name];
+                if (field.required && !String(rawValue || "").trim()) {
+                    newErrors[field.name] = `${field.label} is required`;
+                } else if (rawValue && !isValidDob(rawValue)) {
+                    newErrors[field.name] = DOB_MESSAGE;
+                }
+                return;
+            }
+
+            const rawValue = formData[field.name];
+            if (field.required && !String(rawValue || "").trim()) {
+                newErrors[field.name] = `${field.label} is required`;
+                return;
+            }
+
+            if (field.name.toLowerCase() === "email" && rawValue && !isValidEmail(rawValue)) {
+                newErrors[field.name] = EMAIL_MESSAGE;
+                return;
+            }
+
+            if (isPersonNameField(field) && rawValue && !isValidPersonName(rawValue)) {
+                newErrors[field.name] = PERSON_NAME_MESSAGE;
+            }
+        });
+
+        // Validate password + confirm password if email field exists
+        const hasEmail = fields.some((f) => f.name.toLowerCase() === "email");
+        if (hasEmail) {
+            const password = String(formData["password"] || "");
+            if (!password.trim()) {
+                newErrors["password"] = "Password is required";
+            } else if (!isStrongPassword(password)) {
+                newErrors["password"] = STRONG_PASSWORD_MESSAGE;
+            }
+
+            if (!confirmPassword.trim()) {
+                newErrors["confirmPassword"] = "Please confirm your password";
+            } else if (confirmPassword !== password) {
+                newErrors["confirmPassword"] = "Passwords do not match";
+            }
         }
 
         // Validate interested sports
@@ -111,6 +255,15 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                 password: String(formData.password || "").trim(),
             };
 
+            fields.forEach((field) => {
+                if (isPhoneField(field)) {
+                    const meta = phoneMeta[field.name] || { countryCode: "+91", digits: "" };
+                    submittedData[field.name] = meta.digits ? composePhone(meta.countryCode, meta.digits) : "";
+                } else if (isAadhaarField(field)) {
+                    submittedData[field.name] = digitsOnly(formData[field.name]);
+                }
+            });
+
             const response = await fetch(`${API_BASE_URL}/signup-submissions`, {
                 method: "POST",
                 headers: {
@@ -129,8 +282,8 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                 redirectedRef.current = true;
 
                 toast.success(
-                    "Registration successful! Please check your email to verify your account.",
-                    { duration: 4000 }
+                    "Registration successful! We've sent a verification email to your inbox - please verify it. The club admin must still approve your application before you can log in.",
+                    { duration: 5000 }
                 );
                 onComplete();
                 // Redirect to Landing Page after the toast is visible
@@ -157,7 +310,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                         width: "30px",
                         height: "30px",
                         border: "3px solid #cbd5e1",
-                        borderTopColor: "#2563eb",
+                        borderTopColor: "#c6ff3d",
                         borderRadius: "50%",
                         animation: "spin 1s linear infinite",
                         margin: "0 auto 12px",
@@ -239,13 +392,53 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                                 </option>
                                             ))}
                                         </select>
+                                    ) : isPhoneField(field) ? (
+                                        <PhoneInput
+                                            id={field.name}
+                                            countryCode={phoneMeta[field.name]?.countryCode || "+91"}
+                                            digits={phoneMeta[field.name]?.digits || ""}
+                                            onCountryCodeChange={(code) =>
+                                                handlePhoneMetaChange(field.name, { countryCode: code })
+                                            }
+                                            onDigitsChange={(digits) =>
+                                                handlePhoneMetaChange(field.name, { digits })
+                                            }
+                                            className={styles.input}
+                                            selectClassName={styles.select}
+                                            placeholder={field.placeholder || "00000 00000"}
+                                        />
+                                    ) : isAadhaarField(field) ? (
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            className={styles.input}
+                                            placeholder={field.placeholder || "12-digit Aadhaar number"}
+                                            maxLength={12}
+                                            value={formData[field.name] || ""}
+                                            onChange={(e) =>
+                                                handleFieldChange(field.name, e.target.value, field)
+                                            }
+                                        />
+                                    ) : isDobField(field) ? (
+                                        <input
+                                            type="text"
+                                            className={styles.input}
+                                            placeholder="DD/MM/YYYY"
+                                            maxLength={10}
+                                            value={formData[field.name] || ""}
+                                            onChange={(e) =>
+                                                handleFieldChange(field.name, formatDobInput(e.target.value))
+                                            }
+                                        />
                                     ) : (
                                         <input
                                             type={field.type}
                                             className={styles.input}
                                             placeholder={field.placeholder || ""}
                                             value={formData[field.name] || ""}
-                                            onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                                            onChange={(e) =>
+                                                handleFieldChange(field.name, e.target.value, field)
+                                            }
                                         />
                                     )}
                                     {errors[field.name] && (
@@ -262,31 +455,59 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                     )}
                                 </div>
                                 {isEmailField && (
-                                    <div className={styles.fieldGroup}>
-                                        <label className={styles.label}>
-                                            Create Password <span style={{ color: "#ef4444" }}>*</span>
-                                        </label>
-                                        <input
-                                            type="password"
-                                            className={styles.input}
-                                            placeholder="Choose a password for your account"
-                                            value={formData["password"] || ""}
-                                            onChange={(e) => handleFieldChange("password", e.target.value)}
-                                            required
-                                        />
-                                        {errors["password"] && (
-                                            <span
-                                                style={{
-                                                    color: "#ef4444",
-                                                    fontSize: "12px",
-                                                    marginTop: "4px",
-                                                    display: "block",
+                                    <>
+                                        <div className={styles.fieldGroup}>
+                                            <label className={styles.label}>
+                                                Create Password <span style={{ color: "#ef4444" }}>*</span>
+                                            </label>
+                                            <PasswordField
+                                                className={styles.input}
+                                                placeholder="Choose a password for your account"
+                                                value={formData["password"] || ""}
+                                                onChange={(e) => handleFieldChange("password", e.target.value)}
+                                            />
+                                            {errors["password"] && (
+                                                <span
+                                                    style={{
+                                                        color: "#ef4444",
+                                                        fontSize: "12px",
+                                                        marginTop: "4px",
+                                                        display: "block",
+                                                    }}
+                                                >
+                                                    {errors["password"]}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className={styles.fieldGroup}>
+                                            <label className={styles.label}>
+                                                Confirm Password <span style={{ color: "#ef4444" }}>*</span>
+                                            </label>
+                                            <PasswordField
+                                                className={styles.input}
+                                                placeholder="Re-enter your password"
+                                                value={confirmPassword}
+                                                onChange={(e) => {
+                                                    setConfirmPassword(e.target.value);
+                                                    if (errors["confirmPassword"]) {
+                                                        setErrors((prev) => ({ ...prev, confirmPassword: null }));
+                                                    }
                                                 }}
-                                            >
-                                                {errors["password"]}
-                                            </span>
-                                        )}
-                                    </div>
+                                            />
+                                            {errors["confirmPassword"] && (
+                                                <span
+                                                    style={{
+                                                        color: "#ef4444",
+                                                        fontSize: "12px",
+                                                        marginTop: "4px",
+                                                        display: "block",
+                                                    }}
+                                                >
+                                                    {errors["confirmPassword"]}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </>
                                 )}
                             </div>
                         );
@@ -323,7 +544,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                             gap: "8px",
                                             cursor: "pointer",
                                             fontSize: "14px",
-                                            color: "#f1f5f9",
+                                            color: "#f4f4f5",
                                         }}
                                     >
                                         <input
@@ -342,7 +563,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                                 cursor: "pointer",
                                                 width: "16px",
                                                 height: "16px",
-                                                accentColor: "#bffe00",
+                                                accentColor: "#c6ff3d",
                                             }}
                                         />
                                         <span>{sport}</span>

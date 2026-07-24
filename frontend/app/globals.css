@@ -2,30 +2,48 @@
 @import "tailwindcss";
 
 :root {
-    /* Brand Colors */
-    --brand-primary: #bffe00; /* Electric Lime */
-    --brand-secondary: #00f0ff; /* Hyper Cyan */
-    --brand-accent: #ff2d55; /* Racing Pink/Red */
-    --brand-pink: #ec4899;
+    /* ════════════════════════════════════════════════════════════════
+       MUKIJO — "MIDNIGHT VOLT" PALETTE
+       Dual-accent system: Volt Lime (Sports) + Neon Magenta (Band)
+       Premium dark base shared across both platforms.
+       ════════════════════════════════════════════════════════════════ */
+
+    /* ── Sports Accent — Volt Lime (energy / action) ── */
+    --brand-primary: #c6ff3d;    /* Volt Lime — canonical brand */
+    --brand-secondary: #c6ff3d;  /* alias */
+    --brand-bright: #c6ff3d;     /* bright accent alias */
+    --brand-light: #d9ff6e;      /* Volt bright (text/icons on dark) */
+    --brand-deep: #9fcc1f;       /* Volt deep — pressed/active/gradient end */
+    --brand-glow-rgb: 198, 255, 61;
+
+    /* ── Band Accent — Neon Magenta (concert / nightlife) ── */
+    --band-primary: #ff2e93;     /* Neon Magenta */
+    --band-bright: #ff66b8;      /* Magenta bright */
+    --band-deep: #e6007a;        /* Magenta deep */
+    --band-glow-rgb: 255, 46, 147;
+
+    /* ── Status colors ── */
+    --brand-accent: #ff4d4d;     /* Coral — danger only */
+    --brand-pink: #ff2e93;
     --brand-amber: #f59e0b;
     --brand-emerald: #10b981;
 
-    /* Dark palette */
-    --dark-900: #050508; /* Carbon Obsidian */
-    --dark-800: #0c0c14; /* Metallic Charcoal */
-    --dark-700: #121222; /* Steel Blue Gray */
-    --dark-600: #15152a;
-    --dark-500: #1a1a36;
-    --dark-400: #25254a;
+    /* ── Dark palette (premium midnight) ── */
+    --dark-900: #08080f; /* Obsidian */
+    --dark-800: #0c0c16; /* Carbon */
+    --dark-700: #14141f; /* Steel surface */
+    --dark-600: #1a1a28;
+    --dark-500: #202032;
+    --dark-400: #2a2a3f;
 
-    /* Light palette */
-    --light-bg: #f8f9ff;
+    /* ── Light palette ── */
+    --light-bg: #f6f7fb;
     --light-surface: #ffffff;
     --light-border: #e5e7f0;
-    --light-muted: #94a3b8;
+    --light-muted: #8b8b9e;
 
     --background: var(--dark-900);
-    --foreground: #f1f5f9;
+    --foreground: #f4f4f5;
 
     /* Glassmorphism */
     --glass-bg: rgba(255, 255, 255, 0.03);
@@ -95,7 +113,7 @@ body::-webkit-scrollbar-corner,
 
 /* Selection Color */
 ::selection {
-    background: rgba(191, 254, 0, 0.25);
+    background: rgba(198, 255, 61, 0.25);
     color: #000;
 }
 
