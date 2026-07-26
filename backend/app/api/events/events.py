@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request, HTTPException, status
+from fastapi import APIRouter, Depends, Request, HTTPException, status, Query
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
@@ -287,7 +287,7 @@ class EventsRouting(ConnectionService):
     async def get_member_registrations(
         self,
         request: Request,
-        member_email: str,
+        member_email: Optional[str] = Query(None),
         current_user: dict = Depends(check_user_authorization)
     ):
         await logger.log_message(request=request, message="Get member registrations router start", step="ROUTER_START", user_info=current_user)
@@ -871,19 +871,27 @@ class EventsLogic(ConnectionService):
             await logger.log_error(request=request, message=f"Failed sending reminder: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
 
-    async def get_member_registrations(self, request: Request, member_email: str, current_user: dict):
+    async def get_member_registrations(self, request: Request, member_email: Optional[str], current_user: dict):
         try:
             with logger.time_operation("GET_MEMBER_REGISTRATIONS", request=request):
                 db = self.db_driver
-                validate_role_and_permission(db, current_user, ["admin", "team_member"])
-                email_clean = member_email.replace(" ", "").lower()
-                if current_user.get("role") == "team_member":
-                    token_member = db.fetch_one("SELECT email FROM members WHERE id = %s", (current_user.get("id"),))
-                    if not token_member or token_member.get("email", "").replace(" ", "").lower() != email_clean:
-                        raise HTTPException(
-                            status_code=status.HTTP_403_FORBIDDEN,
-                            detail="Access denied: You cannot view registrations for another email."
-                        )
+                target_email = member_email
+                if not target_email or not target_email.strip():
+                    user_id = current_user.get("id")
+                    user = db.fetch_one("SELECT email FROM users WHERE id = %s LIMIT 1", (user_id,))
+                    if user and user.get("email"):
+                        target_email = user.get("email")
+                    else:
+                        member = db.fetch_one("SELECT email FROM members WHERE id = %s LIMIT 1", (user_id,))
+                        if member and member.get("email"):
+                            target_email = member.get("email")
+                        else:
+                            target_email = current_user.get("email", "")
+
+                email_clean = (target_email or "").replace(" ", "").lower()
+                if not email_clean:
+                    return []
+
                 registrations = db.fetch_all(
                     "SELECT * FROM event_registrations WHERE LOWER(participant_email) = %s",
                     (email_clean,)

@@ -383,6 +383,22 @@ export default function MatchCreatePage() {
                                                     </option>
                                                 ))}
                                             </select>
+                                            {matchType === "intra_club" &&
+                                                teamASelectedGroup &&
+                                                teamBSelectedGroup &&
+                                                String(teamASelectedGroup) === String(teamBSelectedGroup) && (
+                                                    <p
+                                                        style={{
+                                                            color: "#ef4444",
+                                                            fontSize: "13px",
+                                                            marginTop: "8px",
+                                                            marginBottom: 0,
+                                                            fontWeight: 600,
+                                                        }}
+                                                    >
+                                                        Same group should not be selected
+                                                    </p>
+                                                )}
                                         </div>
 
                                         {teamBSelectedGroup && renderMemberPreview(teamBMembers, loadingTeamBMembers)}
@@ -417,7 +433,14 @@ export default function MatchCreatePage() {
                         </Link>
                         <button
                             type="submit"
-                            disabled={saving || loadingGroups}
+                            disabled={
+                                saving ||
+                                loadingGroups ||
+                                (matchType === "intra_club" &&
+                                    teamASelectedGroup &&
+                                    teamBSelectedGroup &&
+                                    String(teamASelectedGroup) === String(teamBSelectedGroup))
+                            }
                             className="m-btn primary"
                             style={{
                                 flex: "0 0 auto",

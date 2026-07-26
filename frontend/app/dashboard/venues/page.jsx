@@ -1,7 +1,9 @@
 "use client";
 import { API_BASE_URL } from "@/lib/api";
+import { openVenueBookingRazorpay } from "@/lib/venueRazorpay";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import "../../styles/venues.css";
 
 function parseJsonList(value) {
@@ -15,20 +17,9 @@ function parseJsonList(value) {
     }
 }
 
-function statusBadgeStyle(status) {
-    if (status === "VERIFIED") {
-        return { background: "rgba(34, 197, 94, 0.15)", color: "#4ade80" };
-    }
-    if (status === "PENDING_VERIFICATION" || status === "UNDER_REVIEW" || status === "MORE_INFO_REQUIRED") {
-        return { background: "rgba(234, 179, 8, 0.15)", color: "#facc15" };
-    }
-    if (status === "REJECTED" || status === "SUSPENDED") {
-        return { background: "rgba(239, 68, 68, 0.15)", color: "#f87171" };
-    }
-    return { background: "rgba(148, 163, 184, 0.15)", color: "#94a3b8" };
-}
-
-export default function VenuesPage() {
+function VenuesPageContent() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const [venues, setVenues] = useState([]);
     const [selectedVenue, setSelectedVenue] = useState(null);
     const [slots, setSlots] = useState([]);
@@ -49,7 +40,13 @@ export default function VenuesPage() {
             const response = await fetch(`${API_BASE_URL}/venues?${params.toString()}`);
             if (response.ok) {
                 const data = await response.json();
-                setVenues(Array.isArray(data) ? data : []);
+                const list = Array.isArray(data) ? data : [];
+                setVenues(list);
+                const venueIdParam = searchParams.get("venue");
+                if (venueIdParam) {
+                    const match = list.find((v) => String(v.id) === String(venueIdParam));
+                    if (match) setSelectedVenue(match);
+                }
             } else {
                 setVenues([]);
             }
@@ -93,40 +90,64 @@ export default function VenuesPage() {
 
         try {
             const userId = localStorage.getItem("userId");
-            if (!userId) {
+            const token = localStorage.getItem("accessToken");
+            if (!userId || !token) {
                 setBookingStatus("error");
-                setBookingMessage("Please log in to request a booking.");
+                setBookingMessage("Please log in to book a slot and pay with Razorpay.");
                 return;
             }
 
-            const response = await fetch(`${API_BASE_URL}/bookings/request-approval`, {
+            const response = await fetch(`${API_BASE_URL}/bookings/hold`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     user_id: parseInt(userId, 10),
                     slot_ids: [selectedSlot.id],
-                    amount_paid: selectedSlot.current_price,
-                    status: "pending_approval",
-                    payment_status: "pending",
                 }),
             });
 
-            const data = await response.json();
-            if (response.ok) {
-                setBookingStatus("success");
-                setBookingMessage(
-                    `Booking request sent. Venue owner has been notified and will approve it shortly.`
-                );
-                fetchSlots(selectedVenue.id);
-                setSelectedSlot(null);
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data?.id) {
+                const detail = data.detail;
+                const message = Array.isArray(detail)
+                    ? detail.map((d) => d.msg || d).join(", ")
+                    : detail || "This slot could not be held. Please try another time.";
+                setBookingStatus("error");
+                setBookingMessage(message);
+                return;
+            }
+
+            await openVenueBookingRazorpay({
+                bookingId: data.id,
+                userId,
+                onSuccess: () => {
+                    setSelectedSlot(null);
+                    fetchSlots(selectedVenue.id);
+                    setBookingStatus("success");
+                    setBookingMessage("Payment successful. Your booking is confirmed.");
+                    router.push("/dashboard/bookings");
+                },
+                onError: (message) => {
+                    setBookingStatus("error");
+                    setBookingMessage(message);
+                    fetchSlots(selectedVenue.id);
+                },
+                onDismiss: () => {
+                    setBookingStatus("error");
+                    setBookingMessage("Payment cancelled. Your slot may still be held for a few minutes.");
+                    fetchSlots(selectedVenue.id);
+                },
+            });
+        } catch (error) {
+            if (error?.message === "Payment cancelled.") {
+                setBookingStatus("error");
+                setBookingMessage("Payment cancelled. Your slot may still be held for a few minutes.");
             } else {
                 setBookingStatus("error");
-                setBookingMessage(data.detail || "This slot could not be requested. Please try another time.");
+                setBookingMessage(error?.message || "Network error occurred while starting Razorpay checkout.");
             }
-        } catch (error) {
-            setBookingStatus("error");
-            setBookingMessage("Network error occurred while sending the booking request.");
-            console.error("Booking request error:", error);
+            if (selectedVenue) fetchSlots(selectedVenue.id);
+            console.error("Booking hold error:", error);
         }
     };
 
@@ -165,7 +186,7 @@ export default function VenuesPage() {
                             </svg>
                             <input
                                 type="text"
-                                placeholder="Search venues..."
+                                placeholder="Search by location..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -182,7 +203,6 @@ export default function VenuesPage() {
                         <div className="venues-grid">
                             {venues.map((venue) => {
                                 const sports = parseJsonList(venue.sports_supported);
-                                const status = venue.verification_status || "DRAFT";
                                 const rating =
                                     typeof venue.rating === "number" ? venue.rating.toFixed(1) : "5.0";
                                 return (
@@ -218,34 +238,9 @@ export default function VenuesPage() {
                                             )}
                                         </div>
                                         <div className="venue-body">
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    justifyContent: "space-between",
-                                                    alignItems: "center",
-                                                    gap: 8,
-                                                }}
-                                            >
-                                                <h3 className="venue-title" style={{ margin: 0 }}>
-                                                    {venue.name}
-                                                </h3>
-                                                <span
-                                                    style={{
-                                                        fontSize: 10,
-                                                        padding: "2px 8px",
-                                                        borderRadius: 4,
-                                                        fontWeight: 700,
-                                                        textTransform: "uppercase",
-                                                        letterSpacing: "0.5px",
-                                                        whiteSpace: "nowrap",
-                                                        ...statusBadgeStyle(status),
-                                                    }}
-                                                >
-                                                    {status === "VERIFIED"
-                                                        ? "✓ Verified"
-                                                        : status.replace(/_/g, " ")}
-                                                </span>
-                                            </div>
+                                            <h3 className="venue-title" style={{ margin: 0 }}>
+                                                {venue.name}
+                                            </h3>
                                             <div className="venue-location">
                                                 <svg
                                                     viewBox="0 0 24 24"
@@ -288,22 +283,7 @@ export default function VenuesPage() {
             ) : (
                 <div className="venue-details-grid">
                     <div className="venue-info-sidebar">
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: "14px" }}>
-                            <h2 style={{ margin: 0 }}>{selectedVenue.name}</h2>
-                            <span
-                                style={{
-                                    fontSize: 11,
-                                    padding: "2px 8px",
-                                    borderRadius: 4,
-                                    fontWeight: 700,
-                                    textTransform: "uppercase",
-                                    letterSpacing: "0.5px",
-                                    ...statusBadgeStyle(selectedVenue.verification_status || "DRAFT"),
-                                }}
-                            >
-                                {(selectedVenue.verification_status || "DRAFT").replace(/_/g, " ")}
-                            </span>
-                        </div>
+                        <h2 style={{ margin: "0 0 14px" }}>{selectedVenue.name}</h2>
                         <div className="venue-location" style={{ marginBottom: "14px" }}>
                             <svg
                                 viewBox="0 0 24 24"
@@ -422,11 +402,14 @@ export default function VenuesPage() {
                         <div className="confirm-booking-box">
                             <button
                                 className="confirm-booking-btn"
-                                disabled={!selectedSlot}
+                                disabled={!selectedSlot || bookingStatus === "loading"}
                                 onClick={handleConfirmBooking}
                             >
-                                Book Now
+                                {bookingStatus === "loading" ? "Opening Razorpay..." : "Book Now"}
                             </button>
+                            <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8, textAlign: "center" }}>
+                                Razorpay opens immediately to complete payment.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -451,26 +434,21 @@ export default function VenuesPage() {
                                 ×
                             </button>
                         </div>
-                        <p
-                            style={{
-                                fontSize: "14px",
-                                lineHeight: "1.6",
-                                color: "var(--text-secondary)",
-                                marginBottom: "24px",
-                            }}
-                        >
-                            {bookingMessage}
-                        </p>
-                        <button
-                            className="confirm-booking-btn"
-                            style={{ width: "100%" }}
-                            onClick={() => setBookingStatus(null)}
-                        >
-                            Got It
+                        <p>{bookingMessage}</p>
+                        <button className="confirm-booking-btn" onClick={() => setBookingStatus(null)}>
+                            Close
                         </button>
                     </div>
                 </div>
             )}
         </div>
+    );
+}
+
+export default function VenuesPage() {
+    return (
+        <Suspense fallback={<div className="venues-container"><p>Loading venues...</p></div>}>
+            <VenuesPageContent />
+        </Suspense>
     );
 }

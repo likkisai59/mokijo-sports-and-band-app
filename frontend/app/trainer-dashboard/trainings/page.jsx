@@ -195,13 +195,19 @@ export default function TrainerTrainingsPage() {
                                             {t.status}
                                         </span>
                                     </div>
-                                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>
+                                    <div style={{ fontSize: 12, color: "#ffffff", lineHeight: 1.5 }}>
                                         <div>
                                             {dateText(t.start_date)}
                                             {t.end_date ? ` → ${dateText(t.end_date)}` : ""}
                                         </div>
                                         <div>{t.schedule || "Schedule TBA"}</div>
                                         <div>{t.location || "Location TBA"}</div>
+                                        {(t.registration_count != null || t.paid_count != null) && (
+                                            <div style={{ color: "rgba(255,255,255,0.7)", marginTop: 4 }}>
+                                                {t.registration_count ?? 0} registered
+                                                {t.paid_count != null ? ` · ${t.paid_count} paid` : ""}
+                                            </div>
+                                        )}
                                     </div>
                                     {t.reschedule_reason && (
                                         <div style={{ fontSize: 12, color: "#fb923c" }}>
@@ -209,6 +215,13 @@ export default function TrainerTrainingsPage() {
                                         </div>
                                     )}
                                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: "auto", paddingTop: 8 }}>
+                                        <Link
+                                            href={`/trainer-dashboard/registrations?course_id=${t.id}`}
+                                            className="vd-btn-sm primary"
+                                            style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}
+                                        >
+                                            View registrants
+                                        </Link>
                                         <button className="vd-btn-sm primary" onClick={() => openReschedule(t)}>
                                             Reschedule
                                         </button>

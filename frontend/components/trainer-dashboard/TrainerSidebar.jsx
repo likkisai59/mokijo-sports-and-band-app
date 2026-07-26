@@ -28,6 +28,18 @@ const NAV = [
                     </svg>
                 ),
             },
+            {
+                href: "/trainer-dashboard/registrations",
+                label: "Registrations",
+                icon: (
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                ),
+            },
         ],
     },
 ];
@@ -45,6 +57,13 @@ export default function TrainerSidebar() {
         router.push("/login-trainer");
     };
 
+    const isActive = (href) => {
+        if (href === "/trainer-dashboard/registrations") {
+            return pathname.startsWith("/trainer-dashboard/registrations");
+        }
+        return pathname === href || pathname.startsWith(`${href}/`);
+    };
+
     return (
         <aside className="vd-sidebar">
             {NAV.map((section) => (
@@ -54,7 +73,7 @@ export default function TrainerSidebar() {
                         <Link
                             key={item.label}
                             href={item.href}
-                            className={`vd-nav-item ${pathname === item.href ? "active" : ""}`}
+                            className={`vd-nav-item ${isActive(item.href) ? "active" : ""}`}
                         >
                             <span className="vd-nav-icon">{item.icon}</span>
                             {item.label}

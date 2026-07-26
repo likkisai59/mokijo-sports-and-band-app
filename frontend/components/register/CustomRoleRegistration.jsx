@@ -16,8 +16,9 @@ import {
     digitsOnly,
     composePhone,
     phoneLengthMessage,
-    formatDobInput,
     isValidDob,
+    isoToDob,
+    dobToIso,
     applyNameInput,
     applyEmailInput,
     PHONE_LENGTH_BY_CODE,
@@ -46,6 +47,12 @@ function isPhoneField(field) {
 function isDobField(field) {
     const n = String(field.name || "").toLowerCase();
     return n === "dob" || n.includes("birth") || field.type === "date";
+}
+
+function isYesNoSelect(field) {
+    if (field.type !== "select" || !Array.isArray(field.options) || field.options.length !== 2) return false;
+    const normalized = field.options.map((o) => String(o).trim().toLowerCase()).sort();
+    return normalized[0] === "no" && normalized[1] === "yes";
 }
 
 export default function CustomRoleRegistration({ role, selectedClub, onBack, onComplete, backLabel = "<- Back" }) {
@@ -370,7 +377,35 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                     <label className={styles.label}>
                                         {field.label} {field.required && <span style={{ color: "#ef4444" }}>*</span>}
                                     </label>
-                                    {field.type === "select" ? (
+                                    {isYesNoSelect(field) ? (
+                                        <div style={{ display: "flex", gap: "20px", alignItems: "center", paddingTop: "4px" }}>
+                                            {(field.options || ["Yes", "No"]).map((opt) => (
+                                                <label
+                                                    key={opt}
+                                                    style={{
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        gap: "8px",
+                                                        color: "#ffffff",
+                                                        fontSize: "14px",
+                                                        fontWeight: 600,
+                                                        cursor: "pointer",
+                                                        textTransform: "none",
+                                                        letterSpacing: "normal",
+                                                    }}
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name={field.name}
+                                                        value={opt}
+                                                        checked={formData[field.name] === opt}
+                                                        onChange={() => handleFieldChange(field.name, opt)}
+                                                    />
+                                                    {opt}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    ) : field.type === "select" ? (
                                         <select
                                             className={styles.select}
                                             value={formData[field.name] || ""}
@@ -421,14 +456,15 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                         />
                                     ) : isDobField(field) ? (
                                         <input
-                                            type="text"
+                                            type="date"
                                             className={styles.input}
-                                            placeholder="DD/MM/YYYY"
-                                            maxLength={10}
-                                            value={formData[field.name] || ""}
+                                            value={dobToIso(formData[field.name] || "")}
+                                            min="1900-01-01"
+                                            max={new Date().toISOString().slice(0, 10)}
                                             onChange={(e) =>
-                                                handleFieldChange(field.name, formatDobInput(e.target.value))
+                                                handleFieldChange(field.name, isoToDob(e.target.value))
                                             }
+                                            style={{ colorScheme: "dark" }}
                                         />
                                     ) : (
                                         <input

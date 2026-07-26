@@ -68,6 +68,14 @@ class CoursesRouting(ConnectionService):
             tags=["Courses"]
         )
         self.router.add_api_route(
+            path="/users/{user_id}/training-registrations",
+            endpoint=self.get_user_training_registrations,
+            methods=["GET"],
+            response_model=List[schemas.UserTrainingRegistrationResponse],
+            summary="List trainer trainings the user has registered for.",
+            tags=["Courses"]
+        )
+        self.router.add_api_route(
             path="/courses",
             endpoint=self.get_courses,
             methods=["GET"],
@@ -188,6 +196,16 @@ class CoursesRouting(ConnectionService):
         await logger.log_message(request=request, message="Verify trainer training enroll payment router start", step="ROUTER_START", user_info=current_user)
         logic = CoursesLogic()
         return await logic.verify_trainer_training_enroll_payment(request, course_id, verification, current_user)
+
+    async def get_user_training_registrations(
+        self,
+        request: Request,
+        user_id: int,
+        current_user: dict = Depends(check_user_authorization)
+    ):
+        await logger.log_message(request=request, message="Get user training registrations router start", step="ROUTER_START", user_info=current_user)
+        logic = CoursesLogic()
+        return await logic.get_user_training_registrations(request, user_id, current_user)
 
     async def get_courses(
         self,
@@ -403,6 +421,112 @@ class CoursesLogic(ConnectionService):
         except Exception as e:
             await logger.log_error(request=request, message=f"Failed to get trainer training detail: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
+
+    async def get_user_training_registrations(self, request: Request, user_id: int, current_user: dict):
+        try:
+            with logger.time_operation("GET_USER_TRAINING_REGISTRATIONS", request=request):
+                db = self.db_driver
+                current_id = current_user.get("id")
+                if current_id is None:
+                    raise HTTPException(status_code=401, detail="User id missing from token.")
+
+                target_user_id = int(user_id)
+                if int(current_id) != target_user_id and current_user.get("role") not in ["admin", "club_admin", "mukijo_admin"]:
+                    target_user_id = int(current_id)
+
+                user = db.fetch_one("SELECT email FROM users WHERE id = %s LIMIT 1", (target_user_id,))
+                user_email = user.get("email") if user else None
+
+                if not user_email:
+                    member = db.fetch_one("SELECT email FROM members WHERE id = %s LIMIT 1", (target_user_id,))
+                    if member:
+                        user_email = member.get("email")
+                    else:
+                        member_cur = db.fetch_one("SELECT email FROM members WHERE id = %s LIMIT 1", (current_id,))
+                        if member_cur:
+                            user_email = member_cur.get("email")
+
+                email_clean = (user_email or "").replace(" ", "").lower() or None
+                notes_pattern = f"%user_id:{target_user_id}%"
+
+                rows = db.fetch_all(
+                    """
+                    SELECT cr.*
+                    FROM course_registrations cr
+                    INNER JOIN courses c ON c.id = cr.course_id
+                    WHERE cr.status != 'cancelled'
+                      AND (
+                        cr.notes ILIKE %s
+                        OR EXISTS (
+                            SELECT 1 FROM training_enrollment_orders o
+                            WHERE o.registration_id = cr.id AND (o.user_id = %s OR o.user_id = %s)
+                        )
+                        OR (%s IS NOT NULL AND LOWER(REPLACE(COALESCE(cr.participant_email, ''), ' ', '')) = %s)
+                        OR (%s IS NOT NULL AND cr.member_id IN (SELECT id FROM members WHERE LOWER(email) = %s))
+                        OR cr.owner_id = %s
+                        OR cr.owner_id = %s
+                      )
+                    ORDER BY cr.registered_at DESC NULLS LAST, cr.id DESC
+                    """,
+                    (
+                        notes_pattern,
+                        target_user_id,
+                        current_id,
+                        email_clean,
+                        email_clean,
+                        email_clean,
+                        email_clean,
+                        target_user_id,
+                        current_id,
+                    ),
+                )
+
+                results = []
+                seen_ids = set()
+                for reg in rows or []:
+                    reg_id = reg.get("id")
+                    if reg_id in seen_ids:
+                        continue
+                    seen_ids.add(reg_id)
+
+                    course = db.fetch_one("SELECT * FROM courses WHERE id = %s LIMIT 1", (reg.get("course_id"),))
+                    if not course:
+                        continue
+                    course_data = serialize_course(course, db)
+                    registered_at = reg.get("registered_at")
+                    if isinstance(registered_at, (datetime, date)):
+                        registered_at_str = registered_at.isoformat()
+                    else:
+                        registered_at_str = str(registered_at) if registered_at else None
+
+                    results.append({
+                        "id": reg.get("id"),
+                        "course_id": reg.get("course_id"),
+                        "status": reg.get("status"),
+                        "payment_status": reg.get("payment_status") or "unpaid",
+                        "registered_at": registered_at_str,
+                        "title": course_data.get("title"),
+                        "category": course_data.get("category"),
+                        "location": course_data.get("location"),
+                        "start_date": course_data.get("start_date"),
+                        "end_date": course_data.get("end_date"),
+                        "schedule": course_data.get("schedule"),
+                        "start_time": course_data.get("start_time"),
+                        "end_time": course_data.get("end_time"),
+                        "days": course_data.get("days"),
+                        "fee": course_data.get("fee") or 0,
+                        "cover_image": course_data.get("cover_image"),
+                        "trainer_name": course_data.get("trainer_name"),
+                        "trainer_phone": course_data.get("trainer_phone"),
+                        "level": course_data.get("level"),
+                        "description": course_data.get("description"),
+                    })
+                return results
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            await logger.log_error(request=request, message=f"Failed getting user training registrations: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
 
     async def create_trainer_training_enroll_order(self, request: Request, course_id: int, current_user: dict):
         try:

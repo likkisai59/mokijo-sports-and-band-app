@@ -265,23 +265,21 @@ export default function Sidebar() {
                 </>
             )}
 
-            {!isMember && (
-                <Link
-                    href="/dashboard/members"
-                    className={`menu-item ${pathname === "/dashboard/members" ? "active" : ""}`}
-                    style={{ textDecoration: "none" }}
-                >
-                    <span className="icon">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="9" cy="7" r="4"></circle>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
-                    </span>
-                    <span>Team Members</span>
-                </Link>
-            )}
+            <Link
+                href="/dashboard/members"
+                className={`menu-item ${pathname === "/dashboard/members" ? "active" : ""}`}
+                style={{ textDecoration: "none" }}
+            >
+                <span className="icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                </span>
+                <span>Team Members</span>
+            </Link>
 
             {isParentGuardianRole && (
                 <Link
@@ -365,21 +363,49 @@ export default function Sidebar() {
                 </Link>
             )}
 
-            {!isMember && (
-                <Link
-                    href="/dashboard/venues"
-                    className={`menu-item ${pathname.startsWith("/dashboard/venues") ? "active" : ""}`}
-                    style={{ textDecoration: "none" }}
-                >
-                    <span className="icon">
-                        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2" fill="none">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                            <circle cx="12" cy="10" r="3"></circle>
-                        </svg>
-                    </span>
-                    <span>Venues</span>
-                </Link>
-            )}
+            <Link
+                href="/dashboard/venues"
+                className={`menu-item ${pathname.startsWith("/dashboard/venues") ? "active" : ""}`}
+                style={{ textDecoration: "none" }}
+            >
+                <span className="icon">
+                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2" fill="none">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                </span>
+                <span>Venues</span>
+            </Link>
+
+            <Link
+                href="/dashboard/bookings"
+                className={`menu-item ${pathname.startsWith("/dashboard/bookings") ? "active" : ""}`}
+                style={{ textDecoration: "none" }}
+            >
+                <span className="icon">
+                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2" fill="none">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                </span>
+                <span>My Bookings</span>
+            </Link>
+
+            <Link
+                href="/dashboard/my-trainings"
+                className={`menu-item ${pathname.startsWith("/dashboard/my-trainings") ? "active" : ""}`}
+                style={{ textDecoration: "none" }}
+            >
+                <span className="icon">
+                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2" fill="none">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                </span>
+                <span>My Trainings</span>
+            </Link>
 
             {userRole === "mukijo_admin" && (
                 <Link

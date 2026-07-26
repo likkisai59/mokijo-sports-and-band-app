@@ -467,7 +467,7 @@ export default function OverviewPage() {
                             <polyline points="7 10 12 15 17 10" />
                             <line x1="12" y1="15" x2="12" y2="3" />
                         </svg>
-                        Import Groups
+                        Add more members
                     </Link>
                     <Link href="/dashboard/events/new" className={styles.actionButton}>
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none">
@@ -548,7 +548,12 @@ export default function OverviewPage() {
                 ) : adminData?.venues && adminData.venues.length > 0 ? (
                     <div className={styles.venuesGrid}>
                         {adminData.venues.map((venue) => (
-                            <div key={venue.id} className={styles.venueCard}>
+                            <Link
+                                key={venue.id}
+                                href={`/dashboard/venues?venue=${venue.id}`}
+                                className={styles.venueCard}
+                                style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
+                            >
                                 {venue.cover_image ? (
                                     <img src={venue.cover_image} alt={venue.name} className={styles.venueImage} />
                                 ) : (
@@ -559,9 +564,6 @@ export default function OverviewPage() {
                                 <div className={styles.venueCardContent}>
                                     <div className={styles.venueCardHeader}>
                                         <h3 className={styles.venueName}>{venue.name}</h3>
-                                        <span className={`${styles.statusBadge} ${styles[venue.verification_status?.toLowerCase() || "draft"]}`}>
-                                            {venue.verification_status || "DRAFT"}
-                                        </span>
                                     </div>
                                     <p className={styles.venueLocation}>
                                         <strong>Location:</strong> {venue.location}
@@ -585,7 +587,7 @@ export default function OverviewPage() {
                                         {venue.contact_phone && <p><strong>Phone:</strong> {venue.contact_phone}</p>}
                                     </div>
                                 </div>
-                            </div>
+                            </Link>
                         ))}
                     </div>
                 ) : (
@@ -1093,7 +1095,13 @@ export default function OverviewPage() {
                     <Link
                         href="/dashboard/events"
                         className={styles.actionButton}
-                        style={{ background: "#c6ff3d", boxShadow: "0 4px 12px rgba(198, 255, 61, 0.25)" }}
+                        style={{
+                            background: "linear-gradient(135deg, #c6ff3d, #d9ff6e)",
+                            color: "#08080f",
+                            fontWeight: "800",
+                            border: "none",
+                            boxShadow: "0 4px 14px rgba(198, 255, 61, 0.3)",
+                        }}
                     >
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none">
                             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -1105,7 +1113,13 @@ export default function OverviewPage() {
                     <Link
                         href="/dashboard/fundraising"
                         className={styles.actionButton}
-                        style={{ background: "#ef4444", boxShadow: "0 4px 12px rgba(239, 68, 68, 0.25)" }}
+                        style={{
+                            background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+                            color: "#ffffff",
+                            fontWeight: "700",
+                            border: "none",
+                            boxShadow: "0 4px 14px rgba(59, 130, 246, 0.3)",
+                        }}
                     >
                         {"\u20B9"} Support Club Dues
                     </Link>

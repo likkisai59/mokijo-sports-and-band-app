@@ -13,6 +13,7 @@ import {
     Phone,
     Loader2,
     CheckCircle2,
+    AlertCircle,
 } from "lucide-react";
 
 function loadRazorpayCheckout() {
@@ -60,6 +61,17 @@ export default function TrainingDetailPage() {
     const [paying, setPaying] = useState(false);
     const [success, setSuccess] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
+    const [dashboardUrl, setDashboardUrl] = useState("/user-dashboard");
+
+    useEffect(() => {
+        const isMember = localStorage.getItem("isMember") === "true";
+        const role = (localStorage.getItem("userRole") || "").toLowerCase();
+        if (isMember || role === "team_member" || role === "club_admin") {
+            setDashboardUrl("/dashboard/my-trainings");
+        } else {
+            setDashboardUrl("/user-dashboard");
+        }
+    }, []);
 
     useEffect(() => {
         const token = localStorage.getItem("accessToken");
@@ -115,7 +127,9 @@ export default function TrainingDetailPage() {
             );
             const order = await orderRes.json().catch(() => ({}));
             if (!orderRes.ok) {
-                throw new Error(order.detail || "Could not start enrollment.");
+                setError(order.detail || "Could not start enrollment.");
+                setPaying(false);
+                return;
             }
 
             if (order.free) {
@@ -212,7 +226,7 @@ export default function TrainingDetailPage() {
                 <div style={styles.centerBox}>
                     <h2 style={{ color: "#f4f4f5" }}>Training not found</h2>
                     <p style={{ color: "rgba(148,163,184,0.6)", marginBottom: 16 }}>{error || "This session may have been removed."}</p>
-                    <Link href="/user-dashboard" style={styles.backLink}>
+                    <Link href={dashboardUrl} style={styles.backLink}>
                         ← Back to dashboard
                     </Link>
                 </div>
@@ -223,7 +237,7 @@ export default function TrainingDetailPage() {
     return (
         <div style={styles.page}>
             <div style={styles.topbar}>
-                <Link href="/user-dashboard" style={styles.backLink}>
+                <Link href={dashboardUrl} style={styles.backLink}>
                     <ArrowLeft size={16} /> Back
                 </Link>
                 <strong style={styles.logo}>Mukijo</strong>
@@ -341,6 +355,46 @@ export default function TrainingDetailPage() {
                         </div>
                     </section>
 
+                    {error && (
+                        <div
+                            style={{
+                                background: "rgba(239, 68, 68, 0.1)",
+                                border: "1px solid rgba(239, 68, 68, 0.3)",
+                                borderRadius: "10px",
+                                padding: "14px 18px",
+                                color: "#f87171",
+                                fontSize: "14px",
+                                fontWeight: "600",
+                                marginBottom: "16px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                gap: "12px",
+                            }}
+                        >
+                            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                <AlertCircle size={18} style={{ flexShrink: 0 }} />
+                                <span>{error}</span>
+                            </div>
+                            {(error.toLowerCase().includes("already") ||
+                                error.toLowerCase().includes("registered") ||
+                                error.toLowerCase().includes("paid")) && (
+                                <Link
+                                    href={dashboardUrl}
+                                    style={{
+                                        color: "#c6ff3d",
+                                        fontSize: "13px",
+                                        fontWeight: "700",
+                                        textDecoration: "underline",
+                                        whiteSpace: "nowrap",
+                                    }}
+                                >
+                                    My Trainings →
+                                </Link>
+                            )}
+                        </div>
+                    )}
+
                     {!success && (
                         <button
                             type="button"
@@ -357,7 +411,7 @@ export default function TrainingDetailPage() {
                     )}
 
                     {success && (
-                        <Link href="/user-dashboard" style={{ ...styles.payBtn, textAlign: "center", textDecoration: "none" }}>
+                        <Link href={dashboardUrl} style={{ ...styles.payBtn, textAlign: "center", textDecoration: "none" }}>
                             Back to dashboard
                         </Link>
                     )}

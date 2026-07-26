@@ -51,8 +51,8 @@ def test_role_authentication_and_authorization():
     assert response.status_code == 200
     other_admin_id = response.json()["id"]
 
-    # Verify both admins
-    db.execute_query("UPDATE users SET is_email_verified = true WHERE email IN ('role_test_admin@mukijo.com', 'other_admin@mukijo.com')")
+    # Verify and approve both admins
+    db.execute_query("UPDATE users SET is_email_verified = true, approval_status = 'APPROVED' WHERE email IN ('role_test_admin@mukijo.com', 'other_admin@mukijo.com')")
 
     # 3. Log in as Auth Admin and get token
     login_payload = {

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Request, HTTPException, WebSocket, WebSocketDisconnect, status
 from typing import List, Optional
 from datetime import datetime, timedelta, timezone
+import uuid
 
 from app.models import schemas
 from app.connectors.connection_service import ConnectionService
@@ -39,6 +40,8 @@ def serialize_game(game, db):
         return None
     s_start = game.get("slot_start")
     s_end = game.get("slot_end")
+    created_at = game.get("created_at")
+    updated_at = game.get("updated_at")
     return {
         "id": game.get("id"),
         "host_id": game.get("host_id"),
@@ -51,7 +54,9 @@ def serialize_game(game, db):
         "price_per_player": float(game.get("price_per_player") or 0.0),
         "join_policy": game.get("join_policy"),
         "visibility": game.get("visibility"),
-        "status": game.get("status")
+        "status": game.get("status"),
+        "created_at": created_at.isoformat() if isinstance(created_at, datetime) else created_at,
+        "updated_at": updated_at.isoformat() if isinstance(updated_at, datetime) else updated_at,
     }
 
 
@@ -285,6 +290,7 @@ class GamesLogic(ConnectionService):
                     db.insert("booking_slots", {"booking_id": booking_id, "slot_id": slot.get("id")})
 
                 g_id = str(uuid.uuid4())
+                now = datetime.utcnow()
                 insert_game = {
                     "id": g_id,
                     "host_id": payload.host_id,
@@ -297,7 +303,9 @@ class GamesLogic(ConnectionService):
                     "price_per_player": payload.price_per_player,
                     "join_policy": payload.join_policy,
                     "visibility": payload.visibility,
-                    "status": "open"
+                    "status": "open",
+                    "created_at": now,
+                    "updated_at": now,
                 }
                 db.insert("games", insert_game)
 
@@ -306,7 +314,8 @@ class GamesLogic(ConnectionService):
                     "id": p_id,
                     "game_id": g_id,
                     "user_id": payload.host_id,
-                    "status": "confirmed"
+                    "status": "confirmed",
+                    "joined_at": now,
                 }
                 db.insert("game_players", insert_player)
 
@@ -367,7 +376,8 @@ class GamesLogic(ConnectionService):
                         "id": p_id,
                         "game_id": str(game_id),
                         "user_id": user_id,
-                        "status": "pending_payment"
+                        "status": "pending_payment",
+                        "joined_at": now,
                     }
                     db.insert("game_players", insert_player)
                     
@@ -403,7 +413,8 @@ class GamesLogic(ConnectionService):
                         "id": p_id,
                         "game_id": str(game_id),
                         "user_id": user_id,
-                        "status": "pending_approval"
+                        "status": "pending_approval",
+                        "joined_at": now,
                     }
                     db.insert("game_players", insert_player)
 

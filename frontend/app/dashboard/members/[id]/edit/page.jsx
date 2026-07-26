@@ -15,8 +15,7 @@ export default function EditMemberPage() {
     const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
-    const [password, setPassword] = useState("");
-    const [role, setRole] = useState("Member");
+    const [role, setRole] = useState("Player");
     const [groupName, setGroupName] = useState("");
 
     const [loading, setLoading] = useState(true);
@@ -25,7 +24,7 @@ export default function EditMemberPage() {
     const [error, setError] = useState("");
 
     // Roles matching the system's standard roles
-    const roles = ["Player", "Coach", "Parent", "Referee", "Member"];
+    const roles = ["Player", "Coach", "Parent", "Referee"];
 
     useEffect(() => {
         const fetchMember = async () => {
@@ -48,9 +47,8 @@ export default function EditMemberPage() {
                     setLastName(data.last_name || "");
                     setEmail(data.email || "");
                     setPhone(data.phone || "");
-                    setRole(data.role || "Member");
+                    setRole(data.role || "Player");
                     setGroupName(data.group_name || "No Group");
-                    setPassword(data.password || "");
                 } else {
                     setError("Failed to retrieve member details. It might have been deleted.");
                 }
@@ -86,10 +84,6 @@ export default function EditMemberPage() {
             alert("Phone number is required");
             return;
         }
-        if (!password.trim()) {
-            alert("Password is required");
-            return;
-        }
 
         const ownerId = localStorage.getItem("userId");
         if (!ownerId) {
@@ -106,7 +100,6 @@ export default function EditMemberPage() {
             email: email,
             phone: phone,
             role: role,
-            password: password,
         };
 
         try {
@@ -258,7 +251,7 @@ export default function EditMemberPage() {
                                     }}
                                 >
                                     <div className="input-group" style={{ marginBottom: 0 }}>
-                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
+                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#ffffff" }}>
                                             First Name *
                                         </label>
                                         <input
@@ -270,7 +263,7 @@ export default function EditMemberPage() {
                                         />
                                     </div>
                                     <div className="input-group" style={{ marginBottom: 0 }}>
-                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
+                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#ffffff" }}>
                                             Last Name *
                                         </label>
                                         <input
@@ -284,7 +277,7 @@ export default function EditMemberPage() {
                                 </div>
 
                                 <div className="input-group">
-                                    <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
+                                    <label style={{ fontSize: "13px", fontWeight: "600", color: "#ffffff" }}>
                                         Email Address *
                                     </label>
                                     <input
@@ -305,7 +298,7 @@ export default function EditMemberPage() {
                                     }}
                                 >
                                     <div className="input-group" style={{ marginBottom: 0 }}>
-                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
+                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#ffffff" }}>
                                             Phone Number *
                                         </label>
                                         <input
@@ -317,22 +310,7 @@ export default function EditMemberPage() {
                                         />
                                     </div>
                                     <div className="input-group" style={{ marginBottom: 0 }}>
-                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
-                                            Member Password *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            placeholder="Enter password"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                                    <div className="input-group">
-                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
+                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#ffffff" }}>
                                             Member Role
                                         </label>
                                         <select
@@ -358,25 +336,25 @@ export default function EditMemberPage() {
                                             ))}
                                         </select>
                                     </div>
+                                </div>
 
-                                    <div className="input-group">
-                                        <label style={{ fontSize: "13px", fontWeight: "600", color: "#94a3b8" }}>
-                                            Group / Club (Read-Only)
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={groupName}
-                                            disabled
-                                            style={{
-                                                backgroundColor: "#f4f4f5",
-                                                borderColor: "#e2e8f0",
-                                                color: "#64748b",
-                                                cursor: "not-allowed",
-                                                fontWeight: "500",
-                                            }}
-                                            title="Group assignment cannot be changed from this screen."
-                                        />
-                                    </div>
+                                <div className="input-group">
+                                    <label style={{ fontSize: "13px", fontWeight: "600", color: "#ffffff" }}>
+                                        Group / Club (Read-Only)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={groupName}
+                                        disabled
+                                        style={{
+                                            backgroundColor: "#f4f4f5",
+                                            borderColor: "#e2e8f0",
+                                            color: "#64748b",
+                                            cursor: "not-allowed",
+                                            fontWeight: "500",
+                                        }}
+                                        title="Group assignment cannot be changed from this screen."
+                                    />
                                 </div>
                             </div>
 

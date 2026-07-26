@@ -321,7 +321,7 @@ def test_club_dashboard_discovers_trainer_trainings():
     )
     assert admin_reg.status_code == 200, admin_reg.text
     admin_id = admin_reg.json()["id"]
-    db.execute_query("UPDATE users SET is_email_verified = true WHERE id = %s", (admin_id,))
+    db.execute_query("UPDATE users SET is_email_verified = true, approval_status = 'APPROVED' WHERE id = %s", (admin_id,))
 
     admin_login = client.post("/login", json={"email": ADMIN_EMAIL, "password": PASSWORD})
     assert admin_login.status_code == 200, admin_login.text
@@ -367,7 +367,7 @@ def test_club_courses_create_still_requires_owner_id():
     )
     assert admin_reg.status_code == 200, admin_reg.text
     admin_id = admin_reg.json()["id"]
-    db.execute_query("UPDATE users SET is_email_verified = true WHERE id = %s", (admin_id,))
+    db.execute_query("UPDATE users SET is_email_verified = true, approval_status = 'APPROVED' WHERE id = %s", (admin_id,))
 
     admin_login = client.post("/login", json={"email": ADMIN_EMAIL, "password": PASSWORD})
     assert admin_login.status_code == 200, admin_login.text

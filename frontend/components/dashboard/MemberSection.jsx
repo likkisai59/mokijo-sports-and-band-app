@@ -69,11 +69,12 @@ export default function MemberSection() {
     const [search, setSearch] = useState("");
     const [roleFilter, setRoleFilter] = useState("All");
 
-    const DEFAULT_ROLE_OPTIONS = ["Player", "Coach", "Parent", "Trainer", "Referee", "Member"];
+    const DEFAULT_ROLE_OPTIONS = ["Player", "Coach", "Parent", "Referee"];
+    const EXCLUDED_ROLES = new Set(["Trainer", "Member"]);
     const roleOptions = Array.from(
         new Set([
             ...DEFAULT_ROLE_OPTIONS,
-            ...members.map((m) => m.role).filter(Boolean),
+            ...members.map((m) => m.role).filter((r) => r && !EXCLUDED_ROLES.has(r)),
         ])
     );
 
@@ -399,7 +400,7 @@ export default function MemberSection() {
                     <p>
                         {isMember
                             ? "You have not been assigned to a group squad yet."
-                            : "Import groups with members or add members manually to see them here."}
+                            : "Add more members or add members manually to see them here."}
                     </p>
                 </div>
             )}

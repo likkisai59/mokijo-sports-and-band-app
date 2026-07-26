@@ -44,6 +44,43 @@ class MemberUpdate(BaseModel):
     role: Optional[str] = None
     password: Optional[str] = None
 
+class MemberProfileResponse(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    email: str
+    phone: str
+    role: Optional[str] = "Member"
+    group_id: Optional[int] = None
+    group_name: Optional[str] = ""
+    club_name: Optional[str] = ""
+
+    class Config:
+        from_attributes = True
+
+class MemberProfileUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    password: Optional[str] = None
+    role: Optional[str] = None
+    group_name: Optional[str] = None
+    club_name: Optional[str] = None
+
+class SuperAdminLoginRequest(BaseModel):
+    username: str
+    password: str
+
+class ClubApprovalAction(BaseModel):
+    action: str  # "approve" or "reject"
+    rejection_reason: Optional[str] = None
+
+class MemberApprovalAction(BaseModel):
+    action: str  # "approve" or "reject"
+    rejection_reason: Optional[str] = None
+
+
 
 class EventCreate(BaseModel):
     name: str
@@ -480,6 +517,32 @@ class CourseRegistrationResponse(BaseModel):
     registered_at: Optional[str] = None
     course_title: Optional[str] = None
     group_name: Optional[str] = None
+    registrant_type: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class UserTrainingRegistrationResponse(BaseModel):
+    id: int
+    course_id: int
+    status: str
+    payment_status: str
+    registered_at: Optional[str] = None
+    title: str
+    category: Optional[str] = None
+    location: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    schedule: Optional[str] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    days: Optional[List[str]] = None
+    fee: int = 0
+    cover_image: Optional[str] = None
+    trainer_name: Optional[str] = None
+    trainer_phone: Optional[str] = None
+    level: Optional[str] = None
+    description: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -696,18 +759,25 @@ class BookingCreate(BaseModel):
     status: Optional[str] = "reserved"
     payment_status: Optional[str] = "pending"
 
+class BookingVenueInfo(BaseModel):
+    id: Optional[int] = None
+    name: Optional[str] = None
+    location: Optional[str] = None
+    cover_image: Optional[str] = None
+
 class BookingResponse(BaseModel):
     id: int
     user_id: int
     court_id: Optional[int] = None
-    booking_date: datetime
+    booking_date: Optional[datetime] = None
     status: str
-    amount_paid: int
+    amount_paid: float
     payment_status: str
     payment_id: Optional[str] = None
     cancelled_at: Optional[datetime] = None
     cancellation_reason: Optional[str] = None
     slots: List[SlotResponse] = []
+    venue: Optional[BookingVenueInfo] = None
 
     class Config:
         from_attributes = True
@@ -880,6 +950,8 @@ class VenueInput(BaseModel):
     location: str
     landmark: Optional[str] = None
     sports_supported: Optional[str] = None
+    sport_prices: Optional[str] = None
+    base_price_per_hour: Optional[int] = 0
     amenities: Optional[str] = None
     cover_image: Optional[str] = None
     venue_images: Optional[str] = None

@@ -59,6 +59,7 @@ export default function Home() {
                                     Login As
                                 </div>
                                 <div className="auth-links">
+                                    <Link href="/super-admin/login" className="auth-btn auth-btn--login" style={{ borderColor: "rgba(99, 102, 241, 0.5)", color: "#818cf8" }}>Super Admin</Link>
                                     <Link href="/login" className="auth-btn auth-btn--login-primary">Club Admin</Link>
                                     <Link href="/login-member" className="auth-btn auth-btn--login">Member</Link>
                                     <Link href="/login-venue" className="auth-btn auth-btn--login">Venue Owner</Link>

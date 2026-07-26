@@ -113,6 +113,8 @@ class VenueOwnerLogic(ConnectionService):
                         "location": v.location.strip(),
                         "landmark": v.landmark,
                         "sports_supported": v.sports_supported,
+                        "sport_prices": v.sport_prices,
+                        "base_price_per_hour": v.base_price_per_hour or 0,
                         "amenities": v.amenities,
                         "cover_image": v.cover_image,
                         "venue_images": v.venue_images,

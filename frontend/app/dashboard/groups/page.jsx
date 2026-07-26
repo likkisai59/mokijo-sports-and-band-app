@@ -113,7 +113,7 @@ export default function GroupsPage() {
                             whiteSpace: "nowrap",
                         }}
                     >
-                        Import
+                        Add more members
                     </Link>
                     <Link
                         href="/dashboard/creategroup"
@@ -326,7 +326,7 @@ export default function GroupsPage() {
                         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                     </svg>
                     <h2>No groups yet</h2>
-                    <p>Create your first group or import groups &amp; members from an Excel file.</p>
+                    <p>Create your first group or add more members from an Excel file.</p>
                 </div>
             )}
         </section>

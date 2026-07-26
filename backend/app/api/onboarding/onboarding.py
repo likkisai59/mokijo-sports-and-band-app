@@ -64,6 +64,7 @@ def get_default_fields(role: str):
             {"name": "last_name", "label": "Last Name", "type": "text", "required": True, "placeholder": "Enter last name"},
             {"name": "email", "label": "Email Address", "type": "email", "required": True, "placeholder": "player@example.com"},
             {"name": "phone", "label": "Phone Number", "type": "tel", "required": True, "placeholder": "10-digit number"},
+            {"name": "emergency_contact", "label": "Emergency Contact Number", "type": "tel", "required": True, "placeholder": "Emergency phone"},
             {"name": "dob", "label": "Date of Birth (DD/MM/YYYY)", "type": "date", "required": True, "placeholder": "DD/MM/YYYY"},
             {"name": "gender", "label": "Gender", "type": "select", "required": True, "options": ["Male", "Female", "Other"], "placeholder": "Select gender"},
             {"name": "position", "label": "Play Position / Skill", "type": "text", "required": False, "placeholder": "e.g., Striker, Goalkeeper, Batsman"}
