@@ -179,3 +179,17 @@ def get_settings() -> Settings:
 
 # Module-level singleton — import and use directly in the codebase
 settings = get_settings()
+
+
+# Backward compatibility exports
+import os
+RAZORPAY_KEY_ID = settings.RAZORPAY_KEY_ID
+RAZORPAY_KEY_SECRET = settings.RAZORPAY_KEY_SECRET
+RAZORPAY_CURRENCY = "INR"
+
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
+EMAIL_USER = os.getenv("EMAIL_USER", "sameerjansayed05@gmail.com")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "fylodmkaarbeyllt")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
