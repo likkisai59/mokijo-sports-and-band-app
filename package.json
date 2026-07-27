@@ -1,0 +1,41 @@
+{
+  "name": "bandconnect",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Music Band Booking Platform — monorepo root",
+  "scripts": {
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+    "build:frontend": "cd frontend && npm run build",
+    "lint:frontend": "cd frontend && npm run lint",
+    "type-check": "cd frontend && npm run type-check",
+    "format": "cd frontend && npm run format",
+    "prepare": "husky",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "migrate": "docker-compose exec backend alembic upgrade head",
+    "seed": "docker-compose exec backend python3 scripts/seed_db.py"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.11"
+  },
+  "lint-staged": {
+    "frontend/**/*.{ts,tsx}": [
+      "cd frontend && eslint --fix",
+      "cd frontend && prettier --write"
+    ],
+    "frontend/**/*.{json,md,css}": [
+      "cd frontend && prettier --write"
+    ],
+    "backend/**/*.py": [
+      "ruff check --fix",
+      "ruff format"
+    ]
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}

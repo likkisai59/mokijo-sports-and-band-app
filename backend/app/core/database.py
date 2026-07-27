@@ -1,8 +1,21 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-from app.core.config import DATABASE_URL
+"""
+Database connection and session management.
+SQLAlchemy 2.0 style engine and sessionmaker.
+"""
 
-engine = create_engine(DATABASE_URL)
+from typing import Generator
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
+
+from app.core.config import settings
+
+# In production, we'd use connection pooling config
+engine = create_engine(
+    settings.database_url_sync,
+    pool_size=10,
+    max_overflow=20,
+    pool_pre_ping=True,
+)
 
 SessionLocal = sessionmaker(
     autocommit=False,
@@ -12,7 +25,11 @@ SessionLocal = sessionmaker(
 
 Base = declarative_base()
 
-def get_db():
+def get_db() -> Generator:
+    """
+    Database session dependency.
+    Yields a database session and closes it after the request completes.
+    """
     db = SessionLocal()
     try:
         yield db

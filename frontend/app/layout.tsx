@@ -1,35 +1,63 @@
 import type { Metadata } from "next";
-import "./globals.css";
-import FetchInterceptor from "../components/FetchInterceptor";
-import ToastProvider from "../components/ToastProvider";
+import { Inter, Syne } from "next/font/google";
+import "@/styles/globals.css";
+import { ThemeProvider } from "@/providers/theme-provider";
+import { AuthProvider } from "@/providers/auth-provider";
+import { PermissionProvider } from "@/providers/permission-provider";
+import { DeveloperPreviewProvider } from "@/providers/developer-preview-provider";
+import { QueryProvider } from "@/providers/query-provider";
+import { ToastProvider } from "@/providers/toast-provider";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const syne = Syne({
+  subsets: ["latin"],
+  variable: "--font-syne",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-    title: "Mukijo Club — Advanced Club Management Platform",
-    description:
-        "The all-in-one platform for sports clubs. Manage members, schedule events, track payments, and grow your community.",
-    keywords: "club management, sports club, members, events, payments, coaching",
+  title: {
+    default: "BandConnect — Live Music Band Booking Platform",
+    template: "%s | BandConnect"
+  },
+  description: "Connect and book professional music bands, solo artists, and top live performers directly for your corporate gigs, weddings, and private events.",
+  metadataBase: new URL("http://localhost:3000"),
+  openGraph: {
+    title: "BandConnect — Book Live Music Bands Directly",
+    description: "The Airbnb for live entertainment. Discover top-rated local bands, check real-time availability, secure escrow payouts.",
+    url: "/",
+    siteName: "BandConnect",
+    locale: "en_US",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
-    children,
+  children,
 }: Readonly<{
-    children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-    return (
-        <html lang="en" className="h-full" data-scroll-behavior="smooth" suppressHydrationWarning>
-            <head>
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link
-                    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap"
-                    rel="stylesheet"
-                />
-            </head>
-            <body className="min-h-full flex flex-col antialiased" suppressHydrationWarning>
-                <FetchInterceptor />
-                <ToastProvider />
-                {children}
-            </body>
-        </html>
-    );
+  return (
+    <html lang="en" className={`${inter.variable} ${syne.variable}`} suppressHydrationWarning>
+      <body className="antialiased min-h-screen bg-bg-primary text-text-primary selection:bg-primary/30">
+        <QueryProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <PermissionProvider>
+                <DeveloperPreviewProvider>
+                  {children}
+                  <ToastProvider />
+                </DeveloperPreviewProvider>
+              </PermissionProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </QueryProvider>
+      </body>
+    </html>
+  );
 }

@@ -1,0 +1,185 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bandconnect_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-BandConnect}
+      NEXT_PUBLIC_RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-rzp_test_placeholder}
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - bandconnect_network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bandconnect_backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://bandconnect:bandconnect_pass@postgres:5432/bandconnect}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production-min-32-chars}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      API_URL: ${API_URL:-http://localhost:8000}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-["http://localhost:3000","http://frontend:3000"]}
+      AWS_BUCKET_NAME: ${AWS_BUCKET_NAME:-}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
+      SMTP_HOST: ${SMTP_HOST:-smtp.mailtrap.io}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      FROM_EMAIL: ${FROM_EMAIL:-noreply@bandconnect.in}
+    volumes:
+      - ./backend:/app
+      - backend_uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request, sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=2).status == 200 else 1)",
+        ]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - bandconnect_network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: bandconnect_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bandconnect}
+      POSTGRES_USER: ${POSTGRES_USER:-bandconnect}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bandconnect_pass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-bandconnect} -d ${POSTGRES_DB:-bandconnect}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - bandconnect_network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: bandconnect_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - bandconnect_network
+    restart: unless-stopped
+
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bandconnect_celery
+    command: celery -A app.tasks.celery_app worker --loglevel=info --concurrency=4
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://bandconnect:bandconnect_pass@postgres:5432/bandconnect}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production-min-32-chars}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    volumes:
+      - ./backend:/app
+      - backend_uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - bandconnect_network
+    restart: unless-stopped
+
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bandconnect_celery_beat
+    command: celery -A app.tasks.celery_app beat --loglevel=info
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://bandconnect:bandconnect_pass@postgres:5432/bandconnect}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - bandconnect_network
+    restart: unless-stopped
+
+  flower:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bandconnect_flower
+    command: celery -A app.tasks.celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://bandconnect:bandconnect_pass@postgres:5432/bandconnect}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - bandconnect_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  backend_uploads:
+    driver: local
+
+networks:
+  bandconnect_network:
+    driver: bridge

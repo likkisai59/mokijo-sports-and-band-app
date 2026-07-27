@@ -1,1 +1,41 @@
-mukijo_app/
+﻿# Node / Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/tsconfig.tsbuildinfo
+frontend/.env.local
+frontend/.env.development
+frontend/.env.staging
+frontend/.env.production
+
+# Python / Backend
+.venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Build / test artifacts
+*.log
+coverage/
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.gemini/
+
+# Uploaded attachments and archives
+archive/unused/
+uploads/attachments/
+
+# Local env files
+.env
+.env.local
+.env.*.local
