@@ -25,6 +25,8 @@ _DEV_SECRET_FALLBACK = "bandconnect-local-development-secret-not-for-production"
 class Settings(BaseSettings):
     # ── Application ───────────────────────────────────────────────────────────
     APP_NAME: str = "BandConnect"
+    SERVICE_NAME: str = "mukijo-backend"
+    SERVICE_VERSION: str = "1.0.0"
     APP_URL: str = "http://localhost:3000"
     API_URL: str = "http://localhost:8000"
     ENVIRONMENT: str = "development"  # development | staging | production
