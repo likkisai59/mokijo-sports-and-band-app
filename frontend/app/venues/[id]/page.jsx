@@ -1,5 +1,6 @@
 "use client";
 import { API_BASE_URL } from "@/lib/api";
+import { openVenueBookingRazorpay, getPostVenueBookingPath } from "@/lib/venueRazorpay";
 
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
@@ -87,28 +88,29 @@ export default function VenueDetailPage({ params: paramsPromise }) {
 
     useEffect(() => {
         if (!id || !selectedDate) return;
-        const fetchSlots = async () => {
-            setLoadingSlots(true);
-            try {
-                const res = await fetch(`${API_BASE_URL}/venues/${id}/slots?date_str=${selectedDate}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    // Filter slots by court if court is selected
-                    let filtered = data;
-                    if (selectedCourt) {
-                        filtered = data.filter((s) => s.court_id === selectedCourt.id || !s.court_id);
-                    }
-                    setSlots(filtered || []);
-                    setSelectedSlots([]); // reset selection when date/court changes
-                }
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoadingSlots(false);
-            }
-        };
-        fetchSlots();
+        loadSlots();
     }, [id, selectedDate, selectedCourt]);
+
+    const loadSlots = async () => {
+        if (!id || !selectedDate) return;
+        setLoadingSlots(true);
+        try {
+            const res = await fetch(`${API_BASE_URL}/venues/${id}/slots?date_str=${selectedDate}`);
+            if (res.ok) {
+                const data = await res.json();
+                let filtered = data;
+                if (selectedCourt) {
+                    filtered = data.filter((s) => s.court_id === selectedCourt.id || !s.court_id);
+                }
+                setSlots(filtered || []);
+                setSelectedSlots([]);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoadingSlots(false);
+        }
+    };
 
     const handleSlotClick = (slot) => {
         if (slot.status === "BOOKED" || slot.is_blocked) return;
@@ -124,8 +126,9 @@ export default function VenueDetailPage({ params: paramsPromise }) {
     const handleBook = async () => {
         if (selectedSlots.length === 0) return;
         const userId = localStorage.getItem("userId");
-        if (!userId) {
-            alert("Please log in to book a slot.");
+        const token = localStorage.getItem("accessToken");
+        if (!userId || !token) {
+            setError("Please log in to book a slot and pay with Razorpay.");
             router.push("/login-user");
             return;
         }
@@ -144,16 +147,41 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                 }),
             });
 
-            if (res.ok) {
-                const booking = await res.json();
-                router.push(`/checkout?booking_id=${booking.id}`);
-            } else {
+            if (!res.ok) {
                 const errorData = await res.json().catch(() => ({}));
-                setError(errorData.detail || "One or more slots are no longer available. Please select other slots.");
+                const detail = errorData.detail;
+                const message = Array.isArray(detail)
+                    ? detail.map((d) => d.msg || d).join(", ")
+                    : detail || "One or more slots are no longer available. Please select other slots.";
+                setError(message);
+                return;
             }
+
+            const booking = await res.json();
+            if (!booking?.id) {
+                setError("Booking hold created but no booking id returned. Please try again.");
+                return;
+            }
+
+            await openVenueBookingRazorpay({
+                bookingId: booking.id,
+                userId,
+                onSuccess: () => {
+                    setSelectedSlots([]);
+                    router.push(getPostVenueBookingPath());
+                },
+                onError: (message) => setError(message),
+                onDismiss: () => {
+                    setError("Payment cancelled. Your slots may still be held for a few minutes.");
+                    loadSlots();
+                },
+            });
         } catch (err) {
             console.error(err);
-            setError("Connection error. Please try again.");
+            if (err?.message && err.message !== "Payment cancelled.") {
+                setError(err.message || "Connection error. Please try again.");
+            }
+            loadSlots();
         } finally {
             setSubmitting(false);
         }
@@ -514,9 +542,9 @@ export default function VenueDetailPage({ params: paramsPromise }) {
                                     cursor: selectedSlots.length === 0 || submitting ? "not-allowed" : "pointer",
                                 }}
                             >
-                                {submitting ? "Booking..." : "Book Now"}
+                                {submitting ? "Opening Razorpay..." : "Book Now"}
                             </button>
-                            <p style={styles.summaryTip}>* Slots are held for 5 minutes while you pay with Razorpay.</p>
+                            <p style={styles.summaryTip}>* Razorpay opens immediately to complete payment.</p>
                         </div>
                     </div>
                 </div>

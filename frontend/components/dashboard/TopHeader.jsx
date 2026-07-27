@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Menu, X, LogOut } from "lucide-react";
+import { Menu, X, LogOut, User } from "lucide-react";
+import Link from "next/link";
 import NotificationBell from "./NotificationBell";
 
 export default function TopHeader({ isMobileMenuOpen = false, onMenuToggle }) {
@@ -12,7 +13,8 @@ export default function TopHeader({ isMobileMenuOpen = false, onMenuToggle }) {
         const storedName = localStorage.getItem("userName") || "Admin";
         setUserName(storedName);
         const role = (localStorage.getItem("userRole") || "").toLowerCase();
-        setIsMember(localStorage.getItem("isMember") === "true" || role === "team_member");
+        const memberSession = localStorage.getItem("isMember") === "true" || role === "team_member" || Boolean(localStorage.getItem("memberId"));
+        setIsMember(memberSession);
     }, []);
 
     useEffect(() => {
@@ -74,11 +76,38 @@ export default function TopHeader({ isMobileMenuOpen = false, onMenuToggle }) {
                             border: "1px solid rgba(255, 255, 255, 0.08)",
                             borderRadius: "8px",
                             padding: "6px",
-                            minWidth: "140px",
+                            minWidth: "150px",
                             boxShadow: "0 10px 25px rgba(0, 0, 0, 0.5)",
                             zIndex: 1000,
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "4px",
                         }}
                     >
+                        {isMember && (
+                            <Link
+                                href="/dashboard/profile"
+                                onClick={() => setDropdownOpen(false)}
+                                style={{
+                                    width: "100%",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "8px",
+                                    padding: "8px 12px",
+                                    border: "none",
+                                    background: "transparent",
+                                    color: "#ffffff",
+                                    cursor: "pointer",
+                                    fontSize: "14px",
+                                    borderRadius: "4px",
+                                    transition: "background 0.2s",
+                                    textDecoration: "none",
+                                }}
+                            >
+                                <User size={16} />
+                                <span>Edit Profile</span>
+                            </Link>
+                        )}
                         <button
                             className="top-logout-btn"
                             onClick={handleLogout}

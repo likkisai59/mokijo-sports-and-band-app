@@ -238,22 +238,35 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                     I hereby confirm that I have read and accept the Terms & Conditions, and that I have the right to
                     enter this agreement on behalf of my club or organisation.
                 </p>
-                <select
-                    className={styles.select}
-                    value={formData.termsAgreed}
-                    onChange={(e) => {
-                        onChange("termsAgreed", e.target.value);
-                        setFieldErrors((prev) => ({ ...prev, termsAgreed: "" }));
-                    }}
-                    disabled={loading}
-                >
-                    <option value="">-- Select --</option>
+                <div style={{ display: "flex", gap: "20px", alignItems: "center", paddingTop: "4px" }}>
                     {termsOptions.map((option) => (
-                        <option key={option} value={option}>
+                        <label
+                            key={option}
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "8px",
+                                color: "#ffffff",
+                                fontSize: "14px",
+                                fontWeight: 600,
+                                cursor: loading ? "not-allowed" : "pointer",
+                            }}
+                        >
+                            <input
+                                type="radio"
+                                name="termsAgreed"
+                                value={option}
+                                checked={formData.termsAgreed === option}
+                                onChange={() => {
+                                    onChange("termsAgreed", option);
+                                    setFieldErrors((prev) => ({ ...prev, termsAgreed: "" }));
+                                }}
+                                disabled={loading}
+                            />
                             {option}
-                        </option>
+                        </label>
                     ))}
-                </select>
+                </div>
                 {fieldErrors.termsAgreed ? <p style={fieldErrorStyle}>{fieldErrors.termsAgreed}</p> : null}
             </div>
 

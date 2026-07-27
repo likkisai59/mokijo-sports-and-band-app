@@ -5,21 +5,25 @@ import { useState } from "react";
 import Link from "next/link";
 import styles from "../styles/signup.module.css";
 import PhoneInput from "@/components/ui/PhoneInput";
+import PasswordField from "@/components/ui/PasswordField";
 import {
     digitsOnly,
     isValidPhone,
     isValidAadhaar,
     isValidPersonName,
     isValidEmail,
-    formatDobInput,
     isValidDob,
+    isStrongPassword,
     applyNameInput,
     applyEmailInput,
     composePhone,
+    isoToDob,
+    dobToIso,
     AADHAAR_MESSAGE,
     DOB_MESSAGE,
     PERSON_NAME_MESSAGE,
     EMAIL_MESSAGE,
+    STRONG_PASSWORD_MESSAGE,
     phoneLengthMessage,
 } from "@/lib/validation";
 
@@ -69,8 +73,11 @@ export default function RegisterUserPage() {
             const result = applyEmailInput(value);
             nextValue = result.value;
             fieldError = result.error;
-        } else if (name === "dob") {
-            nextValue = formatDobInput(value);
+        } else if (name === "password") {
+            nextValue = value;
+            if (value && !isStrongPassword(value)) {
+                fieldError = STRONG_PASSWORD_MESSAGE;
+            }
         } else if (name === "aadharNumber") {
             nextValue = digitsOnly(value).slice(0, 12);
             if (nextValue && nextValue.length !== 12) {
@@ -111,7 +118,11 @@ export default function RegisterUserPage() {
         } else if (!isValidEmail(formData.email)) {
             nextErrors.email = EMAIL_MESSAGE;
         }
-        if (!formData.password) nextErrors.password = "Password is required.";
+        if (!formData.password) {
+            nextErrors.password = "Password is required.";
+        } else if (!isStrongPassword(formData.password)) {
+            nextErrors.password = STRONG_PASSWORD_MESSAGE;
+        }
         if (!phoneDigits) {
             nextErrors.phone = "Phone number is required.";
         } else if (!isValidPhone(phoneDigits, phoneCode)) {
@@ -269,58 +280,64 @@ export default function RegisterUserPage() {
                         <div className={styles.fieldGroup}>
                             <label className={styles.label}>Date of Birth (DD/MM/YYYY)</label>
                             <input
-                                type="text"
+                                type="date"
                                 name="dob"
-                                value={formData.dob}
-                                onChange={handleChange}
-                                placeholder="DD/MM/YYYY"
-                                maxLength={10}
                                 className={styles.input}
+                                value={dobToIso(formData.dob)}
+                                onChange={(e) => {
+                                    setError(null);
+                                    const next = isoToDob(e.target.value);
+                                    setFormData((prev) => ({ ...prev, dob: next }));
+                                    setFieldErrors((prev) => ({
+                                        ...prev,
+                                        dob: next && !isValidDob(next) ? DOB_MESSAGE : "",
+                                    }));
+                                }}
+                                min="1900-01-01"
+                                max={new Date().toISOString().slice(0, 10)}
                                 required
+                                style={{ colorScheme: "dark" }}
                             />
                             {fieldErrors.dob ? <p style={fieldErrorStyle}>{fieldErrors.dob}</p> : null}
                         </div>
 
-                        <div className={styles.twoColumns}>
-                            <div className={styles.fieldGroup}>
-                                <label className={styles.label}>Email address</label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    placeholder="john@example.com"
-                                    className={styles.input}
-                                    required
-                                />
-                                {fieldErrors.email ? <p style={fieldErrorStyle}>{fieldErrors.email}</p> : null}
-                            </div>
-                            <div className={styles.fieldGroup}>
-                                <label className={styles.label}>Phone Number</label>
-                                <PhoneInput
-                                    id="user-register-phone"
-                                    className={styles.input}
-                                    selectClassName={styles.select}
-                                    countryCode={phoneCode}
-                                    digits={phoneDigits}
-                                    onCountryCodeChange={(code) => syncPhone(code, phoneDigits)}
-                                    onDigitsChange={(digits) => syncPhone(phoneCode, digits)}
-                                />
-                                {fieldErrors.phone ? <p style={fieldErrorStyle}>{fieldErrors.phone}</p> : null}
-                            </div>
+                        <div className={styles.fieldGroup}>
+                            <label className={styles.label}>Email address</label>
+                            <input
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder="john@example.com"
+                                className={styles.input}
+                                required
+                            />
+                            {fieldErrors.email ? <p style={fieldErrorStyle}>{fieldErrors.email}</p> : null}
+                        </div>
+
+                        <div className={styles.fieldGroup}>
+                            <label className={styles.label}>Phone Number</label>
+                            <PhoneInput
+                                id="user-register-phone"
+                                className={styles.input}
+                                selectClassName={styles.select}
+                                countryCode={phoneCode}
+                                digits={phoneDigits}
+                                onCountryCodeChange={(code) => syncPhone(code, phoneDigits)}
+                                onDigitsChange={(digits) => syncPhone(phoneCode, digits)}
+                            />
+                            {fieldErrors.phone ? <p style={fieldErrorStyle}>{fieldErrors.phone}</p> : null}
                         </div>
 
                         <div className={styles.twoColumns}>
                             <div className={styles.fieldGroup}>
                                 <label className={styles.label}>Password</label>
-                                <input
-                                    type="password"
+                                <PasswordField
                                     name="password"
                                     value={formData.password}
                                     onChange={handleChange}
                                     placeholder="••••••••"
                                     className={styles.input}
-                                    required
                                 />
                                 {fieldErrors.password ? <p style={fieldErrorStyle}>{fieldErrors.password}</p> : null}
                             </div>

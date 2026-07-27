@@ -64,6 +64,22 @@ def serialize_booking(booking, db):
         "SELECT s.* FROM slots s JOIN booking_slots bs ON s.id = bs.slot_id WHERE bs.booking_id = %s",
         (booking.get("id"),)
     )
+    venue_info = None
+    venue_id = None
+    if slots:
+        venue_id = slots[0].get("venue_id")
+    if venue_id:
+        venue = db.fetch_one(
+            "SELECT id, name, location, cover_image FROM venues WHERE id = %s LIMIT 1",
+            (venue_id,),
+        )
+        if venue:
+            venue_info = {
+                "id": venue.get("id"),
+                "name": venue.get("name"),
+                "location": venue.get("location"),
+                "cover_image": venue.get("cover_image"),
+            }
     return {
         "id": booking.get("id"),
         "user_id": booking.get("user_id"),
@@ -75,7 +91,8 @@ def serialize_booking(booking, db):
         "payment_id": booking.get("payment_id"),
         "cancelled_at": booking.get("cancelled_at").isoformat() if booking.get("cancelled_at") else None,
         "cancellation_reason": booking.get("cancellation_reason"),
-        "slots": [serialize_slot(s) for s in slots]
+        "slots": [serialize_slot(s) for s in slots],
+        "venue": venue_info,
     }
 
 
@@ -151,6 +168,22 @@ class VenuesRouting(ConnectionService):
             endpoint=self.unblock_venue_slots,
             methods=["POST"],
             summary="Unblock slots within a date range.",
+            tags=["Venues"]
+        )
+        self.router.add_api_route(
+            path="/venues/{venue_id}/slots/{slot_id}/block",
+            endpoint=self.block_single_slot,
+            methods=["POST"],
+            response_model=schemas.SlotResponse,
+            summary="Block a particular slot so bookers see it as unavailable.",
+            tags=["Venues"]
+        )
+        self.router.add_api_route(
+            path="/venues/{venue_id}/slots/{slot_id}/unblock",
+            endpoint=self.unblock_single_slot,
+            methods=["POST"],
+            response_model=schemas.SlotResponse,
+            summary="Unblock a particular slot so bookers can reserve it again.",
             tags=["Venues"]
         )
         self.router.add_api_route(
@@ -324,6 +357,16 @@ class VenuesRouting(ConnectionService):
         await logger.log_message(request=request, message="Unblock slots router start", step="ROUTER_START", user_info=current_user)
         logic = VenuesLogic()
         return await logic.unblock_venue_slots(request, venue_id, req, current_user)
+
+    async def block_single_slot(self, request: Request, venue_id: int, slot_id: int, current_user: dict = Depends(check_user_authorization)):
+        await logger.log_message(request=request, message="Block single slot router start", step="ROUTER_START", user_info=current_user)
+        logic = VenuesLogic()
+        return await logic.block_single_slot(request, venue_id, slot_id, current_user)
+
+    async def unblock_single_slot(self, request: Request, venue_id: int, slot_id: int, current_user: dict = Depends(check_user_authorization)):
+        await logger.log_message(request=request, message="Unblock single slot router start", step="ROUTER_START", user_info=current_user)
+        logic = VenuesLogic()
+        return await logic.unblock_single_slot(request, venue_id, slot_id, current_user)
 
     async def get_venue_payouts(self, request: Request, venue_id: int, current_user: dict = Depends(check_user_authorization)):
         await logger.log_message(request=request, message="Get venue payouts router start", step="ROUTER_START", user_info=current_user)
@@ -794,6 +837,77 @@ class VenuesLogic(ConnectionService):
             await logger.log_error(request=request, message=f"Failed unblocking slots: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
 
+    def _get_toggleable_slot(self, db, venue_id: int, slot_id: int):
+        venue = db.fetch_one("SELECT id FROM venues WHERE id = %s LIMIT 1", (venue_id,))
+        if not venue:
+            raise HTTPException(status_code=404, detail="Venue not found")
+
+        slot = db.fetch_one(
+            "SELECT * FROM slots WHERE id = %s AND venue_id = %s LIMIT 1",
+            (slot_id, venue_id),
+        )
+        if not slot:
+            raise HTTPException(status_code=404, detail="Slot not found for this venue")
+
+        status_val = (slot.get("status") or "AVAILABLE").upper()
+        if status_val == "BOOKED":
+            raise HTTPException(status_code=400, detail="Cannot change availability of a booked slot.")
+
+        if status_val == "HELD":
+            held_until = slot.get("held_until")
+            now = datetime.utcnow()
+            if held_until and held_until > now:
+                raise HTTPException(status_code=400, detail="Cannot change availability of a slot currently on hold.")
+            db.execute_query(
+                "UPDATE slots SET status = 'AVAILABLE', held_until = NULL, held_by_user_id = NULL WHERE id = %s",
+                (slot_id,),
+            )
+            slot["status"] = "AVAILABLE"
+            slot["held_until"] = None
+            slot["held_by_user_id"] = None
+
+        return slot
+
+    async def block_single_slot(self, request: Request, venue_id: int, slot_id: int, current_user: dict):
+        try:
+            with logger.time_operation("BLOCK_SINGLE_SLOT", request=request):
+                db = self.db_driver
+                self._get_toggleable_slot(db, venue_id, slot_id)
+                db.execute_query(
+                    "UPDATE slots SET is_blocked = TRUE, status = 'BLOCKED' WHERE id = %s AND venue_id = %s",
+                    (slot_id, venue_id),
+                )
+                updated = db.fetch_one(
+                    "SELECT * FROM slots WHERE id = %s AND venue_id = %s LIMIT 1",
+                    (slot_id, venue_id),
+                )
+                return serialize_slot(updated)
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            await logger.log_error(request=request, message=f"Failed blocking single slot: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+
+    async def unblock_single_slot(self, request: Request, venue_id: int, slot_id: int, current_user: dict):
+        try:
+            with logger.time_operation("UNBLOCK_SINGLE_SLOT", request=request):
+                db = self.db_driver
+                self._get_toggleable_slot(db, venue_id, slot_id)
+                db.execute_query(
+                    "UPDATE slots SET is_blocked = FALSE, status = 'AVAILABLE' WHERE id = %s AND venue_id = %s",
+                    (slot_id, venue_id),
+                )
+                updated = db.fetch_one(
+                    "SELECT * FROM slots WHERE id = %s AND venue_id = %s LIMIT 1",
+                    (slot_id, venue_id),
+                )
+                return serialize_slot(updated)
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            await logger.log_error(request=request, message=f"Failed unblocking single slot: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+
     async def get_venue_payouts(self, request: Request, venue_id: int, current_user: dict):
         try:
             with logger.time_operation("GET_VENUE_PAYOUTS", request=request):
@@ -1047,6 +1161,12 @@ class VenuesLogic(ConnectionService):
 
 
                 for s in slots:
+                    if s.get("is_blocked") or (s.get("status") or "").upper() == "BLOCKED":
+                        raise HTTPException(
+                            status_code=400,
+                            detail=f"Slot starting at {s.get('start_time').strftime('%I:%M %p')} is unavailable.",
+                        )
+
                     status_val = s.get("status") or "AVAILABLE"
                     if status_val != "AVAILABLE":
                         if status_val == "HELD" and s.get("held_until") and s.get("held_until") < now:

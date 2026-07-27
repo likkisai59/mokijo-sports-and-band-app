@@ -102,7 +102,7 @@ export default function ImportGroupsPage() {
     return (
         <div className="import-container">
             <div className="import-card">
-                <h2>Import Groups</h2>
+                <h2>Add more members</h2>
                 <p>Upload an Excel file to bulk create groups.</p>
 
                 <div className="template-section">

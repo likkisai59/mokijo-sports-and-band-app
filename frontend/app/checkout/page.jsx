@@ -43,6 +43,22 @@ function CheckoutContent() {
     const [expired, setExpired] = useState(false);
     const [paying, setPaying] = useState(false);
     const [paid, setPaid] = useState(false);
+    const [dashboardUrl, setDashboardUrl] = useState("/user-dashboard");
+    const [myTrainingUrl, setMyTrainingUrl] = useState("/bookings");
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const isMember = localStorage.getItem("isMember") === "true";
+            const role = (localStorage.getItem("userRole") || "").toLowerCase();
+            if (isMember || role === "team_member" || role === "club_admin") {
+                setDashboardUrl("/dashboard/my-trainings");
+                setMyTrainingUrl("/dashboard/my-trainings");
+            } else {
+                setDashboardUrl("/user-dashboard");
+                setMyTrainingUrl("/user-dashboard");
+            }
+        }
+    }, []);
 
     useEffect(() => {
         if (!bookingId && !gameId) return;
@@ -146,10 +162,17 @@ function CheckoutContent() {
 
                 if (!orderRes.ok) {
                     const errorData = await orderRes.json().catch(() => ({}));
-                    throw new Error(errorData.detail || "Failed to create Razorpay order.");
+                    const detail = errorData.detail;
+                    const message = Array.isArray(detail)
+                        ? detail.map((d) => d.msg || d).join(", ")
+                        : detail || "Failed to create Razorpay order.";
+                    throw new Error(message);
                 }
 
                 const order = await orderRes.json();
+                if (!order?.razorpay_order_id || !order?.key_id) {
+                    throw new Error("Razorpay is not configured correctly. Please try again later.");
+                }
 
                 const checkout = new window.Razorpay({
                     key: order.key_id,
@@ -300,10 +323,10 @@ function CheckoutContent() {
                         </div>
 
                         <div style={{ display: "flex", gap: "16px", marginTop: "24px" }}>
-                            <Link href="/bookings" style={styles.primaryBtn}>
-                                View My Bookings
+                            <Link href={myTrainingUrl} style={styles.primaryBtn}>
+                                View My Training
                             </Link>
-                            <Link href="/user-dashboard" style={styles.secondaryBtn}>
+                            <Link href={dashboardUrl} style={styles.secondaryBtn}>
                                 Go to Dashboard
                             </Link>
                         </div>

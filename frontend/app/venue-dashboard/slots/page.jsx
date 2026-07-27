@@ -20,6 +20,14 @@ const emptyNewSlot = (sport) => ({
     base_price: 1000,
 });
 
+function slotDisplayStatus(slot) {
+    const status = (slot.status || "").toUpperCase();
+    if (status === "BOOKED") return "booked";
+    if (status === "HELD") return "held";
+    if (slot.is_blocked || status === "BLOCKED") return "blocked";
+    return "available";
+}
+
 export default function SlotsPage() {
     const [venues, setVenues] = useState([]);
     const [selVenue, setSelVenue] = useState(null);
@@ -31,6 +39,7 @@ export default function SlotsPage() {
     const [newSlot, setNewSlot] = useState(emptyNewSlot());
     const [creating, setCreating] = useState(false);
     const [createError, setCreateError] = useState("");
+    const [togglingId, setTogglingId] = useState(null);
 
     useEffect(() => {
         const ownerId = localStorage.getItem("venueOwnerId");
@@ -60,6 +69,7 @@ export default function SlotsPage() {
         loadSlots();
         setShowForm(false);
         setCreateError("");
+        setActionMsg("");
     }, [selVenue, date]);
 
     useEffect(() => {
@@ -75,6 +85,54 @@ export default function SlotsPage() {
         const d = await r.json().catch(() => ({}));
         setActionMsg(d.message || (r.ok ? "Done!" : "Failed."));
         loadSlots();
+    };
+
+    const toggleSlotBlock = async (slot) => {
+        if (!selVenue || togglingId) return;
+        const display = slotDisplayStatus(slot);
+        if (display === "booked" || display === "held") {
+            setActionMsg(
+                display === "booked"
+                    ? "This slot is booked and cannot be blocked or unblocked."
+                    : "This slot is on hold and cannot be blocked or unblocked."
+            );
+            return;
+        }
+
+        const action = display === "blocked" ? "unblock" : "block";
+        setActionMsg("");
+        setTogglingId(slot.id);
+        try {
+            const r = await fetch(`${API}/venues/${selVenue}/slots/${slot.id}/${action}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+            });
+            const d = await r.json().catch(() => ({}));
+            if (r.ok) {
+                setSlots((prev) =>
+                    prev.map((s) =>
+                        s.id === slot.id
+                            ? {
+                                  ...s,
+                                  is_blocked: action === "block",
+                                  status: action === "block" ? "BLOCKED" : "AVAILABLE",
+                              }
+                            : s
+                    )
+                );
+                setActionMsg(
+                    action === "block"
+                        ? "Slot blocked — bookers will see it as unavailable."
+                        : "Slot unblocked — bookers can book it again."
+                );
+            } else {
+                setActionMsg(d.detail || `Failed to ${action} slot.`);
+            }
+        } catch {
+            setActionMsg("Cannot connect to server.");
+        } finally {
+            setTogglingId(null);
+        }
     };
 
     const createSlot = async () => {
@@ -133,10 +191,17 @@ export default function SlotsPage() {
         return d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
     };
 
+    const badgeClass = {
+        available: "green",
+        blocked: "red",
+        booked: "blue",
+        held: "yellow",
+    };
+
     return (
         <>
             <h1 className="vd-page-title">Slots &amp; Availability</h1>
-            <p className="vd-page-sub">View and manage time slots for each venue</p>
+            <p className="vd-page-sub">View and manage time slots for each venue. Block or unblock individual slots anytime.</p>
 
             <div className="vd-controls">
                 <select
@@ -159,7 +224,7 @@ export default function SlotsPage() {
                         setShowForm((s) => !s);
                     }}
                 >
-                    {showForm ? "Cancel" : "+ Add Slot"}
+                    {showForm ? "Cancel" : "Edit Slot"}
                 </button>
                 <button
                     className="vd-btn-primary"
@@ -198,14 +263,14 @@ export default function SlotsPage() {
                             marginBottom: 14,
                         }}
                     >
-                        <div style={{ fontSize: 14, fontWeight: 700 }}>Create a new slot for {date}</div>
+                        <div style={{ fontSize: 14, fontWeight: 700 }}>Edit slot for {date}</div>
                         <button
                             className="vd-btn-primary"
                             onClick={createSlot}
                             disabled={creating}
                             style={{ flexShrink: 0 }}
                         >
-                            {creating ? "Creating…" : "Create Slot"}
+                            {creating ? "Saving…" : "Edit Slot"}
                         </button>
                     </div>
                     <div className="vd-form-grid" style={{ gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14, marginBottom: 14 }}>
@@ -266,14 +331,16 @@ export default function SlotsPage() {
                         <div className="vd-empty-icon">⏳</div>
                         <div className="vd-empty-text">No slots for this date</div>
                         <div className="vd-empty-sub">
-                            Use &ldquo;+ Add Slot&rdquo; above to create availability for this venue and date.
+                            Use &ldquo;Edit Slot&rdquo; above to create availability for this venue and date.
                         </div>
                     </div>
                 </div>
             ) : (
                 <div className="vd-slot-grid">
                     {slots.map((slot) => {
-                        const status = slot.is_blocked ? "blocked" : "available";
+                        const status = slotDisplayStatus(slot);
+                        const canToggle = status === "available" || status === "blocked";
+                        const busy = togglingId === slot.id;
                         return (
                             <div key={slot.id} className={`vd-slot-tile ${status}`}>
                                 <div className="vd-slot-time">
@@ -284,11 +351,25 @@ export default function SlotsPage() {
                                 </div>
                                 <div className="vd-slot-price">₹{slot.base_price}</div>
                                 <span
-                                    className={`vd-badge ${status === "blocked" ? "red" : "green"}`}
+                                    className={`vd-badge ${badgeClass[status] || "gray"}`}
                                     style={{ fontSize: 10, padding: "2px 8px" }}
                                 >
                                     {status}
                                 </span>
+                                {canToggle ? (
+                                    <button
+                                        type="button"
+                                        className={`vd-slot-action ${status === "blocked" ? "unblock" : "block"}`}
+                                        disabled={busy || !!togglingId}
+                                        onClick={() => toggleSlotBlock(slot)}
+                                    >
+                                        {busy ? "Updating…" : status === "blocked" ? "Unblock" : "Block"}
+                                    </button>
+                                ) : (
+                                    <div className="vd-slot-action locked">
+                                        {status === "booked" ? "Booked" : "On hold"}
+                                    </div>
+                                )}
                             </div>
                         );
                     })}

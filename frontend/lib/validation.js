@@ -95,6 +95,21 @@ export function applyClubNameInput(rawValue) {
     };
 }
 
+/** Strip digits/specials for city/location; keep letters, spaces, hyphen, apostrophe, period. */
+export function sanitizeCityOrState(value) {
+    return String(value || "").replace(/[^A-Za-z\s.'-]/g, "");
+}
+
+export function applyCityOrStateInput(rawValue) {
+    const raw = String(rawValue || "");
+    const sanitized = sanitizeCityOrState(raw);
+    const hadInvalid = raw !== sanitized;
+    return {
+        sanitized,
+        error: hadInvalid ? CITY_STATE_MESSAGE : "",
+    };
+}
+
 export function isValidEmail(value) {
     const v = String(value || "").trim();
     return EMAIL_RE.test(v);
@@ -183,7 +198,7 @@ export function parsePhone(value) {
     return { countryCode: "+91", digits: digitsOnly(raw) };
 }
 
-export const DOB_MESSAGE = "Please enter a valid Date of Birth in DD/MM/YYYY format.";
+export const DOB_MESSAGE = "Please enter a valid Date of Birth (DD/MM/YYYY).";
 
 /** Format digits input into DD/MM/YYYY date pattern. */
 export function formatDobInput(value) {
@@ -193,10 +208,45 @@ export function formatDobInput(value) {
     return `${rawDigits.slice(0, 2)}/${rawDigits.slice(2, 4)}/${rawDigits.slice(4, 8)}`;
 }
 
-/** Validate DD/MM/YYYY date format. */
+/** Convert YYYY-MM-DD (calendar) → DD/MM/YYYY for form storage. */
+export function isoToDob(isoValue) {
+    const v = String(isoValue || "").trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return "";
+    const [year, month, day] = v.split("-");
+    return `${day}/${month}/${year}`;
+}
+
+/** Convert DD/MM/YYYY → YYYY-MM-DD for calendar input value. */
+export function dobToIso(dobValue) {
+    const v = String(dobValue || "").trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+    const parts = v.split("/");
+    if (parts.length !== 3) return "";
+    const [day, month, year] = parts;
+    if (day?.length !== 2 || month?.length !== 2 || year?.length !== 4) return "";
+    return `${year}-${month}-${day}`;
+}
+
+/** Validate DOB as YYYY-MM-DD (calendar) or DD/MM/YYYY (legacy text). */
 export function isValidDob(value) {
     const v = String(value || "").trim();
     if (!v) return false;
+
+    // Native calendar input value
+    if (/^\d{4}-\d{2}-\d{2}$/.test(v)) {
+        const [year, month, day] = v.split("-").map((n) => parseInt(n, 10));
+        if (month < 1 || month > 12 || day < 1 || day > 31) return false;
+        const currentYear = new Date().getFullYear();
+        if (year < 1900 || year > currentYear) return false;
+        const daysInMonth = new Date(year, month, 0).getDate();
+        if (day > daysInMonth) return false;
+        const picked = new Date(year, month - 1, day);
+        const today = new Date();
+        today.setHours(23, 59, 59, 999);
+        return picked <= today;
+    }
+
+    // Legacy DD/MM/YYYY text entry
     const parts = v.split("/");
     if (parts.length !== 3) return false;
     const day = parseInt(parts[0], 10);

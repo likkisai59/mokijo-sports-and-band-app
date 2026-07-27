@@ -4,21 +4,31 @@ import { useState } from "react";
 import Link from "next/link";
 import "../styles/venue-register.css";
 import PhoneInput from "@/components/ui/PhoneInput";
+import PasswordField from "@/components/ui/PasswordField";
 import {
     digitsOnly,
     isValidPhone,
     isValidAadhaar,
     isValidPersonName,
     isValidEmail,
-    formatDobInput,
     isValidDob,
+    isValidClubName,
+    isValidCityOrState,
+    isStrongPassword,
     applyNameInput,
     applyEmailInput,
+    applyClubNameInput,
+    applyCityOrStateInput,
     composePhone,
+    isoToDob,
+    dobToIso,
     AADHAAR_MESSAGE,
     DOB_MESSAGE,
     PERSON_NAME_MESSAGE,
     EMAIL_MESSAGE,
+    CLUB_NAME_MESSAGE,
+    CITY_STATE_MESSAGE,
+    STRONG_PASSWORD_MESSAGE,
     phoneLengthMessage,
 } from "@/lib/validation";
 
@@ -61,6 +71,7 @@ const emptyVenue = () => ({
     location: "",
     landmark: "",
     sports: [], // array of sport strings
+    sportPrices: {}, // map of sport name → price per hour
     coverImage: null, // base64 or null
     photos: [], // array of base64
     openingTime: "06:00",
@@ -120,7 +131,10 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
                         required
                         placeholder="e.g. Green Field Arena"
                         value={venue.name}
-                        onChange={(e) => update("name", e.target.value)}
+                        onChange={(e) => {
+                            const { sanitized } = applyClubNameInput(e.target.value);
+                            update("name", sanitized);
+                        }}
                     />
                 </div>
                 <div className="vr-field">
@@ -128,9 +142,12 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
                     <input
                         className="vr-input"
                         required
-                        placeholder="e.g. Bengaluru, Karnataka"
+                        placeholder="e.g. Bengaluru"
                         value={venue.location}
-                        onChange={(e) => update("location", e.target.value)}
+                        onChange={(e) => {
+                            const { sanitized } = applyCityOrStateInput(e.target.value);
+                            update("location", sanitized);
+                        }}
                     />
                 </div>
             </div>
@@ -155,7 +172,16 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
                         key={s}
                         type="button"
                         className={`vr-sport-chip ${venue.sports.includes(s) ? "selected" : ""}`}
-                        onClick={() => update("sports", toggle(venue.sports, s))}
+                        onClick={() => {
+                            const nextSports = toggle(venue.sports, s);
+                            const nextPrices = { ...(venue.sportPrices || {}) };
+                            if (nextSports.includes(s)) {
+                                if (nextPrices[s] === undefined) nextPrices[s] = "";
+                            } else {
+                                delete nextPrices[s];
+                            }
+                            onChange(index, { ...venue, sports: nextSports, sportPrices: nextPrices });
+                        }}
                     >
                         {s}
                     </button>
@@ -274,6 +300,35 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
                 </div>
             </div>
 
+            {venue.sports.length > 0 && (
+                <>
+                    <div className="vr-section-title" style={{ marginTop: 18 }}>
+                        Sport prices (per hour)
+                    </div>
+                    <div className="vr-grid">
+                        {venue.sports.map((sport) => (
+                            <div className="vr-field" key={sport}>
+                                <label className="vr-label">{sport} — Price / hour (INR) *</label>
+                                <input
+                                    type="number"
+                                    className="vr-input"
+                                    min={1}
+                                    placeholder="e.g. 800"
+                                    value={venue.sportPrices?.[sport] ?? ""}
+                                    onChange={(e) =>
+                                        update("sportPrices", {
+                                            ...(venue.sportPrices || {}),
+                                            [sport]: e.target.value,
+                                        })
+                                    }
+                                    required
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </>
+            )}
+
             {/* Days open */}
             <div className="vr-section-title">Days Open</div>
             <div className="vr-days-grid">
@@ -360,9 +415,24 @@ export default function RegisterVenuePage() {
                 setError("Every venue must have a name and location.");
                 return false;
             }
+            if (!isValidClubName(v.name)) {
+                setError(CLUB_NAME_MESSAGE);
+                return false;
+            }
+            if (!isValidCityOrState(v.location)) {
+                setError(CITY_STATE_MESSAGE);
+                return false;
+            }
             if (v.sports.length === 0) {
                 setError(`Please select at least one sport for "${v.name || "a venue"}".`);
                 return false;
+            }
+            for (const sport of v.sports) {
+                const price = Number(v.sportPrices?.[sport]);
+                if (!Number.isFinite(price) || price < 1) {
+                    setError(`Enter a valid price per hour for ${sport} at "${v.name || "a venue"}".`);
+                    return false;
+                }
             }
         }
         setError("");
@@ -394,6 +464,11 @@ export default function RegisterVenuePage() {
         if (owner.aadhar && !isValidAadhaar(owner.aadhar)) {
             nextErrors.aadhar = AADHAAR_MESSAGE;
         }
+        if (!owner.password?.trim()) {
+            nextErrors.password = "Password is required.";
+        } else if (!isStrongPassword(owner.password)) {
+            nextErrors.password = STRONG_PASSWORD_MESSAGE;
+        }
         if (owner.password !== owner.confirmPassword) {
             nextErrors.confirmPassword = "Passwords do not match.";
         }
@@ -415,19 +490,28 @@ export default function RegisterVenuePage() {
                 aadhar_number: owner.aadhar || null,
                 password: owner.password,
             },
-            venues: venues.map((v) => ({
-                name: v.name,
-                location: v.location,
-                landmark: v.landmark || null,
-                sports_supported: JSON.stringify(v.sports),
-                amenities: JSON.stringify(v.amenities),
-                cover_image: v.coverImage || null,
-                venue_images: JSON.stringify(v.photos),
-                opening_time: v.openingTime,
-                closing_time: v.closingTime,
-                days_open: JSON.stringify(v.daysOpen),
-                slot_duration: v.slotDuration,
-            })),
+            venues: venues.map((v) => {
+                const sportPricesAsNumbers = {};
+                for (const sport of v.sports) {
+                    sportPricesAsNumbers[sport] = Number(v.sportPrices?.[sport]) || 0;
+                }
+                const priceValues = Object.values(sportPricesAsNumbers).filter((p) => p > 0);
+                return {
+                    name: v.name,
+                    location: v.location,
+                    landmark: v.landmark || null,
+                    sports_supported: JSON.stringify(v.sports),
+                    sport_prices: JSON.stringify(sportPricesAsNumbers),
+                    base_price_per_hour: priceValues.length ? Math.min(...priceValues) : 0,
+                    amenities: JSON.stringify(v.amenities),
+                    cover_image: v.coverImage || null,
+                    venue_images: JSON.stringify(v.photos),
+                    opening_time: v.openingTime,
+                    closing_time: v.closingTime,
+                    days_open: JSON.stringify(v.daysOpen),
+                    slot_duration: v.slotDuration,
+                };
+            }),
         };
 
         try {
@@ -589,14 +673,13 @@ export default function RegisterVenuePage() {
                         <div className="vr-field">
                             <label className="vr-label">Date of Birth (DD/MM/YYYY)</label>
                             <input
-                                type="text"
+                                type="date"
                                 className="vr-input"
-                                placeholder="DD/MM/YYYY"
-                                maxLength={10}
-                                value={owner.dob}
-                                onChange={(e) =>
-                                    setOwnerField({ dob: formatDobInput(e.target.value) }, { dob: "" })
-                                }
+                                min="1900-01-01"
+                                max={new Date().toISOString().slice(0, 10)}
+                                value={dobToIso(owner.dob)}
+                                onChange={(e) => setOwnerField({ dob: isoToDob(e.target.value) }, { dob: "" })}
+                                style={{ colorScheme: "dark" }}
                             />
                             {fieldErrors.dob ? <p style={fieldErrorStyle}>{fieldErrors.dob}</p> : null}
                         </div>
@@ -651,19 +734,28 @@ export default function RegisterVenuePage() {
                         </div>
                         <div className="vr-field">
                             <label className="vr-label">Password *</label>
-                            <input
-                                type="password"
+                            <PasswordField
                                 className="vr-input"
                                 required
                                 placeholder="Min 8 characters"
                                 value={owner.password}
-                                onChange={(e) => setOwnerField({ password: e.target.value })}
+                                onChange={(e) =>
+                                    setOwnerField(
+                                        { password: e.target.value },
+                                        {
+                                            password:
+                                                e.target.value && !isStrongPassword(e.target.value)
+                                                    ? STRONG_PASSWORD_MESSAGE
+                                                    : "",
+                                        }
+                                    )
+                                }
                             />
+                            {fieldErrors.password ? <p style={fieldErrorStyle}>{fieldErrors.password}</p> : null}
                         </div>
                         <div className="vr-field">
                             <label className="vr-label">Confirm Password *</label>
-                            <input
-                                type="password"
+                            <PasswordField
                                 className="vr-input"
                                 required
                                 placeholder="Re-enter password"

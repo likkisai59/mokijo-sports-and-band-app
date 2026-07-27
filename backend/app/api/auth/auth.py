@@ -86,6 +86,33 @@ class AuthRouting(ConnectionService):
             summary="Resend email verification token.",
             tags=["Auth"]
         )
+        self.router.add_api_route(
+            path="/profile/member/{member_id}",
+            endpoint=self.get_member_profile,
+            methods=["GET"],
+            response_model=schemas.MemberProfileResponse,
+            summary="Retrieve profile details for a club member.",
+            tags=["Auth"]
+        )
+        self.router.add_api_route(
+            path="/profile/member/{member_id}",
+            endpoint=self.update_member_profile,
+            methods=["PUT"],
+            response_model=schemas.MemberProfileResponse,
+            summary="Update profile details for a club member.",
+            tags=["Auth"]
+        )
+
+    async def get_member_profile(self, request: Request, member_id: int):
+        await logger.log_message(request=request, message="Get member profile router start", step="ROUTER_START")
+        logic = AuthLogic()
+        return await logic.get_member_profile(request, member_id)
+
+    async def update_member_profile(self, request: Request, member_id: int, payload: schemas.MemberProfileUpdate):
+        await logger.log_message(request=request, message="Update member profile router start", step="ROUTER_START")
+        logic = AuthLogic()
+        return await logic.update_member_profile(request, member_id, payload)
+
 
     async def register_user(self, request: Request, user: schemas.UserCreate, background_tasks: BackgroundTasks):
         await logger.log_message(request=request, message="Register user router start", step="ROUTER_START")
@@ -172,6 +199,7 @@ class AuthLogic(ConnectionService):
                     "is_email_verified": True,
                     "email_verification_token": None,
                     "email_verification_token_expires_at": None,
+                    "approval_status": "PENDING_APPROVAL",
                 }
                 
                 user_id = db.insert("users", insert_data)
@@ -219,6 +247,14 @@ class AuthLogic(ConnectionService):
                 user = db.fetch_one("SELECT * FROM users WHERE LOWER(email) = %s LIMIT 1", (email_clean,))
                 if not user or not verify_password(password_clean, user.get("password")):
                     raise HTTPException(status_code=400, detail="Invalid email or password")
+
+                status = user.get("approval_status")
+                if status == "PENDING_APPROVAL":
+                    raise HTTPException(status_code=403, detail="Your club registration is currently pending approval by Super Admin.")
+                elif status == "REJECTED":
+                    reason = user.get("rejection_reason")
+                    msg = f"Your club registration request was rejected by Super Admin. {f'Reason: {reason}' if reason else ''}"
+                    raise HTTPException(status_code=403, detail=msg.strip())
 
                 # Migrate plain text password to hashed format if needed
                 current_pw = user.get("password") or ""
@@ -463,3 +499,87 @@ class AuthLogic(ConnectionService):
         except Exception as e:
             await logger.log_error(request=request, message=f"Failed to login member: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")
+
+    async def get_member_profile(self, request: Request, member_id: int):
+        try:
+            with logger.time_operation("GET_MEMBER_PROFILE", request=request):
+                db = self.db_driver
+                member = db.fetch_one("SELECT * FROM members WHERE id = %s", (member_id,))
+                if not member:
+                    raise HTTPException(status_code=404, detail="Member profile not found.")
+
+                group_name = ""
+                club_name = ""
+                if member.get("group_id"):
+                    group = db.fetch_one("SELECT * FROM groups WHERE id = %s", (member.get("group_id"),))
+                    if group:
+                        group_name = group.get("group_name") or ""
+                        if group.get("owner_id"):
+                            owner = db.fetch_one("SELECT * FROM users WHERE id = %s", (group.get("owner_id"),))
+                            if owner:
+                                club_name = owner.get("club_name") or ""
+
+                return {
+                    "id": member.get("id"),
+                    "first_name": member.get("first_name") or "",
+                    "last_name": member.get("last_name") or "",
+                    "email": member.get("email") or "",
+                    "phone": member.get("phone") or "",
+                    "role": member.get("role") or "Member",
+                    "group_id": member.get("group_id"),
+                    "group_name": group_name,
+                    "club_name": club_name
+                }
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            await logger.log_error(request=request, message=f"Failed to get member profile: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+
+    async def update_member_profile(self, request: Request, member_id: int, payload: schemas.MemberProfileUpdate):
+        try:
+            with logger.time_operation("UPDATE_MEMBER_PROFILE", request=request):
+                db = self.db_driver
+                member = db.fetch_one("SELECT * FROM members WHERE id = %s", (member_id,))
+                if not member:
+                    raise HTTPException(status_code=404, detail="Member profile not found.")
+
+                update_data = {}
+                if payload.first_name is not None and payload.first_name.strip():
+                    update_data["first_name"] = payload.first_name.strip()
+                if payload.last_name is not None and payload.last_name.strip():
+                    update_data["last_name"] = payload.last_name.strip()
+                if payload.email is not None and payload.email.strip():
+                    email_clean = normalize_email(payload.email)
+                    existing = db.fetch_one("SELECT id FROM members WHERE LOWER(email) = %s AND id != %s LIMIT 1", (email_clean, member_id))
+                    if existing:
+                        raise HTTPException(status_code=400, detail="Email is already used by another member.")
+                    update_data["email"] = email_clean
+                if payload.phone is not None and payload.phone.strip():
+                    update_data["phone"] = payload.phone.strip()
+                if payload.password is not None and payload.password.strip():
+                    update_data["password"] = hash_password(payload.password.strip())
+                if payload.role is not None and payload.role.strip():
+                    update_data["role"] = payload.role.strip()
+
+                if update_data:
+                    set_clauses = [f"{k} = %s" for k in update_data.keys()]
+                    query = f"UPDATE members SET {', '.join(set_clauses)} WHERE id = %s"
+                    params = list(update_data.values()) + [member_id]
+                    db.execute_query(query, tuple(params))
+
+                if member.get("group_id"):
+                    if payload.group_name is not None and payload.group_name.strip():
+                        db.execute_query("UPDATE groups SET group_name = %s WHERE id = %s", (payload.group_name.strip(), member.get("group_id")))
+                    if payload.club_name is not None and payload.club_name.strip():
+                        group = db.fetch_one("SELECT owner_id FROM groups WHERE id = %s", (member.get("group_id"),))
+                        if group and group.get("owner_id"):
+                            db.execute_query("UPDATE users SET club_name = %s WHERE id = %s", (payload.club_name.strip(), group.get("owner_id")))
+
+                return await self.get_member_profile(request, member_id)
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            await logger.log_error(request=request, message=f"Failed to update member profile: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+

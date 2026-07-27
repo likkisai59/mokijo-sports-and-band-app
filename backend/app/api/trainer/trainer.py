@@ -1,16 +1,51 @@
 from fastapi import APIRouter, Depends, Request, HTTPException, status
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 import json
+import re
 
 from app.models import schemas
 from app.connectors.connection_service import ConnectionService
 from app.auth.authorization import check_user_authorization, validate_role_and_permission
 from app.core.security import hash_password, verify_password, create_access_token
-from app.core.helpers import serialize_course
+from app.core.helpers import serialize_course, serialize_course_registration
 from app.logger import logger
 
 COURSE_STATUSES = {"draft", "open", "full", "closed", "completed"}
+USER_ID_NOTE_RE = re.compile(r"user_id:(\d+)", re.IGNORECASE)
+
+
+def enrich_registration_for_trainer(registration: dict, db) -> dict:
+    data = serialize_course_registration(registration, db)
+    registrant_type = "guest"
+
+    if registration.get("member_id"):
+        registrant_type = "club_member"
+    else:
+        notes = registration.get("notes") or ""
+        match = USER_ID_NOTE_RE.search(notes)
+        if match:
+            user_id = int(match.group(1))
+            user = db.fetch_one(
+                "SELECT id, email, club_name FROM users WHERE id = %s LIMIT 1",
+                (user_id,),
+            )
+            email = (user.get("email") or "").strip().lower() if user else ""
+            member = None
+            if email:
+                member = db.fetch_one(
+                    "SELECT id FROM members WHERE LOWER(email) = %s LIMIT 1",
+                    (email,),
+                )
+            if member:
+                registrant_type = "club_member"
+            elif user and (user.get("club_name") or "").strip():
+                registrant_type = "club_admin"
+            else:
+                registrant_type = "user"
+
+    data["registrant_type"] = registrant_type
+    return data
 
 
 class TrainerRouting(ConnectionService):
@@ -68,6 +103,22 @@ class TrainerRouting(ConnectionService):
             methods=["POST"],
             response_model=schemas.CourseResponse,
             summary="Reschedule a training (rain or any reason).",
+            tags=["Trainer"]
+        )
+        self.router.add_api_route(
+            path="/trainer/{trainer_id}/registrations",
+            endpoint=self.get_trainer_registrations,
+            methods=["GET"],
+            response_model=List[schemas.CourseRegistrationResponse],
+            summary="List all registrations across this trainer's trainings (optional course_id filter).",
+            tags=["Trainer"]
+        )
+        self.router.add_api_route(
+            path="/trainer/{trainer_id}/courses/{course_id}/registrations",
+            endpoint=self.get_trainer_course_registrations,
+            methods=["GET"],
+            response_model=List[schemas.CourseRegistrationResponse],
+            summary="List registrations for one training owned by this trainer.",
             tags=["Trainer"]
         )
 
@@ -136,6 +187,38 @@ class TrainerRouting(ConnectionService):
         await logger.log_message(request=request, message="Reschedule trainer course router start", step="ROUTER_START", user_info=current_user)
         logic = TrainerLogic()
         return await logic.reschedule_trainer_course(request, trainer_id, course_id, body, current_user)
+
+    async def get_trainer_registrations(
+        self,
+        request: Request,
+        trainer_id: int,
+        course_id: Optional[int] = None,
+        current_user: dict = Depends(check_user_authorization),
+    ):
+        await logger.log_message(
+            request=request,
+            message="Get trainer registrations router start",
+            step="ROUTER_START",
+            user_info=current_user,
+        )
+        logic = TrainerLogic()
+        return await logic.get_trainer_registrations(request, trainer_id, current_user, course_id)
+
+    async def get_trainer_course_registrations(
+        self,
+        request: Request,
+        trainer_id: int,
+        course_id: int,
+        current_user: dict = Depends(check_user_authorization),
+    ):
+        await logger.log_message(
+            request=request,
+            message="Get trainer course registrations router start",
+            step="ROUTER_START",
+            user_info=current_user,
+        )
+        logic = TrainerLogic()
+        return await logic.get_trainer_registrations(request, trainer_id, current_user, course_id)
 
 
 class TrainerLogic(ConnectionService):
@@ -444,4 +527,42 @@ class TrainerLogic(ConnectionService):
             raise he
         except Exception as e:
             await logger.log_error(request=request, message=f"Failed rescheduling trainer course: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error")
+
+    async def get_trainer_registrations(
+        self,
+        request: Request,
+        trainer_id: int,
+        current_user: dict,
+        course_id: Optional[int] = None,
+    ):
+        try:
+            with logger.time_operation("GET_TRAINER_REGISTRATIONS", request=request):
+                db = self.db_driver
+                validate_role_and_permission(db, current_user, ["trainer"], trainer_id)
+
+                if course_id is not None:
+                    course = db.fetch_one(
+                        "SELECT id FROM courses WHERE id = %s AND trainer_id = %s LIMIT 1",
+                        (course_id, trainer_id),
+                    )
+                    if not course:
+                        raise HTTPException(status_code=404, detail="Training not found or access denied.")
+                    rows = db.fetch_all(
+                        "SELECT * FROM course_registrations WHERE course_id = %s ORDER BY id DESC",
+                        (course_id,),
+                    )
+                else:
+                    rows = db.fetch_all(
+                        "SELECT cr.* FROM course_registrations cr "
+                        "JOIN courses c ON c.id = cr.course_id "
+                        "WHERE c.trainer_id = %s ORDER BY cr.id DESC",
+                        (trainer_id,),
+                    )
+
+                return [enrich_registration_for_trainer(r, db) for r in (rows or [])]
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            await logger.log_error(request=request, message=f"Failed getting trainer registrations: {e}")
             raise HTTPException(status_code=500, detail="Internal server error")

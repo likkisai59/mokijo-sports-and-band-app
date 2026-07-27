@@ -158,9 +158,11 @@ def promote_next_waitlisted(game_id: str, db):
     )
     
     insert_player = {
+        "id": str(uuid.uuid4()),
         "game_id": str(game_id),
         "user_id": next_up.get("user_id"),
-        "status": "pending_payment"
+        "status": "pending_payment",
+        "joined_at": datetime.utcnow(),
     }
     db.insert("game_players", insert_player)
 

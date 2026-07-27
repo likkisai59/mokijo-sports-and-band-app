@@ -40,9 +40,7 @@ export default function DashboardLayout({ children }) {
             "/dashboard/creategroup",
             "/dashboard/importgroups",
             "/dashboard/groups",
-            "/dashboard/members",
             "/dashboard/signup-forms",
-            "/dashboard/venues"
         ];
 
         const isTryingToAccessAdminOnly = adminOnlyPaths.some(path => pathname.startsWith(path));

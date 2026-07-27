@@ -324,6 +324,7 @@ class Venue(Base):
     days_open = Column(Text, nullable=True)          # JSON Array e.g. ["Mon","Tue",...]
     slot_duration = Column(Integer, default=60)      # minutes: 30 or 60
     base_price_per_hour = Column(Integer, default=0)
+    sport_prices = Column(Text, nullable=True)       # JSON object e.g. {"Cricket": 500, "Football": 800}
 
     # ── Venue Verification Lifecycle Fields ────────────────────────────
     verification_status = Column(String, default="DRAFT", nullable=False, server_default="DRAFT")

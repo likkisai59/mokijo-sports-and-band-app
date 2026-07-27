@@ -45,9 +45,9 @@ def test_admin_and_user_verification_flow():
     assert response.status_code == 200
     assert "userId" in response.json()
 
-    # 3. Set verification tokens in database to test email verification endpoint
-    db.execute_query("UPDATE users SET is_verified = false, is_email_verified = false, email_verification_token = 'token_admin_test_123', verification_token = 'token_admin_test_123' WHERE email = 'verify_test_admin@mukijo.com'")
-    db.execute_query("UPDATE users SET is_verified = false, is_email_verified = false, email_verification_token = 'token_user_test_123', verification_token = 'token_user_test_123' WHERE email = 'verify_test_user@mukijo.com'")
+    # 3. Set verification tokens and approval status in database to test email verification endpoint
+    db.execute_query("UPDATE users SET is_verified = false, is_email_verified = false, approval_status = 'APPROVED', email_verification_token = 'token_admin_test_123', verification_token = 'token_admin_test_123' WHERE email = 'verify_test_admin@mukijo.com'")
+    db.execute_query("UPDATE users SET is_verified = false, is_email_verified = false, approval_status = 'APPROVED', email_verification_token = 'token_user_test_123', verification_token = 'token_user_test_123' WHERE email = 'verify_test_user@mukijo.com'")
 
     # 4. Fetch tokens from database
     admin_row = db.fetch_one("SELECT email_verification_token FROM users WHERE email = %s", ("verify_test_admin@mukijo.com",))

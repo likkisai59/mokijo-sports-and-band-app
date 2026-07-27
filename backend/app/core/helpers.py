@@ -111,13 +111,17 @@ def serialize_course(course: dict, db_driver):
 
     trainer_id = course.get("trainer_id")
     trainer_name = course.get("trainer_name")
-    if trainer_id and not trainer_name:
+    trainer_phone = course.get("trainer_phone")
+    if trainer_id:
         trainer = db_driver.fetch_one(
-            "SELECT first_name, last_name FROM trainers WHERE id = %s LIMIT 1",
+            "SELECT first_name, last_name, phone FROM trainers WHERE id = %s LIMIT 1",
             (trainer_id,)
         )
         if trainer:
-            trainer_name = f"{trainer.get('first_name', '')} {trainer.get('last_name', '')}".strip()
+            if not trainer_name:
+                trainer_name = f"{trainer.get('first_name', '')} {trainer.get('last_name', '')}".strip()
+            if not trainer_phone:
+                trainer_phone = trainer.get("phone")
 
     rescheduled_at = course.get("rescheduled_at")
     if isinstance(rescheduled_at, datetime):
@@ -143,6 +147,7 @@ def serialize_course(course: dict, db_driver):
         "trainer_id": trainer_id,
         "is_trainer_training": bool(trainer_id),
         "trainer_name": trainer_name,
+        "trainer_phone": trainer_phone,
         "group_id": group_id,
         "title": course.get("title"),
         "code": course.get("code"),

@@ -68,13 +68,14 @@ export default function PhoneInput({
                 disabled={disabled}
                 aria-label="Country code"
                 style={{
-                    maxWidth: "220px",
+                    width: "130px",
+                    maxWidth: "130px",
                     flexShrink: 0,
                 }}
             >
                 {PHONE_COUNTRY_CODES_SORTED.map((c) => (
                     <option key={c.iso} value={encodeOption(c)}>
-                        {c.label} ({c.code})
+                        {c.code}
                     </option>
                 ))}
             </select>
@@ -92,7 +93,7 @@ export default function PhoneInput({
                     const next = digitsOnly(e.target.value).slice(0, digitCap);
                     onDigitsChange?.(next);
                 }}
-                style={{ flex: 1, minWidth: 0 }}
+                style={{ flex: "1 1 auto", minWidth: "140px", width: "100%" }}
             />
             {id ? (
                 <span id={`${id}-hint`} style={{ display: "none" }}>

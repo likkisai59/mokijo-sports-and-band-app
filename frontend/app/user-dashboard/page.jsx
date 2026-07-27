@@ -34,6 +34,7 @@ import {
     Play,
     CalendarCheck,
     Locate,
+    Phone,
 } from "lucide-react";
 import NotificationBell from "../../components/dashboard/NotificationBell";
 
@@ -68,9 +69,11 @@ export default function UserDashboard() {
     const [loadingBookings, setLoadingBookings] = useState(true);
     const [cancellingId, setCancellingId] = useState(null);
 
-    // Trainer trainings (Training tab)
+    // Trainer trainings (Discover + My Training tabs)
     const [trainerTrainings, setTrainerTrainings] = useState([]);
     const [loadingTrainings, setLoadingTrainings] = useState(false);
+    const [myTrainings, setMyTrainings] = useState([]);
+    const [loadingMyTrainings, setLoadingMyTrainings] = useState(false);
 
     // Create / Host Game form states
     const [gameSport, setGameSport] = useState("badminton");
@@ -276,6 +279,28 @@ export default function UserDashboard() {
         }
     };
 
+    const fetchMyTrainings = async () => {
+        if (!userId) return;
+        setLoadingMyTrainings(true);
+        try {
+            const token = localStorage.getItem("accessToken");
+            const res = await fetch(`${API_BASE_URL}/users/${userId}/training-registrations`, {
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setMyTrainings(Array.isArray(data) ? data : []);
+            } else {
+                setMyTrainings([]);
+            }
+        } catch (err) {
+            console.error("Error loading my trainings:", err);
+            setMyTrainings([]);
+        } finally {
+            setLoadingMyTrainings(false);
+        }
+    };
+
     const handleJoinGame = async (gameId) => {
         if (!userId) return;
         setJoiningGameId(gameId);
@@ -331,7 +356,9 @@ export default function UserDashboard() {
     };
 
     useEffect(() => {
-        if (activeTab === "my-bookings") {
+        if (activeTab === "my-trainings") {
+            fetchMyTrainings();
+        } else if (activeTab === "my-bookings") {
             fetchBookings();
         } else if (activeTab === "game") {
             if (gameSubTab === "joined") {
@@ -447,11 +474,17 @@ export default function UserDashboard() {
                 }, 1500);
             } else {
                 const errData = await res.json().catch(() => ({}));
-                alert(errData.detail || "Failed to host game match.");
+                const detail = errData.detail;
+                const message = Array.isArray(detail)
+                    ? detail.map((d) => d.msg || JSON.stringify(d)).join(", ")
+                    : typeof detail === "string"
+                        ? detail
+                        : "Failed to host game match.";
+                alert(message);
             }
         } catch (err) {
             console.error("Error hosting game:", err);
-            alert("Connection error. Is the backend server running?");
+            alert(err?.message || "Connection error. Is the backend server running?");
         } finally {
             setSubmittingGame(false);
         }
@@ -571,6 +604,18 @@ export default function UserDashboard() {
                     </button>
 
                     <button
+                        onClick={() => setActiveTab("my-trainings")}
+                        style={{
+                            ...styles.headerTabBtn,
+                            color: activeTab === "my-trainings" ? "#c6ff3d" : "rgba(244, 244, 245, 0.6)",
+                            borderBottomColor: activeTab === "my-trainings" ? "#c6ff3d" : "transparent",
+                        }}
+                    >
+                        <Award size={16} />
+                        <span>My Training</span>
+                    </button>
+
+                    <button
                         onClick={() => setActiveTab("my-bookings")}
                         style={{
                             ...styles.headerTabBtn,
@@ -590,8 +635,8 @@ export default function UserDashboard() {
                             borderBottomColor: activeTab === "training" ? "#c6ff3d" : "transparent",
                         }}
                     >
-                        <Award size={16} />
-                        <span>Training</span>
+                        <Compass size={16} />
+                        <span>Discover Trainings</span>
                     </button>
                 </div>
 
@@ -1517,10 +1562,175 @@ export default function UserDashboard() {
                     </div>
                 )}
 
+                {activeTab === "my-trainings" && (
+                    <div style={{ ...styles.bookingsSection, maxWidth: "1100px" }}>
+                        <h2 style={styles.sectionTitle}>My Training</h2>
+                        <p
+                            style={{
+                                color: "rgba(148, 163, 184, 0.55)",
+                                fontSize: "14px",
+                                marginTop: "-8px",
+                                marginBottom: "20px",
+                            }}
+                        >
+                            Trainings you have registered for with platform trainers
+                        </p>
+
+                        {loadingMyTrainings ? (
+                            <div style={styles.emptyContainer}>
+                                <Loader2
+                                    size={32}
+                                    style={{ color: "#c6ff3d", marginBottom: "12px", animation: "spin 1s linear infinite" }}
+                                />
+                                <p style={{ color: "rgba(148, 163, 184, 0.5)", fontSize: "14px" }}>
+                                    Loading your trainings...
+                                </p>
+                            </div>
+                        ) : myTrainings.length === 0 ? (
+                            <div style={styles.emptyContainer}>
+                                <Award size={48} style={{ color: "rgba(148, 163, 184, 0.15)", marginBottom: "16px" }} />
+                                <h3>No registered trainings</h3>
+                                <p style={{ color: "rgba(148, 163, 184, 0.4)", fontSize: "14px", marginTop: "8px" }}>
+                                    You have not registered for any trainer sessions yet.
+                                </p>
+                                <button onClick={() => setActiveTab("training")} style={styles.exploreLinkBtn}>
+                                    Discover Trainings
+                                </button>
+                            </div>
+                        ) : (
+                            <div style={styles.list}>
+                                {myTrainings.map((training) => {
+                                    const payment = (training.payment_status || "unpaid").toLowerCase();
+                                    const regStatus = (training.status || "registered").toLowerCase();
+                                    const isPaid = payment === "paid" || payment === "waived";
+                                    const paymentLabel =
+                                        payment === "waived" ? "FREE" : payment === "paid" ? "PAID" : "UNPAID";
+                                    const dateLabel = [training.start_date, training.end_date]
+                                        .filter(Boolean)
+                                        .join(" – ");
+                                    const feeFormatted =
+                                        Number(training.fee || 0) > 0
+                                            ? `\u20B9${Number(training.fee).toLocaleString("en-IN")}`
+                                            : "Free";
+
+                                    return (
+                                        <div key={training.id} style={styles.bookingCard}>
+                                            <div style={styles.cardHeader}>
+                                                <div style={styles.sportHeader}>
+                                                    <Award size={22} style={{ color: "#c6ff3d" }} />
+                                                    <div>
+                                                        <span style={styles.sportLabel}>{training.title}</span>
+                                                        {training.category && (
+                                                            <span
+                                                                style={{
+                                                                    ...styles.cardSportChip,
+                                                                    marginLeft: "10px",
+                                                                    verticalAlign: "middle",
+                                                                }}
+                                                            >
+                                                                {training.category}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        ...styles.badge,
+                                                        backgroundColor: isPaid
+                                                            ? "rgba(16, 185, 129, 0.1)"
+                                                            : "rgba(234, 179, 8, 0.1)",
+                                                        color: isPaid ? "#34d399" : "#fbbf24",
+                                                        borderColor: isPaid
+                                                            ? "rgba(16, 185, 129, 0.25)"
+                                                            : "rgba(234, 179, 8, 0.25)",
+                                                    }}
+                                                >
+                                                    {paymentLabel}
+                                                </div>
+                                            </div>
+
+                                            <div style={styles.cardDetails}>
+                                                <div style={styles.detailItem}>
+                                                    <Users size={14} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
+                                                    <span>
+                                                        {training.trainer_name
+                                                            ? `Trainer: ${training.trainer_name}`
+                                                            : "Trainer session"}
+                                                    </span>
+                                                </div>
+
+                                                {training.trainer_phone && (
+                                                    <div style={styles.detailItem}>
+                                                        <Phone size={14} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
+                                                        <span>
+                                                            Contact: <strong>{training.trainer_phone}</strong>
+                                                        </span>
+                                                    </div>
+                                                )}
+
+                                                {(dateLabel || training.schedule) && (
+                                                    <div style={styles.detailItem}>
+                                                        <Calendar size={14} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
+                                                        <span>{dateLabel || training.schedule}</span>
+                                                    </div>
+                                                )}
+
+                                                {training.start_time && (
+                                                    <div style={styles.detailItem}>
+                                                        <Clock size={14} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
+                                                        <span>
+                                                            {training.start_time}{" "}
+                                                            {training.end_time ? `\u2013 ${training.end_time}` : ""}
+                                                        </span>
+                                                    </div>
+                                                )}
+
+                                                {training.location && (
+                                                    <div style={styles.detailItem}>
+                                                        <MapPin size={14} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
+                                                        <span>{training.location}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div style={styles.cardFooter}>
+                                                <div style={styles.metaInfo}>
+                                                    <span>
+                                                        Fee:{" "}
+                                                        <strong style={{ color: "#c6ff3d", fontSize: "14px" }}>
+                                                            {feeFormatted}
+                                                        </strong>
+                                                    </span>
+                                                    {regStatus && (
+                                                        <span style={{ marginLeft: "16px", textTransform: "capitalize" }}>
+                                                            Status: <strong>{regStatus}</strong>
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                <Link
+                                                    href={`/trainings/${training.course_id}`}
+                                                    style={{
+                                                        ...styles.bookBtn,
+                                                        textDecoration: "none",
+                                                        display: "inline-block",
+                                                    }}
+                                                >
+                                                    View Training
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {activeTab === "my-bookings" && (
                     /* My Bookings Tab: Display all court/venue reservations booked by the user */
                     <div style={styles.bookingsSection}>
-                        <h2 style={styles.sectionTitle}>My Venue Bookings</h2>
+                        <h2 style={styles.sectionTitle}>My Bookings</h2>
                         {loadingBookings ? (
                             <div style={styles.loadingContainer}>
                                 <Loader2 className="animate-spin" size={32} style={{ color: "#c6ff3d" }} />
@@ -1546,11 +1756,11 @@ export default function UserDashboard() {
                                     const date =
                                         booking.slots && booking.slots.length > 0
                                             ? new Date(booking.slots[0].start_time).toLocaleDateString("en-US", {
-                                                  weekday: "long",
-                                                  month: "short",
-                                                  day: "numeric",
-                                                  year: "numeric",
-                                              })
+                                                weekday: "long",
+                                                month: "short",
+                                                day: "numeric",
+                                                year: "numeric",
+                                            })
                                             : "Unknown Date";
 
                                     const isCancelled = booking.status === "cancelled";
@@ -1577,21 +1787,21 @@ export default function UserDashboard() {
                                                         backgroundColor: isCancelled
                                                             ? "rgba(239, 68, 68, 0.1)"
                                                             : isPaid
-                                                              ? "rgba(16, 185, 129, 0.1)"
-                                                              : "rgba(234, 179, 8, 0.1)",
+                                                                ? "rgba(16, 185, 129, 0.1)"
+                                                                : "rgba(234, 179, 8, 0.1)",
                                                         color: isCancelled ? "#f87171" : isPaid ? "#34d399" : "#fbbf24",
                                                         borderColor: isCancelled
                                                             ? "rgba(239, 68, 68, 0.2)"
                                                             : isPaid
-                                                              ? "rgba(16, 185, 129, 0.2)"
-                                                              : "rgba(234, 179, 8, 0.2)",
+                                                                ? "rgba(16, 185, 129, 0.2)"
+                                                                : "rgba(234, 179, 8, 0.2)",
                                                     }}
                                                 >
                                                     {isCancelled
                                                         ? "CANCELLED"
                                                         : isPaid
-                                                          ? "CONFIRMED"
-                                                          : "HOLDING (UNPAID)"}
+                                                            ? "CONFIRMED"
+                                                            : "HOLDING (UNPAID)"}
                                                 </div>
                                             </div>
 
