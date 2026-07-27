@@ -93,3 +93,7 @@ def decode_token(token: str) -> dict:
         raise UnauthorizedException("Token has expired. Please log in again.")
     except jwt.InvalidTokenError:
         raise UnauthorizedException("Invalid or malformed token. Please log in again.")
+
+
+hash_password = get_password_hash
+
