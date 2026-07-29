@@ -1,0 +1,1 @@
+import{g as n,h as r}from"./index-D8d9Ccdq.js";function c(){const t=n(),{user:o,accessToken:s,setAuth:u,clearAuth:e}=r();return{user:o,accessToken:s,isLoading:t.isLoading,logout:t.logout,setAuth:u,clearAuth:e}}export{c as u};
