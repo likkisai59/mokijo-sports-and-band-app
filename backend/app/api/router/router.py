@@ -1,71 +1,53 @@
 from fastapi import APIRouter
 
-from app.api.auth.auth import AuthRouting
-from app.api.groups.groups import GroupsRouting
-from app.api.courses.courses import CoursesRouting
-from app.api.payments.payments import PaymentsRouting
-from app.api.events.events import EventsRouting
-from app.api.fundraising.fundraising import FundraisingRouting
-from app.api.onboarding.onboarding import OnboardingRouting
-from app.api.venues.venues import VenuesRouting
-from app.api.activities.activities import ActivitiesRouting
-from app.api.dashboard.dashboard import DashboardRouting
-from app.api.messages.messages import MessagesRouting
-from app.api.venue_owner.venue_owner import VenueOwnerRouting
-from app.api.games.games import GamesRouting
-from app.api.matches.matches import MatchesRouting
-from app.api.venue_verification.venue_verification import VenueVerificationRouting
-from app.api.trainer.trainer import TrainerRouting
-from app.api.superadmin.superadmin import router as superadmin_router
+from app.api.mokijo.auth.router import router as auth_router
+from app.api.mokijo.groups.router import router as groups_router
+from app.api.mokijo.courses.router import router as courses_router
+from app.api.mokijo.payments.router import router as payments_router
+from app.api.mokijo.events.router import router as events_router
+from app.api.mokijo.fundraising.router import router as fundraising_router
+from app.api.mokijo.onboarding.router import router as onboarding_router
+from app.api.mokijo.venues.router import router as venues_router
+from app.api.mokijo.activities.router import router as activities_router
+from app.api.mokijo.dashboard.router import router as dashboard_router
+from app.api.mokijo.messages.router import router as messages_router
+from app.api.mokijo.venue_owner.router import router as venue_owner_router
+from app.api.mokijo.games.router import router as games_router
+from app.api.mokijo.matches.router import router as matches_router
+from app.api.mokijo.venue_verification.router import router as venue_verification_router
+from app.api.mokijo.trainer.router import router as trainer_router
+from app.api.shared.superadmin.superadmin import router as superadmin_router
 
 # Band module routers (ORM-based, native FastAPI APIRouter)
-from app.api.band_auth.router import router as band_auth_router
-from app.api.band_categories.router import router as band_categories_router
-from app.api.band_locations.router import router as band_locations_router
-from app.api.band_artists.router import router as band_artists_router
-from app.api.band_venues.router import router as band_venues_router
-from app.api.band_bookings.router import router as band_bookings_router
-from app.api.band_reviews.router import router as band_reviews_router
-from app.api.band_earnings.router import router as band_earnings_router
-from app.api.band_settings.router import router as band_settings_router
+from app.api.band.auth.router import router as band_auth_router
+from app.api.band.categories.router import router as band_categories_router
+from app.api.band.locations.router import router as band_locations_router
+from app.api.band.artists.router import router as band_artists_router
+from app.api.band.venues.router import router as band_venues_router
+from app.api.band.bookings.router import router as band_bookings_router
+from app.api.band.reviews.router import router as band_reviews_router
+from app.api.band.earnings.router import router as band_earnings_router
+from app.api.band.settings.router import router as band_settings_router
 
 api_router = APIRouter()
 
-# Instantiate class-based routing services
-auth = AuthRouting()
-groups = GroupsRouting()
-courses = CoursesRouting()
-payments = PaymentsRouting()
-events = EventsRouting()
-fundraising = FundraisingRouting()
-onboarding = OnboardingRouting()
-venues = VenuesRouting()
-activities = ActivitiesRouting()
-dashboard = DashboardRouting()
-messages = MessagesRouting()
-venue_owner = VenueOwnerRouting()
-games = GamesRouting()
-matches = MatchesRouting()
-venue_verification = VenueVerificationRouting()
-trainer = TrainerRouting()
-
 # Register sub-routers
-api_router.include_router(auth.router)
-api_router.include_router(groups.router)
-api_router.include_router(courses.router)
-api_router.include_router(payments.router)
-api_router.include_router(events.router)
-api_router.include_router(fundraising.router)
-api_router.include_router(onboarding.router)
-api_router.include_router(venues.router)
-api_router.include_router(activities.router)
-api_router.include_router(dashboard.router)
-api_router.include_router(messages.router)
-api_router.include_router(venue_owner.router)
-api_router.include_router(games.router)
-api_router.include_router(matches.router)
-api_router.include_router(venue_verification.router)
-api_router.include_router(trainer.router)
+api_router.include_router(auth_router)
+api_router.include_router(groups_router)
+api_router.include_router(courses_router)
+api_router.include_router(payments_router)
+api_router.include_router(events_router)
+api_router.include_router(fundraising_router)
+api_router.include_router(onboarding_router)
+api_router.include_router(venues_router)
+api_router.include_router(activities_router)
+api_router.include_router(dashboard_router)
+api_router.include_router(messages_router)
+api_router.include_router(venue_owner_router)
+api_router.include_router(games_router)
+api_router.include_router(matches_router)
+api_router.include_router(venue_verification_router)
+api_router.include_router(trainer_router)
 api_router.include_router(superadmin_router)
 
 # Band module routers

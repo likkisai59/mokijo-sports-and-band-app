@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import styles from "../../app/styles/signup.module.css";
 import { hearAboutOptions, termsOptions } from "./constants";
 import PasswordField from "@/components/ui/PasswordField";
 import PhoneInput from "@/components/ui/PhoneInput";
@@ -115,22 +114,24 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
     }
 
     return (
-        <div className={styles.stepContainer}>
-            <div className={styles.stepIndicator}>
-                <div className={styles.stepDot}>1</div>
-                <div className={styles.stepLine}></div>
-                <div className={`${styles.stepDot} ${styles.activeDot}`}>2</div>
+        <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-center gap-4 mb-6">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-[#c6ff3d]/20 border border-[#c6ff3d]/30 text-white/50">1</div>
+                <div className="flex-1 h-[1px] bg-white/8 max-w-[60px]"></div>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-[#c6ff3d] text-[#08080f] shadow-[0_0_12px_rgba(198,255,61,0.4)]">2</div>
             </div>
 
-            <h2 className={styles.stepTitle}>Admin Details</h2>
-            <p className={styles.stepSubtitle}>Tell us about the club administrator</p>
+            <div className="text-center mb-4">
+                <h2 className="text-xl font-bold text-white tracking-tight">Admin Details</h2>
+                <p className="text-sm text-slate-400 mt-1">Tell us about the club administrator</p>
+            </div>
 
-            <div className={styles.twoColumns}>
-                <div className={styles.fieldGroup}>
-                    <label className={styles.label}>First Name *</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-white/40">First Name *</label>
                     <input
                         type="text"
-                        className={styles.input}
+                        className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
                         placeholder="First name"
                         value={formData.firstName}
                         onChange={(e) => handleNameChange("firstName", e.target.value)}
@@ -138,11 +139,11 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                     />
                     {fieldErrors.firstName ? <p style={fieldErrorStyle}>{fieldErrors.firstName}</p> : null}
                 </div>
-                <div className={styles.fieldGroup}>
-                    <label className={styles.label}>Last Name *</label>
+                <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-white/40">Last Name *</label>
                     <input
                         type="text"
-                        className={styles.input}
+                        className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
                         placeholder="Last name"
                         value={formData.lastName}
                         onChange={(e) => handleNameChange("lastName", e.target.value)}
@@ -152,11 +153,11 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                 </div>
             </div>
 
-            <div className={styles.fieldGroup}>
-                <label className={styles.label}>Club Admin Email *</label>
+            <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-white/40">Club Admin Email *</label>
                 <input
                     type="email"
-                    className={styles.input}
+                    className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
                     placeholder="admin@yourclub.com"
                     value={formData.email}
                     onChange={(e) => {
@@ -170,10 +171,10 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                 {fieldErrors.email ? <p style={fieldErrorStyle}>{fieldErrors.email}</p> : null}
             </div>
 
-            <div className={styles.fieldGroup}>
-                <label className={styles.label}>Password *</label>
+            <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-white/40">Password *</label>
                 <PasswordField
-                    className={styles.input}
+                    className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
                     placeholder="Create a strong password"
                     value={formData.password}
                     onChange={(e) => {
@@ -185,12 +186,12 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                 {fieldErrors.password ? <p style={fieldErrorStyle}>{fieldErrors.password}</p> : null}
             </div>
 
-            <div className={styles.fieldGroup}>
-                <label className={styles.label}>Club Admin Phone Number *</label>
+            <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-white/40">Club Admin Phone Number *</label>
                 <PhoneInput
                     id="club-admin-phone"
-                    className={styles.input}
-                    selectClassName={styles.select}
+                    className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
+                    selectClassName="bg-[#0e0e19] text-white border border-white/8 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#c6ff3d]"
                     countryCode={phoneCode}
                     digits={phoneDigits}
                     onCountryCodeChange={(code) => syncPhone(code, phoneDigits)}
@@ -200,11 +201,11 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                 {fieldErrors.phone ? <p style={fieldErrorStyle}>{fieldErrors.phone}</p> : null}
             </div>
 
-            <div className={styles.fieldGroup}>
-                <label className={styles.label}>Club Admin Aadhar Number *</label>
+            <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-white/40">Club Admin Aadhar Number *</label>
                 <input
                     type="text"
-                    className={styles.input}
+                    className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
                     placeholder="12-digit Aadhar Number"
                     inputMode="numeric"
                     maxLength={12}
@@ -215,10 +216,10 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                 {fieldErrors.aadharNumber ? <p style={fieldErrorStyle}>{fieldErrors.aadharNumber}</p> : null}
             </div>
 
-            <div className={styles.fieldGroup}>
-                <label className={styles.label}>How did you hear about Mukijo? *</label>
+            <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-white/40">How did you hear about Mukijo? *</label>
                 <select
-                    className={styles.select}
+                    className="w-full bg-[#0e0e19] border border-white/8 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#c6ff3d]"
                     value={formData.hearAbout}
                     onChange={(e) => onChange("hearAbout", e.target.value)}
                     disabled={loading}
@@ -232,9 +233,9 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                 </select>
             </div>
 
-            <div className={styles.fieldGroup}>
-                <label className={styles.label}>Terms & Conditions *</label>
-                <p className={styles.termsText}>
+            <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-white/40">Terms & Conditions *</label>
+                <p className="text-xs leading-relaxed text-slate-400">
                     I hereby confirm that I have read and accept the Terms & Conditions, and that I have the right to
                     enter this agreement on behalf of my club or organisation.
                 </p>
@@ -272,16 +273,15 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
 
             {formError ? <p style={fieldErrorStyle}>{formError}</p> : null}
 
-            <div className={styles.buttonRow}>
-                <button type="button" className={styles.prevButton} onClick={onPrevious} disabled={loading}>
+            <div className="flex justify-between items-center mt-4">
+                <button type="button" className="bg-transparent border border-white/10 text-white font-bold text-sm px-6 py-3.5 rounded-xl transition-all duration-200 hover:bg-white/5 hover:border-white/15" onClick={onPrevious} disabled={loading}>
                     ← Previous
                 </button>
                 <button
                     type="button"
-                    className={styles.submitButton}
+                    className="bg-[#c6ff3d] text-[#08080f] font-bold text-sm px-6 py-3.5 rounded-xl transition-all duration-200 hover:bg-[#b5eb29] hover:shadow-[0_0_15px_rgba(198,255,61,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleSubmit}
                     disabled={loading}
-                    style={{ opacity: loading ? 0.7 : 1, cursor: loading ? "not-allowed" : "pointer" }}
                 >
                     {loading ? "Registering..." : "Sign Up"}
                 </button>

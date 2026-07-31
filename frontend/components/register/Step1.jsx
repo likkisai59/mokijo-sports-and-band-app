@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { API_BASE_URL } from "@/lib/api";
-import styles from "../../app/styles/signup.module.css";
 import { countries, getStatesForCountry, memberOptions, sportsOptions } from "./constants";
 import {
     isValidClubName,
@@ -74,21 +73,23 @@ export default function Step1({ formData, onChange, onNext }) {
     }
 
     return (
-        <div className={styles.stepContainer}>
-            <div className={styles.stepIndicator}>
-                <div className={`${styles.stepDot} ${styles.activeDot}`}>1</div>
-                <div className={styles.stepLine}></div>
-                <div className={styles.stepDot}>2</div>
+        <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-center gap-4 mb-6">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-[#c6ff3d] text-[#08080f] shadow-[0_0_12px_rgba(198,255,61,0.4)]">1</div>
+                <div className="flex-1 h-[1px] bg-white/8 max-w-[60px]"></div>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-white/5 border border-white/8 text-slate-500">2</div>
             </div>
 
-            <h2 className={styles.stepTitle}>Club Information</h2>
-            <p className={styles.stepSubtitle}>Tell us about your club or organisation</p>
+            <div className="text-center mb-4">
+                <h2 className="text-xl font-bold text-white tracking-tight">Club Information</h2>
+                <p className="text-sm text-slate-400 mt-1">Tell us about your club or organisation</p>
+            </div>
 
-            <div className={styles.fieldGroup}>
-                <label className={styles.label}>Club Name *</label>
+            <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-white/40">Club Name *</label>
                 <input
                     type="text"
-                    className={styles.input}
+                    className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
                     placeholder="Enter your club name"
                     value={formData.clubName}
                     onChange={(e) => handleClubNameChange(e.target.value)}
@@ -96,29 +97,22 @@ export default function Step1({ formData, onChange, onNext }) {
                 {fieldErrors.clubName ? <p style={fieldErrorStyle}>{fieldErrors.clubName}</p> : null}
             </div>
 
-            <div className={styles.fieldGroup}>
-                <label className={styles.label}>
+            <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-white/40">
                     Club ID <span style={{ fontSize: "12px", color: "#c6ff3d", marginLeft: "4px" }}>(Auto-Generated)</span>
                 </label>
                 <input
                     type="text"
-                    className={styles.input}
+                    className="w-full bg-white/8 border border-white/8 rounded-xl px-4 py-3 text-sm text-[#c6ff3d] font-bold cursor-not-allowed tracking-wider"
                     value={formData.clubId || "Auto-generating..."}
                     readOnly
-                    style={{
-                        background: "rgba(255, 255, 255, 0.08)",
-                        color: "#c6ff3d",
-                        fontWeight: 700,
-                        cursor: "not-allowed",
-                        letterSpacing: "1px",
-                    }}
                 />
             </div>
 
-            <div className={styles.fieldGroup}>
-                <label className={styles.label}>Country *</label>
+            <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-white/40">Country *</label>
                 <select
-                    className={styles.select}
+                    className="w-full bg-[#0e0e19] border border-white/8 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#c6ff3d]"
                     value={formData.country}
                     onChange={(e) => handleCountryChange(e.target.value)}
                 >
@@ -131,11 +125,11 @@ export default function Step1({ formData, onChange, onNext }) {
                 </select>
             </div>
 
-            <div className={styles.fieldGroup}>
-                <label className={styles.label}>State *</label>
+            <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-white/40">State *</label>
                 {stateList ? (
                     <select
-                        className={styles.select}
+                        className="w-full bg-[#0e0e19] border border-white/8 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#c6ff3d]"
                         value={formData.state}
                         onChange={(e) => onChange("state", e.target.value)}
                     >
@@ -149,7 +143,7 @@ export default function Step1({ formData, onChange, onNext }) {
                 ) : (
                     <input
                         type="text"
-                        className={styles.input}
+                        className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
                         placeholder={formData.country ? "Enter state / province" : "Select a country first"}
                         value={formData.state}
                         onChange={(e) => onChange("state", e.target.value)}
@@ -158,10 +152,10 @@ export default function Step1({ formData, onChange, onNext }) {
                 )}
             </div>
 
-            <div className={styles.fieldGroup}>
-                <label className={styles.label}>Number of Members *</label>
+            <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-white/40">Number of Members *</label>
                 <select
-                    className={styles.select}
+                    className="w-full bg-[#0e0e19] border border-white/8 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#c6ff3d]"
                     value={formData.memberCount}
                     onChange={(e) => onChange("memberCount", e.target.value)}
                 >
@@ -174,8 +168,8 @@ export default function Step1({ formData, onChange, onNext }) {
                 </select>
             </div>
 
-            <div className={styles.fieldGroup}>
-                <label className={styles.label}>Sports / Activities * (Select all that apply)</label>
+            <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-white/40">Sports / Activities * (Select all that apply)</label>
                 <div
                     style={{
                         maxHeight: "180px",
@@ -227,9 +221,9 @@ export default function Step1({ formData, onChange, onNext }) {
 
             {formError ? <p style={fieldErrorStyle}>{formError}</p> : null}
 
-            <div className={styles.buttonRow}>
+            <div className="flex justify-between items-center mt-4">
                 <div></div>
-                <button type="button" className={styles.nextButton} onClick={handleNext}>
+                <button type="button" className="bg-[#c6ff3d] text-[#08080f] font-bold text-sm px-6 py-3.5 rounded-xl transition-all duration-200 hover:bg-[#b5eb29] hover:shadow-[0_0_15px_rgba(198,255,61,0.3)]" onClick={handleNext}>
                     Next →
                 </button>
             </div>

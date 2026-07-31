@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Integer, String, Text, Boolean, ForeignKey, Float, Index, UniqueConstraint
+from sqlalchemy import Column, DateTime, Integer, String, Text, Boolean, ForeignKey, Float, Index, UniqueConstraint, func
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 
@@ -670,10 +670,29 @@ class VenueDocument(Base):
     document_type = Column(String, nullable=False)   # ownership_proof | lease_agreement | business_registration | other
     document_label = Column(String, nullable=True)   # Human-readable label
     file_path = Column(Text, nullable=True)          # Storage path or base64 (follows existing arch)
-    original_filename = Column(String, nullable=True)
-    file_size = Column(Integer, nullable=True)       # in bytes
-    mime_type = Column(String, nullable=True)
-    is_confidential = Column(Boolean, default=True)  # Documents are NOT publicly accessible
-    uploaded_at = Column(DateTime, default=datetime.utcnow)
 
-    venue = relationship("Venue", back_populates="documents")
+class TrainingEnrollmentOrder(Base):
+    __tablename__ = "training_enrollment_orders"
+    id = Column(Integer, primary_key=True, index=True)
+    registration_id = Column(Integer, ForeignKey("course_registrations.id"), nullable=False)
+    razorpay_order_id = Column(String, unique=True, index=True, nullable=False)
+    razorpay_payment_id = Column(String, nullable=True)
+    razorpay_signature = Column(String, nullable=True)
+    amount = Column(Integer, nullable=False)
+    currency = Column(String, default="INR")
+    status = Column(String, default="created")
+    created_at = Column(DateTime, default=datetime.utcnow)
+class Trainer(Base):
+    __tablename__ = 'trainers'
+
+    id = Column(Integer, primary_key=True, index=True)
+    first_name = Column(String(50), nullable=False)
+    last_name = Column(String(50), nullable=False)
+    email = Column(String(100), unique=True, index=True, nullable=False)
+    password = Column(String(255), nullable=False)
+    phone = Column(String(20))
+    experience_years = Column(Integer)
+    specialization = Column(String(100))
+    sports = Column(String(500))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())

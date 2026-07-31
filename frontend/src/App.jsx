@@ -10,69 +10,84 @@ import { QueryProvider } from "@/providers/query-provider";
 import { ToastProvider } from "@/providers/toast-provider";
 
 // Lazy load root pages
-const Home = React.lazy(() => import('@/app/page.jsx'));
-const Login = React.lazy(() => import('@/app/login/page.jsx'));
-const LoginUser = React.lazy(() => import('@/app/login-user/page.jsx'));
-const LoginTrainer = React.lazy(() => import('@/app/login-trainer/page.jsx'));
-const LoginAdmin = React.lazy(() => import('@/app/login-admin/page.jsx'));
-const LoginMember = React.lazy(() => import('@/app/login-member/page.jsx'));
-const LoginVenue = React.lazy(() => import('@/app/login-venue/page.jsx'));
-const Register = React.lazy(() => import('@/app/register/page.jsx'));
-const RegisterMember = React.lazy(() => import('@/app/register-member/page.jsx'));
-const RegisterVenue = React.lazy(() => import('@/app/register-venue/page.jsx'));
-const RegisterUser = React.lazy(() => import('@/app/register-user/page.jsx'));
-const RegisterTrainer = React.lazy(() => import('@/app/register-trainer/page.jsx'));
-const BandLogin = React.lazy(() => import('@/app/band/login/page.jsx'));
-const BandRegister = React.lazy(() => import('@/app/band/register/page.jsx'));
+const Home = React.lazy(() => import('@/app/mokijo/page.jsx'));
+const Login = React.lazy(() => import('@/app/mokijo/login/login-page.jsx'));
+const LoginUser = React.lazy(() => import('@/app/mokijo/login-user/login-user-page.jsx'));
+const LoginTrainer = React.lazy(() => import('@/app/mokijo/login-trainer/login-trainer-page.jsx'));
+const LoginAdmin = React.lazy(() => import('@/app/mokijo/login-admin/login-admin-page.jsx'));
+const LoginMember = React.lazy(() => import('@/app/mokijo/login-member/login-member-page.jsx'));
+const LoginVenue = React.lazy(() => import('@/app/mokijo/login-venue/login-venue-page.jsx'));
+const Register = React.lazy(() => import('@/app/mokijo/register/register-page.jsx'));
+const RegisterMember = React.lazy(() => import('@/app/mokijo/register-member/register-member-page.jsx'));
+const RegisterVenue = React.lazy(() => import('@/app/mokijo/register-venue/register-venue-page.jsx'));
+const RegisterUser = React.lazy(() => import('@/app/mokijo/register-user/register-user-page.jsx'));
+const RegisterTrainer = React.lazy(() => import('@/app/mokijo/register-trainer/register-trainer-page.jsx'));
+const BandLayout = React.lazy(() => import('@/app/bandconnect/layout.tsx'));
+const BandLanding = React.lazy(() => import('@/app/bandconnect/page.jsx'));
+const BandDashboard = React.lazy(() => import('@/app/bandconnect/dashboard/page.jsx'));
+const BandLogin = React.lazy(() => import('@/app/bandconnect/login/page.jsx'));
+const BandRegister = React.lazy(() => import('@/app/bandconnect/register/page.jsx'));
+const BandArtists = React.lazy(() => import('@/app/(public)/artists/page'));
+const BandArtistDetail = React.lazy(() => import('@/app/(public)/artists/[id]/page'));
+const BandVenues = React.lazy(() => import('@/app/(public)/venues/page'));
+const BandVenueDetail = React.lazy(() => import('@/app/(public)/venues/[id]/page'));
 const Developer = React.lazy(() => import('@/app/developer/page'));
 const Messages = React.lazy(() => import('@/app/messages/page'));
 const Notifications = React.lazy(() => import('@/app/notifications/page'));
 
 // Dashboard and Layouts
-const DashboardLayout = React.lazy(() => import('@/app/dashboard/layout.jsx'));
-const DashboardOverview = React.lazy(() => import('@/app/dashboard/page.jsx'));
-const DashboardGroups = React.lazy(() => import('@/app/dashboard/groups/page.jsx'));
-const DashboardGroupDetail = React.lazy(() => import('@/app/dashboard/group/[id]/page.jsx'));
-const DashboardActivities = React.lazy(() => import('@/app/dashboard/activities/page.jsx'));
-const DashboardActivityDetail = React.lazy(() => import('@/app/dashboard/activities/[id]/page.jsx'));
-const DashboardEvents = React.lazy(() => import('@/app/dashboard/events/page.jsx'));
-const DashboardEventNew = React.lazy(() => import('@/app/dashboard/events/new/page.jsx'));
-const DashboardMembers = React.lazy(() => import('@/app/dashboard/members/page.jsx'));
-const DashboardMemberEdit = React.lazy(() => import('@/app/dashboard/members/[id]/edit/page.jsx'));
-const DashboardFundraising = React.lazy(() => import('@/app/dashboard/fundraising/page.jsx'));
-const DashboardFundraisingNew = React.lazy(() => import('@/app/dashboard/fundraising/new/page.jsx'));
-const DashboardFundraisingDonate = React.lazy(() => import('@/app/dashboard/fundraising/donate/[id]/page.jsx'));
-const DashboardPayments = React.lazy(() => import('@/app/dashboard/payments/page.jsx'));
-const DashboardVenues = React.lazy(() => import('@/app/dashboard/venues/page.jsx'));
-const DashboardVenueVerification = React.lazy(() => import('@/app/dashboard/venue-verification/page.jsx'));
-const DashboardVenueVerificationDetail = React.lazy(() => import('@/app/dashboard/venue-verification/[venueId]/page.jsx'));
-const DashboardSettings = React.lazy(() => import('@/app/dashboard/settings/page.jsx'));
-const DashboardProfile = React.lazy(() => import('@/app/dashboard/profile/page.jsx'));
-const DashboardBookings = React.lazy(() => import('@/app/dashboard/bookings/page.jsx'));
-const DashboardCourses = React.lazy(() => import('@/app/dashboard/courses/page.jsx'));
-const DashboardMyTrainings = React.lazy(() => import('@/app/dashboard/my-trainings/page.jsx'));
-const DashboardTrainers = React.lazy(() => import('@/app/dashboard/trainers/page.jsx'));
-const DashboardCreateGroup = React.lazy(() => import('@/app/dashboard/creategroup/page.jsx'));
-const DashboardImportGroups = React.lazy(() => import('@/app/dashboard/importgroups/page.jsx'));
-const DashboardSignupForms = React.lazy(() => import('@/app/dashboard/signup-forms/page.jsx'));
-const DashboardMatches = React.lazy(() => import('@/app/dashboard/matches/page.jsx'));
-const DashboardMatchesCreate = React.lazy(() => import('@/app/dashboard/matches/create/page.jsx'));
+const DashboardLayout = React.lazy(() => import('@/app/mokijo/dashboard/layout.jsx'));
+const DashboardOverview = React.lazy(() => import('@/app/mokijo/dashboard/page.jsx'));
+const DashboardGroups = React.lazy(() => import('@/app/mokijo/dashboard/groups/page.jsx'));
+const DashboardGroupDetail = React.lazy(() => import('@/app/mokijo/dashboard/group/[id]/page.jsx'));
+const DashboardActivities = React.lazy(() => import('@/app/mokijo/dashboard/activities/page.jsx'));
+const DashboardActivityDetail = React.lazy(() => import('@/app/mokijo/dashboard/activities/[id]/page.jsx'));
+const DashboardEvents = React.lazy(() => import('@/app/mokijo/dashboard/events/page.jsx'));
+const DashboardEventNew = React.lazy(() => import('@/app/mokijo/dashboard/events/new/page.jsx'));
+const DashboardMembers = React.lazy(() => import('@/app/mokijo/dashboard/members/page.jsx'));
+const DashboardMemberEdit = React.lazy(() => import('@/app/mokijo/dashboard/members/[id]/edit/page.jsx'));
+const DashboardFundraising = React.lazy(() => import('@/app/mokijo/dashboard/fundraising/page.jsx'));
+const DashboardFundraisingNew = React.lazy(() => import('@/app/mokijo/dashboard/fundraising/new/page.jsx'));
+const DashboardFundraisingDonate = React.lazy(() => import('@/app/mokijo/dashboard/fundraising/donate/[id]/page.jsx'));
+const DashboardPayments = React.lazy(() => import('@/app/mokijo/dashboard/payments/page.jsx'));
+const DashboardVenues = React.lazy(() => import('@/app/mokijo/dashboard/venues/page.jsx'));
+const DashboardVenueVerification = React.lazy(() => import('@/app/mokijo/dashboard/venue-verification/page.jsx'));
+const DashboardVenueVerificationDetail = React.lazy(() => import('@/app/mokijo/dashboard/venue-verification/[venueId]/page.jsx'));
+const DashboardSettings = React.lazy(() => import('@/app/mokijo/dashboard/settings/page.jsx'));
+const DashboardProfile = React.lazy(() => import('@/app/mokijo/dashboard/profile/page.jsx'));
+const DashboardBookings = React.lazy(() => import('@/app/mokijo/dashboard/bookings/page.jsx'));
+const DashboardCourses = React.lazy(() => import('@/app/mokijo/dashboard/courses/page.jsx'));
+const DashboardMyTrainings = React.lazy(() => import('@/app/mokijo/dashboard/my-trainings/page.jsx'));
+const DashboardTrainers = React.lazy(() => import('@/app/mokijo/dashboard/trainers/page.jsx'));
+const DashboardCreateGroup = React.lazy(() => import('@/app/mokijo/dashboard/creategroup/page.jsx'));
+const DashboardImportGroups = React.lazy(() => import('@/app/mokijo/dashboard/importgroups/page.jsx'));
+const DashboardSignupForms = React.lazy(() => import('@/app/mokijo/dashboard/signup-forms/page.jsx'));
+const DashboardMatches = React.lazy(() => import('@/app/mokijo/dashboard/matches/page.jsx'));
+const DashboardMatchesCreate = React.lazy(() => import('@/app/mokijo/dashboard/matches/create/page.jsx'));
 
 // Client Layout and Pages
-const ClientLayout = React.lazy(() => import('@/app/client/layout'));
-const ClientDashboard = React.lazy(() => import('@/app/client/dashboard/page'));
-const ClientBookings = React.lazy(() => import('@/app/client/bookings/page'));
-const ClientBookingDetail = React.lazy(() => import('@/app/client/bookings/[id]/page'));
-const ClientFavorites = React.lazy(() => import('@/app/client/favorites/page'));
-const ClientMessages = React.lazy(() => import('@/app/client/messages/page'));
-const ClientReviews = React.lazy(() => import('@/app/client/reviews/page'));
-const ClientSettings = React.lazy(() => import('@/app/client/settings/page'));
-const ClientNotifications = React.lazy(() => import('@/app/client/notifications/page'));
+const ClientLayout = React.lazy(() => import('@/app/mokijo/client/layout'));
+const ClientDashboard = React.lazy(() => import('@/app/mokijo/client/dashboard/page'));
+const ClientBookings = React.lazy(() => import('@/app/mokijo/client/bookings/page'));
+const ClientBookingDetail = React.lazy(() => import('@/app/mokijo/client/bookings/[id]/page'));
+const ClientFavorites = React.lazy(() => import('@/app/mokijo/client/favorites/page'));
+const ClientMessages = React.lazy(() => import('@/app/mokijo/client/messages/page'));
+const ClientReviews = React.lazy(() => import('@/app/mokijo/client/reviews/page'));
+const ClientSettings = React.lazy(() => import('@/app/mokijo/client/settings/page'));
+const ClientNotifications = React.lazy(() => import('@/app/mokijo/client/notifications/page'));
 
 // Artist Layout and Pages
-const ArtistLayout = React.lazy(() => import('@/app/artist/layout'));
-const ArtistProfile = React.lazy(() => import('@/app/artist/profile/page'));
-const ArtistSettings = React.lazy(() => import('@/app/artist/settings/page'));
+const ArtistLayout = React.lazy(() => import('@/app/bandconnect/artist/layout'));
+const ArtistProfile = React.lazy(() => import('@/app/bandconnect/artist/profile/page'));
+const ArtistSettings = React.lazy(() => import('@/app/bandconnect/artist/settings/page'));
+
+// Super Admin Layout and Pages
+const SuperAdminLogin = React.lazy(() => import('@/app/super-admin/login/page.jsx'));
+const SuperAdminLayout = React.lazy(() => import('@/app/super-admin/dashboard/layout.jsx'));
+const SuperAdminOverview = React.lazy(() => import('@/app/super-admin/dashboard/overview/page.jsx'));
+const SuperAdminAllClubs = React.lazy(() => import('@/app/super-admin/dashboard/all-clubs/page.jsx'));
+const SuperAdminApprovedClubs = React.lazy(() => import('@/app/super-admin/dashboard/approved-clubs/page.jsx'));
+const SuperAdminPendingApprovals = React.lazy(() => import('@/app/super-admin/dashboard/pending-approvals/page.jsx'));
 
 // Helper HOC to inject useParams into Component as prop params
 function PageWrapper({ Component }) {
@@ -122,8 +137,27 @@ export default function App() {
                     <Route path="/register-user" element={<RegisterUser />} />
                     <Route path="/register-trainer" element={<RegisterTrainer />} />
                     
-                    <Route path="/band/login" element={<BandLogin />} />
-                    <Route path="/band/register" element={<BandRegister />} />
+                    {/* Band Routes */}
+                    <Route path="/band" element={<LayoutWrapper LayoutComponent={BandLayout} />}>
+                      <Route index element={<BandLanding />} />
+                      <Route path="dashboard" element={<BandDashboard />} />
+                      <Route path="login" element={<BandLogin />} />
+                      <Route path="register" element={<BandRegister />} />
+                      <Route path="artists" element={<BandArtists />} />
+                      <Route path="artists/:id" element={<PageWrapper Component={BandArtistDetail} />} />
+                      <Route path="venues" element={<BandVenues />} />
+                      <Route path="venues/:id" element={<PageWrapper Component={BandVenueDetail} />} />
+                    </Route>
+
+                    {/* Standalone Band Discovery Routes */}
+                    <Route path="/artists" element={<LayoutWrapper LayoutComponent={BandLayout} />}>
+                      <Route index element={<BandArtists />} />
+                      <Route path=":id" element={<PageWrapper Component={BandArtistDetail} />} />
+                    </Route>
+                    <Route path="/venues" element={<LayoutWrapper LayoutComponent={BandLayout} />}>
+                      <Route index element={<BandVenues />} />
+                      <Route path=":id" element={<PageWrapper Component={BandVenueDetail} />} />
+                    </Route>
                     
                     <Route path="/developer" element={<Developer />} />
                     <Route path="/messages" element={<Messages />} />
@@ -176,6 +210,15 @@ export default function App() {
                     <Route path="/artist" element={<LayoutWrapper LayoutComponent={ArtistLayout} />}>
                       <Route path="profile" element={<ArtistProfile />} />
                       <Route path="settings" element={<ArtistSettings />} />
+                    </Route>
+
+                    {/* Super Admin Routes */}
+                    <Route path="/super-admin/login" element={<SuperAdminLogin />} />
+                    <Route path="/super-admin/dashboard" element={<LayoutWrapper LayoutComponent={SuperAdminLayout} />}>
+                      <Route path="overview" element={<SuperAdminOverview />} />
+                      <Route path="all-clubs" element={<SuperAdminAllClubs />} />
+                      <Route path="approved-clubs" element={<SuperAdminApprovedClubs />} />
+                      <Route path="pending-approvals" element={<SuperAdminPendingApprovals />} />
                     </Route>
 
                     {/* Fallback route */}

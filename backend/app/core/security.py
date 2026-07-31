@@ -26,13 +26,21 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def create_access_token(
-    subject: Union[str, Any],
-    role: str,
-    email: str,
+    subject: Union[str, Any] = None,
+    role: str = "user",
+    email: str = "",
     permissions: Union[list[str], None] = None,
-    expires_delta: Union[timedelta, None] = None
+    expires_delta: Union[timedelta, None] = None,
+    data: dict = None
 ) -> str:
     """Generate JWT access token with role and permission claims."""
+    if data is not None:
+        if subject is None:
+            subject = data.get("sub") or data.get("subject") or ""
+        role = data.get("role", role)
+        email = data.get("email", email)
+        permissions = data.get("permissions", permissions)
+
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
@@ -40,7 +48,7 @@ def create_access_token(
     
     to_encode = {
         "exp": expire,
-        "sub": str(subject),
+        "sub": str(subject) if subject is not None else "",
         "role": role,
         "email": email,
         "permissions": permissions or [],

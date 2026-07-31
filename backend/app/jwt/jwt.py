@@ -33,7 +33,7 @@ class JWTManager:
             to_encode = data.copy()
             expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
             to_encode.update({"exp": expire})
-            encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=self.ALGORITHM)
+            encoded_jwt = jwt.encode(to_encode, settings.effective_secret_key, algorithm=self.ALGORITHM)
             await logger.log_message(request=request, message="Access token created successfully")
             return encoded_jwt
         except Exception as e:
@@ -48,7 +48,7 @@ class JWTManager:
             await logger.log_message(request=request, message=f"Starting to decode the token: {token}")
             payload = jwt.decode(
                 token,
-                settings.JWT_SECRET_KEY,
+                settings.effective_secret_key,
                 algorithms=[self.ALGORITHM]
             )
             await logger.log_message(request=request, message=f"Token decoded successfully. Payload: {payload}")
