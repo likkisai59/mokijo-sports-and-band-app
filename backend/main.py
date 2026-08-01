@@ -17,7 +17,7 @@ from app.core.config import settings
 from app.core.middleware import LoggingMiddleware, RequestIDMiddleware
 from app.core.logging import setup_logging
 from app.core.exceptions import register_exception_handlers
-from app.api.v1.router import router as api_router
+from app.api.router.router import api_router
 
 # Initialize structured logging system
 setup_logging()

@@ -15,6 +15,7 @@ artist_genres = Table(
     Base.metadata,
     Column("artist_profile_id", UUID(as_uuid=True), ForeignKey("artist_profiles.id", ondelete="CASCADE"), primary_key=True),
     Column("category_id", UUID(as_uuid=True), ForeignKey("categories.id", ondelete="CASCADE"), primary_key=True),
+    extend_existing=True,
 )
 
 # Junction table for Artist many-to-many Languages (categories type='language')
@@ -23,6 +24,7 @@ artist_languages = Table(
     Base.metadata,
     Column("artist_profile_id", UUID(as_uuid=True), ForeignKey("artist_profiles.id", ondelete="CASCADE"), primary_key=True),
     Column("category_id", UUID(as_uuid=True), ForeignKey("categories.id", ondelete="CASCADE"), primary_key=True),
+    extend_existing=True,
 )
 
 

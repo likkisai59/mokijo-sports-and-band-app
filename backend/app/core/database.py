@@ -5,7 +5,7 @@ SQLAlchemy 2.0 style engine and sessionmaker.
 
 from typing import Generator
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, declarative_base, sessionmaker
 
 from app.core.config import settings
 
@@ -23,7 +23,9 @@ SessionLocal = sessionmaker(
     bind=engine
 )
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    __table_args__ = {'extend_existing': True}
+
 
 def get_db() -> Generator:
     """

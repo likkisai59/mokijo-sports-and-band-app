@@ -22,7 +22,7 @@ const RegisterMember = React.lazy(() => import('@/app/mokijo/register-member/reg
 const RegisterVenue = React.lazy(() => import('@/app/mokijo/register-venue/register-venue-page.jsx'));
 const RegisterUser = React.lazy(() => import('@/app/mokijo/register-user/register-user-page.jsx'));
 const RegisterTrainer = React.lazy(() => import('@/app/mokijo/register-trainer/register-trainer-page.jsx'));
-const BandLayout = React.lazy(() => import('@/app/bandconnect/layout.tsx'));
+const BandLayout = React.lazy(() => import('@/app/bandconnect/layout.jsx'));
 const BandLanding = React.lazy(() => import('@/app/bandconnect/page.jsx'));
 const BandDashboard = React.lazy(() => import('@/app/bandconnect/dashboard/page.jsx'));
 const BandLogin = React.lazy(() => import('@/app/bandconnect/login/page.jsx'));

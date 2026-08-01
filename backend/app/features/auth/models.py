@@ -14,9 +14,11 @@ from app.core.database import Base
 user_roles = Table(
     "user_roles",
     Base.metadata,
-    Column("user_id", UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
+    Column("user_id", UUID(as_uuid=True), ForeignKey("auth_users.id", ondelete="CASCADE"), primary_key=True),
     Column("role_id", UUID(as_uuid=True), ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True),
+    extend_existing=True,
 )
+
 
 # Junction table for Role many-to-many Permissions
 role_permissions = Table(
@@ -24,6 +26,7 @@ role_permissions = Table(
     Base.metadata,
     Column("role_id", UUID(as_uuid=True), ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True),
     Column("permission_id", UUID(as_uuid=True), ForeignKey("permissions.id", ondelete="CASCADE"), primary_key=True),
+    extend_existing=True,
 )
 
 
@@ -60,7 +63,7 @@ class Role(BaseModel):
 
 class User(BaseModel):
     """Main User credentials entity."""
-    __tablename__ = "users"
+    __tablename__ = "auth_users"
 
     email = Column(String(255), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
@@ -78,7 +81,7 @@ class RefreshToken(BaseModel):
     """Entity storing persistent JWT refresh tokens for secure session revocation."""
     __tablename__ = "refresh_tokens"
 
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("auth_users.id", ondelete="CASCADE"), nullable=False, index=True)
     token_hash = Column(String(255), unique=True, nullable=False, index=True)
     expires_at = Column(DateTime(timezone=True), nullable=False)
     is_revoked = Column(Boolean, default=False, nullable=False)

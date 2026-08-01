@@ -133,6 +133,7 @@ class User(Base):
     is_email_verified = Column(Boolean, default=False)
     email_verification_token = Column(String, nullable=True)
     email_verification_token_expires_at = Column(DateTime, nullable=True)
+    approval_status = Column(String, default="PENDING_APPROVAL")
 
 
     groups = relationship("Group", back_populates="owner")
@@ -670,6 +671,9 @@ class VenueDocument(Base):
     document_type = Column(String, nullable=False)   # ownership_proof | lease_agreement | business_registration | other
     document_label = Column(String, nullable=True)   # Human-readable label
     file_path = Column(Text, nullable=True)          # Storage path or base64 (follows existing arch)
+
+    venue = relationship("Venue", back_populates="documents")
+
 
 class TrainingEnrollmentOrder(Base):
     __tablename__ = "training_enrollment_orders"

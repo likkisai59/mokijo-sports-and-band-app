@@ -15,6 +15,7 @@ venue_categories = Table(
     Base.metadata,
     Column("venue_id", UUID(as_uuid=True), ForeignKey("venues.id", ondelete="CASCADE"), primary_key=True),
     Column("category_id", UUID(as_uuid=True), ForeignKey("categories.id", ondelete="CASCADE"), primary_key=True),
+    extend_existing=True,
 )
 
 
