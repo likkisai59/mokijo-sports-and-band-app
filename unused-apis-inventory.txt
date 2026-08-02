@@ -1,0 +1,242 @@
+UNUSED API INVENTORY
+====================
+Generated from static analysis: live FastAPI routes (uvicorn app.main:app)
+vs frontend source call sites (excludes dist/node_modules).
+
+Live server mounts Mokijo + Band at ROOT (no /api/v1 prefix).
+Method: code scan — not runtime traffic / Postman / mobile clients.
+
+Summary
+-------
+- Live mounted routes: ~256
+- Mokijo unused by FE: ~17
+- Band /band unused by thin Band UI: ~81 of ~90
+- Orphan: entire backend/app/features stack (intended /api/v1) — NOT mounted
+
+
+================================================================================
+1. MOKIJO — MOUNTED, NO FRONTEND CALLER (delete candidates)
+================================================================================
+
+SAFE
+----
+POST   /messages
+GET    /messages/group/{group_id}
+GET    /messages/dm/{recipient_id}
+GET    /messages/partners
+GET    /debug/overview
+POST   /mukijo-admin/register
+POST   /bookings/confirm
+POST   /bookings/request-approval
+POST   /games/{game_id}/join-requests/{request_id}/respond
+DELETE /games/{game_id}/players/me
+WS     /ws/game/{game_id}          (FE opens /ws/game/all which does not exist)
+POST   /venues/{venue_id}/courts
+GET    /venues/owner/{owner_id}    (duplicate of /venue-owner/{owner_id}/venues)
+GET    /venues/{venue_id}/verification-status
+POST   /fundraising/{campaign_id}/donate   (offline; FE uses initiate/complete)
+
+REVIEW BEFORE DELETE
+--------------------
+POST   /venues                     (FE only POSTs /venue-owner/register)
+
+FIX PATH MISMATCH FIRST
+-----------------------
+POST   /events/{event_id}/message  (FE calls /events/{id}/broadcast — not on backend)
+
+
+================================================================================
+2. BAND /band — USED BY THIN UI (KEEP)
+================================================================================
+
+POST   /band/auth/login
+POST   /band/auth/register
+POST   /band/artists/register
+POST   /band/venues/register
+GET    /band/artists/me/dashboard
+GET    /band/venues/me/dashboard
+GET    /band/bookings/artist
+GET    /band/bookings/venue
+GET    /band/bookings/client
+
+
+================================================================================
+3. BAND /band — UNUSED BY bandApi / bandconnect UI
+================================================================================
+
+Auth extras
+-----------
+GET    /band/auth/me
+DELETE /band/auth/me
+POST   /band/auth/change-password
+POST   /band/auth/forgot-password
+POST   /band/auth/reset-password
+GET    /band/auth/admin/users
+GET    /band/auth/admin/users/{user_id}
+PUT    /band/auth/admin/users/{user_id}/status
+DELETE /band/auth/admin/users/{user_id}
+POST   /band/auth/admin/users/bulk-status
+
+Artist self-service (beyond register + dashboard)
+-------------------------------------------------
+GET    /band/artists/me
+PUT    /band/artists/me
+GET    /band/artists/me/availability
+PUT    /band/artists/me/availability
+POST   /band/artists/me/availability/check-conflict
+GET    /band/artists/me/media
+PUT    /band/artists/me/media
+GET    /band/artists/me/pricing
+PUT    /band/artists/me/pricing
+GET    /band/artists/me/analytics
+
+Artist admin
+------------
+GET    /band/admin/artists
+GET    /band/admin/artists/{artist_id}
+PUT    /band/admin/artists/{artist_id}/verify
+PUT    /band/admin/artists/{artist_id}/suspend
+PUT    /band/admin/artists/{artist_id}/activate
+
+Venue self-service (beyond register + dashboard)
+------------------------------------------------
+GET    /band/venues/me
+PUT    /band/venues/me
+POST   /band/venues/upload
+GET    /band/venues/me/media
+PUT    /band/venues/me/media
+GET    /band/venues/me/facilities
+PUT    /band/venues/me/facilities
+GET    /band/venues/me/pricing
+PUT    /band/venues/me/pricing
+GET    /band/venues/me/availability
+PUT    /band/venues/me/availability
+POST   /band/venues/me/availability/check-conflict
+GET    /band/venues/me/analytics
+PUT    /band/venues/me/verification/resubmit
+PUT    /band/venues/me/settings
+GET    /band/venues/{venue_id}
+
+Venue admin
+-----------
+GET    /band/admin/venues
+GET    /band/admin/venues/{venue_id}
+PUT    /band/admin/venues/{venue_id}/verify
+PUT    /band/admin/venues/{venue_id}/suspend
+PUT    /band/admin/venues/{venue_id}/activate
+
+Bookings (actions / create / detail)
+------------------------------------
+POST   /band/bookings
+GET    /band/bookings/{booking_id}
+PUT    /band/bookings/{booking_id}/accept
+PUT    /band/bookings/{booking_id}/reject
+PUT    /band/bookings/{booking_id}/counter
+PUT    /band/bookings/{booking_id}/cancel
+PUT    /band/bookings/venue/{booking_id}/accept
+PUT    /band/bookings/venue/{booking_id}/reject
+PUT    /band/bookings/venue/{booking_id}/complete
+PUT    /band/bookings/venue/{booking_id}/cancel
+
+Categories
+----------
+GET    /band/categories
+POST   /band/categories
+PUT    /band/categories/{category_id}
+DELETE /band/categories/{category_id}
+
+Locations
+---------
+GET    /band/locations/countries
+POST   /band/locations/countries
+GET    /band/locations/states
+POST   /band/locations/states
+GET    /band/locations/cities
+POST   /band/locations/cities
+GET    /band/locations/areas
+POST   /band/locations/areas
+PUT    /band/locations/areas/{area_id}
+DELETE /band/locations/areas/{area_id}
+
+Reviews + earnings
+------------------
+GET    /band/reviews/artist
+PUT    /band/reviews/{review_id}/reply
+GET    /band/reviews/venue
+PUT    /band/reviews/venue/{review_id}/reply
+GET    /band/reviews/public/venue/{venue_id}
+POST   /band/reviews
+GET    /band/earnings/artist
+GET    /band/earnings/venue
+
+Admin settings
+--------------
+GET    /band/admin/settings/audit-logs
+GET    /band/admin/settings/{key}
+PUT    /band/admin/settings/{key}
+
+
+================================================================================
+4. ORPHAN STACK — DEFINED BUT NOT MOUNTED (dead on live server)
+================================================================================
+
+backend/app/features/* assembled via shared/v1 under intended prefix /api/v1
+is NOT included by app.main.
+
+Includes (if mounted would be under /api/v1):
+- /auth/*
+- /artists/*
+- /venues/*
+- /categories/*
+- /locations/*
+- /bookings/*
+- /reviews/*
+- /earnings/*
+- /notifications/* (+ WS /ws/notifications)
+- /payments/*
+- /conversations/* / messages
+- /admin/artists, /admin/venues, /admin/settings, /admin/bookings
+- /system/health
+
+NOTE: Frontend @/services/api still calls /api/v1/* — those calls 404 against
+the running app.main process today.
+
+
+================================================================================
+5. DO NOT DELETE YET (used via dynamic paths / mismatches)
+================================================================================
+
+KEEP — used with template strings
+---------------------------------
+POST/GET  /admin/venues/{venue_id}/review
+POST      /admin/venues/{venue_id}/{endpoint}   (start-review|approve|reject|request-info|suspend)
+POST      /venues/{id}/{type}-slots             (block|unblock)
+POST      /venues/{id}/slots/{slotId}/{action}  (block|unblock)
+POST      /bookings/{id}/{action}               (approve|reject)
+POST      /courses/trainer-trainings/{id}/enroll/order
+POST      /courses/trainer-trainings/{id}/enroll/verify
+POST      /groups/{id}/members/import
+POST      /trainer/{id}/courses/{id}/reschedule
+
+FIX BEFORE REMOVING RELATED BACKEND
+-----------------------------------
+FE calls POST /events/{id}/broadcast     — backend has /message
+FE opens  WS  /ws/game/all               — backend has /ws/game/{game_id}
+FE calls PUT  /course-registrations/{id} — no matching live Mokijo route
+
+
+================================================================================
+6. ARCHITECTURE NOTES
+================================================================================
+
+FE API clients:
+- @/lib/api          → Mokijo root (NEXT_PUBLIC_API_URL, default :8001)
+- @/lib/bandApi      → {API}/band
+- @/services/api     → {API}/api/v1   (orphan / not mounted on app.main)
+
+Removal priority suggestion:
+1. Mokijo SAFE list (messages router, debug, unused booking/game helpers)
+2. Unused /band routes if Band stays thin (9 keepers only)
+3. Decide: delete orphan features + trim FE /api/v1 services, OR mount /api/v1
+
+End of report.

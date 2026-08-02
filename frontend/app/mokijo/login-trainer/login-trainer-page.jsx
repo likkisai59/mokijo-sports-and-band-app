@@ -1,12 +1,34 @@
 "use client";
 import { API_BASE_URL } from "@/lib/api";
-import { useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import PasswordField from "@/components/ui/PasswordField";
+import {
+    AuthShell,
+    AuthCard,
+    AuthBrand,
+    AuthField,
+    AuthErrorBanner,
+    AuthSuccessBanner,
+    AuthNavLinks,
+    getAuthClasses,
+} from "@/components/auth";
 
-export default function TrainerLoginPage() {
+const c = getAuthClasses("dark");
+
+function LoginTrainerContent() {
+    const searchParams = useSearchParams();
+    const [showSuccess, setShowSuccess] = useState(false);
     const [form, setForm] = useState({ email: "", password: "" });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
+    useEffect(() => {
+        if (searchParams.get("registered") === "true") {
+            setShowSuccess(true);
+        }
+    }, [searchParams]);
 
     const handleChange = (e) => {
         setError("");
@@ -42,77 +64,73 @@ export default function TrainerLoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex justify-center items-center font-sans bg-[#08080f] overflow-hidden relative">
-            {/* ── Animated Blur Glow Orbs (Volt + Magenta) ── */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_20%_50%,rgba(198,255,61,0.12)_0%,transparent_60%),radial-gradient(ellipse_60%_60%_at_80%_20%,rgba(217,255,110,0.1)_0%,transparent_50%),radial-gradient(ellipse_50%_50%_at_50%_90%,rgba(217,255,110,0.07)_0%,transparent_50%)] pointer-events-none z-0" aria-hidden="true" />
-            
-            {/* ── Grid Pattern Overlay ── */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:50px_50px] pointer-events-none z-0" aria-hidden="true" />
+        <AuthShell variant="dark">
+            <AuthCard variant="dark">
+                <Link href="/" className={c.backLink}>
+                    ← Back to Home
+                </Link>
 
-            <div className="w-full max-w-[500px] p-6 md:p-8 z-10">
-                <div className="bg-[#0e0e19]/45 border border-white/5 rounded-[24px] p-8 md:p-10 flex flex-col gap-8 backdrop-blur-[10px] shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
-                    <div className="flex flex-col gap-2">
-                        <span className="text-3xl font-black italic uppercase tracking-wider bg-gradient-to-r from-[#c6ff3d] to-[#d9ff6e] bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(198,255,61,0.45)] mb-2 inline-block">Mukijo</span>
-                        <h1 className="text-2xl font-extrabold tracking-tight text-white">Trainer Sign In</h1>
-                        <p className="text-sm text-white/50">Sign in to manage your trainings</p>
-                    </div>
+                <AuthBrand
+                    variant="dark"
+                    title="Trainer Sign In"
+                    subtitle="Welcome back — enter your credentials to continue."
+                />
 
-                    <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-                        <div className="flex flex-col gap-2">
-                            <label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-white/40">
-                                Email address
-                            </label>
-                            <div className="relative">
-                                <input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    required
-                                    placeholder="trainer@example.com"
-                                    className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
-                                    value={form.email}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                        </div>
+                {showSuccess ? (
+                    <AuthSuccessBanner variant="dark">You can now sign in to your trainer account.</AuthSuccessBanner>
+                ) : null}
 
-                        <div className="flex flex-col gap-2">
-                            <label htmlFor="password" className="text-xs font-bold uppercase tracking-wider text-white/40">
-                                Password
-                            </label>
-                            <div className="relative">
-                                <input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    required
-                                    placeholder="••••••••"
-                                    className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
-                                    value={form.password}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                        </div>
+                <form className="block" onSubmit={handleSubmit}>
+                    <AuthField variant="dark" label="Email address" htmlFor="email" required>
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            required
+                            placeholder="trainer@example.com"
+                            className={c.input}
+                            value={form.email}
+                            onChange={handleChange}
+                        />
+                    </AuthField>
 
-                        {error && <div className="text-sm font-semibold text-red-400 bg-red-500/10 border border-red-500/20 px-4 py-3 rounded-xl text-center">{error}</div>}
+                    <AuthField variant="dark" label="Password" htmlFor="password" required>
+                        <PasswordField
+                            id="password"
+                            name="password"
+                            placeholder="••••••••"
+                            className={c.input}
+                            value={form.password}
+                            onChange={handleChange}
+                            autoComplete="current-password"
+                            required
+                            tone="dark"
+                        />
+                    </AuthField>
 
-                        <button type="submit" className="w-full bg-[#c6ff3d] text-[#08080f] font-bold text-sm px-6 py-3.5 rounded-xl transition-all duration-200 hover:bg-[#b5eb29] hover:shadow-[0_0_15px_rgba(198,255,61,0.3)] disabled:opacity-50 disabled:cursor-not-allowed" disabled={loading}>
-                            {loading ? "Signing in…" : "Sign in to Dashboard →"}
-                        </button>
-                    </form>
+                    <AuthErrorBanner variant="dark">{error}</AuthErrorBanner>
 
-                    <div className="flex items-center justify-center my-1">
-                        <span className="text-[11px] font-bold uppercase text-white/25">or</span>
-                    </div>
+                    <button type="submit" className={c.primaryBtn} disabled={loading}>
+                        {loading ? "Signing in…" : "Sign in →"}
+                    </button>
+                </form>
 
-                    <div className="text-sm text-white/50 text-center">
-                        Don&apos;t have an account?{" "}
-                        <Link href="/register-trainer" className="font-semibold text-[#c6ff3d] hover:text-[#b5eb29] hover:underline transition-colors">
-                            Register trainer free
-                        </Link>
-                    </div>
-                </div>
-            </div>
-        </div>
+                <AuthNavLinks
+                    variant="dark"
+                    showBackHome={false}
+                    footerPrompt="Don't have an account?"
+                    footerHref="/register-trainer"
+                    footerLabel="Create one free"
+                />
+            </AuthCard>
+        </AuthShell>
+    );
+}
+
+export default function TrainerLoginPage() {
+    return (
+        <Suspense fallback={null}>
+            <LoginTrainerContent />
+        </Suspense>
     );
 }

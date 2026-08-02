@@ -1,37 +1,247 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
+import HeroSlideshow from "@/components/marketing/HeroSlideshow";
+import "./marketing-home.css";
 
 export default function Home() {
-    return (
-        <main className="min-h-screen flex flex-col bg-[#08080f] text-[#f4f4f5] font-sans overflow-x-hidden relative">
-            {/* ── Animated Blur Glow Orbs (Volt + Magenta) ── */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_20%_10%,rgba(198,255,61,0.10)_0%,transparent_60%),radial-gradient(ellipse_60%_80%_at_80%_80%,rgba(255,46,147,0.10)_0%,transparent_60%),radial-gradient(ellipse_40%_40%_at_60%_20%,rgba(217,255,110,0.06)_0%,transparent_50%),radial-gradient(ellipse_50%_50%_at_10%_90%,rgba(255,102,184,0.06)_0%,transparent_50%)] pointer-events-none z-0" aria-hidden="true" />
-            
-            {/* ── Grid Pattern Overlay ── */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none z-0" aria-hidden="true" />
+    const [menuOpen, setMenuOpen] = useState(false);
 
-            {/* ── Top Navigation ── */}
-            <header className="fixed top-0 left-0 right-0 h-[72px] flex items-center justify-between px-6 md:px-12 bg-[#08080f]/85 backdrop-blur-[20px] border-b border-white/8 z-[1000]">
-                <strong className="text-[26px] font-black italic uppercase tracking-wider text-[#f4f4f5]">MUKIJO</strong>
-                <div className="flex items-center gap-2 text-[13px] font-medium bg-white/4 border border-white/8 px-3 py-1.5 rounded-full">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#c6ff3d] shadow-[0_0_8px_#c6ff3d] animate-pulse" />
-                    <span className="text-white/70">Choose your platform</span>
+    const closeMenu = () => setMenuOpen(false);
+
+    return (
+        <main className="mkt-root min-h-screen flex flex-col overflow-x-hidden relative bg-white text-[#0a0a0f]">
+            {/* ── Sticky Nav ── */}
+            <header className="fixed top-0 left-0 right-0 z-[1000] h-[72px] bg-white/92 backdrop-blur-md border-b border-[rgba(10,10,15,0.08)]">
+                <div className="mkt-container h-full flex items-center justify-between">
+                    <a href="#top" className="mkt-brand text-[22px] md:text-[26px] text-[#0a0a0f] no-underline">
+                        MUKIJO
+                    </a>
+
+                    <nav className="hidden md:flex items-center gap-8 text-[14px] font-semibold text-[#5c5c66]">
+                        <a href="#sports" className="hover:text-[#0a0a0f] transition-colors">
+                            Sports
+                        </a>
+                        <a href="#band" className="hover:text-[#0a0a0f] transition-colors">
+                            Band
+                        </a>
+                        <a href="#get-started" className="hover:text-[#0a0a0f] transition-colors">
+                            Get started
+                        </a>
+                    </nav>
+
+                    <div className="hidden md:flex items-center gap-3">
+                        <a href="#get-started" className="mkt-btn mkt-btn-secondary">
+                            Log in
+                        </a>
+                        <a href="#get-started" className="mkt-btn mkt-btn-primary">
+                            Register
+                        </a>
+                    </div>
+
+                    <button
+                        type="button"
+                        className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-xl border border-[rgba(10,10,15,0.12)] text-[#0a0a0f] bg-white"
+                        aria-label={menuOpen ? "Close menu" : "Open menu"}
+                        aria-expanded={menuOpen}
+                        onClick={() => setMenuOpen((v) => !v)}
+                    >
+                        {menuOpen ? (
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M18 6L6 18M6 6l12 12" />
+                            </svg>
+                        ) : (
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M4 7h16M4 12h16M4 17h16" />
+                            </svg>
+                        )}
+                    </button>
                 </div>
             </header>
 
-            {/* ── Two App Panels ── */}
-            <section className="flex flex-col lg:flex-row flex-1 mt-[72px] relative z-10 min-h-[calc(100vh-72px-56px)]">
-                {/* ── Visual Transition Center Divider ── */}
-                <div className="hidden lg:block absolute left-1/2 top-0 bottom-0 w-[1px] bg-gradient-to-b from-white/8 to-white/2 z-50 pointer-events-none" aria-hidden="true" />
+            {menuOpen && (
+                <div className="fixed inset-x-0 top-[72px] z-[999] md:hidden bg-white border-b border-[rgba(10,10,15,0.08)] shadow-sm">
+                    <div className="mkt-container py-5 flex flex-col gap-4">
+                        <a href="#sports" onClick={closeMenu} className="text-[15px] font-semibold text-[#0a0a0f]">
+                            Sports
+                        </a>
+                        <a href="#band" onClick={closeMenu} className="text-[15px] font-semibold text-[#0a0a0f]">
+                            Band
+                        </a>
+                        <a href="#get-started" onClick={closeMenu} className="text-[15px] font-semibold text-[#0a0a0f]">
+                            Get started
+                        </a>
+                        <div className="flex gap-2 pt-2">
+                            <a href="#get-started" onClick={closeMenu} className="mkt-btn mkt-btn-secondary mkt-btn-block">
+                                Log in
+                            </a>
+                            <a href="#get-started" onClick={closeMenu} className="mkt-btn mkt-btn-primary mkt-btn-block">
+                                Register
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            )}
 
-                {/* ── Sports Club App Panel ── */}
-                <div className="flex-1 flex flex-col justify-center items-center p-8 lg:p-12 relative overflow-hidden group border-b lg:border-b-0 lg:border-r border-white/3">
-                    <div className="absolute w-[500px] h-[500px] rounded-full blur-[120px] opacity-15 bg-[#c6ff3d] -top-[100px] -left-[100px] pointer-events-none z-0" aria-hidden="true" />
+            {/* ── Hero ── */}
+            <section id="top" className="mkt-hero relative mt-[72px] min-h-[calc(100vh-72px)] flex items-center overflow-hidden">
+                <HeroSlideshow />
 
-                    <div className="w-full max-w-[520px] bg-[#0e0e19]/45 border border-white/5 rounded-[24px] p-8 lg:p-10 flex flex-col gap-8 backdrop-blur-[10px] z-10 transition-all duration-400 hover:border-white/10 hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
-                        <div className="flex flex-col gap-8">
-                            <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 bg-[#c6ff3d]/8 border border-[#c6ff3d]/20 text-[#c6ff3d] group-hover:scale-110">
-                                    <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <div className="mkt-container relative z-10 py-16 md:py-24 pb-24">
+                    <p className="mkt-brand mkt-hero-anim text-[28px] sm:text-[36px] md:text-[48px] lg:text-[56px] text-white leading-none mb-5 md:mb-6">
+                        MUKIJO
+                    </p>
+                    <h1 className="mkt-display mkt-hero-anim-delay text-[28px] sm:text-[36px] md:text-[44px] lg:text-[52px] text-white max-w-xl leading-[1.1] mb-4">
+                        Sports and stage. One home.
+                    </h1>
+                    <p className="mkt-hero-anim-delay text-[15px] md:text-[17px] text-white/80 max-w-md leading-relaxed mb-8">
+                        Run clubs, courts, and trainings — or book live music — without juggling five tools.
+                    </p>
+                    <div className="mkt-hero-anim-delay flex flex-wrap gap-3">
+                        <a href="#sports" className="mkt-btn mkt-btn-primary">
+                            Explore Sports
+                        </a>
+                        <a href="#band" className="mkt-btn mkt-btn-band">
+                            Explore Band
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            {/* ── Dual platforms ── */}
+            <section className="bg-[#f7f7f8] border-y border-[rgba(10,10,15,0.06)]">
+                <div className="mkt-container py-16 md:py-24 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-0 mkt-grid-full">
+                    <div id="sports" className="mkt-reveal mkt-platform-col scroll-mt-24 lg:pr-16">
+                        <span className="text-[12px] font-bold uppercase tracking-[0.18em] text-[#9fcc1f]">Sports Club</span>
+                        <h2 className="mkt-display text-[28px] md:text-[34px] text-[#0a0a0f] leading-tight">
+                            Your club. Your court. Your game.
+                        </h2>
+                        <p className="text-[15px] md:text-[16px] text-[#5c5c66] leading-relaxed">
+                            Groups, members, matches, events, fundraising, venues, and trainings — built for admins,
+                            players, venue owners, and trainers.
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                            <span className="text-[12px] font-semibold px-3 py-1.5 rounded-xl border border-[rgba(10,10,15,0.1)] text-[#0a0a0f]/80 bg-white">
+                                Matches
+                            </span>
+                            <span className="text-[12px] font-semibold px-3 py-1.5 rounded-xl border border-[rgba(10,10,15,0.1)] text-[#0a0a0f]/80 bg-white">
+                                Venues
+                            </span>
+                            <span className="text-[12px] font-semibold px-3 py-1.5 rounded-xl border border-[rgba(10,10,15,0.1)] text-[#0a0a0f]/80 bg-white">
+                                Payments
+                            </span>
+                            <span className="text-[12px] font-semibold px-3 py-1.5 rounded-xl border border-[rgba(10,10,15,0.1)] text-[#0a0a0f]/80 bg-white">
+                                Trainings
+                            </span>
+                        </div>
+                        <div className="mkt-platform-actions">
+                            <a href="#get-started" className="mkt-btn mkt-btn-primary">
+                                Get started in Sports
+                            </a>
+                        </div>
+                    </div>
+
+                    <div id="band" className="mkt-reveal mkt-platform-col scroll-mt-24 lg:border-l lg:border-[rgba(10,10,15,0.08)] lg:pl-16">
+                        <span className="text-[12px] font-bold uppercase tracking-[0.18em] text-[#ff2e93]">Music Band</span>
+                        <h2 className="mkt-display text-[28px] md:text-[34px] text-[#0a0a0f] leading-tight">
+                            Where music meets the stage.
+                        </h2>
+                        <p className="text-[15px] md:text-[16px] text-[#5c5c66] leading-relaxed">
+                            Artist profiles, booking requests, venues, and earnings — for bands, performers, and clients
+                            who book live.
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                            <span className="text-[12px] font-semibold px-3 py-1.5 rounded-xl border border-[rgba(10,10,15,0.1)] text-[#0a0a0f]/80 bg-white">
+                                Bookings
+                            </span>
+                            <span className="text-[12px] font-semibold px-3 py-1.5 rounded-xl border border-[rgba(10,10,15,0.1)] text-[#0a0a0f]/80 bg-white">
+                                Artists
+                            </span>
+                            <span className="text-[12px] font-semibold px-3 py-1.5 rounded-xl border border-[rgba(10,10,15,0.1)] text-[#0a0a0f]/80 bg-white">
+                                Venues
+                            </span>
+                            <span className="text-[12px] font-semibold px-3 py-1.5 rounded-xl border border-[rgba(10,10,15,0.1)] text-[#0a0a0f]/80 bg-white">
+                                Earnings
+                            </span>
+                        </div>
+                        <div className="mkt-platform-actions">
+                            <Link href="/band" className="mkt-btn mkt-btn-band">
+                                Open Band
+                            </Link>
+                            <a href="#get-started" className="mkt-btn mkt-btn-secondary">
+                                Role entry
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* ── Who it's for ── */}
+            <section className="bg-white">
+                <div className="mkt-container py-16 md:py-20">
+                    <div className="mkt-section-head">
+                        <h2 className="mkt-display text-[26px] md:text-[32px] text-[#0a0a0f]">Built for every role</h2>
+                        <p>Pick how you show up — registration takes you straight into the right flow.</p>
+                    </div>
+                    <div className="mkt-grid-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {[
+                            { href: "/register", title: "Club Admin", desc: "Run groups, events, and payments." },
+                            { href: "/register-member", title: "Club Member", desc: "Join your club and stay booked in." },
+                            { href: "/register-venue", title: "Venue Owner", desc: "List courts and manage slots." },
+                            { href: "/register-trainer", title: "Trainer", desc: "Publish trainings and enroll athletes." },
+                            { href: "/register-user", title: "Player / User", desc: "Find venues, games, and courses." },
+                            { href: "/band/register", title: "Artist / Band", desc: "Get booked for live shows." },
+                        ].map((item) => (
+                            <Link key={item.href} href={item.href} className="mkt-role-card">
+                                <span className="text-[16px] font-bold text-[#0a0a0f]">{item.title}</span>
+                                <span className="text-[13px] text-[#5c5c66] leading-relaxed">{item.desc}</span>
+                                <span className="mkt-role-card-cta">Register →</span>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ── How it works ── */}
+            <section className="bg-[#f7f7f8] border-y border-[rgba(10,10,15,0.06)]">
+                <div className="mkt-container py-16 md:py-20">
+                    <div className="mkt-section-head">
+                        <h2 className="mkt-display text-[26px] md:text-[32px] text-[#0a0a0f]">How it works</h2>
+                        <p>Three simple steps from landing on Mukijo to running your day.</p>
+                    </div>
+                    <ol className="mkt-grid-full grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 list-none p-0 m-0">
+                        {[
+                            { n: "01", t: "Choose your side", d: "Sports club ops or live music bookings — same brand, clear path." },
+                            { n: "02", t: "Create your account", d: "Register for your role. Email and password — you’re in." },
+                            { n: "03", t: "Run the day", d: "Manage clubs, courts, trainings, or stage bookings from your dashboard." },
+                        ].map((step) => (
+                            <li key={step.n} className="flex flex-col gap-3 text-center md:text-left items-center md:items-start">
+                                <span className="mkt-brand text-[18px] text-[#c6ff3d] bg-[#0a0a0f] inline-flex w-fit px-2.5 py-1 rounded-lg not-italic">
+                                    {step.n}
+                                </span>
+                                <h3 className="text-[18px] font-bold text-[#0a0a0f]">{step.t}</h3>
+                                <p className="text-[14px] text-[#5c5c66] leading-relaxed">{step.d}</p>
+                            </li>
+                        ))}
+                    </ol>
+                </div>
+            </section>
+
+            {/* ── Get started / role hub ── */}
+            <section id="get-started" className="bg-white scroll-mt-24">
+                <div className="mkt-container py-16 md:py-24">
+                    <div className="mkt-section-head">
+                        <h2 className="mkt-display text-[26px] md:text-[34px] text-[#0a0a0f]">Get started</h2>
+                        <p>Log in or register with the role that matches how you use Mukijo.</p>
+                    </div>
+
+                    <div className="mkt-grid-full grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
+                        {/* Sports role hub */}
+                        <div className="mkt-panel">
+                            <div className="flex items-center gap-3">
+                                <span className="w-11 h-11 rounded-xl flex items-center justify-center bg-[#c6ff3d]/30 text-[#0a0a0f] border border-[#c6ff3d]/45 shrink-0">
+                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
                                         <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
                                         <path d="M4 22h16" />
@@ -39,139 +249,136 @@ export default function Home() {
                                         <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
                                         <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
                                     </svg>
+                                </span>
+                                <div>
+                                    <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-[#9fcc1f]">Sports Club</p>
+                                    <h3 className="text-[20px] font-bold text-[#0a0a0f]">Sports platform</h3>
                                 </div>
-                                <span className="text-sm font-bold uppercase tracking-[2px] text-[#c6ff3d]">Sports Club</span>
                             </div>
 
-                            <h2 className="text-3xl font-extrabold tracking-[-0.5px] text-white">Sports Club Platform</h2>
-                            <p className="text-[15px] leading-relaxed text-white/60">
-                                Manage your club, members, matches, events & payments.
-                                Built for admins, coaches, players, and venue owners.
-                            </p>
+                            <div>
+                                <div className="mkt-section-label">Login As</div>
+                                <Link href="/login" className="mkt-btn mkt-btn-primary mkt-btn-block">
+                                    Club Admin
+                                </Link>
+                                <div className="mkt-role-grid mt-2.5">
+                                    <Link href="/super-admin/login" className="mkt-btn mkt-btn-role">
+                                        Super Admin
+                                    </Link>
+                                    <Link href="/login-member" className="mkt-btn mkt-btn-role">
+                                        Member
+                                    </Link>
+                                    <Link href="/login-venue" className="mkt-btn mkt-btn-role">
+                                        Venue Owner
+                                    </Link>
+                                    <Link href="/login-user" className="mkt-btn mkt-btn-role">
+                                        User
+                                    </Link>
+                                    <Link href="/login-trainer" className="mkt-btn mkt-btn-role">
+                                        Trainer
+                                    </Link>
+                                </div>
+                            </div>
 
-                            <div className="flex flex-wrap gap-2">
-                                <span className="text-[12px] font-semibold bg-white/3 border border-white/6 text-white/80 px-3 py-1.5 rounded-full transition-all duration-200 hover:bg-white/5 hover:border-[#c6ff3d]/30 hover:text-[#c6ff3d]">Group Management</span>
-                                <span className="text-[12px] font-semibold bg-white/3 border border-white/6 text-white/80 px-3 py-1.5 rounded-full transition-all duration-200 hover:bg-white/5 hover:border-[#c6ff3d]/30 hover:text-[#c6ff3d]">Match Scheduling</span>
-                                <span className="text-[12px] font-semibold bg-white/3 border border-white/6 text-white/80 px-3 py-1.5 rounded-full transition-all duration-200 hover:bg-white/5 hover:border-[#c6ff3d]/30 hover:text-[#c6ff3d]">Payments</span>
-                                <span className="text-[12px] font-semibold bg-white/3 border border-white/6 text-white/80 px-3 py-1.5 rounded-full transition-all duration-200 hover:bg-white/5 hover:border-[#c6ff3d]/30 hover:text-[#c6ff3d]">Venues</span>
+                            <div className="mkt-divider">or</div>
+
+                            <div>
+                                <div className="mkt-section-label">Register As</div>
+                                <Link href="/register" className="mkt-btn mkt-btn-primary-soft mkt-btn-block">
+                                    Club Admin
+                                </Link>
+                                <div className="mkt-role-grid mt-2.5">
+                                    <Link href="/register-member" className="mkt-btn mkt-btn-role">
+                                        Member
+                                    </Link>
+                                    <Link href="/register-venue" className="mkt-btn mkt-btn-role">
+                                        Venue Owner
+                                    </Link>
+                                    <Link href="/register-user" className="mkt-btn mkt-btn-role">
+                                        User
+                                    </Link>
+                                    <Link href="/register-trainer" className="mkt-btn mkt-btn-role">
+                                        Trainer
+                                    </Link>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-6 border-t border-white/6 pt-7">
-                            <div className="flex flex-col gap-3">
-                                <div className="text-[12px] font-bold uppercase tracking-[1.5px] text-white/40 flex items-center gap-1.5">
-                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><polyline points="10 17 15 12 10 7" /><line x1="15" y1="12" x2="3" y2="12" /></svg>
-                                    Login As
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    <Link href="/super-admin/login" className="text-[13px] font-semibold px-4 py-2.5 rounded-xl inline-flex items-center gap-1.5 transition-all duration-200 bg-white/3 border border-white/8 text-[#818cf8] hover:bg-white/6 hover:border-white/12" style={{ borderColor: "rgba(99, 102, 241, 0.5)" }}>Super Admin</Link>
-                                    <Link href="/login" className="text-[13px] font-semibold px-4 py-2.5 rounded-xl inline-flex items-center gap-1.5 transition-all duration-200 bg-[#c6ff3d] border border-[#c6ff3d] text-[#08080f] hover:bg-[#b5eb29] hover:shadow-[0_0_15px_rgba(198,255,61,0.3)]">Club Admin</Link>
-                                    <Link href="/login-member" className="text-[13px] font-semibold px-4 py-2.5 rounded-xl inline-flex items-center gap-1.5 transition-all duration-200 bg-white/3 border border-white/8 text-white/85 hover:bg-white/6 hover:border-white/12">Member</Link>
-                                    <Link href="/login-venue" className="text-[13px] font-semibold px-4 py-2.5 rounded-xl inline-flex items-center gap-1.5 transition-all duration-200 bg-white/3 border border-white/8 text-white/85 hover:bg-white/6 hover:border-white/12">Venue Owner</Link>
-                                    <Link href="/login-user" className="text-[13px] font-semibold px-4 py-2.5 rounded-xl inline-flex items-center gap-1.5 transition-all duration-200 bg-white/3 border border-white/8 text-white/85 hover:bg-white/6 hover:border-white/12">User</Link>
-                                    <Link href="/login-trainer" className="text-[13px] font-semibold px-4 py-2.5 rounded-xl inline-flex items-center gap-1.5 transition-all duration-200 bg-white/3 border border-white/8 text-white/85 hover:bg-white/6 hover:border-white/12">Trainer</Link>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center justify-center my-1">
-                                <span className="text-[11px] font-bold uppercase text-white/25">or</span>
-                            </div>
-
-                            <div className="flex flex-col gap-3">
-                                <div className="text-[12px] font-bold uppercase tracking-[1.5px] text-white/40 flex items-center gap-1.5">
-                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" /></svg>
-                                    Register As
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    <Link href="/register" className="text-[13px] font-semibold px-4 py-2.5 rounded-xl inline-flex items-center gap-1.5 transition-all duration-200 bg-[#c6ff3d]/8 border border-[#c6ff3d]/20 text-[#c6ff3d] hover:bg-[#c6ff3d]/15 hover:border-[#c6ff3d]/30">Club Admin</Link>
-                                    <Link href="/register-member" className="text-[13px] font-semibold px-4 py-2.5 rounded-xl inline-flex items-center gap-1.5 transition-all duration-200 bg-white/3 border border-white/8 text-white/80 hover:bg-white/6 hover:border-white/12">Member</Link>
-                                    <Link href="/register-venue" className="text-[13px] font-semibold px-4 py-2.5 rounded-xl inline-flex items-center gap-1.5 transition-all duration-200 bg-white/3 border border-white/8 text-white/80 hover:bg-white/6 hover:border-white/12">Venue Owner</Link>
-                                    <Link href="/register-user" className="text-[13px] font-semibold px-4 py-2.5 rounded-xl inline-flex items-center gap-1.5 transition-all duration-200 bg-white/3 border border-white/8 text-white/80 hover:bg-white/6 hover:border-white/12">User</Link>
-                                    <Link href="/register-trainer" className="text-[13px] font-semibold px-4 py-2.5 rounded-xl inline-flex items-center gap-1.5 transition-all duration-200 bg-white/3 border border-white/8 text-white/80 hover:bg-white/6 hover:border-white/12">Trainer</Link>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* ── Band App Panel ── */}
-                <div className="flex-1 flex flex-col justify-center items-center p-8 lg:p-12 relative overflow-hidden group">
-                    <div className="absolute w-[500px] h-[500px] rounded-full blur-[120px] opacity-15 bg-[#ff2e93] -bottom-[100px] -right-[100px] pointer-events-none z-0" aria-hidden="true" />
-                    
-                    <div className="w-full max-w-[520px] bg-[#0e0e19]/45 border border-white/5 rounded-[24px] p-8 lg:p-10 flex flex-col gap-8 backdrop-blur-[10px] z-10 transition-all duration-400 hover:border-white/10 hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] relative">
-                        <div className="absolute top-5 right-5 inline-flex items-center gap-1 text-[10px] font-black bg-gradient-to-br from-[#ff2e93] to-[#ff5b2e] text-white px-2.5 py-1 rounded-full shadow-[0_0_12px_rgba(255,46,147,0.3)] z-20">
-                            <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
-                            NEW
-                        </div>
-
-                        <div className="flex flex-col gap-8">
-                            <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 bg-[#ff2e93]/8 border border-[#ff2e93]/20 text-[#ff2e93] group-hover:scale-110">
-                                    <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        {/* Band role hub */}
+                        <div className="mkt-panel">
+                            <div className="flex items-center gap-3">
+                                <span className="w-11 h-11 rounded-xl flex items-center justify-center bg-[#ff2e93]/12 text-[#ff2e93] border border-[#ff2e93]/25 shrink-0">
+                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M9 18V5l12-2v13" />
                                         <circle cx="6" cy="18" r="3" />
                                         <circle cx="18" cy="16" r="3" />
                                     </svg>
+                                </span>
+                                <div>
+                                    <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-[#ff2e93]">Music Band</p>
+                                    <h3 className="text-[20px] font-bold text-[#0a0a0f]">Band platform</h3>
                                 </div>
-                                <span className="text-sm font-bold uppercase tracking-[2px] text-[#ff2e93]">Music Band</span>
                             </div>
 
-                            <h2 className="text-3xl font-extrabold tracking-[-0.5px] text-white">Music Band Platform</h2>
-                            <p className="text-[15px] leading-relaxed text-white/60">
-                                Book performances, manage artists, venues & earnings.
-                                For band admins, artists & venue partners.
-                            </p>
-
-                            <div className="flex flex-wrap gap-2">
-                                <span className="text-[12px] font-semibold bg-white/3 border border-white/6 text-white/80 px-3 py-1.5 rounded-full transition-all duration-200 hover:bg-white/5 hover:border-[#ff2e93]/30 hover:text-[#ff2e93]">Bookings</span>
-                                <span className="text-[12px] font-semibold bg-white/3 border border-white/6 text-white/80 px-3 py-1.5 rounded-full transition-all duration-200 hover:bg-white/5 hover:border-[#ff2e93]/30 hover:text-[#ff2e93]">Artists</span>
-                                <span className="text-[12px] font-semibold bg-white/3 border border-white/6 text-white/80 px-3 py-1.5 rounded-full transition-all duration-200 hover:bg-white/5 hover:border-[#ff2e93]/30 hover:text-[#ff2e93]">Venues</span>
-                                <span className="text-[12px] font-semibold bg-white/3 border border-white/6 text-white/80 px-3 py-1.5 rounded-full transition-all duration-200 hover:bg-white/5 hover:border-[#ff2e93]/30 hover:text-[#ff2e93]">Earnings</span>
-                            </div>
-                        </div>
-
-                        <div className="flex flex-col gap-6 border-t border-white/6 pt-7">
-                            <div className="flex flex-col gap-3">
-                                <div className="text-[12px] font-bold uppercase tracking-[1.5px] text-white/40 flex items-center gap-1.5">
-                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><polyline points="10 17 15 12 10 7" /><line x1="15" y1="12" x2="3" y2="12" /></svg>
-                                    Login As
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    <Link href="/band/login" className="text-[13px] font-semibold px-4 py-2.5 rounded-xl inline-flex items-center gap-1.5 transition-all duration-200 bg-[#ff2e93] border border-[#ff2e93] text-white w-full justify-center hover:bg-[#e01d79] hover:shadow-[0_0_15px_rgba(255,46,147,0.3)]">
-                                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" className="mr-1"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
-                                        Band Admin / Artist
-                                    </Link>
-                                </div>
-                                <span className="text-[11px] leading-relaxed text-white/35">Access the band management dashboard for scheduling and booking coordination.</span>
+                            <div>
+                                <div className="mkt-section-label">Login As</div>
+                                <Link href="/band/login" className="mkt-btn mkt-btn-band mkt-btn-block">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                        <path d="M9 18V5l12-2v13" />
+                                        <circle cx="6" cy="18" r="3" />
+                                        <circle cx="18" cy="16" r="3" />
+                                    </svg>
+                                    Band Admin / Artist
+                                </Link>
+                                <p className="text-[12px] leading-relaxed text-[#5c5c66] mt-2.5">
+                                    Access the band dashboard for scheduling and booking coordination.
+                                </p>
                             </div>
 
-                            <div className="flex items-center justify-center my-1">
-                                <span className="text-[11px] font-bold uppercase text-white/25">or</span>
+                            <div className="mkt-divider">or</div>
+
+                            <div>
+                                <div className="mkt-section-label">Register As</div>
+                                <Link href="/band/register" className="mkt-btn mkt-btn-band-outline mkt-btn-block">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                        <path d="M9 18V5l12-2v13" />
+                                        <circle cx="6" cy="18" r="3" />
+                                        <circle cx="18" cy="16" r="3" />
+                                    </svg>
+                                    Band Admin / Artist
+                                </Link>
+                                <p className="text-[12px] leading-relaxed text-[#5c5c66] mt-2.5">
+                                    Create a band or artist account to publish profiles and accept bookings.
+                                </p>
                             </div>
 
-                            <div className="flex flex-col gap-3">
-                                <div className="text-[12px] font-bold uppercase tracking-[1.5px] text-white/40 flex items-center gap-1.5">
-                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" /></svg>
-                                    Register As
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    <Link href="/band/register" className="text-[13px] font-semibold px-4 py-2.5 rounded-xl inline-flex items-center gap-1.5 transition-all duration-200 bg-[#ff2e93]/8 border border-[#ff2e93]/20 text-[#ff2e93] w-full justify-center hover:bg-[#ff2e93]/15 hover:border-[#ff2e93]/30">
-                                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" className="mr-1"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
-                                        Band Admin / Artist
-                                    </Link>
-                                </div>
-                                <span className="text-[11px] leading-relaxed text-white/35">Create a new band or artist account to publish profiles and accept event bookings.</span>
-                            </div>
+                            <Link href="/band" className="text-[13px] font-bold text-[#ff2e93] hover:underline w-fit mt-auto">
+                                Visit Band landing →
+                            </Link>
                         </div>
                     </div>
                 </div>
             </section>
 
             {/* ── Footer ── */}
-            <footer className="h-14 border-t border-white/5 flex items-center justify-center gap-1.5 text-xs text-white/40 bg-[#05050a] z-10 relative">
-                <span>©</span>
-                <span>2026 MUKIJO.</span>
-                All rights reserved.
+            <footer className="border-t border-[rgba(10,10,15,0.08)] bg-white">
+                <div className="mkt-container h-16 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#5c5c66]">
+                    <div className="flex items-center gap-2">
+                        <span className="mkt-brand text-[14px] text-[#0a0a0f]">MUKIJO</span>
+                        <span>© 2026. All rights reserved.</span>
+                    </div>
+                    <div className="flex gap-4">
+                        <a href="#sports" className="hover:text-[#0a0a0f] transition-colors">
+                            Sports
+                        </a>
+                        <a href="#band" className="hover:text-[#0a0a0f] transition-colors">
+                            Band
+                        </a>
+                        <a href="#get-started" className="hover:text-[#0a0a0f] transition-colors">
+                            Get started
+                        </a>
+                    </div>
+                </div>
             </footer>
         </main>
     );

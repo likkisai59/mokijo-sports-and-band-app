@@ -1,0 +1,441 @@
+/* Mukijo marketing home — light theme tokens, buttons, motion (scoped) */
+
+.mkt-root {
+    --mkt-bg: #ffffff;
+    --mkt-alt: #f7f7f8;
+    --mkt-text: #0a0a0f;
+    --mkt-muted: #5c5c66;
+    --mkt-border: rgba(10, 10, 15, 0.1);
+    --mkt-lime: #c6ff3d;
+    --mkt-lime-hover: #b5eb29;
+    --mkt-lime-soft: rgba(198, 255, 61, 0.28);
+    --mkt-magenta: #ff2e93;
+    --mkt-magenta-hover: #e01d79;
+    --mkt-display: "Raleway", "Outfit", sans-serif;
+    --mkt-brand-font: "Raleway", "Outfit", sans-serif;
+    --mkt-body: "Outfit", sans-serif;
+    background: var(--mkt-bg);
+    color: var(--mkt-text);
+    font-family: var(--mkt-body);
+}
+
+.mkt-brand {
+    font-family: var(--mkt-brand-font);
+    font-style: normal;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.mkt-display {
+    font-family: var(--mkt-display);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+/* ── Shared page container (centered) ── */
+.mkt-container {
+    width: 100%;
+    max-width: 80rem;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+    .mkt-container {
+        padding-left: 2.5rem;
+        padding-right: 2.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .mkt-container {
+        padding-left: 3rem;
+        padding-right: 3rem;
+    }
+}
+
+.mkt-section-head {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 36rem;
+    margin-bottom: 2.5rem;
+}
+
+.mkt-section-head h2 {
+    margin-bottom: 0.75rem;
+}
+
+.mkt-section-head p {
+    margin: 0 auto;
+    max-width: 32rem;
+    color: var(--mkt-muted);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+}
+
+.mkt-grid-full {
+    width: 100%;
+}
+
+/* ── Shared buttons ── */
+.mkt-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 44px;
+    padding: 0 1.25rem;
+    border-radius: 0.75rem;
+    font-family: var(--mkt-body);
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-decoration: none;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition:
+        background-color 0.18s ease,
+        border-color 0.18s ease,
+        color 0.18s ease,
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+.mkt-btn:hover {
+    transform: translateY(-1px);
+}
+
+.mkt-btn:active {
+    transform: translateY(0);
+}
+
+.mkt-btn-primary {
+    background: var(--mkt-lime);
+    border-color: var(--mkt-lime);
+    color: #08080f;
+}
+
+.mkt-btn-primary:hover {
+    background: var(--mkt-lime-hover);
+    border-color: var(--mkt-lime-hover);
+}
+
+.mkt-btn-secondary {
+    background: #ffffff;
+    border-color: rgba(10, 10, 15, 0.14);
+    color: var(--mkt-text);
+}
+
+.mkt-btn-secondary:hover {
+    background: var(--mkt-alt);
+    border-color: rgba(10, 10, 15, 0.22);
+}
+
+.mkt-btn-band {
+    background: var(--mkt-magenta);
+    border-color: var(--mkt-magenta);
+    color: #ffffff;
+}
+
+.mkt-btn-band:hover {
+    background: var(--mkt-magenta-hover);
+    border-color: var(--mkt-magenta-hover);
+}
+
+.mkt-btn-band-outline {
+    background: #ffffff;
+    border-color: rgba(255, 46, 147, 0.45);
+    color: var(--mkt-magenta);
+}
+
+.mkt-btn-band-outline:hover {
+    background: rgba(255, 46, 147, 0.06);
+    border-color: var(--mkt-magenta);
+}
+
+.mkt-btn-primary-soft {
+    background: var(--mkt-lime-soft);
+    border-color: rgba(198, 255, 61, 0.55);
+    color: #0a0a0f;
+}
+
+.mkt-btn-primary-soft:hover {
+    background: rgba(198, 255, 61, 0.42);
+}
+
+.mkt-btn-block {
+    width: 100%;
+}
+
+.mkt-btn-role {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    background: #ffffff;
+    border: 1.5px solid rgba(10, 10, 15, 0.12);
+    color: var(--mkt-text);
+    white-space: normal;
+    text-align: center;
+}
+
+.mkt-btn-role:hover {
+    background: #ffffff;
+    border-color: rgba(10, 10, 15, 0.28);
+    box-shadow: 0 2px 8px rgba(10, 10, 15, 0.06);
+}
+
+.mkt-role-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .mkt-role-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.mkt-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    padding: 1.75rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(10, 10, 15, 0.08);
+    background: var(--mkt-alt);
+    height: 100%;
+}
+
+@media (min-width: 768px) {
+    .mkt-panel {
+        padding: 2rem;
+    }
+}
+
+.mkt-section-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--mkt-muted);
+    margin-bottom: 0.65rem;
+}
+
+.mkt-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: rgba(92, 92, 102, 0.55);
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.mkt-divider::before,
+.mkt-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: rgba(10, 10, 15, 0.1);
+}
+
+.mkt-role-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 140px;
+    padding: 1.25rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(10, 10, 15, 0.08);
+    background: #ffffff;
+    text-decoration: none;
+    transition:
+        border-color 0.18s ease,
+        background-color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.mkt-role-card:hover {
+    border-color: rgba(10, 10, 15, 0.18);
+    background: var(--mkt-alt);
+    box-shadow: 0 4px 16px rgba(10, 10, 15, 0.05);
+}
+
+.mkt-role-card-cta {
+    margin-top: auto;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #7aab18;
+}
+
+.mkt-platform-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    height: 100%;
+}
+
+.mkt-platform-col .mkt-btn {
+    margin-top: auto;
+    align-self: flex-start;
+}
+
+.mkt-platform-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: auto;
+}
+
+@keyframes mkt-hero-in {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes mkt-reveal {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.mkt-hero-anim {
+    animation: mkt-hero-in 0.7s ease-out both;
+}
+
+.mkt-hero-anim-delay {
+    animation: mkt-hero-in 0.75s ease-out 0.12s both;
+}
+
+/* ── Hero slideshow ── */
+.mkt-hero {
+    background: #0a0a0f;
+}
+
+.mkt-hero-slideshow {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+.mkt-hero-slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+    pointer-events: none;
+}
+
+.mkt-hero-slide.is-active {
+    opacity: 1;
+}
+
+.mkt-hero-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+        linear-gradient(105deg, rgba(8, 8, 15, 0.82) 0%, rgba(8, 8, 15, 0.55) 42%, rgba(8, 8, 15, 0.28) 70%, rgba(8, 8, 15, 0.35) 100%),
+        linear-gradient(to top, rgba(8, 8, 15, 0.55) 0%, transparent 45%);
+}
+
+.mkt-hero-slideshow-controls {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 1.25rem;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 0 1rem;
+}
+
+.mkt-hero-slideshow-nav {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: rgba(8, 8, 15, 0.35);
+    color: #fff;
+    font-size: 1.35rem;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.mkt-hero-slideshow-nav:hover {
+    background: rgba(8, 8, 15, 0.55);
+    border-color: rgba(255, 255, 255, 0.45);
+}
+
+.mkt-hero-slideshow-dots {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.mkt-hero-slideshow-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    padding: 0;
+    border-radius: 999px;
+    border: none;
+    background: rgba(255, 255, 255, 0.35);
+    cursor: pointer;
+    transition: width 0.2s ease, background 0.2s ease;
+}
+
+.mkt-hero-slideshow-dot.is-active {
+    width: 1.15rem;
+    background: #c6ff3d;
+}
+
+.mkt-reveal {
+    animation: mkt-reveal 0.65s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mkt-hero-anim,
+    .mkt-hero-anim-delay,
+    .mkt-reveal,
+    .mkt-btn:hover {
+        animation: none;
+        transform: none;
+    }
+
+    .mkt-hero-slide {
+        transition: none;
+    }
+}

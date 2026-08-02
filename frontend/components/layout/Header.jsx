@@ -188,7 +188,7 @@ export function Header({ onMenuClick }) {
                 </div>
                 <div className="space-y-1">
                   <Link
-                    href="/register?role=client"
+                    href="/band/register?role=client"
                     onClick={() => setRegisterOpen(false)}
                     className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-primary/10 transition-colors group text-left"
                   >
@@ -204,7 +204,7 @@ export function Header({ onMenuClick }) {
                   </Link>
 
                   <Link
-                    href="/register?role=artist"
+                    href="/band/register?role=artist"
                     onClick={() => setRegisterOpen(false)}
                     className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-primary/10 transition-colors group text-left"
                   >
@@ -220,7 +220,7 @@ export function Header({ onMenuClick }) {
                   </Link>
 
                   <Link
-                    href="/register?role=venue_owner"
+                    href="/band/register?role=venue_owner"
                     onClick={() => setRegisterOpen(false)}
                     className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-primary/10 transition-colors group text-left"
                   >

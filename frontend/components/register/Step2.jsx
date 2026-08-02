@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { hearAboutOptions, termsOptions } from "./constants";
+import { getAuthClasses } from "@/components/auth";
 import PasswordField from "@/components/ui/PasswordField";
 import PhoneInput from "@/components/ui/PhoneInput";
 import {
@@ -20,6 +21,7 @@ import {
     phoneLengthMessage,
 } from "@/lib/validation";
 
+const c = getAuthClasses("dark");
 const fieldErrorStyle = { color: "#ef4444", fontSize: "12px", marginTop: "6px", marginBottom: 0 };
 
 export default function Step2({ formData, onChange, onPrevious, onSubmit, loading }) {
@@ -115,23 +117,23 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-center gap-4 mb-6">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-[#c6ff3d]/20 border border-[#c6ff3d]/30 text-white/50">1</div>
-                <div className="flex-1 h-[1px] bg-white/8 max-w-[60px]"></div>
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-[#c6ff3d] text-[#08080f] shadow-[0_0_12px_rgba(198,255,61,0.4)]">2</div>
+            <div className="flex items-center justify-center gap-4 mb-2">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.1)] text-[rgba(244,244,245,0.5)]">1</div>
+                <div className="flex-1 h-px bg-[rgba(255,255,255,0.1)] max-w-[60px]"></div>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold bg-[#c6ff3d] text-[#08080f]">2</div>
             </div>
 
             <div className="text-center mb-4">
-                <h2 className="text-xl font-bold text-white tracking-tight">Admin Details</h2>
-                <p className="text-sm text-slate-400 mt-1">Tell us about the club administrator</p>
+                <h2 className={c.heading}>Admin Details</h2>
+                <p className={`${c.subtext} mt-1`}>Tell us about the club administrator</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-white/40">First Name *</label>
+                    <label className={`${c.label} text-[rgba(244,244,245,0.75)]`}>First Name *</label>
                     <input
                         type="text"
-                        className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
+                        className={c.input}
                         placeholder="First name"
                         value={formData.firstName}
                         onChange={(e) => handleNameChange("firstName", e.target.value)}
@@ -140,10 +142,10 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                     {fieldErrors.firstName ? <p style={fieldErrorStyle}>{fieldErrors.firstName}</p> : null}
                 </div>
                 <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-white/40">Last Name *</label>
+                    <label className={`${c.label} text-[rgba(244,244,245,0.75)]`}>Last Name *</label>
                     <input
                         type="text"
-                        className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
+                        className={c.input}
                         placeholder="Last name"
                         value={formData.lastName}
                         onChange={(e) => handleNameChange("lastName", e.target.value)}
@@ -154,10 +156,10 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
             </div>
 
             <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-white/40">Club Admin Email *</label>
+                <label className={`${c.label} text-[rgba(244,244,245,0.75)]`}>Club Admin Email *</label>
                 <input
                     type="email"
-                    className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
+                    className={c.input}
                     placeholder="admin@yourclub.com"
                     value={formData.email}
                     onChange={(e) => {
@@ -172,9 +174,10 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
             </div>
 
             <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-white/40">Password *</label>
+                <label className={`${c.label} text-[rgba(244,244,245,0.75)]`}>Password *</label>
                 <PasswordField
-                    className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
+                    tone="dark"
+                    className={c.input}
                     placeholder="Create a strong password"
                     value={formData.password}
                     onChange={(e) => {
@@ -187,11 +190,11 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
             </div>
 
             <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-white/40">Club Admin Phone Number *</label>
+                <label className={`${c.label} text-[rgba(244,244,245,0.75)]`}>Club Admin Phone Number *</label>
                 <PhoneInput
                     id="club-admin-phone"
-                    className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
-                    selectClassName="bg-[#0e0e19] text-white border border-white/8 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#c6ff3d]"
+                    className={c.input}
+                    selectClassName={c.select}
                     countryCode={phoneCode}
                     digits={phoneDigits}
                     onCountryCodeChange={(code) => syncPhone(code, phoneDigits)}
@@ -202,10 +205,10 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
             </div>
 
             <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-white/40">Club Admin Aadhar Number *</label>
+                <label className={`${c.label} text-[rgba(244,244,245,0.75)]`}>Club Admin Aadhar Number *</label>
                 <input
                     type="text"
-                    className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
+                    className={c.input}
                     placeholder="12-digit Aadhar Number"
                     inputMode="numeric"
                     maxLength={12}
@@ -217,9 +220,9 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
             </div>
 
             <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-white/40">How did you hear about Mukijo? *</label>
+                <label className={`${c.label} text-[rgba(244,244,245,0.75)]`}>How did you hear about Mukijo? *</label>
                 <select
-                    className="w-full bg-[#0e0e19] border border-white/8 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#c6ff3d]"
+                    className={c.select}
                     value={formData.hearAbout}
                     onChange={(e) => onChange("hearAbout", e.target.value)}
                     disabled={loading}
@@ -234,24 +237,16 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
             </div>
 
             <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-white/40">Terms & Conditions *</label>
-                <p className="text-xs leading-relaxed text-slate-400">
+                <label className={`${c.label} text-[rgba(244,244,245,0.75)]`}>Terms & Conditions *</label>
+                <p className="text-xs leading-relaxed text-[rgba(244,244,245,0.5)]">
                     I hereby confirm that I have read and accept the Terms & Conditions, and that I have the right to
                     enter this agreement on behalf of my club or organisation.
                 </p>
-                <div style={{ display: "flex", gap: "20px", alignItems: "center", paddingTop: "4px" }}>
+                <div className="flex gap-5 items-center pt-1">
                     {termsOptions.map((option) => (
                         <label
                             key={option}
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "8px",
-                                color: "#ffffff",
-                                fontSize: "14px",
-                                fontWeight: 600,
-                                cursor: loading ? "not-allowed" : "pointer",
-                            }}
+                            className={`flex items-center gap-2 text-sm font-semibold text-[#f4f4f5] ${loading ? "cursor-not-allowed" : "cursor-pointer"}`}
                         >
                             <input
                                 type="radio"
@@ -263,6 +258,7 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
                                     setFieldErrors((prev) => ({ ...prev, termsAgreed: "" }));
                                 }}
                                 disabled={loading}
+                                className="accent-[#c6ff3d]"
                             />
                             {option}
                         </label>
@@ -273,13 +269,13 @@ export default function Step2({ formData, onChange, onPrevious, onSubmit, loadin
 
             {formError ? <p style={fieldErrorStyle}>{formError}</p> : null}
 
-            <div className="flex justify-between items-center mt-4">
-                <button type="button" className="bg-transparent border border-white/10 text-white font-bold text-sm px-6 py-3.5 rounded-xl transition-all duration-200 hover:bg-white/5 hover:border-white/15" onClick={onPrevious} disabled={loading}>
+            <div className="flex justify-between items-center mt-4 gap-3">
+                <button type="button" className={c.secondaryBtn} onClick={onPrevious} disabled={loading}>
                     ← Previous
                 </button>
                 <button
                     type="button"
-                    className="bg-[#c6ff3d] text-[#08080f] font-bold text-sm px-6 py-3.5 rounded-xl transition-all duration-200 hover:bg-[#b5eb29] hover:shadow-[0_0_15px_rgba(198,255,61,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={c.primaryBtn}
                     onClick={handleSubmit}
                     disabled={loading}
                 >

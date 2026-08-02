@@ -1,0 +1,264 @@
+=== LIVE app.main (uvicorn app.main:app) TOTAL=262 ===
+GET	/	backend/app/main.py:137	root
+GET	/activities	backend/app/api/mokijo/activities/router.py:22	Discover sports activities filtered by sport and location.
+POST	/activities	backend/app/api/mokijo/activities/router.py:12	Create a new sports activity and auto-rsvp the creator as confirmed.
+PUT	/activities/{activity_id}	backend/app/api/mokijo/activities/router.py:52	Reschedule or update details of a sports activity. Restricted to club admins only.
+POST	/activities/{activity_id}/cancel	backend/app/api/mokijo/activities/router.py:63	Cancel a sports activity. Restricted to club admins only.
+POST	/activities/{activity_id}/cancel-rsvp	backend/app/api/mokijo/activities/router.py:42	Cancel a player's RSVP. Auto-promotes the next waitlisted player if a confirmed player leaves.
+POST	/activities/{activity_id}/rsvp	backend/app/api/mokijo/activities/router.py:32	Join a sports game activity. Places user in waitlist if player limits are exceeded.
+GET	/admin/venues/verification-queue	backend/app/api/mokijo/venue_verification/router.py:76	Get venues by verification status
+POST	/admin/venues/{venue_id}/approve	backend/app/api/mokijo/venue_verification/router.py:107	Approve venue (VERIFIED)
+POST	/admin/venues/{venue_id}/reject	backend/app/api/mokijo/venue_verification/router.py:119	Reject venue
+POST	/admin/venues/{venue_id}/request-info	backend/app/api/mokijo/venue_verification/router.py:131	Request more information
+GET	/admin/venues/{venue_id}/review	backend/app/api/mokijo/venue_verification/router.py:86	Get full venue review detail
+POST	/admin/venues/{venue_id}/start-review	backend/app/api/mokijo/venue_verification/router.py:96	Mark venue as UNDER_REVIEW
+POST	/admin/venues/{venue_id}/suspend	backend/app/api/mokijo/venue_verification/router.py:143	Suspend a verified venue
+POST	/auth/resend-verification	backend/app/api/mokijo/auth/router.py:42	Resend email verification token.
+GET	/band/admin/artists	backend/app/api/band/artists/router.py:101	admin_list
+GET	/band/admin/artists/{artist_id}	backend/app/api/band/artists/router.py:109	admin_get
+PUT	/band/admin/artists/{artist_id}/activate	backend/app/api/band/artists/router.py:127	admin_activate
+PUT	/band/admin/artists/{artist_id}/suspend	backend/app/api/band/artists/router.py:121	admin_suspend
+PUT	/band/admin/artists/{artist_id}/verify	backend/app/api/band/artists/router.py:114	admin_verify
+GET	/band/admin/settings/audit-logs	backend/app/api/band/settings/router.py:14	audit_logs
+GET	/band/admin/settings/{key}	backend/app/api/band/settings/router.py:20	get_setting
+PUT	/band/admin/settings/{key}	backend/app/api/band/settings/router.py:25	update_setting
+GET	/band/admin/venues	backend/app/api/band/venues/router.py:140	admin_list
+GET	/band/admin/venues/{venue_id}	backend/app/api/band/venues/router.py:148	admin_get
+PUT	/band/admin/venues/{venue_id}/activate	backend/app/api/band/venues/router.py:168	admin_activate
+PUT	/band/admin/venues/{venue_id}/suspend	backend/app/api/band/venues/router.py:160	admin_suspend
+PUT	/band/admin/venues/{venue_id}/verify	backend/app/api/band/venues/router.py:153	admin_verify
+GET	/band/artists/me	backend/app/api/band/artists/router.py:32	get_me
+PUT	/band/artists/me	backend/app/api/band/artists/router.py:37	update_me
+GET	/band/artists/me/analytics	backend/app/api/band/artists/router.py:94	analytics
+GET	/band/artists/me/availability	backend/app/api/band/artists/router.py:50	get_availability
+PUT	/band/artists/me/availability	backend/app/api/band/artists/router.py:55	update_availability
+POST	/band/artists/me/availability/check-conflict	backend/app/api/band/artists/router.py:62	check_conflict
+GET	/band/artists/me/dashboard	backend/app/api/band/artists/router.py:45	dashboard
+GET	/band/artists/me/media	backend/app/api/band/artists/router.py:70	get_media
+PUT	/band/artists/me/media	backend/app/api/band/artists/router.py:75	update_media
+GET	/band/artists/me/pricing	backend/app/api/band/artists/router.py:82	get_pricing
+PUT	/band/artists/me/pricing	backend/app/api/band/artists/router.py:87	update_pricing
+POST	/band/artists/register	backend/app/api/band/artists/router.py:24	register
+GET	/band/auth/admin/users	backend/app/api/band/auth/router.py:57	admin_list_users
+POST	/band/auth/admin/users/bulk-status	backend/app/api/band/auth/router.py:86	admin_bulk_status
+DELETE	/band/auth/admin/users/{user_id}	backend/app/api/band/auth/router.py:81	admin_delete_user
+GET	/band/auth/admin/users/{user_id}	backend/app/api/band/auth/router.py:70	admin_get_user
+PUT	/band/auth/admin/users/{user_id}/status	backend/app/api/band/auth/router.py:75	admin_update_status
+POST	/band/auth/change-password	backend/app/api/band/auth/router.py:43	change_password
+POST	/band/auth/forgot-password	backend/app/api/band/auth/router.py:26	forgot_password
+POST	/band/auth/login	backend/app/api/band/auth/router.py:21	login
+DELETE	/band/auth/me	backend/app/api/band/auth/router.py:50	delete_me
+GET	/band/auth/me	backend/app/api/band/auth/router.py:38	me
+POST	/band/auth/register	backend/app/api/band/auth/router.py:16	register
+POST	/band/auth/reset-password	backend/app/api/band/auth/router.py:31	reset_password
+POST	/band/bookings	backend/app/api/band/bookings/router.py:76	create_booking
+GET	/band/bookings/artist	backend/app/api/band/bookings/router.py:28	artist_bookings
+GET	/band/bookings/client	backend/app/api/band/bookings/router.py:17	my_bookings
+GET	/band/bookings/venue	backend/app/api/band/bookings/router.py:40	venue_bookings
+PUT	/band/bookings/venue/{booking_id}/accept	backend/app/api/band/bookings/router.py:54	venue_accept
+PUT	/band/bookings/venue/{booking_id}/cancel	backend/app/api/band/bookings/router.py:69	venue_cancel
+PUT	/band/bookings/venue/{booking_id}/complete	backend/app/api/band/bookings/router.py:64	venue_complete
+PUT	/band/bookings/venue/{booking_id}/reject	backend/app/api/band/bookings/router.py:59	venue_reject
+GET	/band/bookings/{booking_id}	backend/app/api/band/bookings/router.py:87	get_booking
+PUT	/band/bookings/{booking_id}/accept	backend/app/api/band/bookings/router.py:97	artist_accept
+PUT	/band/bookings/{booking_id}/cancel	backend/app/api/band/bookings/router.py:92	cancel_booking
+PUT	/band/bookings/{booking_id}/counter	backend/app/api/band/bookings/router.py:107	artist_counter
+PUT	/band/bookings/{booking_id}/reject	backend/app/api/band/bookings/router.py:102	artist_reject
+GET	/band/categories	backend/app/api/band/categories/router.py:14	list_categories
+POST	/band/categories	backend/app/api/band/categories/router.py:26	create_category
+DELETE	/band/categories/{category_id}	backend/app/api/band/categories/router.py:45	delete_category
+PUT	/band/categories/{category_id}	backend/app/api/band/categories/router.py:35	update_category
+GET	/band/earnings/artist	backend/app/api/band/earnings/router.py:13	artist_earnings
+GET	/band/earnings/venue	backend/app/api/band/earnings/router.py:17	venue_earnings
+GET	/band/locations/areas	backend/app/api/band/locations/router.py:45	get_areas
+POST	/band/locations/areas	backend/app/api/band/locations/router.py:51	post_area
+DELETE	/band/locations/areas/{area_id}	backend/app/api/band/locations/router.py:59	delete_area
+PUT	/band/locations/areas/{area_id}	backend/app/api/band/locations/router.py:55	put_area
+GET	/band/locations/cities	backend/app/api/band/locations/router.py:35	get_cities
+POST	/band/locations/cities	backend/app/api/band/locations/router.py:39	post_city
+GET	/band/locations/countries	backend/app/api/band/locations/router.py:15	get_countries
+POST	/band/locations/countries	backend/app/api/band/locations/router.py:19	post_country
+GET	/band/locations/states	backend/app/api/band/locations/router.py:25	get_states
+POST	/band/locations/states	backend/app/api/band/locations/router.py:29	post_state
+POST	/band/reviews	backend/app/api/band/reviews/router.py:42	create_review
+GET	/band/reviews/artist	backend/app/api/band/reviews/router.py:14	artist_reviews
+GET	/band/reviews/public/venue/{venue_id}	backend/app/api/band/reviews/router.py:36	public_venue_reviews
+GET	/band/reviews/venue	backend/app/api/band/reviews/router.py:25	venue_reviews
+PUT	/band/reviews/venue/{review_id}/reply	backend/app/api/band/reviews/router.py:31	venue_reply
+PUT	/band/reviews/{review_id}/reply	backend/app/api/band/reviews/router.py:20	artist_reply
+MOUNT	/band/uploads	n/a	The type of the None singleton.
+GET	/band/venues/me	backend/app/api/band/venues/router.py:38	get_me
+PUT	/band/venues/me	backend/app/api/band/venues/router.py:43	update_me
+GET	/band/venues/me/analytics	backend/app/api/band/venues/router.py:111	analytics
+GET	/band/venues/me/availability	backend/app/api/band/venues/router.py:91	get_availability
+PUT	/band/venues/me/availability	backend/app/api/band/venues/router.py:96	update_availability
+POST	/band/venues/me/availability/check-conflict	backend/app/api/band/venues/router.py:103	check_conflict
+GET	/band/venues/me/dashboard	backend/app/api/band/venues/router.py:50	dashboard
+GET	/band/venues/me/facilities	backend/app/api/band/venues/router.py:67	get_facilities
+PUT	/band/venues/me/facilities	backend/app/api/band/venues/router.py:72	update_facilities
+GET	/band/venues/me/media	backend/app/api/band/venues/router.py:55	get_media
+PUT	/band/venues/me/media	backend/app/api/band/venues/router.py:60	update_media
+GET	/band/venues/me/pricing	backend/app/api/band/venues/router.py:79	get_pricing
+PUT	/band/venues/me/pricing	backend/app/api/band/venues/router.py:84	update_pricing
+PUT	/band/venues/me/settings	backend/app/api/band/venues/router.py:125	update_settings
+PUT	/band/venues/me/verification/resubmit	backend/app/api/band/venues/router.py:116	resubmit_verification
+POST	/band/venues/register	backend/app/api/band/venues/router.py:25	register
+POST	/band/venues/upload	backend/app/api/band/venues/router.py:33	upload_image
+GET	/band/venues/{venue_id}	backend/app/api/band/venues/router.py:132	Public venue detail (no auth).
+POST	/bookings	backend/app/api/mokijo/venues/router.py:49	Place a venue slot reservation with concurrency protection to prevent double bookings.
+POST	/bookings/confirm	backend/app/api/mokijo/venues/router.py:113	Confirm user slots booking after payment gateway webhook response.
+POST	/bookings/hold	backend/app/api/mokijo/venues/router.py:108	Atomically locks selected slots for 5 minutes to prevent double-booking.
+POST	/bookings/razorpay/order	backend/app/api/mokijo/venues/router.py:118	Create a Razorpay order for a pending venue booking payment.
+POST	/bookings/razorpay/verify	backend/app/api/mokijo/venues/router.py:123	Verify Razorpay payment and confirm the venue booking.
+POST	/bookings/request-approval	backend/app/api/mokijo/venues/router.py:54	Create a booking request that requires venue owner approval.
+GET	/bookings/venue-owner/{owner_id}	backend/app/api/mokijo/venue_owner/router.py:50	Get all bookings across all venues owned by this venue owner.
+GET	/bookings/{booking_id}	backend/app/api/mokijo/venues/router.py:148	Retrieve a single booking by ID.
+POST	/bookings/{booking_id}/approve	backend/app/api/mokijo/venues/router.py:128	Approve a pending booking request for a venue owner.
+POST	/bookings/{booking_id}/cancel	backend/app/api/mokijo/venues/router.py:138	Cancel booking and free up the time slots.
+POST	/bookings/{booking_id}/reject	backend/app/api/mokijo/venues/router.py:133	Reject a pending booking request for a venue owner.
+GET	/clubs	backend/app/api/mokijo/auth/router.py:34	Retrieve a list of all registered clubs in the system.
+DELETE	/course-registrations/{registration_id}	backend/app/api/mokijo/courses/router.py:150	Cancel and delete an existing course registration.
+PUT	/course-registrations/{registration_id}	backend/app/api/mokijo/courses/router.py:139	Update the status or notes of an existing course registration.
+GET	/courses	backend/app/api/mokijo/courses/router.py:67	Retrieve all courses, optionally filtered by status, group, or member registration email.
+POST	/courses	backend/app/api/mokijo/courses/router.py:79	Create a new course with specific capacity, fee, schedule, and level details.
+GET	/courses/summary	backend/app/api/mokijo/courses/router.py:12	Retrieve a summary of course registration counts and active course revenue.
+GET	/courses/trainer-trainings	backend/app/api/mokijo/courses/router.py:21	Discover independent trainings created by platform trainers.
+GET	/courses/trainer-trainings/{course_id}	backend/app/api/mokijo/courses/router.py:30	Get a single trainer-owned training with public trainer profile.
+POST	/courses/trainer-trainings/{course_id}/enroll/order	backend/app/api/mokijo/courses/router.py:39	Register for a trainer training and create a Razorpay order (or free enroll).
+POST	/courses/trainer-trainings/{course_id}/enroll/verify	backend/app/api/mokijo/courses/router.py:48	Verify Razorpay payment for a trainer training enrollment.
+DELETE	/courses/{course_id}	backend/app/api/mokijo/courses/router.py:109	Delete an existing course from the system.
+GET	/courses/{course_id}	backend/app/api/mokijo/courses/router.py:88	Retrieve details of a specific course.
+PUT	/courses/{course_id}	backend/app/api/mokijo/courses/router.py:98	Update the configuration and details of an existing course.
+GET	/courses/{course_id}/registrations	backend/app/api/mokijo/courses/router.py:119	Retrieve all member registrations for a specific course.
+POST	/courses/{course_id}/registrations	backend/app/api/mokijo/courses/router.py:129	Register a club member or guest participant for a specific course.
+GET	/dashboard/coach	backend/app/api/mokijo/dashboard/router.py:18	Retrieve coach-specific metrics: squad players, upcoming events, and attendance rating.
+GET	/dashboard/overview	backend/app/api/mokijo/dashboard/router.py:9	Retrieve overview metrics and list of upcoming events/recent registrations for the admin dashboard.
+GET	/debug/overview	backend/app/api/mokijo/dashboard/router.py:28	Debug endpoint — shows raw DB values to diagnose count issues.
+GET	/docs	backend/venv/Lib/site-packages/fastapi/applications.py:1014	swagger_ui_html
+GET	/docs/oauth2-redirect	backend/venv/Lib/site-packages/fastapi/applications.py:1032	swagger_ui_redirect
+GET	/events	backend/app/api/mokijo/events/router.py:43	Retrieve all events owned by the club administrator or their groups, optionally filtered by member email.
+DELETE	/events/{event_id}	backend/app/api/mokijo/events/router.py:74	Delete an existing event from the system.
+GET	/events/{event_id}	backend/app/api/mokijo/events/router.py:53	Retrieve details of a specific event.
+PUT	/events/{event_id}	backend/app/api/mokijo/events/router.py:63	Update details of an existing event.
+POST	/events/{event_id}/attendance	backend/app/api/mokijo/events/router.py:114	Mark event attendance (present, absent, late, not_marked) for a registration.
+POST	/events/{event_id}/invite	backend/app/api/mokijo/events/router.py:84	Invite members, coaches, parents, or groups to an event, creating pending registrations.
+POST	/events/{event_id}/message	backend/app/api/mokijo/events/router.py:133	Send an email or message to event participants filtered by attendance response status.
+GET	/events/{event_id}/participants	backend/app/api/mokijo/events/router.py:124	Retrieve list of invited and registered participants for a specific event.
+POST	/events/{event_id}/register-guest	backend/app/api/mokijo/events/router.py:104	Register a guest participant for an event with capacity checks.
+POST	/events/{event_id}/respond	backend/app/api/mokijo/events/router.py:94	Submit a participant's response (accepted, declined, maybe) to an event invitation.
+POST	/events/{event_id}/send-reminder	backend/app/api/mokijo/events/router.py:143	Send an automatic event reminder email to all accepted and pending participants.
+GET	/fundraising	backend/app/api/mokijo/fundraising/router.py:13	Retrieve all fundraising campaigns created by the club administrator.
+POST	/fundraising	backend/app/api/mokijo/fundraising/router.py:22	Create a new fundraising campaign with a target goal and deadline.
+DELETE	/fundraising/{campaign_id}	backend/app/api/mokijo/fundraising/router.py:31	Delete a specific fundraising campaign.
+POST	/fundraising/{campaign_id}/complete-donation	backend/app/api/mokijo/fundraising/router.py:61	Complete and record a campaign donation after validating the payment status.
+POST	/fundraising/{campaign_id}/donate	backend/app/api/mokijo/fundraising/router.py:41	Record a standard off-line or test donation directly increasing the campaign's raised amount.
+POST	/fundraising/{campaign_id}/initiate-donation	backend/app/api/mokijo/fundraising/router.py:51	Initiate an online donation payment request for a fundraising campaign.
+GET	/games	backend/app/api/mokijo/games/router.py:13	Retrieve all open public game lobbies that haven't started yet.
+POST	/games	backend/app/api/mokijo/games/router.py:31	Create a new game lobby and auto-onboard the host as confirmed player 1.
+DELETE	/games/{game_id}	backend/app/api/mokijo/games/router.py:101	Cancel the entire game lobby and trigger refunds for all confirmed players.
+GET	/games/{game_id}	backend/app/api/mokijo/games/router.py:83	Retrieve full details of a game lobby including active players list and waitlist count.
+POST	/games/{game_id}/join	backend/app/api/mokijo/games/router.py:40	Join a game lobby instantly (if public join) or place joining request (if host approval required).
+POST	/games/{game_id}/join-requests/{request_id}/respond	backend/app/api/mokijo/games/router.py:51	Allow hosts to accept/reject joining requests. Triggers spot reservation hold upon acceptance.
+DELETE	/games/{game_id}/players/me	backend/app/api/mokijo/games/router.py:73	Cancel own registration in a game lobby. Calculates refund rate based on cancellation window tiers.
+POST	/games/{game_id}/waitlist	backend/app/api/mokijo/games/router.py:63	Place player on game waitlist if lobby is full.
+GET	/groups	backend/app/api/mokijo/groups/router.py:31	Retrieve all club groups/teams owned by the club administrator.
+POST	/groups	backend/app/api/mokijo/groups/router.py:12	Create a new club group/team with custom activity type.
+POST	/groups/import	backend/app/api/mokijo/groups/router.py:21	Import groups and members from an uploaded Excel file.
+DELETE	/groups/{group_id}	backend/app/api/mokijo/groups/router.py:50	Delete a specific club group/team and all its associated data.
+GET	/groups/{group_id}	backend/app/api/mokijo/groups/router.py:40	Retrieve a specific club group/team by ID or group name.
+GET	/groups/{group_id}/events	backend/app/api/mokijo/events/router.py:33	Retrieve all events associated with a specific group/team.
+POST	/groups/{group_id}/events	backend/app/api/mokijo/events/router.py:22	Create a new event within a specific group/team with optional fees, documents, and rules.
+GET	/groups/{group_id}/members	backend/app/api/mokijo/groups/router.py:82	Retrieve all members of a specific club group/team.
+POST	/groups/{group_id}/members	backend/app/api/mokijo/groups/router.py:60	Add a new member to a specific club group/team.
+POST	/groups/{group_id}/members/import	backend/app/api/mokijo/groups/router.py:71	Import members into a specific group from an uploaded Excel file.
+POST	/login	backend/app/api/mokijo/auth/router.py:22	Authenticate a club administrator and return their session details.
+POST	/login-member	backend/app/api/mokijo/auth/router.py:38	Authenticate a club member and return their session and dashboard details.
+GET	/matches	backend/app/api/mokijo/matches/router.py:16	Retrieve all matches, optionally filtered by owner_id or status.
+POST	/matches	backend/app/api/mokijo/matches/router.py:11	Create a new match and setup its teams.
+DELETE	/matches/{match_id}	backend/app/api/mokijo/matches/router.py:31	Delete a match and its associated teams and events.
+GET	/matches/{match_id}	backend/app/api/mokijo/matches/router.py:21	Retrieve details for a specific match.
+PATCH	/matches/{match_id}	backend/app/api/mokijo/matches/router.py:26	Update match metadata or change its status.
+GET	/matches/{match_id}/events	backend/app/api/mokijo/matches/router.py:46	Retrieve all event logs/timeline for a specific match.
+POST	/matches/{match_id}/events	backend/app/api/mokijo/matches/router.py:41	Add a custom match timeline event without changing score.
+PATCH	/matches/{match_id}/score	backend/app/api/mokijo/matches/router.py:36	Update score for a team in a match, and create a corresponding match event.
+GET	/members	backend/app/api/mokijo/groups/router.py:92	Retrieve all members across all groups for the given club administrator.
+GET	/members/registrations	backend/app/api/mokijo/events/router.py:152	Retrieve all event registrations for a specific member by their email.
+DELETE	/members/{member_id}	backend/app/api/mokijo/groups/router.py:122	Delete a single member and clear references to it in dependent tables.
+GET	/members/{member_id}	backend/app/api/mokijo/groups/router.py:101	Retrieve a single member by ID, scoped to the requesting club administrator.
+PUT	/members/{member_id}	backend/app/api/mokijo/groups/router.py:111	Update a single member's profile fields.
+POST	/messages	backend/app/api/mokijo/messages/router.py:12	Send a new message to a group/team chat or as a direct message (DM).
+GET	/messages/dm/{recipient_id}	backend/app/api/mokijo/messages/router.py:31	Retrieve 1-on-1 chat history between two participants.
+GET	/messages/group/{group_id}	backend/app/api/mokijo/messages/router.py:21	Retrieve chat history transcripts for a group/team chat channel.
+GET	/messages/partners	backend/app/api/mokijo/messages/router.py:43	Retrieve potential chat partners (admins and members) for a club.
+POST	/mukijo-admin/login	backend/app/api/mokijo/venue_verification/router.py:166	Login as Mukijo platform admin
+POST	/mukijo-admin/register	backend/app/api/mokijo/venue_verification/router.py:157	Register a Mukijo platform admin
+GET	/openapi.json	backend/venv/Lib/site-packages/fastapi/applications.py:1003	openapi
+GET	/payments	backend/app/api/mokijo/payments/router.py:38	Retrieve all payment requests, optionally filtered by status, group, or member.
+POST	/payments	backend/app/api/mokijo/payments/router.py:69	Create a new payment request for a specific group, member, or club-wide.
+GET	/payments/member-status	backend/app/api/mokijo/payments/router.py:59	Retrieve payment status details for all club members and their assigned payments.
+GET	/payments/razorpay/config	backend/app/api/mokijo/payments/router.py:12	Retrieve Razorpay payment gateway configuration details.
+POST	/payments/razorpay/order	backend/app/api/mokijo/payments/router.py:20	Create a new Razorpay payment gateway order for a pending payment request.
+POST	/payments/razorpay/verify	backend/app/api/mokijo/payments/router.py:29	Verify Razorpay payment signature and mark the payment request as paid.
+GET	/payments/summary	backend/app/api/mokijo/payments/router.py:50	Retrieve a summary of collected, pending, and overdue payment amounts.
+DELETE	/payments/{payment_id}	backend/app/api/mokijo/payments/router.py:91	Delete an existing payment request.
+PUT	/payments/{payment_id}	backend/app/api/mokijo/payments/router.py:79	Update details of an existing payment request, including its amount or status.
+GET	/profile/member/{member_id}	backend/app/api/mokijo/auth/router.py:46	Retrieve profile details for a club member.
+PUT	/profile/member/{member_id}	backend/app/api/mokijo/auth/router.py:50	Update profile details for a club member.
+GET	/redoc	backend/venv/Lib/site-packages/fastapi/applications.py:1042	redoc_html
+POST	/register	backend/app/api/mokijo/auth/router.py:14	Register a new club administrator and set up their club settings.
+GET	/signup-forms	backend/app/api/mokijo/onboarding/router.py:12	Retrieve custom signup forms configured for standard roles (Coach, Parent, Player, Referee).
+POST	/signup-forms	backend/app/api/mokijo/onboarding/router.py:30	Create or update a custom signup form fields configuration for a role.
+GET	/signup-forms/{role}	backend/app/api/mokijo/onboarding/router.py:21	Retrieve custom signup form fields configured for a specific role.
+GET	/signup-submissions	backend/app/api/mokijo/onboarding/router.py:48	Retrieve all pending onboarding application submissions for a club administrator.
+POST	/signup-submissions	backend/app/api/mokijo/onboarding/router.py:39	Create an onboarding application submission for approval by a club administrator.
+GET	/signup-submissions/verify-email	backend/app/api/mokijo/onboarding/router.py:57	Verify the applicant's email address for a pending onboarding application using a token.
+DELETE	/signup-submissions/{submission_id}	backend/app/api/mokijo/onboarding/router.py:65	Reject and delete a pending onboarding application submission.
+POST	/signup-submissions/{submission_id}/approve	backend/app/api/mokijo/onboarding/router.py:75	Approve a pending onboarding application, creating a verified member account in a club group.
+GET	/superadmin/all-clubs	backend/app/api/shared/superadmin/superadmin.py:204	get_all_clubs
+POST	/superadmin/approve-club/{user_id}	backend/app/api/shared/superadmin/superadmin.py:209	approve_club
+GET	/superadmin/approved-clubs	backend/app/api/shared/superadmin/superadmin.py:199	get_approved_clubs
+GET	/superadmin/dashboard-stats	backend/app/api/shared/superadmin/superadmin.py:189	get_dashboard_stats
+POST	/superadmin/login	backend/app/api/shared/superadmin/superadmin.py:184	login
+GET	/superadmin/pending-clubs	backend/app/api/shared/superadmin/superadmin.py:194	get_pending_clubs
+POST	/superadmin/reject-club/{user_id}	backend/app/api/shared/superadmin/superadmin.py:214	reject_club
+POST	/trainer/login	backend/app/api/mokijo/trainer/router.py:21	Authenticate a trainer.
+POST	/trainer/register	backend/app/api/mokijo/trainer/router.py:12	Register a new independent trainer account.
+GET	/trainer/{trainer_id}/courses	backend/app/api/mokijo/trainer/router.py:30	List all trainings created by this trainer.
+POST	/trainer/{trainer_id}/courses	backend/app/api/mokijo/trainer/router.py:39	Create a new training owned by this trainer.
+DELETE	/trainer/{trainer_id}/courses/{course_id}	backend/app/api/mokijo/trainer/router.py:60	Delete a training owned by this trainer.
+PUT	/trainer/{trainer_id}/courses/{course_id}	backend/app/api/mokijo/trainer/router.py:49	Update a training owned by this trainer.
+GET	/trainer/{trainer_id}/courses/{course_id}/registrations	backend/app/api/mokijo/trainer/router.py:91	List registrations for one training owned by this trainer.
+POST	/trainer/{trainer_id}/courses/{course_id}/reschedule	backend/app/api/mokijo/trainer/router.py:70	Reschedule a training (rain or any reason).
+GET	/trainer/{trainer_id}/registrations	backend/app/api/mokijo/trainer/router.py:81	List all registrations across this trainer's trainings (optional course_id filter).
+POST	/user/login	backend/app/api/mokijo/auth/router.py:26	Authenticate a standard user and return their session details.
+POST	/user/register	backend/app/api/mokijo/auth/router.py:30	Register a new standard user in the system.
+GET	/users/{user_id}/bookings	backend/app/api/mokijo/venues/router.py:143	Get all bookings placed by a specific standard user.
+GET	/users/{user_id}/games	backend/app/api/mokijo/games/router.py:22	Retrieve all games where the user is either the host or a registered player.
+GET	/users/{user_id}/training-registrations	backend/app/api/mokijo/courses/router.py:58	List trainer trainings the user has registered for.
+POST	/venue-owner/login	backend/app/api/mokijo/venue_owner/router.py:21	Authenticate a venue owner.
+POST	/venue-owner/register	backend/app/api/mokijo/venue_owner/router.py:12	Register a new venue owner along with their venue(s).
+GET	/venue-owner/{owner_id}/venues	backend/app/api/mokijo/venue_owner/router.py:30	Get all venues registered by a specific venue owner.
+GET	/venues	backend/app/api/mokijo/venues/router.py:17	Search and discover nearby venues filtered by location, sport, pricing, ratings, distance, and availability.
+POST	/venues	backend/app/api/mokijo/venues/router.py:12	Add a new sports venue into the discoverable registry.
+GET	/venues/owner/{owner_id}	backend/app/api/mokijo/venues/router.py:63	Retrieve all venues owned by a specific partner/owner.
+PUT	/venues/{venue_id}	backend/app/api/mokijo/venue_owner/router.py:39	Update venue details. Requires owner_id for authorization.
+GET	/venues/{venue_id}/analytics	backend/app/api/mokijo/venues/router.py:93	Generate analytics for occupancy, peak hours, revenue trends, and customer retention.
+POST	/venues/{venue_id}/block-slots	backend/app/api/mokijo/venues/router.py:68	Block slots within a date range for holidays or partner reservation.
+POST	/venues/{venue_id}/courts	backend/app/api/mokijo/venues/router.py:98	Register a new court inside a sports venue.
+GET	/venues/{venue_id}/documents	backend/app/api/mokijo/venue_verification/router.py:65	Get venue documents
+POST	/venues/{venue_id}/documents	backend/app/api/mokijo/venue_verification/router.py:54	Add document to venue
+POST	/venues/{venue_id}/gps-location	backend/app/api/mokijo/venue_verification/router.py:43	Save venue GPS coordinates
+GET	/venues/{venue_id}/payouts	backend/app/api/mokijo/venues/router.py:88	Calculate revenue, platform fees, and payout history for a venue.
+POST	/venues/{venue_id}/reviews	backend/app/api/mokijo/venues/router.py:103	Post a customer review for a venue.
+GET	/venues/{venue_id}/slots	backend/app/api/mokijo/venues/router.py:44	Fetch availability schedules/slots for a specific venue, filtered by YYYY-MM-DD.
+POST	/venues/{venue_id}/slots	backend/app/api/mokijo/venues/router.py:39	Batch insert sports slot inventories for a venue.
+POST	/venues/{venue_id}/slots/{slot_id}/block	backend/app/api/mokijo/venues/router.py:78	Block a particular slot so bookers see it as unavailable.
+POST	/venues/{venue_id}/slots/{slot_id}/unblock	backend/app/api/mokijo/venues/router.py:83	Unblock a particular slot so bookers can reserve it again.
+POST	/venues/{venue_id}/submit-verification	backend/app/api/mokijo/venue_verification/router.py:21	Submit venue for verification
+POST	/venues/{venue_id}/unblock-slots	backend/app/api/mokijo/venues/router.py:73	Unblock slots within a date range.
+GET	/venues/{venue_id}/verification-status	backend/app/api/mokijo/venue_verification/router.py:33	Get venue verification status
+GET	/verify	backend/app/api/mokijo/auth/router.py:18	Verify a club administrator's email using their verification token.
+POST	/webhooks/payments/game-join	backend/app/api/mokijo/games/router.py:92	Capture Razorpay webhook status updates to confirm player slot booking and finalize slot statuses.
+WS	/ws/game/{game_id}	backend/app/api/mokijo/games/router.py:111	websocket_endpoint
+WS	/ws/scoreboard/{match_id}	backend/app/api/mokijo/matches/router.py:51	websocket_scoreboard
+

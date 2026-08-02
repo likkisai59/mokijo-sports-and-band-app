@@ -34,10 +34,17 @@ const BandVenueDetail = React.lazy(() => import('@/app/(public)/venues/[id]/page
 const Developer = React.lazy(() => import('@/app/developer/page'));
 const Messages = React.lazy(() => import('@/app/messages/page'));
 const Notifications = React.lazy(() => import('@/app/notifications/page'));
+const ForgotPassword = React.lazy(() => import('@/app/(auth-narrow)/forgot-password/page.jsx'));
+const ResetPassword = React.lazy(() => import('@/app/(auth-narrow)/reset-password/page.jsx'));
+const UserDashboard = React.lazy(() => import('@/app/user-dashboard/page.jsx'));
+const Checkout = React.lazy(() => import('@/app/checkout/page.jsx'));
+const Scoreboard = React.lazy(() => import('@/app/scoreboard/[match_id]/page.jsx'));
+const TrainingDetail = React.lazy(() => import('@/app/trainings/[id]/page.jsx'));
 
 // Dashboard and Layouts
 const DashboardLayout = React.lazy(() => import('@/app/mokijo/dashboard/layout.jsx'));
-const DashboardOverview = React.lazy(() => import('@/app/mokijo/dashboard/page.jsx'));
+const DashboardIndex = React.lazy(() => import('@/app/mokijo/dashboard/page.jsx'));
+const DashboardOverviewPage = React.lazy(() => import('@/app/mokijo/dashboard/overview/page.jsx'));
 const DashboardGroups = React.lazy(() => import('@/app/mokijo/dashboard/groups/page.jsx'));
 const DashboardGroupDetail = React.lazy(() => import('@/app/mokijo/dashboard/group/[id]/page.jsx'));
 const DashboardActivities = React.lazy(() => import('@/app/mokijo/dashboard/activities/page.jsx'));
@@ -64,6 +71,28 @@ const DashboardImportGroups = React.lazy(() => import('@/app/mokijo/dashboard/im
 const DashboardSignupForms = React.lazy(() => import('@/app/mokijo/dashboard/signup-forms/page.jsx'));
 const DashboardMatches = React.lazy(() => import('@/app/mokijo/dashboard/matches/page.jsx'));
 const DashboardMatchesCreate = React.lazy(() => import('@/app/mokijo/dashboard/matches/create/page.jsx'));
+
+// Trainer Dashboard
+const TrainerDashboardLayout = React.lazy(() => import('@/app/mokijo/trainer-dashboard/layout.jsx'));
+const TrainerDashboardIndex = React.lazy(() => import('@/app/mokijo/trainer-dashboard/page.jsx'));
+const TrainerDashboardOverview = React.lazy(() => import('@/app/mokijo/trainer-dashboard/overview/page.jsx'));
+const TrainerTrainings = React.lazy(() => import('@/app/mokijo/trainer-dashboard/trainings/page.jsx'));
+const TrainerTrainingsCreate = React.lazy(() => import('@/app/mokijo/trainer-dashboard/trainings/create/page.jsx'));
+const TrainerRegistrations = React.lazy(() => import('@/app/mokijo/trainer-dashboard/registrations/page.jsx'));
+
+// Venue Dashboard
+const VenueDashboardLayout = React.lazy(() => import('@/app/mokijo/venue-dashboard/layout.jsx'));
+const VenueDashboardIndex = React.lazy(() => import('@/app/mokijo/venue-dashboard/page.jsx'));
+const VenueDashboardOverview = React.lazy(() => import('@/app/mokijo/venue-dashboard/overview/page.jsx'));
+const VenueMyVenues = React.lazy(() => import('@/app/mokijo/venue-dashboard/my-venues/page.jsx'));
+const VenueVerification = React.lazy(() => import('@/app/mokijo/venue-dashboard/verification/page.jsx'));
+const VenueVerifyDetail = React.lazy(() => import('@/app/mokijo/venue-dashboard/verify/[id]/page.jsx'));
+const VenueBookings = React.lazy(() => import('@/app/mokijo/venue-dashboard/bookings/page.jsx'));
+const VenueSlots = React.lazy(() => import('@/app/mokijo/venue-dashboard/slots/page.jsx'));
+const VenuePayouts = React.lazy(() => import('@/app/mokijo/venue-dashboard/payouts/page.jsx'));
+const VenueMatches = React.lazy(() => import('@/app/mokijo/venue-dashboard/matches/page.jsx'));
+const VenueMatchesCreate = React.lazy(() => import('@/app/mokijo/venue-dashboard/matches/create/page.jsx'));
+const VenueMatchManage = React.lazy(() => import('@/app/mokijo/venue-dashboard/matches/[id]/manage/page.jsx'));
 
 // Client Layout and Pages
 const ClientLayout = React.lazy(() => import('@/app/mokijo/client/layout'));
@@ -136,6 +165,12 @@ export default function App() {
                     <Route path="/register-venue" element={<RegisterVenue />} />
                     <Route path="/register-user" element={<RegisterUser />} />
                     <Route path="/register-trainer" element={<RegisterTrainer />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/user-dashboard" element={<UserDashboard />} />
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/scoreboard/:match_id" element={<PageWrapper Component={Scoreboard} />} />
+                    <Route path="/trainings/:id" element={<PageWrapper Component={TrainingDetail} />} />
                     
                     {/* Band Routes */}
                     <Route path="/band" element={<LayoutWrapper LayoutComponent={BandLayout} />}>
@@ -165,7 +200,8 @@ export default function App() {
 
                     {/* Dashboard Routes */}
                     <Route path="/dashboard" element={<LayoutWrapper LayoutComponent={DashboardLayout} />}>
-                      <Route index element={<DashboardOverview />} />
+                      <Route index element={<DashboardIndex />} />
+                      <Route path="overview" element={<DashboardOverviewPage />} />
                       <Route path="groups" element={<DashboardGroups />} />
                       <Route path="group/:id" element={<PageWrapper Component={DashboardGroupDetail} />} />
                       <Route path="creategroup" element={<DashboardCreateGroup />} />
@@ -192,6 +228,30 @@ export default function App() {
                       <Route path="signup-forms" element={<DashboardSignupForms />} />
                       <Route path="matches" element={<DashboardMatches />} />
                       <Route path="matches/create" element={<DashboardMatchesCreate />} />
+                    </Route>
+
+                    {/* Trainer Dashboard Routes */}
+                    <Route path="/trainer-dashboard" element={<LayoutWrapper LayoutComponent={TrainerDashboardLayout} />}>
+                      <Route index element={<TrainerDashboardIndex />} />
+                      <Route path="overview" element={<TrainerDashboardOverview />} />
+                      <Route path="trainings" element={<TrainerTrainings />} />
+                      <Route path="trainings/create" element={<TrainerTrainingsCreate />} />
+                      <Route path="registrations" element={<TrainerRegistrations />} />
+                    </Route>
+
+                    {/* Venue Dashboard Routes */}
+                    <Route path="/venue-dashboard" element={<LayoutWrapper LayoutComponent={VenueDashboardLayout} />}>
+                      <Route index element={<VenueDashboardIndex />} />
+                      <Route path="overview" element={<VenueDashboardOverview />} />
+                      <Route path="my-venues" element={<VenueMyVenues />} />
+                      <Route path="verification" element={<VenueVerification />} />
+                      <Route path="verify/:id" element={<PageWrapper Component={VenueVerifyDetail} />} />
+                      <Route path="bookings" element={<VenueBookings />} />
+                      <Route path="slots" element={<VenueSlots />} />
+                      <Route path="payouts" element={<VenuePayouts />} />
+                      <Route path="matches" element={<VenueMatches />} />
+                      <Route path="matches/create" element={<VenueMatchesCreate />} />
+                      <Route path="matches/:id/manage" element={<PageWrapper Component={VenueMatchManage} />} />
                     </Route>
 
                     {/* Client Routes */}

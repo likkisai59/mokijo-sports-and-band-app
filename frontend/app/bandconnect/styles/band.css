@@ -27,7 +27,7 @@
     pointer-events: none;
 }
 
-.band-app > * {
+.band-app>* {
     position: relative;
     z-index: 1;
 }
@@ -632,17 +632,21 @@
     .band-navbar {
         padding: 0 18px;
     }
+
     .band-navbar__links {
         gap: 2px;
     }
+
     .band-navbar__link {
         padding: 8px 8px;
         font-size: 13px;
     }
+
     .band-section,
     .band-dash {
         padding: 30px 18px;
     }
+
     .band-roles {
         grid-template-columns: 1fr;
     }

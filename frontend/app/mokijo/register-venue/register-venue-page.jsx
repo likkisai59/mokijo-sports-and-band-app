@@ -4,6 +4,16 @@ import { useState } from "react";
 import Link from "next/link";
 import PhoneInput from "@/components/ui/PhoneInput";
 import PasswordField from "@/components/ui/PasswordField";
+import SuccessScreen from "@/components/register/SuccessScreen";
+import {
+    AuthShell,
+    AuthCard,
+    AuthBrand,
+    AuthField,
+    AuthErrorBanner,
+    AuthNavLinks,
+    getAuthClasses,
+} from "@/components/auth";
 import {
     digitsOnly,
     isValidPhone,
@@ -31,9 +41,33 @@ import {
     phoneLengthMessage,
 } from "@/lib/validation";
 
-const fieldErrorStyle = { color: "#ef4444", fontSize: "12px", marginTop: "6px", marginBottom: 0 };
+const c = getAuthClasses("dark");
 
-// ─── Constants ───────────────────────────────────────────────────────
+const pageBtnSecondary =
+    "inline-flex items-center justify-center gap-2 h-10 px-5 rounded-[10px] text-[13px] font-semibold border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.05)] text-[#f4f4f5] cursor-pointer transition-all hover:bg-[rgba(255,255,255,0.08)]";
+const pageBtnPrimary =
+    "inline-flex items-center justify-center gap-2 h-10 px-5 rounded-[10px] text-[13px] font-semibold bg-gradient-to-br from-[#c6ff3d] to-[#c6ff3d] text-[#08080f] cursor-pointer shadow-[0_6px_18px_rgba(198,255,61,0.18)] transition-all hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none";
+const pageActions =
+    "flex flex-row items-center justify-between gap-3 w-full mt-10 pt-8 border-t border-[rgba(255,255,255,0.08)] pb-4";
+
+
+const chipBase =
+    "min-w-[110px] h-10 px-3 rounded-[10px] text-[13px] font-medium border transition-all cursor-pointer inline-flex items-center justify-center text-center";
+const chipIdle = "border-[rgba(255,255,255,0.12)] text-[rgba(244,244,245,0.55)] bg-[rgba(255,255,255,0.04)]";
+const chipSelected = "border-[#c6ff3d] text-[#f4f4f5] bg-[rgba(198,255,61,0.15)] font-semibold";
+
+const dayChipBase =
+    "w-[42px] h-[42px] rounded-lg text-xs font-bold border transition-all cursor-pointer flex items-center justify-center";
+
+const uploadZone =
+    "relative min-h-[140px] h-[140px] border-2 border-dashed border-[rgba(255,255,255,0.15)] rounded-xl p-4 text-center cursor-pointer transition-all hover:border-[rgba(198,255,61,0.5)] hover:bg-[rgba(198,255,61,0.04)] bg-[rgba(255,255,255,0.03)] flex flex-col items-center justify-center overflow-hidden";
+
+const photoCard =
+    "relative w-[100px] h-[100px] rounded-lg overflow-hidden border border-[rgba(255,255,255,0.1)] shrink-0";
+
+const sectionTitle =
+    "text-[13px] font-semibold text-[rgba(244,244,245,0.5)] mt-8 mb-4 pb-2.5 border-b border-[rgba(255,255,255,0.08)]";
+
 const SPORTS = [
     "Cricket",
     "Football",
@@ -64,15 +98,14 @@ const AMENITIES = [
     "Seating",
 ];
 
-// ─── Empty venue template ─────────────────────────────────────────────
 const emptyVenue = () => ({
     name: "",
     location: "",
     landmark: "",
-    sports: [], // array of sport strings
-    sportPrices: {}, // map of sport name → price per hour
-    coverImage: null, // base64 or null
-    photos: [], // array of base64
+    sports: [],
+    sportPrices: {},
+    coverImage: null,
+    photos: [],
     openingTime: "06:00",
     closingTime: "22:00",
     daysOpen: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
@@ -80,7 +113,6 @@ const emptyVenue = () => ({
     amenities: [],
 });
 
-// ─── Helpers ──────────────────────────────────────────────────────────
 function toggle(arr, val) {
     return arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val];
 }
@@ -93,7 +125,28 @@ function fileToBase64(file) {
     });
 }
 
-// ─── Venue Form Block ─────────────────────────────────────────────────
+function Stepper({ step }) {
+    const circle = (n, active, done) => (
+        <div
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${
+                active || done
+                    ? "bg-[#c6ff3d] text-[#08080f]"
+                    : "bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.1)] text-[rgba(244,244,245,0.5)]"
+            }`}
+        >
+            {done ? "✓" : n}
+        </div>
+    );
+
+    return (
+        <div className="flex items-center justify-center gap-4 mb-2">
+            {circle(1, step === 1, step > 1)}
+            <div className="flex-1 h-px bg-[rgba(255,255,255,0.1)] max-w-[60px]" />
+            {circle(2, step === 2, step > 2)}
+        </div>
+    );
+}
+
 function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
     const update = (field, val) => onChange(index, { ...venue, [field]: val });
 
@@ -111,22 +164,26 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
     };
 
     return (
-        <div className="vr-venue-block">
-            <div className="vr-venue-block-header">
-                <span className="vr-venue-label">Venue {index + 1}</span>
-                {showRemove && (
-                    <button type="button" className="vr-remove-btn" onClick={() => onRemove(index)}>
+        <div className="mb-8 pb-8 border-b border-[rgba(255,255,255,0.08)]">
+            <div className="flex items-center justify-between mb-5">
+                <span className="text-[13px] font-bold uppercase tracking-wide text-[#f4f4f5]">
+                    Venue {index + 1}
+                </span>
+                {showRemove ? (
+                    <button
+                        type="button"
+                        onClick={() => onRemove(index)}
+                        className="text-xs font-semibold px-3 py-1 rounded-md bg-[rgba(239,68,68,0.12)] border border-[rgba(239,68,68,0.3)] text-[#fca5a5] cursor-pointer"
+                    >
                         Remove
                     </button>
-                )}
+                ) : null}
             </div>
 
-            {/* Basic Info */}
-            <div className="vr-grid">
-                <div className="vr-field">
-                    <label className="vr-label">Venue / Court Name *</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <AuthField variant="dark" label="Venue / Court Name" required>
                     <input
-                        className="vr-input"
+                        className={c.input}
                         required
                         placeholder="e.g. Green Field Arena"
                         value={venue.name}
@@ -135,11 +192,10 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
                             update("name", sanitized);
                         }}
                     />
-                </div>
-                <div className="vr-field">
-                    <label className="vr-label">Location / City *</label>
+                </AuthField>
+                <AuthField variant="dark" label="Location / City" required>
                     <input
-                        className="vr-input"
+                        className={c.input}
                         required
                         placeholder="e.g. Bengaluru"
                         value={venue.location}
@@ -148,29 +204,27 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
                             update("location", sanitized);
                         }}
                     />
-                </div>
+                </AuthField>
             </div>
 
-            <div className="vr-grid cols-1" style={{ marginTop: 18 }}>
-                <div className="vr-field">
-                    <label className="vr-label">Landmark</label>
+            <div className="mt-5">
+                <AuthField variant="dark" label="Landmark">
                     <input
-                        className="vr-input"
+                        className={c.input}
                         placeholder="e.g. Near City Mall, Opposite Metro Station"
                         value={venue.landmark}
                         onChange={(e) => update("landmark", e.target.value)}
                     />
-                </div>
+                </AuthField>
             </div>
 
-            {/* Sports */}
-            <div className="vr-section-title">Sports Offered</div>
-            <div className="vr-sports-grid">
+            <div className={sectionTitle}>Sports Offered</div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
                 {SPORTS.map((s) => (
                     <button
                         key={s}
                         type="button"
-                        className={`vr-sport-chip ${venue.sports.includes(s) ? "selected" : ""}`}
+                        className={`${chipBase} w-full min-w-0 ${venue.sports.includes(s) ? chipSelected : chipIdle}`}
                         onClick={() => {
                             const nextSports = toggle(venue.sports, s);
                             const nextPrices = { ...(venue.sportPrices || {}) };
@@ -182,73 +236,50 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
                             onChange(index, { ...venue, sports: nextSports, sportPrices: nextPrices });
                         }}
                     >
-                        {s}
+                        <span className="truncate">{s}</span>
                     </button>
                 ))}
             </div>
 
-            {/* Photos */}
-            <div className="vr-section-title">Cover Photo &amp; Gallery</div>
-            <div className="vr-grid">
-                <div className="vr-field">
-                    <label className="vr-label">Cover Photo (shown in venue card)</label>
-                    <div className="vr-upload">
-                        <input type="file" accept="image/*" onChange={handleCoverImage} />
+            <div className={sectionTitle}>Cover Photo &amp; Gallery</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <AuthField variant="dark" label="Cover Photo (shown in venue card)">
+                    <div className={uploadZone}>
+                        <input type="file" accept="image/*" onChange={handleCoverImage} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
                         {venue.coverImage ? (
                             <img
                                 src={venue.coverImage}
                                 alt="cover"
-                                style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 8 }}
+                                className="absolute inset-0 w-full h-full object-cover rounded-[10px]"
                             />
                         ) : (
                             <>
-                                <div className="vr-upload-icon">
-                                    <svg
-                                        viewBox="0 0 24 24"
-                                        width="32"
-                                        height="32"
-                                        fill="none"
-                                        stroke="rgba(255,255,255,0.3)"
-                                        strokeWidth="1.5"
-                                    >
-                                        <rect x="3" y="3" width="18" height="18" rx="3" />
-                                        <circle cx="8.5" cy="8.5" r="1.5" />
-                                        <polyline points="21 15 16 10 5 21" />
-                                    </svg>
-                                </div>
-                                <div className="vr-upload-text">Click to upload cover photo</div>
-                                <div className="vr-upload-hint">JPG, PNG — will appear in venue cards</div>
+                                <div className="text-[rgba(244,244,245,0.5)] text-[13px] mb-1 relative z-[1]">Click to upload cover photo</div>
+                                <div className="text-[11px] text-[rgba(244,244,245,0.35)] relative z-[1]">JPG, PNG — will appear in venue cards</div>
                             </>
                         )}
                     </div>
-                </div>
-                <div className="vr-field">
-                    <label className="vr-label">Additional Photos</label>
-                    <div className="vr-upload">
-                        <input type="file" accept="image/jpeg,image/jpg,image/png" multiple onChange={handlePhotos} />
-                        <div className="vr-upload-icon">
-                            <svg
-                                viewBox="0 0 24 24"
-                                width="32"
-                                height="32"
-                                fill="none"
-                                stroke="rgba(255,255,255,0.3)"
-                                strokeWidth="1.5"
-                            >
-                                <path d="M12 5v14M5 12h14" />
-                            </svg>
-                        </div>
-                        <div className="vr-upload-text">Click to add photos (.jpg)</div>
-                        <div className="vr-upload-hint">Multiple files allowed</div>
+                </AuthField>
+                <AuthField variant="dark" label="Additional Photos">
+                    <div className={uploadZone}>
+                        <input
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png"
+                            multiple
+                            onChange={handlePhotos}
+                            className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                        />
+                        <div className="text-[rgba(244,244,245,0.5)] text-[13px] mb-1 relative z-[1]">Click to add photos (.jpg)</div>
+                        <div className="text-[11px] text-[rgba(244,244,245,0.35)] relative z-[1]">Multiple files allowed</div>
                     </div>
-                    {venue.photos.length > 0 && (
-                        <div className="vr-preview-list">
+                    {venue.photos.length > 0 ? (
+                        <div className="flex flex-wrap gap-2.5 mt-3">
                             {venue.photos.map((p, i) => (
-                                <div key={i} className="vr-preview-item">
-                                    <img src={p} alt="" />
+                                <div key={i} className={photoCard}>
+                                    <img src={p} alt="" className="w-full h-full object-cover" />
                                     <button
-                                        className="vr-preview-remove"
                                         type="button"
+                                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-white text-[11px] border-0 cursor-pointer flex items-center justify-center"
                                         onClick={() =>
                                             update(
                                                 "photos",
@@ -261,56 +292,51 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
                                 </div>
                             ))}
                         </div>
-                    )}
-                </div>
+                    ) : null}
+                </AuthField>
             </div>
 
-            {/* Timings */}
-            <div className="vr-section-title">Opening Hours &amp; Slots</div>
-            <div className="vr-grid cols-3">
-                <div className="vr-field">
-                    <label className="vr-label">Opening Time</label>
+            <div className={sectionTitle}>Opening Hours &amp; Slots</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <AuthField variant="dark" label="Opening Time">
                     <input
                         type="time"
-                        className="vr-input"
+                        className={c.input}
                         value={venue.openingTime}
                         onChange={(e) => update("openingTime", e.target.value)}
+                        style={{ colorScheme: "dark" }}
                     />
-                </div>
-                <div className="vr-field">
-                    <label className="vr-label">Closing Time</label>
+                </AuthField>
+                <AuthField variant="dark" label="Closing Time">
                     <input
                         type="time"
-                        className="vr-input"
+                        className={c.input}
                         value={venue.closingTime}
                         onChange={(e) => update("closingTime", e.target.value)}
+                        style={{ colorScheme: "dark" }}
                     />
-                </div>
-                <div className="vr-field">
-                    <label className="vr-label">Slot Duration</label>
+                </AuthField>
+                <AuthField variant="dark" label="Slot Duration">
                     <select
-                        className="vr-select"
+                        className={c.select}
                         value={venue.slotDuration}
                         onChange={(e) => update("slotDuration", Number(e.target.value))}
                     >
                         <option value={30}>30 minutes</option>
                         <option value={60}>1 hour</option>
                     </select>
-                </div>
+                </AuthField>
             </div>
 
-            {venue.sports.length > 0 && (
+            {venue.sports.length > 0 ? (
                 <>
-                    <div className="vr-section-title" style={{ marginTop: 18 }}>
-                        Sport prices (per hour)
-                    </div>
-                    <div className="vr-grid">
+                    <div className={sectionTitle}>Sport prices (per hour)</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {venue.sports.map((sport) => (
-                            <div className="vr-field" key={sport}>
-                                <label className="vr-label">{sport} — Price / hour (INR) *</label>
+                            <AuthField key={sport} variant="dark" label={`${sport} — Price / hour (INR)`} required>
                                 <input
                                     type="number"
-                                    className="vr-input"
+                                    className={c.input}
                                     min={1}
                                     placeholder="e.g. 800"
                                     value={venue.sportPrices?.[sport] ?? ""}
@@ -322,20 +348,21 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
                                     }
                                     required
                                 />
-                            </div>
+                            </AuthField>
                         ))}
                     </div>
                 </>
-            )}
+            ) : null}
 
-            {/* Days open */}
-            <div className="vr-section-title">Days Open</div>
-            <div className="vr-days-grid">
+            <div className={sectionTitle}>Days Open</div>
+            <div className="flex flex-wrap gap-2 mt-1">
                 {DAYS.map((d) => (
                     <button
                         key={d}
                         type="button"
-                        className={`vr-day-chip ${venue.daysOpen.includes(d) ? "selected" : ""}`}
+                        className={`${dayChipBase} ${
+                            venue.daysOpen.includes(d) ? chipSelected : chipIdle
+                        }`}
                         onClick={() => update("daysOpen", toggle(venue.daysOpen, d))}
                     >
                         {d}
@@ -343,20 +370,19 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
                 ))}
             </div>
 
-            {/* Amenities */}
-            <div className="vr-section-title">Amenities</div>
-            <div className="vr-amenities-grid">
+            <div className={sectionTitle}>Amenities</div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                 {AMENITIES.map((a) => {
                     const checked = venue.amenities.includes(a);
                     return (
-                        <label
+                        <button
                             key={a}
-                            className={`vr-amenity-check ${checked ? "checked" : ""}`}
+                            type="button"
                             onClick={() => update("amenities", toggle(venue.amenities, a))}
+                            className={`${chipBase} w-full min-w-0 ${checked ? chipSelected : chipIdle}`}
                         >
-                            <span className="vr-amenity-box" />
-                            <span className="vr-amenity-label">{a}</span>
-                        </label>
+                            <span className="truncate">{a}</span>
+                        </button>
                     );
                 })}
             </div>
@@ -364,9 +390,8 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
     );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────
 export default function RegisterVenuePage() {
-    const [step, setStep] = useState(1); // 1 = venues, 2 = owner, 3 = success
+    const [step, setStep] = useState(1);
     const [venues, setVenues] = useState([emptyVenue()]);
     const [owner, setOwner] = useState({
         fullName: "",
@@ -383,7 +408,6 @@ export default function RegisterVenuePage() {
     const [error, setError] = useState("");
     const [fieldErrors, setFieldErrors] = useState({});
 
-    // Venue handlers
     const handleVenueChange = (index, updated) => {
         setVenues((prev) => prev.map((v, i) => (i === index ? updated : v)));
     };
@@ -407,7 +431,6 @@ export default function RegisterVenuePage() {
         );
     };
 
-    // Step 1 validation
     const validateStep1 = () => {
         for (const v of venues) {
             if (!v.name.trim() || !v.location.trim()) {
@@ -438,7 +461,6 @@ export default function RegisterVenuePage() {
         return true;
     };
 
-    // Submit
     const handleSubmit = async (e) => {
         e.preventDefault();
         const nextErrors = {};
@@ -532,265 +554,225 @@ export default function RegisterVenuePage() {
         }
     };
 
-    // ─── Success Screen ───────────────────────────────────────────────
-    if (step === 3) {
-        return (
-            <div className="vr-page">
-                <div className="vr-header">
-                    <Link href="/" className="vr-logo">
-                        Mukijo
-                    </Link>
-                </div>
-                <div className="vr-card">
-                    <div className="vr-success">
-                        <div className="vr-success-icon">
-                            <svg
-                                viewBox="0 0 24 24"
-                                width="42"
-                                height="42"
-                                fill="none"
-                                stroke="#c6ff3d"
-                                strokeWidth="2.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            >
-                                <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                        </div>
-                        <h2>Venue Registered Successfully!</h2>
-                        <p>
-                            Your {venues.length > 1 ? `${venues.length} venues have` : "venue has"} been listed on
-                            Mukijo. You can now log in and manage your venue bookings.
-                        </p>
-                        <Link href="/login-venue" className="vr-success-link">
-                            Sign In as Venue Owner →
-                        </Link>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    const subtitle =
+        step === 3
+            ? undefined
+            : step === 1
+              ? "Step 1 of 2 — Tell us about your venue"
+              : "Step 2 of 2 — Owner account details";
 
     return (
-        <div className="vr-page">
-            {/* Header */}
-            <div className="vr-header">
-                <Link href="/" className="vr-logo">
-                    Mukijo
-                </Link>
-                <Link href="/login-venue" className="vr-back">
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="15 18 9 12 15 6" />
-                    </svg>
-                    Already registered? Sign in
-                </Link>
-            </div>
+        <AuthShell variant="dark">
+            <AuthCard size="lg" variant="dark">
+                {step !== 3 ? (
+                    <Link href="/" className={c.backLink}>
+                        ← Back to Home
+                    </Link>
+                ) : null}
 
-            {/* Stepper */}
-            <div className="vr-stepper">
-                <div className={`vr-step ${step === 1 ? "active" : "done"}`}>
-                    <span className="vr-step-circle">{step > 1 ? "✓" : "1"}</span>
-                    Venue Details
-                </div>
-                <div className={`vr-step-line ${step > 1 ? "done" : ""}`} />
-                <div className={`vr-step ${step === 2 ? "active" : step > 2 ? "done" : ""}`}>
-                    <span className="vr-step-circle">{step > 2 ? "✓" : "2"}</span>
-                    Owner Details
-                </div>
-            </div>
+                <AuthBrand
+                    variant="dark"
+                    align="center"
+                    title="Venue Owner Sign Up"
+                    subtitle={subtitle}
+                />
 
-            {/* ── STEP 1: Venue(s) ── */}
-            {step === 1 && (
-                <div className="vr-card">
-                    <h2 className="vr-card-title">Tell us about your venue</h2>
-                    <p className="vr-card-sub">
-                        You can add multiple venues at once. All venues will be listed under your account.
-                    </p>
+                {step !== 3 ? <Stepper step={step} /> : null}
 
-                    {venues.map((v, i) => (
-                        <VenueBlock
-                            key={i}
-                            venue={v}
-                            index={i}
-                            onChange={handleVenueChange}
-                            onRemove={removeVenue}
-                            showRemove={venues.length > 1}
+                {step === 3 ? (
+                    <SuccessScreen role="venue" />
+                ) : step === 1 ? (
+                    <>
+                        <div className="text-center mb-6">
+                            <h2 className={c.heading}>Tell us about your venue</h2>
+                            <p className={`${c.subtext} mt-1`}>
+                                You can add multiple venues at once. All venues will be listed under your account.
+                            </p>
+                        </div>
+
+                        {venues.map((v, i) => (
+                            <VenueBlock
+                                key={i}
+                                venue={v}
+                                index={i}
+                                onChange={handleVenueChange}
+                                onRemove={removeVenue}
+                                showRemove={venues.length > 1}
+                            />
+                        ))}
+
+                        <AuthErrorBanner variant="dark">{error}</AuthErrorBanner>
+
+                        <AuthNavLinks
+                            variant="dark"
+                            showBackHome={false}
+                            showWrongPortal={false}
+                            footerPrompt="Already have an account?"
+                            footerHref="/login-venue"
+                            footerLabel="Sign in"
                         />
-                    ))}
 
-                    <button type="button" className="vr-add-btn" onClick={addVenue}>
-                        <svg
-                            viewBox="0 0 24 24"
-                            width="18"
-                            height="18"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                        >
-                            <path d="M12 5v14M5 12h14" />
-                        </svg>
-                        Add Another Venue
-                    </button>
-
-                    {error && <p style={{ color: "#f87171", fontSize: 13, marginTop: 16 }}>{error}</p>}
-
-                    <div className="vr-actions">
-                        <button
-                            type="button"
-                            className="vr-btn-primary"
-                            onClick={() => {
-                                if (validateStep1()) setStep(2);
-                            }}
-                        >
-                            Next: Owner Details →
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {/* ── STEP 2: Owner details ── */}
-            {step === 2 && (
-                <form className="vr-card" onSubmit={handleSubmit}>
-                    <h2 className="vr-card-title">Venue Owner Details</h2>
-                    <p className="vr-card-sub">These details will be used to create your Mukijo venue owner account.</p>
-
-                    <div className="vr-grid">
-                        <div className="vr-field">
-                            <label className="vr-label">Full Name *</label>
-                            <input
-                                className="vr-input"
-                                required
-                                placeholder="e.g. Rahul Sharma"
-                                value={owner.fullName}
-                                onChange={(e) => {
-                                    const { sanitized, error: nameErr } = applyNameInput(e.target.value);
-                                    setOwnerField({ fullName: sanitized }, { fullName: nameErr });
+                        <div className={pageActions}>
+                            <button type="button" onClick={addVenue} className={pageBtnSecondary}>
+                                + Add Another Venue
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (validateStep1()) setStep(2);
                                 }}
-                            />
-                            {fieldErrors.fullName ? <p style={fieldErrorStyle}>{fieldErrors.fullName}</p> : null}
+                                className={pageBtnPrimary}
+                            >
+                                Next: Owner Details →
+                            </button>
                         </div>
-                        <div className="vr-field">
-                            <label className="vr-label">Date of Birth (DD/MM/YYYY)</label>
-                            <input
-                                type="date"
-                                className="vr-input"
-                                min="1900-01-01"
-                                max={new Date().toISOString().slice(0, 10)}
-                                value={dobToIso(owner.dob)}
-                                onChange={(e) => setOwnerField({ dob: isoToDob(e.target.value) }, { dob: "" })}
-                                style={{ colorScheme: "dark" }}
-                            />
-                            {fieldErrors.dob ? <p style={fieldErrorStyle}>{fieldErrors.dob}</p> : null}
+                    </>
+                ) : (
+                    <form onSubmit={handleSubmit}>
+                        <div className="text-center mb-6">
+                            <h2 className={c.heading}>Venue Owner Details</h2>
+                            <p className={`${c.subtext} mt-1`}>
+                                These details will be used to create your Mukijo venue owner account.
+                            </p>
                         </div>
-                        <div className="vr-field">
-                            <label className="vr-label">Email Address *</label>
-                            <input
-                                type="email"
-                                className="vr-input"
-                                required
-                                placeholder="owner@example.com"
-                                value={owner.email}
-                                onChange={(e) => {
-                                    const { value, error: emailErr } = applyEmailInput(e.target.value);
-                                    setOwnerField({ email: value }, { email: emailErr });
-                                }}
-                            />
-                            {fieldErrors.email ? <p style={fieldErrorStyle}>{fieldErrors.email}</p> : null}
-                        </div>
-                        <div className="vr-field">
-                            <label className="vr-label">Phone Number *</label>
-                            <PhoneInput
-                                id="venue-owner-phone"
-                                className="vr-input"
-                                selectClassName="vr-input"
-                                countryCode={phoneCode}
-                                digits={phoneDigits}
-                                onCountryCodeChange={(code) => syncOwnerPhone(code, phoneDigits)}
-                                onDigitsChange={(digits) => syncOwnerPhone(phoneCode, digits)}
-                            />
-                            {fieldErrors.phone ? <p style={fieldErrorStyle}>{fieldErrors.phone}</p> : null}
-                        </div>
-                        <div className="vr-field">
-                            <label className="vr-label">Aadhar Number</label>
-                            <input
-                                className="vr-input"
-                                inputMode="numeric"
-                                maxLength={12}
-                                placeholder="12-digit Aadhar"
-                                value={owner.aadhar}
-                                onChange={(e) => {
-                                    const aadhar = digitsOnly(e.target.value).slice(0, 12);
-                                    setOwnerField(
-                                        { aadhar },
-                                        {
-                                            aadhar:
-                                                aadhar && aadhar.length !== 12 ? AADHAAR_MESSAGE : "",
-                                        }
-                                    );
-                                }}
-                            />
-                            {fieldErrors.aadhar ? <p style={fieldErrorStyle}>{fieldErrors.aadhar}</p> : null}
-                        </div>
-                        <div className="vr-field">
-                            <label className="vr-label">Password *</label>
-                            <PasswordField
-                                className="vr-input"
-                                required
-                                placeholder="Min 8 characters"
-                                value={owner.password}
-                                onChange={(e) =>
-                                    setOwnerField(
-                                        { password: e.target.value },
-                                        {
-                                            password:
-                                                e.target.value && !isStrongPassword(e.target.value)
-                                                    ? STRONG_PASSWORD_MESSAGE
-                                                    : "",
-                                        }
-                                    )
-                                }
-                            />
-                            {fieldErrors.password ? <p style={fieldErrorStyle}>{fieldErrors.password}</p> : null}
-                        </div>
-                        <div className="vr-field">
-                            <label className="vr-label">Confirm Password *</label>
-                            <PasswordField
-                                className="vr-input"
-                                required
-                                placeholder="Re-enter password"
-                                value={owner.confirmPassword}
-                                onChange={(e) =>
-                                    setOwnerField(
-                                        { confirmPassword: e.target.value },
-                                        { confirmPassword: "" }
-                                    )
-                                }
-                            />
-                            {fieldErrors.confirmPassword ? (
-                                <p style={fieldErrorStyle}>{fieldErrors.confirmPassword}</p>
-                            ) : null}
-                        </div>
-                    </div>
 
-                    {error && <p style={{ color: "#f87171", fontSize: 13, marginTop: 16 }}>{error}</p>}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-1">
+                            <AuthField variant="dark" label="Full Name" required error={fieldErrors.fullName}>
+                                <input
+                                    className={c.input}
+                                    required
+                                    placeholder="e.g. Rahul Sharma"
+                                    value={owner.fullName}
+                                    onChange={(e) => {
+                                        const { sanitized, error: nameErr } = applyNameInput(e.target.value);
+                                        setOwnerField({ fullName: sanitized }, { fullName: nameErr });
+                                    }}
+                                />
+                            </AuthField>
+                            <AuthField variant="dark" label="Date of Birth" error={fieldErrors.dob}>
+                                <input
+                                    type="date"
+                                    className={c.input}
+                                    min="1900-01-01"
+                                    max={new Date().toISOString().slice(0, 10)}
+                                    value={dobToIso(owner.dob)}
+                                    onChange={(e) => setOwnerField({ dob: isoToDob(e.target.value) }, { dob: "" })}
+                                    style={{ colorScheme: "dark" }}
+                                />
+                            </AuthField>
+                            <AuthField variant="dark" label="Email Address" required error={fieldErrors.email}>
+                                <input
+                                    type="email"
+                                    className={c.input}
+                                    required
+                                    placeholder="owner@example.com"
+                                    value={owner.email}
+                                    onChange={(e) => {
+                                        const { value, error: emailErr } = applyEmailInput(e.target.value);
+                                        setOwnerField({ email: value }, { email: emailErr });
+                                    }}
+                                />
+                            </AuthField>
+                            <AuthField variant="dark" label="Phone Number" required error={fieldErrors.phone}>
+                                <PhoneInput
+                                    id="venue-owner-phone"
+                                    className={c.input}
+                                    selectClassName={c.select}
+                                    countryCode={phoneCode}
+                                    digits={phoneDigits}
+                                    onCountryCodeChange={(code) => syncOwnerPhone(code, phoneDigits)}
+                                    onDigitsChange={(digits) => syncOwnerPhone(phoneCode, digits)}
+                                />
+                            </AuthField>
+                            <AuthField variant="dark" label="Aadhar Number" error={fieldErrors.aadhar}>
+                                <input
+                                    className={c.input}
+                                    inputMode="numeric"
+                                    maxLength={12}
+                                    placeholder="12-digit Aadhar"
+                                    value={owner.aadhar}
+                                    onChange={(e) => {
+                                        const aadhar = digitsOnly(e.target.value).slice(0, 12);
+                                        setOwnerField(
+                                            { aadhar },
+                                            {
+                                                aadhar: aadhar && aadhar.length !== 12 ? AADHAAR_MESSAGE : "",
+                                            }
+                                        );
+                                    }}
+                                />
+                            </AuthField>
+                            <AuthField variant="dark" label="Password" required error={fieldErrors.password}>
+                                <PasswordField
+                                    tone="dark"
+                                    className={c.input}
+                                    required
+                                    placeholder="Min 8 characters"
+                                    value={owner.password}
+                                    onChange={(e) =>
+                                        setOwnerField(
+                                            { password: e.target.value },
+                                            {
+                                                password:
+                                                    e.target.value && !isStrongPassword(e.target.value)
+                                                        ? STRONG_PASSWORD_MESSAGE
+                                                        : "",
+                                            }
+                                        )
+                                    }
+                                />
+                            </AuthField>
+                            <AuthField
+                                variant="dark"
+                                label="Confirm Password"
+                                required
+                                error={fieldErrors.confirmPassword}
+                            >
+                                <PasswordField
+                                    tone="dark"
+                                    className={c.input}
+                                    required
+                                    placeholder="Re-enter password"
+                                    value={owner.confirmPassword}
+                                    onChange={(e) =>
+                                        setOwnerField(
+                                            { confirmPassword: e.target.value },
+                                            { confirmPassword: "" }
+                                        )
+                                    }
+                                />
+                            </AuthField>
+                        </div>
 
-                    <div className="vr-actions">
-                        <button
-                            type="button"
-                            className="vr-btn-secondary"
-                            onClick={() => {
-                                setError("");
-                                setStep(1);
-                            }}
-                        >
-                            ← Back
-                        </button>
-                        <button type="submit" className="vr-btn-primary" disabled={loading}>
-                            {loading ? "Registering…" : "Register Venue"}
-                        </button>
-                    </div>
-                </form>
-            )}
-        </div>
+                        <AuthErrorBanner variant="dark">{error}</AuthErrorBanner>
+
+                        <AuthNavLinks
+                            variant="dark"
+                            showBackHome={false}
+                            showWrongPortal={false}
+                            footerPrompt="Already have an account?"
+                            footerHref="/login-venue"
+                            footerLabel="Sign in"
+                        />
+
+                        <div className={pageActions}>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setError("");
+                                    setStep(1);
+                                }}
+                                className={pageBtnSecondary}
+                            >
+                                ← Back
+                            </button>
+                            <button type="submit" disabled={loading} className={pageBtnPrimary}>
+                                {loading ? "Registering…" : "Register Venue"}
+                            </button>
+                        </div>
+                    </form>
+                )}
+            </AuthCard>
+        </AuthShell>
     );
 }

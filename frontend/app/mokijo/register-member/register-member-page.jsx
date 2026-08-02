@@ -1,10 +1,19 @@
 "use client";
 import { API_BASE_URL } from "@/lib/api";
-
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import CustomRoleRegistration from "@/components/register/CustomRoleRegistration";
 import SuccessScreen from "@/components/register/SuccessScreen";
+import {
+    AuthShell,
+    AuthCard,
+    AuthBrand,
+    AuthField,
+    AuthErrorBanner,
+    getAuthClasses,
+} from "@/components/auth";
+import Link from "next/link";
+
+const c = getAuthClasses("dark");
 
 const roles = [
     {
@@ -29,17 +38,6 @@ const roles = [
     },
 ];
 
-const roleCardStyle = {
-    padding: "16px",
-    background: "#ffffff",
-    border: "1px solid #e2e8f0",
-    borderRadius: "12px",
-    cursor: "pointer",
-    transition: "all 0.2s ease",
-    boxShadow: "0 2px 4px rgba(0,0,0,0.02)",
-    textAlign: "left",
-};
-
 export default function RegisterMemberPage() {
     const [clubs, setClubs] = useState([]);
     const [selectedClub, setSelectedClub] = useState(null);
@@ -54,27 +52,20 @@ export default function RegisterMemberPage() {
         const fetchClubs = async () => {
             setLoadingClubs(true);
             setClubError("");
-
             try {
                 const response = await fetch(`${API_BASE_URL}/clubs`);
-                if (!response.ok) {
-                    throw new Error("Could not load clubs.");
-                }
-
+                if (!response.ok) throw new Error("Could not load clubs.");
                 const data = await response.json();
                 setClubs(data || []);
-
                 if (!data || data.length === 0) {
                     setClubError("No clubs are available for member registration yet.");
                 }
-            } catch (error) {
-                console.error("Error fetching clubs:", error);
+            } catch {
                 setClubError("Could not load the club list. Please try again.");
             } finally {
                 setLoadingClubs(false);
             }
         };
-
         fetchClubs();
     }, []);
 
@@ -82,12 +73,10 @@ export default function RegisterMemberPage() {
         event.preventDefault();
         const clubId = Number(pendingClubId);
         const club = clubs.find((item) => item.id === clubId);
-
         if (!club) {
             setClubError("Please select a club to continue.");
             return;
         }
-
         setSelectedClub(club);
         setSelectedRole(null);
         setClubError("");
@@ -100,62 +89,35 @@ export default function RegisterMemberPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#08080f] bg-[radial-gradient(ellipse_80%_60%_at_20%_10%,rgba(198,255,61,0.12)_0%,transparent_60%),radial-gradient(ellipse_60%_80%_at_80%_80%,rgba(217,255,110,0.1)_0%,transparent_60%)] flex items-center justify-center p-6 font-sans relative">
-            <div className="bg-[#14141f]/90 backdrop-blur-[20px] border border-white/8 rounded-2xl w-full max-w-[560px] p-8 md:p-10 relative z-10 shadow-[0_24px_60px_rgba(0,0,0,0.7)] transition-all duration-250 hover:border-[#c6ff3d]/25 hover:shadow-[0_24px_60px_rgba(0,0,0,0.8),0_0_30px_rgba(198,255,61,0.08)]">
-                <div className="text-center mb-7">
-                    <span className="block text-[28px] font-black italic uppercase tracking-wider bg-gradient-to-r from-[#c6ff3d] to-[#d9ff6e] bg-clip-text text-transparent drop-shadow-[0_0_16px_rgba(198,255,61,0.35)]">Mukijo</span>
-                    <span className="block text-[11px] text-slate-500/45 mt-1 tracking-wider uppercase">Member Registration Portal</span>
-                </div>
+        <AuthShell variant="dark">
+            <AuthCard size="md" variant="dark">
+                <Link href="/" className={c.backLink}>
+                    ← Back to Home
+                </Link>
+
+                <AuthBrand
+                    variant="dark"
+                    align="center"
+                    title="Member Registration"
+                    subtitle="Join a club as a player, parent, coach, or referee"
+                />
 
                 {submitted ? (
                     <SuccessScreen role={selectedRole} />
                 ) : selectedClub === null ? (
-                    <div className="flex flex-col gap-6" style={{ display: "flex", flexDirection: "column" }}>
-                        <Link
-                            href="/"
-                            className="text-xs font-semibold text-slate-400 hover:text-white transition-colors w-fit"
-                            style={{
-                                display: "inline-block",
-                                alignSelf: "flex-start",
-                                marginBottom: "16px",
-                                textDecoration: "none",
-                                width: "fit-content",
-                                background: "#c6ff3d",
-                                color: "#ffffff",
-                                borderColor: "#c6ff3d",
-                            }}
-                        >
-                            &lt;- Back to Home
-                        </Link>
+                    <>
+                        <h2 className="text-xl font-semibold text-[#f4f4f5] tracking-tight text-center">
+                            Select The Club You Want To Join
+                        </h2>
+                        <p className="text-sm text-[rgba(244,244,245,0.5)] text-center -mt-2">
+                            Choose your club before continuing registration.
+                        </p>
 
-                        <h2 className="text-xl font-bold text-white tracking-tight text-center">Select The Club You Want To Join</h2>
-                        <p className="text-sm text-slate-400 mt-1 text-center mb-6">Choose your club before continuing registration.</p>
+                        <AuthErrorBanner variant="dark">{clubError}</AuthErrorBanner>
 
-                        {clubError && (
-                            <div
-                                style={{
-                                    background: "#fef2f2",
-                                    color: "#ef4444",
-                                    padding: "10px",
-                                    borderRadius: "6px",
-                                    fontSize: "13px",
-                                    marginBottom: "16px",
-                                    textAlign: "center",
-                                }}
-                            >
-                                {clubError}
-                            </div>
-                        )}
-
-                        <form
-                            onSubmit={handleClubSubmit}
-                            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
-                        >
-                            <div className="flex flex-col gap-2 mb-4">
-                                <label className="text-xs font-bold uppercase tracking-wider text-white/40">
-                                    Club <span style={{ color: "#ef4444" }}>*</span>
-                                </label>
-                                <div style={{ position: "relative" }}>
+                        <form className="flex flex-col gap-4" onSubmit={handleClubSubmit}>
+                            <AuthField variant="dark" label="Club" required>
+                                <div className="relative">
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -164,52 +126,30 @@ export default function RegisterMemberPage() {
                                             }
                                         }}
                                         disabled={loadingClubs || clubs.length === 0}
-                                        style={{
-                                            width: "100%",
-                                            padding: "11px 14px",
-                                            border: "1.5px solid #d8d8d8",
-                                            borderRadius: "8px",
-                                            fontSize: "14px",
-                                            color: pendingClubId ? "#1a1a1a" : "#888",
-                                            background: "#fafafa",
-                                            cursor: loadingClubs || clubs.length === 0 ? "not-allowed" : "pointer",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "space-between",
-                                            textAlign: "left",
-                                        }}
+                                        className={`${c.input} flex items-center justify-between text-left disabled:opacity-50 disabled:cursor-not-allowed`}
                                     >
-                                        <span>
+                                        <span className={pendingClubId ? "text-[#f4f4f5]" : "text-[rgba(244,244,245,0.35)]"}>
                                             {loadingClubs
                                                 ? "Loading clubs..."
                                                 : (() => {
-                                                      const c = clubs.find((club) => club.id === Number(pendingClubId));
-                                                      if (!c) return "Choose your club...";
-                                                      const cid = c.club_id || `MKJ-${String(c.id).padStart(3, "0")}`;
-                                                      return `${cid} - ${c.club_name}`;
-                                                  })()}
+                                                    const clubMatch = clubs.find(
+                                                        (club) => club.id === Number(pendingClubId)
+                                                    );
+                                                    if (!clubMatch) return "Choose your club...";
+                                                    const cid =
+                                                        clubMatch.club_id || `MKJ-${String(clubMatch.id).padStart(3, "0")}`;
+                                                    return `${cid} - ${clubMatch.club_name}`;
+                                                })()}
                                         </span>
-                                        <span style={{ color: "#c6ff3d", fontWeight: 800 }}>v</span>
+                                        <span className="text-[#c6ff3d] font-extrabold">▾</span>
                                     </button>
 
-                                    {clubDropdownOpen && (
-                                        <div
-                                            style={{
-                                                position: "absolute",
-                                                top: "calc(100% + 6px)",
-                                                left: 0,
-                                                right: 0,
-                                                zIndex: 20,
-                                                maxHeight: "220px",
-                                                overflowY: "auto",
-                                                background: "#ffffff",
-                                                border: "1px solid #cbd5e1",
-                                                borderRadius: "8px",
-                                                boxShadow: "0 12px 24px rgba(15, 23, 42, 0.12)",
-                                            }}
-                                        >
+                                    {clubDropdownOpen ? (
+                                        <div className="absolute top-[calc(100%+6px)] left-0 right-0 z-20 max-h-[220px] overflow-y-auto bg-[#12121a] border border-[rgba(255,255,255,0.1)] rounded-xl shadow-lg">
                                             {clubs.map((club) => {
-                                                const cid = club.club_id || `MKJ-${String(club.id).padStart(3, "0")}`;
+                                                const cid =
+                                                    club.club_id || `MKJ-${String(club.id).padStart(3, "0")}`;
+                                                const selected = Number(pendingClubId) === club.id;
                                                 return (
                                                     <button
                                                         type="button"
@@ -218,93 +158,52 @@ export default function RegisterMemberPage() {
                                                             setPendingClubId(String(club.id));
                                                             setClubDropdownOpen(false);
                                                         }}
-                                                        style={{
-                                                            width: "100%",
-                                                            padding: "11px 14px",
-                                                            border: "none",
-                                                            borderBottom: "1px solid #f4f4f5",
-                                                            background:
-                                                                Number(pendingClubId) === club.id ? "#eff6ff" : "#ffffff",
-                                                            color: "#0f172a",
-                                                            cursor: "pointer",
-                                                            textAlign: "left",
-                                                            fontSize: "14px",
-                                                            fontWeight: Number(pendingClubId) === club.id ? 700 : 500,
-                                                        }}
+                                                        className={`w-full px-3.5 py-2.5 border-none border-b border-[rgba(255,255,255,0.06)] text-left text-sm cursor-pointer ${selected
+                                                                ? "bg-[rgba(198,255,61,0.2)] text-[#f4f4f5] font-bold"
+                                                                : "bg-transparent text-[rgba(244,244,245,0.55)] hover:bg-[rgba(255,255,255,0.06)]"
+                                                            }`}
                                                     >
                                                         {cid} - {club.club_name}
                                                     </button>
                                                 );
                                             })}
                                         </div>
-                                    )}
+                                    ) : null}
                                 </div>
-                            </div>
+                            </AuthField>
 
                             <button
                                 type="submit"
-                                className="w-full bg-[#c6ff3d] text-[#08080f] font-bold text-sm px-6 py-3.5 rounded-xl transition-all duration-200 hover:bg-[#b5eb29] hover:shadow-[0_0_15px_rgba(198,255,61,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
+                                className={c.primaryBtn}
                                 disabled={loadingClubs || clubs.length === 0 || !pendingClubId}
-                                style={{
-                                    alignSelf: "center",
-                                    width: "auto",
-                                    minWidth: "150px",
-                                    padding: "10px 22px",
-                                    background: "#c6ff3d",
-                                    opacity: loadingClubs || clubs.length === 0 || !pendingClubId ? 0.7 : 1,
-                                }}
                             >
                                 Continue
                             </button>
                         </form>
-                    </div>
+                    </>
                 ) : selectedRole === null ? (
-                    <div className="flex flex-col gap-6" style={{ display: "flex", flexDirection: "column" }}>
-                        <button
-                            type="button"
-                            className="text-xs font-semibold text-slate-400 hover:text-white transition-colors w-fit"
-                            onClick={resetToClubStep}
-                            style={{ alignSelf: "flex-start", marginBottom: "16px" }}
-                        >
-                            &lt;- Back to Clubs
+                    <div className="flex flex-col gap-4">
+                        <button type="button" className={c.backLink} onClick={resetToClubStep}>
+                            ← Back to Clubs
                         </button>
 
-                        <h2 className="text-xl font-bold text-white tracking-tight text-center">How Do You Want To Continue?</h2>
-                        <p className="text-sm text-slate-400 mt-1 text-center mb-6">
+                        <h2 className="text-xl font-semibold text-[#f4f4f5] tracking-tight text-center">
+                            How Do You Want To Continue?
+                        </h2>
+                        <p className="text-sm text-[rgba(244,244,245,0.5)] text-center -mt-2">
                             Registering for {selectedClub.club_name}. Select your onboarding type.
                         </p>
 
-                        <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "20px" }}>
+                        <div className="flex flex-col gap-3 mt-2">
                             {roles.map((role) => (
                                 <button
                                     type="button"
                                     key={role.value}
                                     onClick={() => setSelectedRole(role.value)}
-                                    style={roleCardStyle}
-                                    onMouseEnter={(event) => {
-                                        event.currentTarget.style.transform = "translateY(-2px)";
-                                        event.currentTarget.style.borderColor = "#c6ff3d";
-                                        event.currentTarget.style.boxShadow = "0 6px 12px rgba(15, 23, 42, 0.05)";
-                                    }}
-                                    onMouseLeave={(event) => {
-                                        event.currentTarget.style.transform = "none";
-                                        event.currentTarget.style.borderColor = "#e2e8f0";
-                                        event.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.02)";
-                                    }}
+                                    className="text-left p-4 rounded-xl bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] hover:border-[#c6ff3d] hover:bg-[rgba(198,255,61,0.06)] transition-all"
                                 >
-                                    <strong style={{ color: "#0f172a", fontSize: "16px", display: "block" }}>
-                                        {role.title}
-                                    </strong>
-                                    <span
-                                        style={{
-                                            fontSize: "13px",
-                                            color: "#475569",
-                                            marginTop: "4px",
-                                            display: "block",
-                                        }}
-                                    >
-                                        {role.description}
-                                    </span>
+                                    <strong className="block text-[#f4f4f5] text-base">{role.title}</strong>
+                                    <span className="block text-sm text-[rgba(244,244,245,0.5)] mt-1">{role.description}</span>
                                 </button>
                             ))}
                         </div>
@@ -314,11 +213,11 @@ export default function RegisterMemberPage() {
                         role={selectedRole}
                         selectedClub={selectedClub}
                         onBack={() => setSelectedRole(null)}
-                        backLabel="<- Back to Type"
+                        backLabel="← Back to Type"
                         onComplete={() => setSubmitted(true)}
                     />
                 )}
-            </div>
-        </div>
+            </AuthCard>
+        </AuthShell>
     );
 }

@@ -1,9 +1,21 @@
 "use client";
 import { API_BASE_URL } from "@/lib/api";
-
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import PasswordField from "@/components/ui/PasswordField";
+import {
+    AuthShell,
+    AuthCard,
+    AuthBrand,
+    AuthField,
+    AuthErrorBanner,
+    AuthSuccessBanner,
+    AuthNavLinks,
+    getAuthClasses,
+} from "@/components/auth";
+
+const c = getAuthClasses("dark");
 
 function LoginContent() {
     const searchParams = useSearchParams();
@@ -13,14 +25,13 @@ function LoginContent() {
     const [showResend, setShowResend] = useState(false);
     const [resendLoading, setResendLoading] = useState(false);
     const [resendSuccess, setResendSuccess] = useState("");
+    const [formData, setFormData] = useState({ email: "", password: "" });
 
     useEffect(() => {
         if (searchParams.get("registered") === "true") {
             setShowSuccess(true);
         }
     }, [searchParams]);
-
-    const [formData, setFormData] = useState({ email: "", password: "" });
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -44,7 +55,7 @@ function LoginContent() {
             } else {
                 setError(data.detail || "Failed to resend verification email.");
             }
-        } catch (err) {
+        } catch {
             setError("Server connection failed.");
         } finally {
             setResendLoading(false);
@@ -83,7 +94,7 @@ function LoginContent() {
                     setShowResend(true);
                 }
             }
-        } catch (err) {
+        } catch {
             setError("Cannot connect to server. Is the backend running?");
         } finally {
             setLoading(false);
@@ -91,145 +102,95 @@ function LoginContent() {
     };
 
     return (
-        <div className="min-h-screen flex justify-center items-center font-sans bg-[#08080f] overflow-hidden relative">
-            {/* ── Animated Blur Glow Orbs (Volt + Magenta) ── */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_20%_50%,rgba(198,255,61,0.12)_0%,transparent_60%),radial-gradient(ellipse_60%_60%_at_80%_20%,rgba(217,255,110,0.1)_0%,transparent_50%),radial-gradient(ellipse_50%_50%_at_50%_90%,rgba(217,255,110,0.07)_0%,transparent_50%)] pointer-events-none z-0" aria-hidden="true" />
-            
-            {/* ── Grid Pattern Overlay ── */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:50px_50px] pointer-events-none z-0" aria-hidden="true" />
+        <AuthShell variant="dark">
+            <AuthCard variant="dark">
+                <Link href="/" className={c.backLink}>
+                    ← Back to Home
+                </Link>
 
-            {/* ── Form Panel ── */}
-            <div className="w-full max-w-[500px] p-6 md:p-8 z-10">
-                <div className="bg-[#0e0e19]/45 border border-white/5 rounded-[24px] p-8 md:p-10 flex flex-col gap-8 backdrop-blur-[10px] shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
-                    <div className="flex flex-col gap-2">
-                        <span className="text-3xl font-black italic uppercase tracking-wider bg-gradient-to-r from-[#c6ff3d] to-[#d9ff6e] bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(198,255,61,0.45)] mb-2 inline-block">Mukijo</span>
-                        <h1 className="text-2xl font-extrabold tracking-tight text-white">Admin Sign In</h1>
-                        <p className="text-sm text-white/50">Welcome back — enter your credentials to continue</p>
-                    </div>
+                <AuthBrand
+                    variant="dark"
+                    title="Admin Sign In"
+                    subtitle="Welcome back — enter your credentials to continue."
+                />
 
-                    {showSuccess && (
-                        <div
-                            style={{
-                                background: "rgba(16, 185, 129, 0.1)",
-                                border: "1px solid rgba(16, 185, 129, 0.3)",
-                                color: "#6ee7b7",
-                                padding: "12px 16px",
-                                borderRadius: "10px",
-                                marginBottom: "20px",
-                                fontSize: "14px",
-                                textAlign: "center",
-                            }}
+                {showSuccess ? (
+                    <AuthSuccessBanner variant="dark">
+                        A verification link has been sent to your email. Please verify your email before signing in.
+                    </AuthSuccessBanner>
+                ) : null}
+
+                <form className="block" onSubmit={handleSubmit}>
+                    <AuthField variant="dark" label="Email address" htmlFor="email" required>
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            placeholder="name@example.com"
+                            className={c.input}
+                            value={formData.email}
+                            onChange={handleChange}
+                            required
+                        />
+                    </AuthField>
+
+                    <AuthField
+                        variant="dark"
+                        label="Password"
+                        htmlFor="password"
+                        required
+                        labelRight={
+                            <Link href="/forgot-password" className={`text-[13px] ${c.accentLink}`}>
+                                Forgot password?
+                            </Link>
+                        }
+                    >
+                        <PasswordField
+                            id="password"
+                            name="password"
+                            placeholder="••••••••"
+                            className={c.input}
+                            value={formData.password}
+                            onChange={handleChange}
+                            autoComplete="current-password"
+                            required
+                            tone="dark"
+                        />
+                    </AuthField>
+
+                    <AuthErrorBanner variant="dark">{error}</AuthErrorBanner>
+
+                    {showResend && !resendSuccess ? (
+                        <button
+                            type="button"
+                            onClick={handleResend}
+                            disabled={resendLoading}
+                            className="w-full py-2.5 bg-[rgba(198,255,61,0.1)] border border-[rgba(198,255,61,0.35)] rounded-[10px] text-[#d9ff6e] font-semibold text-sm disabled:opacity-50"
                         >
-                            <strong>Registration successful!</strong>
-                            <br />
-                            A verification link has been sent to your email. Please verify your email before signing in.
-                        </div>
-                    )}
-
-                    <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-                        <div className="flex flex-col gap-2">
-                            <label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-white/40">
-                                Email address
-                            </label>
-                            <div className="relative">
-                                <input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    placeholder="name@example.com"
-                                    className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex flex-col gap-2">
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                <label htmlFor="password" className="text-xs font-bold uppercase tracking-wider text-white/40">
-                                    Password
-                                </label>
-                                <Link href="/forgot-password" className="text-xs font-semibold text-[#c6ff3d] hover:text-[#b5eb29] hover:underline transition-colors">
-                                    Forgot password?
-                                </Link>
-                            </div>
-                            <div className="relative">
-                                <input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    placeholder="••••••••"
-                                    className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        {error && <div className="text-sm font-semibold text-red-400 bg-red-500/10 border border-red-500/20 px-4 py-3 rounded-xl text-center">{error}</div>}
-
-                        {showResend && !resendSuccess && (
-                            <button
-                                type="button"
-                                onClick={handleResend}
-                                disabled={resendLoading}
-                                style={{
-                                    width: "100%",
-                                    padding: "10px",
-                                    background: "rgba(217, 255, 110, 0.1)",
-                                    border: "1px solid rgba(217, 255, 110, 0.3)",
-                                    borderRadius: "8px",
-                                    color: "#d9ff6e",
-                                    fontWeight: "600",
-                                    fontSize: "14px",
-                                    marginTop: "10px",
-                                    marginBottom: "15px",
-                                    cursor: "pointer",
-                                    transition: "all 0.2s ease"
-                                }}
-                            >
-                                {resendLoading ? "Resending..." : "Resend Verification Link"}
-                            </button>
-                        )}
-
-                        {resendSuccess && (
-                            <div
-                                style={{
-                                    background: "rgba(198, 255, 61, 0.1)",
-                                    border: "1px solid rgba(198, 255, 61, 0.3)",
-                                    color: "#c6ff3d",
-                                    padding: "12px",
-                                    borderRadius: "8px",
-                                    marginTop: "10px",
-                                    marginBottom: "15px",
-                                    fontSize: "14px",
-                                    textAlign: "center"
-                                }}
-                            >
-                                {resendSuccess}
-                            </div>
-                        )}
-
-                        <button type="submit" className="w-full bg-[#c6ff3d] text-[#08080f] font-bold text-sm px-6 py-3.5 rounded-xl transition-all duration-200 hover:bg-[#b5eb29] hover:shadow-[0_0_15px_rgba(198,255,61,0.3)] disabled:opacity-50 disabled:cursor-not-allowed" disabled={loading}>
-                            {loading ? "Signing in…" : "Sign in to Dashboard →"}
+                            {resendLoading ? "Resending..." : "Resend Verification Link"}
                         </button>
-                    </form>
+                    ) : null}
 
-                    <div className="flex items-center justify-center my-1">
-                        <span className="text-[11px] font-bold uppercase text-white/25">or</span>
-                    </div>
+                    {resendSuccess ? (
+                        <div className="bg-[rgba(16,185,129,0.12)] border border-[rgba(16,185,129,0.3)] text-[#6ee7b7] px-[14px] py-3 rounded-[10px] text-[13px] text-center">
+                            {resendSuccess}
+                        </div>
+                    ) : null}
 
-                    <div className="text-sm text-white/50 text-center">
-                        Don&apos;t have an account?{" "}
-                        <Link href="/register" className="font-semibold text-[#c6ff3d] hover:text-[#b5eb29] hover:underline transition-colors">
-                            Create one free
-                        </Link>
-                    </div>
-                </div>
-            </div>
-        </div>
+                    <button type="submit" className={c.primaryBtn} disabled={loading}>
+                        {loading ? "Signing in…" : "Sign in →"}
+                    </button>
+                </form>
+
+                <AuthNavLinks
+                    variant="dark"
+                    showBackHome={false}
+                    footerPrompt="Don't have an account?"
+                    footerHref="/register"
+                    footerLabel="Create one free"
+                />
+            </AuthCard>
+        </AuthShell>
     );
 }
 

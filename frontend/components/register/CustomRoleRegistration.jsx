@@ -1,11 +1,10 @@
 "use client";
 import { API_BASE_URL } from "@/lib/api";
 
-import { useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
+import { useEffect, useState } from "react";
 import PasswordField from "@/components/ui/PasswordField";
 import PhoneInput from "@/components/ui/PhoneInput";
+import { getAuthClasses } from "@/components/auth";
 import {
     isValidEmail,
     isValidPersonName,
@@ -27,6 +26,8 @@ import {
     AADHAAR_MESSAGE,
     DOB_MESSAGE,
 } from "@/lib/validation";
+
+const c = getAuthClasses("dark");
 
 const AADHAAR_REQUIRED_ROLES = ["coach", "referee", "trainer"];
 
@@ -54,9 +55,7 @@ function isYesNoSelect(field) {
     return normalized[0] === "no" && normalized[1] === "yes";
 }
 
-export default function CustomRoleRegistration({ role, selectedClub, onBack, onComplete, backLabel = "<- Back" }) {
-    const router = useRouter();
-    const redirectedRef = useRef(false);
+export default function CustomRoleRegistration({ role, selectedClub, onBack, onComplete, backLabel = "← Back" }) {
     const [formConfig, setFormConfig] = useState(null);
     const [formData, setFormData] = useState({});
     const [phoneMeta, setPhoneMeta] = useState({});
@@ -283,19 +282,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
             });
 
             if (response.ok) {
-                // Prevent duplicate redirect triggers
-                if (redirectedRef.current) return;
-                redirectedRef.current = true;
-
-                toast.success(
-                    "Registration successful! We've sent a verification email to your inbox - please verify it. The club admin must still approve your application before you can log in.",
-                    { duration: 5000 }
-                );
                 onComplete();
-                // Redirect to Landing Page after the toast is visible
-                setTimeout(() => {
-                    router.push("/");
-                }, 1500);
             } else {
                 const errorData = await response.json().catch(() => ({}));
                 setSubmitError(errorData.detail || "Failed to submit application. Please check details.");
@@ -310,56 +297,29 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
 
     if (loading && !formConfig) {
         return (
-            <div style={{ textAlign: "center", padding: "40px" }}>
-                <div
-                    style={{
-                        width: "30px",
-                        height: "30px",
-                        border: "3px solid #cbd5e1",
-                        borderTopColor: "#c6ff3d",
-                        borderRadius: "50%",
-                        animation: "spin 1s linear infinite",
-                        margin: "0 auto 12px",
-                    }}
-                ></div>
-                <p style={{ color: "#64748b", fontSize: "14px" }}>Fetching customized form configuration...</p>
-                <style jsx>{`
-                    @keyframes spin {
-                        to {
-                            transform: rotate(360deg);
-                        }
-                    }
-                `}</style>
+            <div className="text-center py-10">
+                <div className="w-8 h-8 border-[3px] border-[rgba(255,255,255,0.12)] border-t-[#c6ff3d] rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-sm text-[rgba(244,244,245,0.5)]">Fetching customized form configuration...</p>
             </div>
         );
     }
 
     return (
-        <div className={styles.stepContainer}>
-            <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: "16px" }}>
-                <button type="button" className="text-xs font-semibold text-slate-400 hover:text-white transition-colors w-fit" onClick={onBack}>
+        <div>
+            <div className="flex justify-start mb-4">
+                <button type="button" className="text-[13px] font-medium text-[rgba(244,244,245,0.45)] hover:text-[#f4f4f5] transition-colors w-fit" onClick={onBack}>
                     {backLabel}
                 </button>
             </div>
 
             {submitError && (
-                <div
-                    style={{
-                        background: "#fef2f2",
-                        color: "#ef4444",
-                        padding: "10px",
-                        borderRadius: "6px",
-                        fontSize: "13px",
-                        marginBottom: "16px",
-                        textAlign: "center",
-                    }}
-                >
+                <div className="text-sm font-semibold text-red-400 bg-red-500/10 border border-red-500/20 px-4 py-3 rounded-xl text-center mb-4">
                     {submitError}
                 </div>
             )}
 
-            <h2 className="text-xl font-bold text-white tracking-tight text-center">{formConfig?.title || `${role} Signup`}</h2>
-            <p className="text-sm text-slate-400 mt-1 text-center mb-6">
+            <h2 className="text-xl font-semibold text-[#f4f4f5] tracking-tight text-center">{formConfig?.title || `${role} Signup`}</h2>
+            <p className="text-sm text-[rgba(244,244,245,0.5)] mt-1 text-center mb-6">
                 {selectedClub?.club_name ? `Joining ${selectedClub.club_name}. ` : ""}
                 {formConfig?.description || "Apply to join our organisation by filling in your details below."}
             </p>
@@ -373,7 +333,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                         return (
                             <div key={field.name} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                                 <div className="flex flex-col gap-2 mb-4">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-white/40">
+                                    <label className={c.label}>
                                         {field.label} {field.required && <span style={{ color: "#ef4444" }}>*</span>}
                                     </label>
                                     {isYesNoSelect(field) ? (
@@ -385,7 +345,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                                         display: "flex",
                                                         alignItems: "center",
                                                         gap: "8px",
-                                                        color: "#ffffff",
+                                                        color: "#f4f4f5",
                                                         fontSize: "14px",
                                                         fontWeight: 600,
                                                         cursor: "pointer",
@@ -406,7 +366,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                         </div>
                                     ) : field.type === "select" ? (
                                         <select
-                                            className="w-full bg-[#0e0e19] border border-white/8 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#c6ff3d]"
+                                            className={c.select}
                                             value={formData[field.name] || ""}
                                             onChange={(e) => handleFieldChange(field.name, e.target.value)}
                                         >
@@ -437,15 +397,15 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                             onDigitsChange={(digits) =>
                                                 handlePhoneMetaChange(field.name, { digits })
                                             }
-                                            className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
-                                            selectClassName="w-full bg-[#0e0e19] border border-white/8 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#c6ff3d]"
+                                            className={c.input}
+                                            selectClassName={c.select}
                                             placeholder={field.placeholder || "00000 00000"}
                                         />
                                     ) : isAadhaarField(field) ? (
                                         <input
                                             type="text"
                                             inputMode="numeric"
-                                            className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
+                                            className={c.input}
                                             placeholder={field.placeholder || "12-digit Aadhaar number"}
                                             maxLength={12}
                                             value={formData[field.name] || ""}
@@ -456,7 +416,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                     ) : isDobField(field) ? (
                                         <input
                                             type="date"
-                                            className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
+                                            className={c.input}
                                             value={dobToIso(formData[field.name] || "")}
                                             min="1900-01-01"
                                             max={new Date().toISOString().slice(0, 10)}
@@ -468,7 +428,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                     ) : (
                                         <input
                                             type={field.type}
-                                            className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
+                                            className={c.input}
                                             placeholder={field.placeholder || ""}
                                             value={formData[field.name] || ""}
                                             onChange={(e) =>
@@ -492,11 +452,12 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                 {isEmailField && (
                                     <>
                                         <div className="flex flex-col gap-2 mb-4">
-                                            <label className="text-xs font-bold uppercase tracking-wider text-white/40">
+                                            <label className={c.label}>
                                                 Create Password <span style={{ color: "#ef4444" }}>*</span>
                                             </label>
                                             <PasswordField
-                                                className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
+                                                tone="dark"
+                                                className={c.input}
                                                 placeholder="Choose a password for your account"
                                                 value={formData["password"] || ""}
                                                 onChange={(e) => handleFieldChange("password", e.target.value)}
@@ -515,11 +476,12 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                             )}
                                         </div>
                                         <div className="flex flex-col gap-2 mb-4">
-                                            <label className="text-xs font-bold uppercase tracking-wider text-white/40">
+                                            <label className={c.label}>
                                                 Confirm Password <span style={{ color: "#ef4444" }}>*</span>
                                             </label>
                                             <PasswordField
-                                                className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:bg-white/5"
+                                                tone="dark"
+                                                className={c.input}
                                                 placeholder="Re-enter your password"
                                                 value={confirmPassword}
                                                 onChange={(e) => {
@@ -549,23 +511,10 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                     })}
 
                 <div className="flex flex-col gap-2 mb-4">
-                    <label className="text-xs font-bold uppercase tracking-wider text-white/40">
+                    <label className={c.label}>
                         Interested Sports <span style={{ color: "#ef4444" }}>*</span> (Select all that apply)
                     </label>
-                    <div
-                        style={{
-                            maxHeight: "180px",
-                            overflowY: "auto",
-                            border: "1.5px solid rgba(255, 255, 255, 0.08)",
-                            borderRadius: "10px",
-                            padding: "12px 14px",
-                            background: "rgba(255, 255, 255, 0.05)",
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "8px",
-                            marginTop: "8px",
-                        }}
-                    >
+                    <div className={`${c.checkList} mt-2`}>
                         {["Tennis", "Cricket", "Football (Soccer)", "Basketball", "Badminton", "Swimming"].map(
                             (sport) => {
                                 const selectedSports = formData["sports"] || [];
@@ -573,14 +522,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                 return (
                                     <label
                                         key={sport}
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: "8px",
-                                            cursor: "pointer",
-                                            fontSize: "14px",
-                                            color: "#f4f4f5",
-                                        }}
+                                        className="flex items-center gap-2 cursor-pointer text-sm text-[#f4f4f5]"
                                     >
                                         <input
                                             type="checkbox"
@@ -594,12 +536,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                                 }
                                                 handleFieldChange("sports", updated);
                                             }}
-                                            style={{
-                                                cursor: "pointer",
-                                                width: "16px",
-                                                height: "16px",
-                                                accentColor: "#c6ff3d",
-                                            }}
+                                            className="w-4 h-4 accent-[#c6ff3d] cursor-pointer"
                                         />
                                         <span>{sport}</span>
                                     </label>
@@ -616,14 +553,9 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
 
                 <button
                     type="submit"
-                    className="w-full bg-[#c6ff3d] text-[#08080f] font-bold text-sm px-6 py-3.5 rounded-xl transition-all duration-200 hover:bg-[#b5eb29] hover:shadow-[0_0_15px_rgba(198,255,61,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={c.primaryBtn}
                     disabled={loading}
-                    style={{
-                        width: "100%",
-                        marginTop: "10px",
-                        opacity: loading ? 0.7 : 1,
-                        cursor: loading ? "not-allowed" : "pointer",
-                    }}
+                    style={{ marginTop: "10px" }}
                 >
                     {loading ? "Submitting Application..." : "Submit Application"}
                 </button>
