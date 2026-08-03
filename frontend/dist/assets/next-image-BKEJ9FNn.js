@@ -1,1 +1,0 @@
-import{j as s}from"./index-D9qwe0vW.js";function x({src:r,alt:a,width:e,height:o,className:t,style:i,priority:m,...n}){return s.jsx("img",{src:r,alt:a,width:e,height:o,className:t,style:i,loading:m?"eager":"lazy",...n})}export{x as I};

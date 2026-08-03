@@ -1,1 +1,0 @@
-import{h as n,i as r}from"./index-DpSSUb3O.js";function c(){const t=n(),{user:o,accessToken:s,setAuth:u,clearAuth:e}=r();return{user:o,accessToken:s,isLoading:t.isLoading,logout:t.logout,setAuth:u,clearAuth:e}}export{c as u};
