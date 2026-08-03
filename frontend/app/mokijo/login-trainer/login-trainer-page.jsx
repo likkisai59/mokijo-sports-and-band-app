@@ -1,5 +1,6 @@
 "use client";
 import { API_BASE_URL } from "@/lib/api";
+import { loginRequest, normalizeToken, persistSportsSession, navigateToDashboard } from "@/lib/sportsLogin";
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -39,26 +40,26 @@ function LoginTrainerContent() {
         e.preventDefault();
         setLoading(true);
         setError("");
-        try {
-            const res = await fetch(`${API_BASE_URL}/trainer/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(form),
-            });
-            const data = await res.json();
-            if (res.ok) {
-                localStorage.setItem("trainerId", data.trainerId);
-                localStorage.setItem("trainerName", data.trainerName);
-                localStorage.setItem("userRole", "trainer");
-                localStorage.setItem("isTrainer", "true");
-                localStorage.setItem("accessToken", data.access_token);
-                window.location.href = "/trainer-dashboard";
-            } else {
-                setError(data.detail || "Login failed.");
+
+        const result = await loginRequest("/trainer/login", form);
+        if (result.ok) {
+            const { data } = result;
+            const token = normalizeToken(data);
+            if (!token || !data.trainerId || String(data.trainerId) === "undefined") {
+                setError("Login failed: Invalid trainer session received.");
+                setLoading(false);
+                return;
             }
-        } catch {
-            setError("Cannot connect to server.");
-        } finally {
+            persistSportsSession({
+                trainerId: data.trainerId,
+                trainerName: data.trainerName,
+                userRole: "trainer",
+                isTrainer: "true",
+                accessToken: token,
+            });
+            navigateToDashboard("/trainer-dashboard");
+        } else {
+            setError(result.detail || "Login failed.");
             setLoading(false);
         }
     };

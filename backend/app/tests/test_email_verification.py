@@ -1,5 +1,5 @@
 from datetime import timedelta
-from app.features.auth.models import User
+from app.features.auth.models import BandUser
 from app.core.security import create_access_token
 
 def test_email_verification_flow(client, db_session):
@@ -14,7 +14,7 @@ def test_email_verification_flow(client, db_session):
     assert response.status_code == 201
     
     # Query database to confirm user is unverified
-    user = db_session.query(User).filter(User.email == "verify_test@example.com").first()
+    user = db_session.query(User).filter(BandUser.email == "verify_test@example.com").first()
     assert user is not None
     assert user.is_verified is False
 

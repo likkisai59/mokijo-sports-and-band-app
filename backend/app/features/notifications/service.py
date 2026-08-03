@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.features.bookings.models import Booking
 from app.features.notifications.crud import notification_crud
 from app.features.notifications.repository import notification_repository
-from app.features.auth.models import User, Role
+from app.features.auth.models import BandUser, Role
 from app.features.notifications.models import Notification
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ def create_booking_notification(
             venue_owner_user_id = booking.venue.user_id
 
         # Admins list
-        admins = db.query(User).join(User.roles).filter(Role.name == "admin").all()
+        admins = db.query(BandUser).join(BandUser.roles).filter(Role.name == "admin").all()
 
         notifications_to_send = []
 
@@ -311,7 +311,7 @@ def create_booking_notification(
 
 
 def _write_failed_notif(db: Session, booking_id: UUID, actor_id: str, actor_role: str, action: str, error_message: str):
-    admins = db.query(User).join(User.roles).filter(Role.name == "admin").all()
+    admins = db.query(BandUser).join(BandUser.roles).filter(Role.name == "admin").all()
     from app.features.notifications.preferences.service import notification_preference_service
     for admin in admins:
         if not notification_preference_service.is_delivery_allowed(db, admin.id, "failed_action"):

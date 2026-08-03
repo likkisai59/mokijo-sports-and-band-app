@@ -4,7 +4,7 @@ from uuid import UUID
 from datetime import datetime
 from typing import List, Tuple, Optional
 from app.features.bookings.models import Booking
-from app.features.auth.models import User
+from app.features.auth.models import BandUser
 from app.common.repositories.base import BaseRepository
 
 class BookingCRUD(BaseRepository[Booking]):
@@ -49,7 +49,7 @@ class BookingCRUD(BaseRepository[Booking]):
             )
             # Link check for client name search
             query = query.join(Booking.client).filter(
-                or_(search_clause, User.name.ilike(f"%{search}%"))
+                or_(search_clause, BandUser.name.ilike(f"%{search}%"))
             )
 
         total = query.count()
@@ -124,7 +124,7 @@ class BookingCRUD(BaseRepository[Booking]):
             )
             # Link check for client name search
             query = query.join(Booking.client).filter(
-                or_(search_clause, User.name.ilike(f"%{search}%"))
+                or_(search_clause, BandUser.name.ilike(f"%{search}%"))
             )
 
         total = query.count()
@@ -226,7 +226,7 @@ class BookingCRUD(BaseRepository[Booking]):
                 Booking.location.ilike(f"%{search}%")
             )
             query = query.join(Booking.client).filter(
-                or_(search_clause, User.name.ilike(f"%{search}%"), User.email.ilike(f"%{search}%"))
+                or_(search_clause, BandUser.name.ilike(f"%{search}%"), BandUser.email.ilike(f"%{search}%"))
             )
 
         total = query.count()

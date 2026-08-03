@@ -7,20 +7,20 @@ from typing import Optional
 from uuid import UUID
 from sqlalchemy.orm import Session
 from app.common.repositories.base import BaseRepository
-from app.features.auth.models import User, Role, Permission, RefreshToken, PermissionGroup
+from app.features.auth.models import BandUser, Role, Permission, RefreshToken, PermissionGroup
 
 
-class UserCRUD(BaseRepository[User]):
+class UserCRUD(BaseRepository[BandUser]):
     """Repository operations for User entities."""
     
     def __init__(self):
-        super().__init__(User)
+        super().__init__(BandUser)
 
-    def get_by_email(self, db: Session, email: str) -> Optional[User]:
+    def get_by_email(self, db: Session, email: str) -> Optional[BandUser]:
         """Fetch active user by email."""
-        return db.query(User).filter(
-            User.email == email,
-            User.deleted_at.is_(None)
+        return db.query(BandUser).filter(
+            BandUser.email == email,
+            BandUser.deleted_at.is_(None)
         ).first()
 
     def get_filtered_users(
@@ -31,21 +31,21 @@ class UserCRUD(BaseRepository[User]):
         is_active: Optional[bool] = None,
         limit: int = 10,
         offset: int = 0
-    ) -> tuple[list[User], int]:
+    ) -> tuple[list[BandUser], int]:
         """Fetch paginated, filtered user listings and total count records."""
-        query = db.query(User).filter(User.deleted_at.is_(None))
+        query = db.query(BandUser).filter(BandUser.deleted_at.is_(None))
         
         if search:
             query = query.filter(
-                (User.name.ilike(f"%{search}%")) | 
-                (User.email.ilike(f"%{search}%"))
+                (BandUser.name.ilike(f"%{search}%")) | 
+                (BandUser.email.ilike(f"%{search}%"))
             )
             
         if is_active is not None:
-            query = query.filter(User.is_active == is_active)
+            query = query.filter(BandUser.is_active == is_active)
             
         if role_name:
-            query = query.join(User.roles).filter(Role.name == role_name)
+            query = query.join(BandUser.roles).filter(Role.name == role_name)
             
         total_count = query.count()
         results = query.offset(offset).limit(limit).all()

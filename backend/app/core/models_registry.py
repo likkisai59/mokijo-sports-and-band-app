@@ -8,7 +8,7 @@ SQLAlchemy model registration on Base.metadata.
 
 # ── Auth & RBAC ──────────────────────────────────────────────────────────────
 from app.features.auth.models import (  # noqa: F401
-    User,
+    BandUser,
     Role,
     Permission,
     PermissionGroup,

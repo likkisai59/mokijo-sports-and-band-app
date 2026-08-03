@@ -256,9 +256,9 @@ class TestResendVerification:
         email = "resend1@test.com"
         register_user(client, email, "Resend User", "client")
         # Rewind last_verification_sent_at so the 60-second cooldown is bypassed
-        from app.features.auth.models import User
+        from app.features.auth.models import BandUser
         from datetime import datetime, timedelta
-        user = db_session.query(User).filter(User.email == email).first()
+        user = db_session.query(User).filter(BandUser.email == email).first()
         if user:
             user.last_verification_sent_at = datetime.utcnow() - timedelta(seconds=120)
             db_session.add(user)
@@ -286,7 +286,7 @@ class TestResendVerification:
         from datetime import datetime, timedelta
         import jwt as pyjwt
         from app.core.config import settings
-        from app.features.auth.models import User
+        from app.features.auth.models import BandUser
 
         login_resp = client.post("/api/v1/auth/login", json={"email": email, "password": STRONG_PASSWORD})
         access_token = login_resp.json()["data"]["access_token"]
@@ -298,7 +298,7 @@ class TestResendVerification:
         client.post("/api/v1/auth/verify-email", json={"token": verify_token})
 
         # Reset cooldown timer so resend doesn't fail on cooldown first
-        user = db_session.query(User).filter(User.email == email).first()
+        user = db_session.query(User).filter(BandUser.email == email).first()
         if user:
             user.last_verification_sent_at = datetime.utcnow() - timedelta(seconds=120)
             db_session.add(user)

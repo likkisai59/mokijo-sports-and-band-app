@@ -79,13 +79,12 @@ class Review(BaseModel):
     videos = Column(JSON, default=list, nullable=False)  # ["url1", "url2"]
 
     # Relationships
-    reviewer = relationship("User", foreign_keys=[reviewer_id], backref="reviews_given")
-    reviewee = relationship(
-        "User", foreign_keys=[reviewee_id], backref="reviews_received"
+    reviewer = relationship("BandUser", foreign_keys=[reviewer_id], backref="reviews_given")
+    reviewee = relationship("BandUser", foreign_keys=[reviewee_id], backref="reviews_received"
     )
     artist_profile = relationship("ArtistProfile", backref="artist_reviews")
     venue = relationship("Venue", backref="venue_reviews")
-    client = relationship("User", foreign_keys=[client_id], backref="client_reviews")
+    client = relationship("BandUser", foreign_keys=[client_id], backref="client_reviews")
     booking = relationship("Booking", backref="booking_reviews")
 
     @property
@@ -129,11 +128,9 @@ class ReviewReport(BaseModel):
 
     # Relationships
     review = relationship("Review", backref="reports")
-    reporter = relationship(
-        "User", foreign_keys=[reported_by], backref="submitted_review_reports"
+    reporter = relationship("BandUser", foreign_keys=[reported_by], backref="submitted_review_reports"
     )
-    assigned_admin = relationship(
-        "User", foreign_keys=[assigned_admin_id], backref="assigned_review_reports"
+    assigned_admin = relationship("BandUser", foreign_keys=[assigned_admin_id], backref="assigned_review_reports"
     )
 
 
@@ -172,6 +169,5 @@ class ReviewModerationHistory(BaseModel):
     # Relationships
     review = relationship("Review", backref="moderation_history")
     report = relationship("ReviewReport", backref="moderation_history")
-    moderator = relationship(
-        "User", foreign_keys=[moderated_by], backref="moderation_actions"
+    moderator = relationship("BandUser", foreign_keys=[moderated_by], backref="moderation_actions"
     )

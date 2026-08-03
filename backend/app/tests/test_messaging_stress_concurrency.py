@@ -15,14 +15,14 @@ import pytest
 from sqlalchemy.orm import Session
 from fastapi.testclient import TestClient
 
-from app.features.auth.models import User, Role
+from app.features.auth.models import BandUser, Role
 from app.features.messaging.conversation.models import Conversation
 from app.features.messaging.message.service import message_service
 from app.features.notifications.connection_manager import connection_manager
 from app.core.security import create_access_token
 
 
-def _create_stress_user(db: Session, idx: int) -> tuple[User, str]:
+def _create_stress_user(db: Session, idx: int) -> tuple[BandUser, str]:
     role = db.query(Role).filter(Role.name == "client").first()
     if not role:
         role = Role(id=uuid4(), name="client", description="Client role")

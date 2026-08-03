@@ -4,7 +4,7 @@ from loguru import logger
 from app.core.config import settings
 from app.core.database import SessionLocal
 from app.core.security import get_password_hash
-from app.features.auth.models import User, Role
+from app.features.auth.models import BandUser, Role
 from app.features.locations.models import Country, State, City
 from app.features.artists.models import ArtistProfile
 from app.features.venues.models import Venue
@@ -74,7 +74,7 @@ def seed():
             ("admin@example.com", "admin", "System Admin")
         ]
         for email, rname, name in demo_users:
-            user = db.query(User).filter(User.email == email).first()
+            user = db.query(BandUser).filter(BandUser.email == email).first()
             if not user:
                 user = User(
                     id=uuid.uuid4(),
@@ -99,7 +99,7 @@ def seed():
         ]
         for name, email, display_name, bio, rate, city, state, band_type, members in artists_data:
             # Get or create user
-            user = db.query(User).filter(User.email == email).first()
+            user = db.query(BandUser).filter(BandUser.email == email).first()
             if not user:
                 user = User(
                     id=uuid.uuid4(),
@@ -154,7 +154,7 @@ def seed():
         ]
         for name, email, bio, address, city_name, base_price, cap, vtype in venues_data:
             # Get or create user
-            user = db.query(User).filter(User.email == email).first()
+            user = db.query(BandUser).filter(BandUser.email == email).first()
             if not user:
                 user = User(
                     id=uuid.uuid4(),

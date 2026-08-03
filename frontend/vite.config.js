@@ -17,6 +17,9 @@ export default defineConfig({
     port: 3000,
   },
   define: {
+    'process.env.NEXT_PUBLIC_API_URL': JSON.stringify(
+      process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001'
+    ),
     'process.env': {},
   },
   optimizeDeps: {

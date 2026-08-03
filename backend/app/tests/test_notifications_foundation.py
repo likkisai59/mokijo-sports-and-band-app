@@ -1,6 +1,6 @@
 import uuid
 import pytest
-from app.features.auth.models import User, Role
+from app.features.auth.models import BandUser, Role
 from app.features.notifications.service import notification_service
 from app.core.dependencies import get_current_user, require_role
 from app.core.exceptions import NotFoundException

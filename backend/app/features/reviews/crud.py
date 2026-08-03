@@ -3,7 +3,7 @@ from sqlalchemy import or_, func
 from uuid import UUID
 from typing import List, Tuple, Optional, Dict
 from app.features.reviews.models import Review
-from app.features.auth.models import User
+from app.features.auth.models import BandUser
 from app.common.repositories.base import BaseRepository
 
 
@@ -45,7 +45,7 @@ class ReviewCRUD(BaseRepository[Review]):
 
         if search:
             query = query.join(Review.client).filter(
-                or_(Review.comment.ilike(f"%{search}%"), User.name.ilike(f"%{search}%"))
+                or_(Review.comment.ilike(f"%{search}%"), BandUser.name.ilike(f"%{search}%"))
             )
 
         total = query.count()

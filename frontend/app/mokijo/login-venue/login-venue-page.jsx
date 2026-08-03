@@ -1,5 +1,6 @@
 "use client";
 import { API_BASE_URL } from "@/lib/api";
+import { loginRequest, normalizeToken, persistSportsSession, navigateToDashboard } from "@/lib/sportsLogin";
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -39,25 +40,25 @@ function LoginVenueContent() {
         e.preventDefault();
         setLoading(true);
         setError("");
-        try {
-            const res = await fetch(`${API_BASE_URL}/venue-owner/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(form),
-            });
-            const data = await res.json();
-            if (res.ok) {
-                localStorage.setItem("venueOwnerId", data.ownerId);
-                localStorage.setItem("venueOwnerName", data.ownerName);
-                localStorage.setItem("isVenueOwner", "true");
-                localStorage.setItem("accessToken", data.access_token);
-                window.location.href = "/venue-dashboard";
-            } else {
-                setError(data.detail || "Login failed.");
+
+        const result = await loginRequest("/venue-owner/login", form);
+        if (result.ok) {
+            const { data } = result;
+            const token = normalizeToken(data);
+            if (!token) {
+                setError("Login failed: Invalid session token received.");
+                setLoading(false);
+                return;
             }
-        } catch {
-            setError("Cannot connect to server.");
-        } finally {
+            persistSportsSession({
+                venueOwnerId: data.ownerId,
+                venueOwnerName: data.ownerName,
+                isVenueOwner: "true",
+                accessToken: token,
+            });
+            navigateToDashboard("/venue-dashboard");
+        } else {
+            setError(result.detail || "Login failed.");
             setLoading(false);
         }
     };

@@ -1,5 +1,5 @@
 import uuid
-from app.features.auth.models import User
+from app.features.auth.models import BandUser
 from app.features.notifications.models import Notification
 from app.core.dependencies import get_current_user
 from main import app

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.common.repositories.base import BaseRepository
 from app.features.venues.models import Venue
 from app.features.locations.models import City
-from app.features.auth.models import User
+from app.features.auth.models import BandUser
 
 
 class VenueCRUD(BaseRepository[Venue]):
@@ -56,7 +56,7 @@ class VenueCRUD(BaseRepository[Venue]):
             query = query.filter(
                 (Venue.name.ilike(f"%{search}%")) |
                 (City.name.ilike(f"%{search}%")) |
-                (User.name.ilike(f"%{search}%"))
+                (BandUser.name.ilike(f"%{search}%"))
             )
 
         if verification_status and verification_status != "all":

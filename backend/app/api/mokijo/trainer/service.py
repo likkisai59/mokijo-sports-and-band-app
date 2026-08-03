@@ -103,13 +103,14 @@ async def login_trainer(request: Request, db: Session, credentials: schemas.Trai
                 new_hash = hash_password(credentials.password.strip())
                 crud.update_trainer_password(db, trainer.get("id"), new_hash)
 
-            access_token = create_access_token({"sub": str(trainer.get("id")), "role": "trainer"})
+            access_token = create_access_token(data={"sub": str(trainer.get("id")), "role": "trainer"})
             return {
                 "message": "Login successful",
                 "trainerId": trainer.get("id"),
                 "trainerName": f"{trainer.get('first_name')} {trainer.get('last_name')}",
                 "trainerEmail": trainer.get("email"),
                 "isTrainer": True,
+                "accessToken": access_token,
                 "access_token": access_token,
                 "token_type": "bearer",
             }

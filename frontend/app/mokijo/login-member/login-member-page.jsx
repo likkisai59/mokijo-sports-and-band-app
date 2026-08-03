@@ -1,5 +1,6 @@
 "use client";
 import { API_BASE_URL } from "@/lib/api";
+import { loginRequest, normalizeToken, persistSportsSession, navigateToDashboard } from "@/lib/sportsLogin";
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -40,38 +41,37 @@ function LoginMemberContent() {
         e.preventDefault();
         setLoading(true);
         setError("");
-        try {
-            const response = await fetch(`${API_BASE_URL}/login-member`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    email: formData.email.trim().toLowerCase(),
-                    password: formData.password.trim(),
-                }),
-            });
 
-            if (response.ok) {
-                const data = await response.json();
-                localStorage.setItem("userName", data.userName);
-                localStorage.setItem("userId", data.userId);
-                localStorage.setItem("clubName", data.clubName);
-                localStorage.setItem("isMember", "true");
-                localStorage.setItem("memberRole", data.memberRole || "Member");
-                localStorage.setItem("memberId", data.memberId || "");
-                localStorage.setItem("userEmail", data.userEmail || formData.email);
-                localStorage.setItem("userPhone", data.userPhone || "");
-                localStorage.setItem("memberGroupName", data.groupName || "");
-                localStorage.setItem("approvalStatus", data.approvalStatus || "accepted");
-                localStorage.setItem("userRole", "team_member");
-                localStorage.setItem("accessToken", data.accessToken);
-                window.location.href = "/dashboard";
-            } else {
-                const errorData = await response.json().catch(() => ({}));
-                setError(errorData.detail || "Login failed. Make sure your application has been approved.");
+        const result = await loginRequest("/login-member", {
+            email: formData.email.trim().toLowerCase(),
+            password: formData.password.trim(),
+        });
+
+        if (result.ok) {
+            const { data } = result;
+            const token = normalizeToken(data);
+            if (!token) {
+                setError("Login failed: Invalid session token received.");
+                setLoading(false);
+                return;
             }
-        } catch {
-            setError("Cannot connect to server. Is the backend running?");
-        } finally {
+            persistSportsSession({
+                userName: data.userName,
+                userId: data.userId,
+                clubName: data.clubName,
+                isMember: "true",
+                memberRole: data.memberRole || "Member",
+                memberId: data.memberId || "",
+                userEmail: data.userEmail || formData.email,
+                userPhone: data.userPhone || "",
+                memberGroupName: data.groupName || "",
+                approvalStatus: data.approvalStatus || "accepted",
+                userRole: "team_member",
+                accessToken: token,
+            });
+            navigateToDashboard("/dashboard");
+        } else {
+            setError(result.detail || "Login failed. Make sure your application has been approved.");
             setLoading(false);
         }
     };

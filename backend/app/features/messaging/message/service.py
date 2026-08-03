@@ -9,7 +9,7 @@ from app.features.messaging.conversation.service import conversation_service
 from app.features.messaging.conversation.repository import conversation_repository
 from app.features.messaging.message.models import Message, MessageReaction
 from app.features.messaging.message.repository import message_repository
-from app.features.auth.models import User
+from app.features.auth.models import BandUser
 from app.features.notifications.connection_manager import connection_manager
 
 SUPPORTED_REACTIONS = {"👍", "❤️", "😂", "😮", "😢", "👏"}
@@ -486,7 +486,7 @@ class MessageService:
     ) -> bool:
         conversation = conversation_service.get_conversation(db, conversation_id, user_id)
 
-        user = db.query(User).filter(User.id == user_id).first()
+        user = db.query(BandUser).filter(BandUser.id == user_id).first()
         user_name = user.name if user else "User"
 
         event_type = "typing.started" if is_typing else "typing.stopped"
@@ -605,7 +605,7 @@ class MessageService:
         user_id: UUID,
     ) -> dict:
         is_online = connection_manager.is_connected(str(user_id))
-        user = db.query(User).filter(User.id == user_id).first()
+        user = db.query(BandUser).filter(BandUser.id == user_id).first()
         last_seen = user.last_seen if user else None
 
         return {

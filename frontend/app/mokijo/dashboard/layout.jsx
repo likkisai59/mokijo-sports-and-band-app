@@ -16,12 +16,13 @@ export default function DashboardLayout({ children }) {
     const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
     useEffect(() => {
-        const token = localStorage.getItem("accessToken");
+        const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+        const isValidToken = token && typeof token === "string" && token !== "undefined" && token !== "null";
         const userRole = localStorage.getItem("userRole");
         const isMember = localStorage.getItem("isMember") === "true" || userRole === "team_member";
         const approvalStatus = localStorage.getItem("approvalStatus");
 
-        if (!token) {
+        if (!isValidToken) {
             if (isMember) {
                 router.replace("/login-member");
             } else {
@@ -31,7 +32,12 @@ export default function DashboardLayout({ children }) {
         }
 
         if (isMember && approvalStatus !== "accepted") {
-            localStorage.clear();
+            const sportsKeys = [
+                "accessToken", "access_token", "userName", "userId", "userRole",
+                "isMember", "approvalStatus", "memberRole", "memberId", "userEmail",
+                "userPhone", "memberGroupName", "clubName"
+            ];
+            sportsKeys.forEach((key) => localStorage.removeItem(key));
             router.replace("/login-member");
             return;
         }

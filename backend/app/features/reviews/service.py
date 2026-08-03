@@ -942,9 +942,9 @@ class ReviewService:
         self, db: Session, report: ReviewReport, review: Review
     ):
         try:
-            from app.features.auth.models import User, Role
+            from app.features.auth.models import BandUser, Role
 
-            admins = db.query(User).join(User.roles).filter(Role.name == "admin").all()
+            admins = db.query(BandUser).join(BandUser.roles).filter(Role.name == "admin").all()
             for admin in admins:
                 notification_service.create_notification(
                     db=db,

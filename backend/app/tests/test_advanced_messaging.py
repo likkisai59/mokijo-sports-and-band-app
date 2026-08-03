@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.features.messaging.conversation.models import Conversation
 from app.features.messaging.message.service import message_service
-from app.features.auth.models import User
+from app.features.auth.models import BandUser
 from app.core.security import get_password_hash
 from fastapi import HTTPException, status
 

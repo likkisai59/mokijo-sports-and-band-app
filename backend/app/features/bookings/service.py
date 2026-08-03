@@ -127,11 +127,11 @@ class BookingService:
             raise NotFoundException("Booking request not found.")
 
         # Check if user is admin
-        from app.features.auth.models import User
+        from app.features.auth.models import BandUser
         user = None
         try:
             user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
-            user = db.query(User).filter(User.id == user_uuid).first()
+            user = db.query(BandUser).filter(BandUser.id == user_uuid).first()
         except Exception:
             pass
         is_admin = any(role.name == "admin" for role in user.roles) if user else False
@@ -202,11 +202,11 @@ class BookingService:
             raise NotFoundException("Booking request not found.")
         is_client = str(booking.client_id) == user_id
         
-        from app.features.auth.models import User
+        from app.features.auth.models import BandUser
         user = None
         try:
             user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
-            user = db.query(User).filter(User.id == user_uuid).first()
+            user = db.query(BandUser).filter(BandUser.id == user_uuid).first()
         except Exception:
             pass
         is_admin = any(role.name == "admin" for role in user.roles) if user else False
@@ -258,11 +258,11 @@ class BookingService:
             raise NotFoundException("Booking request not found.")
 
         # Check if user is admin
-        from app.features.auth.models import User
+        from app.features.auth.models import BandUser
         user = None
         try:
             user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
-            user = db.query(User).filter(User.id == user_uuid).first()
+            user = db.query(BandUser).filter(BandUser.id == user_uuid).first()
         except Exception:
             pass
         is_admin = any(role.name == "admin" for role in user.roles) if user else False
@@ -334,11 +334,11 @@ class BookingService:
             raise NotFoundException("Booking request not found.")
         is_client = str(booking.client_id) == user_id
         
-        from app.features.auth.models import User
+        from app.features.auth.models import BandUser
         user = None
         try:
             user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
-            user = db.query(User).filter(User.id == user_uuid).first()
+            user = db.query(BandUser).filter(BandUser.id == user_uuid).first()
         except Exception:
             pass
         is_admin = any(role.name == "admin" for role in user.roles) if user else False

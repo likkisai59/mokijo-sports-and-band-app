@@ -1,6 +1,6 @@
 import uuid
 import datetime
-from app.features.auth.models import User
+from app.features.auth.models import BandUser
 from app.features.bookings.models import Booking
 from app.features.earnings.models import Transaction
 from app.features.notifications.models import Notification

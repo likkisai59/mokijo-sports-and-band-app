@@ -4,7 +4,7 @@ from pydantic import ValidationError
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.features.auth.models import User
+from app.features.auth.models import BandUser
 from app.features.reviews.models import Review
 from app.features.reviews.repository import review_repository
 from app.features.reviews.service import review_service

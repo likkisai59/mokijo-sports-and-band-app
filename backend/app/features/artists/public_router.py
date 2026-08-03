@@ -332,7 +332,7 @@ async def list_marketplace_artists(
 ):
     from app.features.artists.models import ArtistProfile
     from app.features.categories.models import Category
-    from app.features.auth.models import User
+    from app.features.auth.models import BandUser
 
     # Only approved and active performers should be visible in the marketplace
     query = (
@@ -340,14 +340,14 @@ async def list_marketplace_artists(
         .join(ArtistProfile.user)
         .filter(
             ArtistProfile.verification_status == "approved",
-            User.is_active.is_(True),
+            BandUser.is_active.is_(True),
             ArtistProfile.deleted_at.is_(None)
         )
     )
 
     if search:
         query = query.filter(
-            (User.name.ilike(f"%{search}%")) |
+            (BandUser.name.ilike(f"%{search}%")) |
             (ArtistProfile.display_name.ilike(f"%{search}%")) |
             (ArtistProfile.bio.ilike(f"%{search}%"))
         )
@@ -400,7 +400,7 @@ async def get_public_artist_profile(
     db: Session = Depends(get_db)
 ):
     from app.features.artists.models import ArtistProfile
-    from app.features.auth.models import User
+    from app.features.auth.models import BandUser
 
     artist = (
         db.query(ArtistProfile)
@@ -408,7 +408,7 @@ async def get_public_artist_profile(
         .filter(
             ArtistProfile.id == artist_id,
             ArtistProfile.verification_status == "approved",
-            User.is_active.is_(True),
+            BandUser.is_active.is_(True),
             ArtistProfile.deleted_at.is_(None)
         )
         .first()

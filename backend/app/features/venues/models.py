@@ -58,6 +58,6 @@ class Venue(BaseModel):
     metadata_fields = Column(JSON, default=dict, nullable=False)
 
     # Relationships
-    user = relationship("User", backref="venues")
+    user = relationship("BandUser", backref="venues")
     city = relationship("City", backref="venues")
     categories = relationship("Category", secondary=venue_categories, backref="venues")

@@ -4,7 +4,7 @@ from fastapi import status
 from app.features.reviews.models import Review
 from app.features.reviews.repository import review_moderation_history_repository
 from app.features.reviews.service import review_service
-from app.features.auth.models import User
+from app.features.auth.models import BandUser
 from app.core.dependencies import get_current_admin, get_current_user
 from main import app
 

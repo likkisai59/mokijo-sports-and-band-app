@@ -92,13 +92,14 @@ async def login_venue_owner(request: Request, db: Session, credentials: schemas.
                 new_hash = hash_password(credentials.password.strip())
                 crud.update_owner_password(db, owner.get("id"), new_hash)
 
-            access_token = create_access_token({"sub": str(owner.get("id")), "role": "venue_owner"})
+            access_token = create_access_token(data={"sub": str(owner.get("id")), "role": "venue_owner"})
             return {
                 "message": "Login successful",
                 "ownerId": owner.get("id"),
                 "ownerName": owner.get("full_name"),
                 "ownerEmail": owner.get("email"),
                 "isVenueOwner": True,
+                "accessToken": access_token,
                 "access_token": access_token,
                 "token_type": "bearer"
             }

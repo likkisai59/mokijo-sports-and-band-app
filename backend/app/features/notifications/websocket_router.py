@@ -150,8 +150,8 @@ def _broadcast_user_presence(user_id: str, is_online: bool, last_seen: datetime 
 def _persist_last_seen(user_id: str, last_seen_dt: datetime) -> None:
     db = SessionLocal()
     try:
-        from app.features.auth.models import User
-        user = db.query(User).filter(User.id == UUID(user_id)).first()
+        from app.features.auth.models import BandUser
+        user = db.query(BandUser).filter(BandUser.id == UUID(user_id)).first()
         if user:
             user.last_seen = last_seen_dt
             db.commit()

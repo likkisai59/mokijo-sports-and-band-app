@@ -83,7 +83,7 @@ class ArtistProfile(BaseModel):
     pricing_details = Column(JSON, default=dict, nullable=False)  # { "hourly_rate": 5000, "travel_charge": 2000 }
 
     # Relationships
-    user = relationship("User", backref="artist_profile")
+    user = relationship("BandUser", backref="artist_profile")
     genres = relationship("Category", secondary=artist_genres, backref="artists_in_genre")
     languages = relationship("Category", secondary=artist_languages, backref="artists_in_language")
 ZOOM_NOTE = """

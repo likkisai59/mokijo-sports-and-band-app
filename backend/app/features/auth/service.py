@@ -17,7 +17,7 @@ from app.core.security import (
 )
 from app.core.config import settings
 from app.features.auth.crud import UserCRUD, RoleCRUD, RefreshTokenCRUD
-from app.features.auth.models import User
+from app.features.auth.models import BandUser
 from app.features.auth.schemas import UserRegister, UserLogin
 from app.core.exceptions import ConflictException, UnauthorizedException, NotFoundException, BadRequestException
 
@@ -53,7 +53,7 @@ class AuthService:
             db.flush()
         return city
 
-    def register_user(self, db: Session, data: UserRegister) -> Tuple[User, bool]:
+    def register_user(self, db: Session, data: UserRegister) -> Tuple[BandUser, bool]:
         """Registers a new platform user, assigns selected roles, and creates draft role entity."""
         # Check if email is already taken
         existing_user = self.user_crud.get_by_email(db, data.email)
@@ -389,7 +389,7 @@ class AuthService:
         from app.core.email import EmailService
         return EmailService.send_verification_email(user.email, verify_token)
 
-    def toggle_user_activity(self, db: Session, user_id: str, is_active: bool) -> User:
+    def toggle_user_activity(self, db: Session, user_id: str, is_active: bool) -> BandUser:
         """Suspends or activates a user account profile by changing active flag status."""
         user = self.user_crud.get(db, user_id)
         if not user:
@@ -420,9 +420,9 @@ class AuthService:
 
     def bulk_toggle_user_activity(self, db: Session, user_ids: list[str], is_active: bool) -> None:
         """Bulk updates activity flags for user ids list."""
-        db.query(User).filter(
-            User.id.in_(user_ids),
-            User.deleted_at.is_(None)
+        db.query(BandUser).filter(
+            BandUser.id.in_(user_ids),
+            BandUser.deleted_at.is_(None)
         ).update({"is_active": is_active}, synchronize_session=False)
         db.commit()
         logger.info(f"Bulk toggled activity status to {is_active} for {len(user_ids)} users.")

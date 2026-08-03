@@ -20,5 +20,5 @@ class Notification(BaseModel):
     reference_id = Column(UUID(as_uuid=True), nullable=True)
     notification_metadata = Column(JSON, nullable=True)
 
-    user = relationship("User", foreign_keys=[user_id], backref="notifications")
-    recipient = relationship("User", foreign_keys=[recipient_user_id], backref="recipient_notifications")
+    user = relationship("BandUser", foreign_keys=[user_id], backref="notifications")
+    recipient = relationship("BandUser", foreign_keys=[recipient_user_id], backref="recipient_notifications")

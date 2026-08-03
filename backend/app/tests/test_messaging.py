@@ -16,7 +16,7 @@ import datetime
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.features.auth.models import User, Role
+from app.features.auth.models import BandUser, Role
 from app.features.bookings.models import Booking
 from app.features.artists.models import ArtistProfile
 from app.features.messaging.conversation.models import Conversation
@@ -25,7 +25,7 @@ from app.core.security import create_access_token
 
 # ── Helpers & Fixtures ────────────────────────────────────────────────────────
 
-def _create_user(db: Session, name: str, role_name: str) -> tuple[User, str]:
+def _create_user(db: Session, name: str, role_name: str) -> tuple[BandUser, str]:
     role = db.query(Role).filter(Role.name == role_name).first()
     if not role:
         role = Role(id=uuid.uuid4(), name=role_name, description=f"Test {role_name}")
@@ -48,7 +48,7 @@ def _create_user(db: Session, name: str, role_name: str) -> tuple[User, str]:
     return user, token
 
 
-def _create_test_booking(db: Session, client_user: User, artist_user: User) -> Booking:
+def _create_test_booking(db: Session, client_user: BandUser, artist_user: BandUser) -> Booking:
     artist_profile = ArtistProfile(
         id=uuid.uuid4(),
         user_id=artist_user.id,

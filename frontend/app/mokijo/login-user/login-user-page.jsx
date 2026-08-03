@@ -1,5 +1,6 @@
 "use client";
 import { API_BASE_URL } from "@/lib/api";
+import { loginRequest, normalizeToken, persistSportsSession, navigateToDashboard } from "@/lib/sportsLogin";
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -40,32 +41,30 @@ function LoginUserContent() {
         e.preventDefault();
         setLoading(true);
         setError("");
-        try {
-            const response = await fetch(`${API_BASE_URL}/user/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData),
-            });
 
-            if (response.ok) {
-                const data = await response.json();
-                localStorage.removeItem("isMember");
-                localStorage.removeItem("memberRole");
-                localStorage.removeItem("clubName");
-                localStorage.removeItem("userPhone");
-                localStorage.setItem("userName", data.userName);
-                localStorage.setItem("userId", data.userId);
-                localStorage.setItem("userEmail", data.userEmail);
-                localStorage.setItem("isUser", "true");
-                localStorage.setItem("accessToken", data.accessToken);
-                window.location.href = "/user-dashboard";
-            } else {
-                const errorData = await response.json().catch(() => ({}));
-                setError(errorData.detail || "Invalid credentials. Please try again.");
+        const result = await loginRequest("/user/login", formData);
+        if (result.ok) {
+            const { data } = result;
+            const token = normalizeToken(data);
+            if (!token) {
+                setError("Login failed: Invalid session token received.");
+                setLoading(false);
+                return;
             }
-        } catch {
-            setError("Cannot connect to server. Is the backend running?");
-        } finally {
+            localStorage.removeItem("isMember");
+            localStorage.removeItem("memberRole");
+            localStorage.removeItem("clubName");
+            localStorage.removeItem("userPhone");
+            persistSportsSession({
+                userName: data.userName,
+                userId: data.userId,
+                userEmail: data.userEmail,
+                isUser: "true",
+                accessToken: token,
+            });
+            navigateToDashboard("/user-dashboard");
+        } else {
+            setError(result.detail || "Invalid credentials. Please try again.");
             setLoading(false);
         }
     };

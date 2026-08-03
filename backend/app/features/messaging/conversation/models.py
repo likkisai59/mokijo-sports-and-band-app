@@ -17,7 +17,7 @@ class Conversation(BaseModel):
 
     # Relationships
     booking = relationship("Booking", backref="conversation")
-    client = relationship("User", foreign_keys=[client_id], backref="client_conversations")
-    band = relationship("User", foreign_keys=[band_id], backref="band_conversations")
-    venue_owner = relationship("User", foreign_keys=[venue_owner_id], backref="venue_owner_conversations")
+    client = relationship("BandUser", foreign_keys=[client_id], backref="client_conversations")
+    band = relationship("BandUser", foreign_keys=[band_id], backref="band_conversations")
+    venue_owner = relationship("BandUser", foreign_keys=[venue_owner_id], backref="venue_owner_conversations")
     pinned_message = relationship("Message", foreign_keys=[pinned_message_id])

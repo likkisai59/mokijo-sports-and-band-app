@@ -457,7 +457,7 @@ async def list_marketplace_venues(
 ):
     from app.features.venues.models import Venue
     from app.features.locations.models import City
-    from app.features.auth.models import User
+    from app.features.auth.models import BandUser
 
     # Only approved and active venues should be visible in the marketplace
     query = (
@@ -466,7 +466,7 @@ async def list_marketplace_venues(
         .join(Venue.city)
         .filter(
             Venue.verification_status == "approved",
-            User.is_active.is_(True),
+            BandUser.is_active.is_(True),
             Venue.deleted_at.is_(None)
         )
     )

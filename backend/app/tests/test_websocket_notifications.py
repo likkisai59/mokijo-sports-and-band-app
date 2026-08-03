@@ -20,7 +20,7 @@ from fastapi.testclient import TestClient
 from fastapi.websockets import WebSocketDisconnect
 from sqlalchemy.orm import Session
 
-from app.features.auth.models import User, Role
+from app.features.auth.models import BandUser, Role
 from app.features.bookings.models import Booking
 from app.features.artists.models import ArtistProfile
 from app.features.notifications.connection_manager import connection_manager
@@ -31,7 +31,7 @@ from app.core.security import create_access_token
 
 # ── Test Setup / Fixture Helpers ─────────────────────────────────────────────
 
-def _create_test_user(db: Session, name: str, role_name: str) -> tuple[User, str]:
+def _create_test_user(db: Session, name: str, role_name: str) -> tuple[BandUser, str]:
     role = db.query(Role).filter(Role.name == role_name).first()
     if not role:
         role = Role(id=uuid.uuid4(), name=role_name, description=f"Test {role_name}")

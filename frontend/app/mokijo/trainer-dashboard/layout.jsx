@@ -10,7 +10,10 @@ export default function TrainerDashboardLayout({ children }) {
 
     useEffect(() => {
         const id = localStorage.getItem("trainerId");
-        if (!id || id === "undefined" || id === "null") {
+        const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+        const isValidId = id && id !== "undefined" && id !== "null";
+        const isValidToken = token && token !== "undefined" && token !== "null";
+        if (!isValidId || !isValidToken) {
             router.replace("/login-trainer");
         }
     }, [router]);

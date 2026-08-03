@@ -26,7 +26,7 @@ class Booking(BaseModel):
     # Relationships
     artist_profile = relationship("ArtistProfile", backref="bookings")
     venue = relationship("Venue", backref="bookings")
-    client = relationship("User", backref="client_bookings")
+    client = relationship("BandUser", backref="client_bookings")
 
 
 class BookingAuditLog(BaseModel):

@@ -8,7 +8,7 @@ from app.features.reviews.models import Review, ReviewReport, ReviewModerationHi
 from app.features.reviews.schemas import ReviewFilters
 from app.features.artists.models import ArtistProfile
 from app.features.venues.models import Venue
-from app.features.auth.models import User
+from app.features.auth.models import BandUser
 
 
 class ReviewRepository(BaseRepository[Review]):
@@ -364,16 +364,16 @@ class ReviewRepository(BaseRepository[Review]):
 
     def get_lowest_rated_accounts(
         self, db: Session, limit: int = 5
-    ) -> List[Tuple[User, float, int]]:
+    ) -> List[Tuple[BandUser, float, int]]:
         results = (
             db.query(
                 User,
                 func.avg(Review.rating).label("avg_rating"),
                 func.count(Review.id).label("total_reviews"),
             )
-            .join(Review, Review.reviewee_id == User.id)
+            .join(Review, Review.reviewee_id == BandUser.id)
             .filter(Review.deleted_at.is_(None), Review.moderation_status == "public")
-            .group_by(User.id)
+            .group_by(BandUser.id)
             .order_by(asc("avg_rating"))
             .limit(limit)
             .all()

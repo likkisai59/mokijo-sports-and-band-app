@@ -1,7 +1,7 @@
 import uuid
 import datetime
 import pytest
-from app.features.auth.models import User
+from app.features.auth.models import BandUser
 from app.features.bookings.models import Booking, BookingAuditLog
 from app.features.artists.models import ArtistProfile
 from app.features.venues.models import Venue

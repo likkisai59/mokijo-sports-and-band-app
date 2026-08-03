@@ -4,7 +4,7 @@ from datetime import date, time
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.features.auth.models import User
+from app.features.auth.models import BandUser
 from app.features.artists.models import ArtistProfile
 from app.features.bookings.models import Booking
 from app.features.reviews.service import review_service

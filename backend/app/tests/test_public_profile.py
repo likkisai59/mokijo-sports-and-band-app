@@ -1,6 +1,6 @@
 import uuid
 import pytest
-from app.features.auth.models import User
+from app.features.auth.models import BandUser
 from app.features.locations.models import Country, State, City
 from app.features.venues.models import Venue
 from app.features.reviews.models import Review

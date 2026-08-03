@@ -61,8 +61,8 @@ class Role(BaseModel):
     permissions = relationship("Permission", secondary=role_permissions, backref="roles")
 
 
-class User(BaseModel):
-    """Main User credentials entity."""
+class BandUser(BaseModel):
+    """Main BandConnect user credentials entity (auth_users). Named BandUser to avoid clashing with Mokijo User."""
     __tablename__ = "auth_users"
 
     email = Column(String(255), unique=True, nullable=False, index=True)
@@ -86,7 +86,7 @@ class RefreshToken(BaseModel):
     expires_at = Column(DateTime(timezone=True), nullable=False)
     is_revoked = Column(Boolean, default=False, nullable=False)
 
-    user = relationship("User", back_populates="refresh_tokens")
+    user = relationship("BandUser", back_populates="refresh_tokens")
 
     @property
     def is_expired(self) -> bool:

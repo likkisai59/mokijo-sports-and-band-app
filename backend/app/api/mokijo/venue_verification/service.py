@@ -376,8 +376,16 @@ async def login_mukijo_admin(request: Request, db: Session, payload):
         if not admin.get("is_active"):
             raise HTTPException(status_code=403, detail="Admin account is deactivated.")
         sub_claim = json.dumps({"id": admin.get("id"), "username": admin.get("full_name"), "role": "mukijo_admin"})
-        token = create_access_token({"sub": sub_claim})
-        return {"message": "Login successful", "adminId": admin.get("id"), "adminName": admin.get("full_name"), "role": "mukijo_admin", "access_token": token, "token_type": "bearer"}
+        token = create_access_token(data={"sub": sub_claim})
+        return {
+            "message": "Login successful",
+            "adminId": admin.get("id"),
+            "adminName": admin.get("full_name"),
+            "role": "mukijo_admin",
+            "accessToken": token,
+            "access_token": token,
+            "token_type": "bearer"
+        }
     except HTTPException:
         raise
     except Exception as e:

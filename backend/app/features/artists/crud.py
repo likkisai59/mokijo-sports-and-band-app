@@ -6,7 +6,7 @@ from typing import Optional, Tuple, List, Any
 from sqlalchemy.orm import Session, joinedload
 from app.common.repositories.base import BaseRepository
 from app.features.artists.models import ArtistProfile
-from app.features.auth.models import User
+from app.features.auth.models import BandUser
 
 
 class ArtistProfileCRUD(BaseRepository[ArtistProfile]):
@@ -35,8 +35,8 @@ class ArtistProfileCRUD(BaseRepository[ArtistProfile]):
 
         if search:
             query = query.filter(
-                (User.name.ilike(f"%{search}%")) |
-                (User.email.ilike(f"%{search}%")) |
+                (BandUser.name.ilike(f"%{search}%")) |
+                (BandUser.email.ilike(f"%{search}%")) |
                 (ArtistProfile.bio.ilike(f"%{search}%"))
             )
 

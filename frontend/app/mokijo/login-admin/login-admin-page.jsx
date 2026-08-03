@@ -1,5 +1,6 @@
 "use client";
 import { API_BASE_URL } from "@/lib/api";
+import { loginRequest, normalizeToken, persistSportsSession, navigateToDashboard } from "@/lib/sportsLogin";
 import { useState } from "react";
 import Link from "next/link";
 import PasswordField from "@/components/ui/PasswordField";
@@ -29,27 +30,27 @@ export default function MukijoAdminLoginPage() {
         e.preventDefault();
         setLoading(true);
         setError("");
-        try {
-            const res = await fetch(`${API_BASE_URL}/mukijo-admin/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(form),
-            });
-            const data = await res.json();
-            if (res.ok) {
-                localStorage.setItem("userId", data.adminId);
-                localStorage.setItem("userName", data.adminName);
-                localStorage.setItem("userRole", "mukijo_admin");
-                localStorage.setItem("isMember", "false");
-                localStorage.setItem("accessToken", data.access_token);
-                localStorage.setItem("clubName", "Mukijo Platform");
-                window.location.href = "/dashboard/venue-verification";
-            } else {
-                setError(data.detail || "Invalid admin credentials.");
+
+        const result = await loginRequest("/mukijo-admin/login", form);
+        if (result.ok) {
+            const { data } = result;
+            const token = normalizeToken(data);
+            if (!token) {
+                setError("Login failed: Invalid admin session token received.");
+                setLoading(false);
+                return;
             }
-        } catch {
-            setError("Cannot connect to admin server.");
-        } finally {
+            persistSportsSession({
+                userId: data.adminId,
+                userName: data.adminName,
+                userRole: "mukijo_admin",
+                isMember: "false",
+                clubName: "Mukijo Platform",
+                accessToken: token,
+            });
+            navigateToDashboard("/dashboard/venue-verification");
+        } else {
+            setError(result.detail || "Invalid admin credentials.");
             setLoading(false);
         }
     };
