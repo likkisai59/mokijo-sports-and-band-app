@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw, Inbox, CalendarDays, History, Calendar } from "lucide-react";
 import toast from "react-hot-toast";
 
-export function BookingWorkspace({ role }) {
+export function BookingWorkspace({ role, basePath }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -30,7 +30,8 @@ export function BookingWorkspace({ role }) {
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     const rolePrefix = role === "venue" ? "venue" : role === "admin" ? "admin" : role === "client" ? "client" : "artist";
-    router.push(`/${rolePrefix}/bookings?tab=${tab}`, { scroll: false });
+    const path = basePath ? `${basePath}?tab=${tab}` : `/${rolePrefix}/bookings?tab=${tab}`;
+    router.push(path, { scroll: false });
   };
 
   const fetchBookings = React.useCallback(async () => {

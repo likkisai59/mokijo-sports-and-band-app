@@ -19,4 +19,17 @@ export default defineConfig({
   define: {
     'process.env': {},
   },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      'lucide-react',
+      '@tanstack/react-query',
+      'axios',
+      'react-hook-form',
+      'zod',
+      'zustand'
+    ],
+  },
 });

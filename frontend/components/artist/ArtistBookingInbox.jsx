@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { useArtistBookings } from "@/hooks/use-artist-bookings";
 import { bookingService } from "@/services/bookingService";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -23,7 +24,9 @@ import {
   X, 
   Check, 
   TrendingUp,
-  History
+  History,
+  MessageSquare,
+  MoreVertical
 } from "lucide-react";
 
 import { formatCurrency } from "@/utils/format-currency";
@@ -53,6 +56,7 @@ export function ArtistBookingInbox() {
   const [actioning, setActioning] = React.useState(false);
 
   const [cancelOpen, setCancelOpen] = React.useState(false);
+  const router = useRouter();
   const [cancelReason, setCancelReason] = React.useState("");
   const [reasonError, setReasonError] = React.useState(null);
 
@@ -426,6 +430,17 @@ export function ArtistBookingInbox() {
                 </form>
               )}
 
+              {selectedBooking.status === "accepted" && (
+                <div className="pt-2">
+                  <Button
+                    onClick={() => router.push(`/band/artist/messages/${selectedBooking.id}`)}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-10 flex items-center justify-center gap-1.5"
+                  >
+                    <MessageSquare className="h-4 w-4" /> Open Conversation
+                  </Button>
+                </div>
+              )}
+
               {(selectedBooking.status === "pending" || selectedBooking.status === "counter_offered" || selectedBooking.status === "accepted") && (
                 <Button
                   disabled={actioning}
@@ -442,7 +457,7 @@ export function ArtistBookingInbox() {
                 <div className="space-y-4 pl-3 relative border-l border-border/50 mt-2">
                   {selectedBooking.timeline?.map((evt, idx) => (
                     <div key={idx} className="relative text-[11px] leading-relaxed">
-                      <span className="absolute -left-[17px] top-1 w-2.5 h-2.5 rounded-full bg-primary border-2 border-bg-card" />
+                      <span className="absolute -left-4.25 top-1 w-2.5 h-2.5 rounded-full bg-primary border-2 border-bg-card" />
                       <div className="flex justify-between items-center text-[10px] text-text-muted">
                         <span className="font-bold capitalize text-text-primary">By {evt.by}</span>
                         <span>{format(new Date(evt.timestamp), "dd MMM HH:mm")}</span>

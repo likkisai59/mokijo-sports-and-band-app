@@ -509,14 +509,14 @@ class BandTransactionResponse(BandORMSchema):
 
 class BandMonthlyChartPoint(BaseModel):
     month: str
-    amount: float
+    revenue: float
 
 
 class BandEarningsSummaryResponse(BaseModel):
     wallet_balance: float
     total_earnings: float
     monthly_earnings: float
-    pending_payments: int
+    pending_payments: float
     completed_payments: int
     revenue_chart: List[BandMonthlyChartPoint]
     transactions: List[BandTransactionResponse]
@@ -556,3 +556,27 @@ class BandPaginatedAuditLogList(BaseModel):
 # Resolve forward refs
 BandTokenResponse.model_rebuild()
 BandReviewSummaryResponse.model_rebuild()
+
+
+# ==============================================================================
+# Payments (isolated)
+# ==============================================================================
+
+class BandPaymentOrderCreate(BaseModel):
+    booking_id: int
+    amount: float
+
+class BandPaymentOrderVerify(BaseModel):
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+
+class BandPaymentOrderResponse(BandORMSchema):
+    id: int
+    booking_id: int
+    client_id: int
+    razorpay_order_id: str
+    amount: float
+    status: str
+    created_at: Optional[datetime] = None
+    verified_at: Optional[datetime] = None

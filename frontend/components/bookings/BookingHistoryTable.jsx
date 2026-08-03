@@ -62,7 +62,7 @@ export function BookingHistoryTable({ bookings = [], onViewDetails, role }) {
               <td className="p-4">
                 {role === "client" ? (
                   <div className="space-y-0.5">
-                    <p className="font-semibold text-text-primary text-sm tracking-tight truncate max-w-[200px]">
+                    <p className="font-semibold text-text-primary text-sm tracking-tight truncate max-w-50">
                       {b.artist_name || b.venue_name || (b.venue_id ? "Venue Space" : "Artist Performer")}
                     </p>
                     <p className="text-[10px] text-text-muted">{b.venue_id ? "Venue Space Booking" : "Artist Booking"}</p>

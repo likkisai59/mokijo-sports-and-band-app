@@ -44,3 +44,7 @@ def create_review(payload: schemas.BandReviewCreateRequest,
                   account: BandAccount = Depends(require_band_role("client", "admin")),
                   db: Session = Depends(get_db)):
     return service.create_review(db, account.id, payload)
+
+@router.get("/band/reviews/eligibility/{booking_id}", tags=["Band Reviews"])
+def check_eligibility(booking_id: int, account: BandAccount = Depends(require_band_role("client", "admin")), db: Session = Depends(get_db)):
+    return service.check_eligibility(db, account.id, booking_id)

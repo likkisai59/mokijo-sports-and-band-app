@@ -10,9 +10,15 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.api.band.bookings import crud
+from app.api.band.notifications import crud as notif_crud
+from app.api.band.messaging import crud as msg_crud
 from app.models.band_models import BandArtistProfile, BandVenue, BandBooking
 
-TERMINAL = {"rejected", "cancelled", "completed"}
+VALID_TRANSITIONS = {
+    "pending": {"accepted", "rejected", "counter_offered", "cancelled"},
+    "counter_offered": {"accepted", "rejected", "cancelled"},
+    "accepted": {"completed", "cancelled"}
+}
 
 
 def _artist_profile_for(db: Session, account_id: int) -> BandArtistProfile:
@@ -30,8 +36,9 @@ def _venue_for(db: Session, account_id: int) -> BandVenue:
 
 
 def _transition(db: Session, booking: BandBooking, new_status: str, by: str, message: str):
-    if booking.status in TERMINAL:
-        raise HTTPException(status_code=400, detail=f"Cannot modify a booking in terminal state '{booking.status}'.")
+    allowed = VALID_TRANSITIONS.get(booking.status, set())
+    if new_status not in allowed:
+        raise HTTPException(status_code=400, detail=f"Invalid transition from '{booking.status}' to '{new_status}'")
     booking.status = new_status
     crud.append_timeline(booking, new_status, by, message)
     db.commit()
@@ -69,6 +76,26 @@ def create_booking(db: Session, client_id: int, data):
             raise HTTPException(status_code=400, detail=reason or "Artist is unavailable at the requested time.")
 
     booking = crud.create(db, client_id, data, artist_profile_id=artist_profile_id, venue_id=venue_id)
+    
+    # Trigger isolated BandNotifications
+    notif_crud.create(
+        db, account_id=client_id, title="Booking Request Sent", 
+        message=f"Your booking request for '{data.event_name}' has been sent successfully.",
+        notification_type="booking_created", reference_type="booking", reference_id=booking.id
+    )
+    if data.artist_profile_id and artist:
+        notif_crud.create(
+            db, account_id=artist.account_id, title="New Booking Request Received",
+            message=f"You received a new booking request for '{data.event_name}'.",
+            notification_type="booking_created", reference_type="booking", reference_id=booking.id
+        )
+    if data.venue_id and venue:
+        notif_crud.create(
+            db, account_id=venue.account_id, title="New Venue Booking Request Received",
+            message=f"You received a new booking request for '{data.event_name}'.",
+            notification_type="booking_created", reference_type="booking", reference_id=booking.id
+        )
+
     return crud._serialize(booking)
 
 
@@ -88,17 +115,64 @@ def artist_action(db: Session, account_id: int, booking_id: int, action: str, co
 
     if action == "accept":
         _transition(db, booking, "accepted", "artist", message or "Booking accepted by artist")
+        
+        # Sprint 3: Automatically create conversation
+        msg_crud.initialize_conversation(db, booking)
+        
+        notif_crud.create(
+            db, account_id=booking.client_id, title="Booking Accepted",
+            message=f"Your booking request for '{booking.event_name}' was accepted by the artist. A conversation has been started.",
+            notification_type="booking_accepted", reference_type="booking", reference_id=booking.id
+        )
+        notif_crud.create(
+            db, account_id=account_id, title="Conversation Started",
+            message=f"A conversation has been started for your booking '{booking.event_name}'.",
+            notification_type="conversation_started", reference_type="booking", reference_id=booking.id
+        )
     elif action == "reject":
         _transition(db, booking, "rejected", "artist", message or "Booking rejected by artist")
+        notif_crud.create(
+            db, account_id=booking.client_id, title="Booking Rejected",
+            message=f"Your booking request for '{booking.event_name}' was rejected by the artist.",
+            notification_type="booking_rejected", reference_type="booking", reference_id=booking.id
+        )
     elif action == "counter":
         if counter_price is None:
             raise HTTPException(status_code=400, detail="counter_price is required")
-        if booking.status in TERMINAL:
-            raise HTTPException(status_code=400, detail="Cannot counter a terminal booking")
         booking.counter_price = counter_price
         _transition(db, booking, "counter_offered", "artist", message or f"Counter offer: {counter_price}")
+        notif_crud.create(
+            db, account_id=booking.client_id, title="Counter Offer Received",
+            message=f"The artist sent a counter offer for your booking '{booking.event_name}'.",
+            notification_type="booking_countered", reference_type="booking", reference_id=booking.id
+        )
     elif action == "cancel":
         _transition(db, booking, "cancelled", "artist", message or "Booking cancelled by artist")
+    elif action == "complete":
+        if booking.status not in ["accepted", "confirmed"]:
+            raise HTTPException(status_code=400, detail="Only accepted or confirmed bookings can be completed.")
+        _transition(db, booking, "completed", "artist", message or "Booking marked completed")
+        
+        # Insert BandTransaction
+        from app.models.band_models import BandTransaction
+        tx = BandTransaction(
+            artist_profile_id=booking.artist_profile_id,
+            venue_id=booking.venue_id,
+            booking_id=booking.id,
+            account_id=booking.artist_profile_id, # Simplified for demo
+            amount=booking.counter_price or booking.proposed_price,
+            type="credit",
+            status="completed",
+            description=f"Earnings payout for {booking.event_name}"
+        )
+        db.add(tx)
+        db.commit()
+
+        notif_crud.create(
+            db, account_id=booking.client_id, title="Review Enabled",
+            message=f"The event '{booking.event_name}' has been marked as completed. You can now leave a review.",
+            notification_type="booking_completed", reference_type="booking", reference_id=booking.id
+        )
     else:
         raise HTTPException(status_code=400, detail="Invalid action")
     return crud._serialize(booking)
@@ -123,9 +197,30 @@ def venue_action(db: Session, account_id: int, booking_id: int, action: str, mes
     elif action == "reject":
         _transition(db, booking, "rejected", "venue", message or "Booking rejected by venue")
     elif action == "complete":
-        if booking.status != "accepted":
-            raise HTTPException(status_code=400, detail="Only accepted bookings can be completed.")
+        if booking.status not in ["accepted", "confirmed"]:
+            raise HTTPException(status_code=400, detail="Only accepted or confirmed bookings can be completed.")
         _transition(db, booking, "completed", "venue", message or "Booking marked completed")
+        
+        # Insert BandTransaction
+        from app.models.band_models import BandTransaction
+        tx = BandTransaction(
+            artist_profile_id=booking.artist_profile_id,
+            venue_id=booking.venue_id,
+            booking_id=booking.id,
+            account_id=booking.venue_id, # Simplified for demo
+            amount=booking.counter_price or booking.proposed_price,
+            type="credit",
+            status="completed",
+            description=f"Earnings payout for {booking.event_name}"
+        )
+        db.add(tx)
+        db.commit()
+
+        notif_crud.create(
+            db, account_id=booking.client_id, title="Review Enabled",
+            message=f"The event '{booking.event_name}' has been marked as completed. You can now leave a review.",
+            notification_type="booking_completed", reference_type="booking", reference_id=booking.id
+        )
     elif action == "cancel":
         _transition(db, booking, "cancelled", "venue", message or "Booking cancelled by venue")
     else:

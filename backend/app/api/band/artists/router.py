@@ -19,7 +19,23 @@ def _serialize_or_404(artist):
     return crud.serialize(artist)
 
 
+# ── Public (artists) ──────────────────────────────────────────────────────────
+
+@router.get("/band/artists", tags=["Band Artists"])
+def public_list(search: str | None = None, city: str | None = None,
+                performer_type: str | None = None, genre: str | None = None,
+                min_rate: float | None = None, max_rate: float | None = None,
+                min_rating: float | None = None, limit: int = Query(50, ge=1, le=500), 
+                offset: int = Query(0, ge=0), db: Session = Depends(get_db)):
+    """Public artist list (no auth)."""
+    items, total = crud.list_public_filtered(
+        db, search, city, performer_type, genre, min_rate, max_rate, min_rating, limit, offset
+    )
+    return {"artists": [crud.serialize(a) for a in items], "total": total}
+
+
 # ── Self-service (artist) ─────────────────────────────────────────────────────
+
 
 @router.post("/band/artists/register", status_code=status.HTTP_201_CREATED, tags=["Band Artists"])
 def register(payload: schemas.BandArtistRegisterRequest, db: Session = Depends(get_db)):
@@ -94,6 +110,12 @@ def update_pricing(payload: schemas.BandPricingUpdate,
 @router.get("/band/artists/me/analytics", tags=["Band Artists"])
 def analytics(account: BandAccount = Depends(require_band_role("artist")), db: Session = Depends(get_db)):
     return service.get_analytics(db, account.id)
+
+
+@router.get("/band/artists/{artist_id}", tags=["Band Artists"])
+def public_get(artist_id: int, db: Session = Depends(get_db)):
+    """Public artist detail (no auth)."""
+    return _serialize_or_404(crud.get_by_id(db, artist_id))
 
 
 # ── Admin moderation ──────────────────────────────────────────────────────────

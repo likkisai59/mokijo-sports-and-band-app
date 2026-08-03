@@ -22,15 +22,17 @@ const RegisterMember = React.lazy(() => import('@/app/mokijo/register-member/reg
 const RegisterVenue = React.lazy(() => import('@/app/mokijo/register-venue/register-venue-page.jsx'));
 const RegisterUser = React.lazy(() => import('@/app/mokijo/register-user/register-user-page.jsx'));
 const RegisterTrainer = React.lazy(() => import('@/app/mokijo/register-trainer/register-trainer-page.jsx'));
-const BandLayout = React.lazy(() => import('@/app/bandconnect/layout.jsx'));
-const BandLanding = React.lazy(() => import('@/app/bandconnect/page.jsx'));
-const BandDashboard = React.lazy(() => import('@/app/bandconnect/dashboard/page.jsx'));
-const BandLogin = React.lazy(() => import('@/app/bandconnect/login/page.jsx'));
-const BandRegister = React.lazy(() => import('@/app/bandconnect/register/page.jsx'));
-const BandArtists = React.lazy(() => import('@/app/(public)/artists/page'));
-const BandArtistDetail = React.lazy(() => import('@/app/(public)/artists/[id]/page'));
-const BandVenues = React.lazy(() => import('@/app/(public)/venues/page'));
-const BandVenueDetail = React.lazy(() => import('@/app/(public)/venues/[id]/page'));
+const BandLayout = React.lazy(() => import('@/app/band/layout.jsx'));
+const BandLanding = React.lazy(() => import('@/app/band/page.jsx'));
+const BandDashboard = React.lazy(() => import('@/app/band/dashboard/page.jsx'));
+const BandClientBookings = React.lazy(() => import('@/app/band/client/bookings/page.jsx'));
+const BandArtistBookings = React.lazy(() => import('@/app/band/artist/bookings/page.jsx'));
+const BandLogin = React.lazy(() => import('@/app/band/login/page.jsx'));
+const BandRegister = React.lazy(() => import('@/app/band/register/page.jsx'));
+const BandArtists = React.lazy(() => import('@/app/band/artists/page'));
+const BandArtistDetail = React.lazy(() => import('@/app/band/artists/[id]/page'));
+const BandVenues = React.lazy(() => import('@/app/band/venues/page'));
+const BandVenueDetail = React.lazy(() => import('@/app/band/venues/[id]/page'));
 const Developer = React.lazy(() => import('@/app/developer/page'));
 const Messages = React.lazy(() => import('@/app/messages/page'));
 const Notifications = React.lazy(() => import('@/app/notifications/page'));
@@ -106,9 +108,9 @@ const ClientSettings = React.lazy(() => import('@/app/mokijo/client/settings/pag
 const ClientNotifications = React.lazy(() => import('@/app/mokijo/client/notifications/page'));
 
 // Artist Layout and Pages
-const ArtistLayout = React.lazy(() => import('@/app/bandconnect/artist/layout'));
-const ArtistProfile = React.lazy(() => import('@/app/bandconnect/artist/profile/page'));
-const ArtistSettings = React.lazy(() => import('@/app/bandconnect/artist/settings/page'));
+const ArtistLayout = React.lazy(() => import('@/app/band/artist/layout'));
+const ArtistProfile = React.lazy(() => import('@/app/band/artist/profile/page'));
+const ArtistSettings = React.lazy(() => import('@/app/band/artist/settings/page'));
 
 // Super Admin Layout and Pages
 const SuperAdminLogin = React.lazy(() => import('@/app/super-admin/login/page.jsx'));
@@ -176,6 +178,8 @@ export default function App() {
                     <Route path="/band" element={<LayoutWrapper LayoutComponent={BandLayout} />}>
                       <Route index element={<BandLanding />} />
                       <Route path="dashboard" element={<BandDashboard />} />
+                      <Route path="client/bookings" element={<BandClientBookings />} />
+                      <Route path="artist/bookings" element={<BandArtistBookings />} />
                       <Route path="login" element={<BandLogin />} />
                       <Route path="register" element={<BandRegister />} />
                       <Route path="artists" element={<BandArtists />} />

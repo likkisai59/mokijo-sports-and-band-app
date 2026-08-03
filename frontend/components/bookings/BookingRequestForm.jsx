@@ -20,6 +20,7 @@ export function BookingRequestForm({
   proposedPrice,
   onSuccess,
   onCancel,
+  selectedDate,
 }) {
   const [summary, setSummary] = useState("");
   const {
@@ -34,7 +35,7 @@ export function BookingRequestForm({
       venue_id: venueId || null,
       event_title: "",
       event_type: "Wedding",
-      event_date: "",
+      event_date: selectedDate || "",
       start_time: "18:00",
       end_time: "22:00",
       guest_count: 50,

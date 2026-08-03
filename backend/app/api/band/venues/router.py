@@ -20,7 +20,21 @@ def _serialize_or_404(venue):
     return crud.serialize(venue)
 
 
-# ── Public / self-service ─────────────────────────────────────────────────────
+# ── Public (venues) ───────────────────────────────────────────────────────────
+
+@router.get("/band/venues", tags=["Band Venues"])
+def public_list(search: str | None = None, city: str | None = None,
+                min_capacity: int | None = None, max_price: float | None = None,
+                limit: int = Query(50, ge=1, le=500), offset: int = Query(0, ge=0), 
+                db: Session = Depends(get_db)):
+    """Public venue list (no auth)."""
+    items, total = crud.list_public_filtered(
+        db, search, city, min_capacity, max_price, limit, offset
+    )
+    return {"venues": [crud.serialize(v) for v in items], "total": total}
+
+
+# ── Self-service (venue owner) ────────────────────────────────────────────────
 
 @router.post("/band/venues/register", status_code=status.HTTP_201_CREATED, tags=["Band Venues"])
 def register(payload: schemas.BandVenueRegisterRequest, db: Session = Depends(get_db)):

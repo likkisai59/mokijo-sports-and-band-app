@@ -33,6 +33,40 @@ def list_filtered(db: Session, search: str | None = None, verification_status: s
     return items, total
 
 
+def list_public_filtered(
+    db: Session,
+    search: str | None = None,
+    city: str | None = None,
+    min_capacity: int | None = None,
+    max_price: float | None = None,
+    limit: int = 50,
+    offset: int = 0
+):
+    q = db.query(BandVenue).filter(
+        BandVenue.deleted_at.is_(None),
+        BandVenue.verification_status == "approved"
+    )
+
+    if search:
+        like = f"%{search.lower()}%"
+        q = q.filter(
+            BandVenue.name.ilike(like) | BandVenue.address.ilike(like)
+        )
+    
+    # We will ignore city for now, similar to artists, as geographic modeling is complex
+    
+    if min_capacity is not None:
+        q = q.filter(BandVenue.capacity >= min_capacity)
+        
+    if max_price is not None:
+        q = q.filter(BandVenue.base_price <= max_price)
+        
+    total = q.count()
+    items = q.order_by(BandVenue.created_at.desc()).offset(offset).limit(limit).all()
+    return items, total
+
+
+
 def resolve_category(db: Session, name: str) -> BandCategory:
     cat = db.query(BandCategory).filter(BandCategory.name.ilike(name)).first()
     if not cat:

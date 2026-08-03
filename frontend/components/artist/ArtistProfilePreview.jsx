@@ -25,7 +25,7 @@ export function ArtistProfilePreview({ profile = {} }) {
   return (
     <div className="space-y-6">
       <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 rounded-3xl overflow-hidden shadow-2xl relative">
-        <div className="h-44 sm:h-60 bg-gradient-to-r from-primary/30 to-purple-600/30 relative">
+        <div className="h-44 sm:h-60 bg-linear-to-r from-primary/30 to-purple-600/30 relative">
           {profile.cover_image ? (
             <Image src={profile.cover_image} alt="Cover Banner" fill className="object-cover" priority />
           ) : (
@@ -33,7 +33,7 @@ export function ArtistProfilePreview({ profile = {} }) {
               No cover image uploaded
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-bg-card via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-bg-card via-transparent to-transparent" />
         </div>
 
         <CardContent className="p-6 relative pt-0 flex flex-col sm:flex-row items-center sm:items-end gap-5 -mt-16 sm:-mt-20">

@@ -333,7 +333,7 @@ export function NotificationCenter({
       <div
         className={cn(
           "divide-y divide-border/20 overflow-y-auto scrollbar-thin",
-          isTrayMode ? "max-h-[350px] min-h-[150px]" : "min-h-[350px]"
+          isTrayMode ? "max-h-87.5 min-h-37.5" : "min-h-87.5"
         )}
       >
         {loading ? (
@@ -431,7 +431,7 @@ export function NotificationCenter({
                     <Clock className="h-3 w-3" />
                     <span>{formatTime(n.created_at)}</span>
                     {(n.reference_type || n.link) && (
-                      <span className="flex items-center gap-0.5 text-primary lowercase tracking-normal normal-case font-extrabold hover:underline">
+                      <span className="flex items-center gap-0.5 text-primary lowercase tracking-normal font-extrabold hover:underline">
                         &bull; View Details <ArrowRight className="h-2.5 w-2.5" />
                       </span>
                     )}

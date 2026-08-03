@@ -10,12 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { IndianRupee, MessageSquare, Send, X, Check, Ban, CheckSquare, Star, MessageSquarePlus } from "lucide-react";
+import { IndianRupee, MessageSquare, Send, X, Check, Ban, CheckSquare, Star, MessageSquarePlus, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useMessagingStore } from "@/features/messaging/store/messaging-store";
+import { bandPaymentService } from "@/services/bandPaymentService";
 import { useCanReviewBooking, useCreateReview } from "@/hooks/use-reviews";
+import { useBandCanReviewBooking, useBandCreateReview } from "@/hooks/use-band-reviews";
 import { LeaveReviewDialog } from "@/components/reviews/LeaveReviewDialog";
 import { AlreadyReviewedCard } from "@/components/reviews/AlreadyReviewedCard";
 import { ReviewEligibilityBanner } from "@/components/reviews/ReviewEligibilityBanner";
@@ -29,8 +31,18 @@ export function BookingDetailsDialog({
 }) {
   const router = useRouter();
   const createConversation = useMessagingStore((s) => s.createConversation);
-  const { canReview, alreadyReviewed, eligibility, refetch: refetchEligibility } = useCanReviewBooking(bookingId);
-  const { createReview } = useCreateReview();
+  
+  const mokijoEligibility = useCanReviewBooking(bookingId);
+  const bandEligibility = useBandCanReviewBooking(bookingId);
+  const mokijoReview = useCreateReview();
+  const bandReview = useBandCreateReview();
+
+  const isBand = ["client", "artist", "venue_owner"].includes(role);
+  const eligibilityState = isBand ? bandEligibility : mokijoEligibility;
+  const createReviewState = isBand ? bandReview : mokijoReview;
+
+  const { canReview, alreadyReviewed, eligibility, refetch: refetchEligibility } = eligibilityState;
+  const { createReview } = createReviewState;
 
   const [booking, setBooking] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
@@ -72,13 +84,13 @@ export function BookingDetailsDialog({
     try {
       let res;
       if (action === "accept") {
-        res = await bookingService.acceptBooking(bookingId);
+        res = role === "venue_owner" ? await bookingService.acceptVenueBooking(bookingId) : await bookingService.acceptBooking(bookingId);
         toast.success("Booking request accepted!");
       } else if (action === "reject") {
-        res = await bookingService.rejectBooking(bookingId);
+        res = role === "venue_owner" ? await bookingService.rejectVenueBooking(bookingId) : await bookingService.rejectBooking(bookingId);
         toast.success("Booking request rejected.");
-      } else {
-        res = await bookingService.completeVenueBooking(bookingId);
+      } else if (action === "complete") {
+        res = role === "venue_owner" ? await bookingService.completeVenueBooking(bookingId) : await bookingService.completeBooking(bookingId);
         toast.success("Event marked as completed!");
       }
       setBooking(res);
@@ -177,6 +189,7 @@ export function BookingDetailsDialog({
   const canCounter = booking && ["pending", "under_review", "negotiation"].includes(booking.status);
   const canCancel = booking && ["pending", "under_review", "negotiation", "accepted", "confirmed"].includes(booking.status);
   const canComplete = booking && ["accepted", "confirmed"].includes(booking.status) && role !== "client";
+  const canCheckout = booking && booking.status === "accepted" && role === "client";
   const isCompleted = booking && booking.status === "completed";
 
   return (
@@ -355,14 +368,52 @@ export function BookingDetailsDialog({
                       </Button>
                     )}
 
+                    {canCheckout && (
+                      <Button
+                        size="sm"
+                        onClick={async () => {
+                          setActioning(true);
+                          try {
+                            await bandPaymentService.processCheckout({
+                              bookingId: booking.id,
+                              onSuccess: () => {
+                                toast.success("Payment Successful! Booking confirmed.");
+                                onRefresh();
+                                onClose();
+                              },
+                              onError: (err) => {
+                                toast.error(err.message || "Payment processing failed.");
+                                setActioning(false);
+                              },
+                              onDismiss: () => {
+                                setActioning(false);
+                              }
+                            });
+                          } catch (err) {
+                            setActioning(false);
+                          }
+                        }}
+                        disabled={actioning}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-9 text-xs flex items-center gap-1.5 cursor-pointer shadow-[0_0_15px_rgba(79,70,229,0.4)]"
+                      >
+                        <CreditCard className="h-4 w-4" />
+                        <span>Checkout / Pay Now</span>
+                      </Button>
+                    )}
+
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={async () => {
-                        const conv = await createConversation(booking.id);
-                        if (conv) {
+                        if (["client", "artist", "venue"].includes(role)) {
                           onClose();
-                          router.push("/messages");
+                          router.push(`/band/${role}/messages/${booking.id}`);
+                        } else {
+                          const conv = await createConversation(booking.id);
+                          if (conv) {
+                            onClose();
+                            router.push("/messages");
+                          }
                         }
                       }}
                       className="border-primary/40 hover:bg-primary/10 text-primary font-bold h-9 text-xs flex items-center gap-1.5 cursor-pointer"

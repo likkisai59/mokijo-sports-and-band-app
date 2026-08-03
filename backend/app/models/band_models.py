@@ -372,3 +372,92 @@ class BandAuditLog(Base):
     user_agent = Column(String(255), nullable=True)
     payload = Column(JSON, default=dict, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Notifications (Isolated from Mokijo)
+# ──────────────────────────────────────────────────────────────────────────────
+
+class BandNotification(Base):
+    """Isolated notification ledger for Band accounts."""
+    __tablename__ = "band_notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    account_id = Column(Integer, ForeignKey("band_accounts.id", ondelete="CASCADE"), nullable=False, index=True)
+    
+    title = Column(String(255), nullable=False)
+    message = Column(Text, nullable=False)
+    notification_type = Column(String(50), nullable=True, index=True)
+    reference_type = Column(String(50), nullable=True)
+    reference_id = Column(Integer, nullable=True)
+    
+    is_read = Column(Boolean, default=False, nullable=False, index=True)
+    
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    account = relationship("BandAccount")
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Messaging (isolated)
+# ──────────────────────────────────────────────────────────────────────────────
+
+class BandConversation(Base):
+    """Isolated Conversation tracking for BandConnect."""
+    __tablename__ = "band_conversations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    booking_id = Column(Integer, ForeignKey("band_bookings.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
+    client_id = Column(Integer, ForeignKey("band_accounts.id", ondelete="CASCADE"), nullable=False, index=True)
+    artist_profile_id = Column(Integer, ForeignKey("band_artist_profiles.id", ondelete="CASCADE"), nullable=True, index=True)
+    venue_id = Column(Integer, ForeignKey("band_venues.id", ondelete="CASCADE"), nullable=True, index=True)
+
+    status = Column(String(20), nullable=False, default="ACTIVE", index=True)
+    last_message_at = Column(DateTime, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    booking = relationship("BandBooking")
+
+
+class BandMessage(Base):
+    """Isolated messages linked to a BandConversation."""
+    __tablename__ = "band_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    conversation_id = Column(Integer, ForeignKey("band_conversations.id", ondelete="CASCADE"), nullable=False, index=True)
+    sender_id = Column(Integer, ForeignKey("band_accounts.id", ondelete="CASCADE"), nullable=False, index=True)
+    
+    content = Column(Text, nullable=False)
+    
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    conversation = relationship("BandConversation")
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Payments (isolated)
+# ──────────────────────────────────────────────────────────────────────────────
+
+class BandPaymentOrder(Base):
+    """Isolated Payment tracking for BandConnect."""
+    __tablename__ = "band_payment_orders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    booking_id = Column(Integer, ForeignKey("band_bookings.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
+    client_id = Column(Integer, ForeignKey("band_accounts.id", ondelete="CASCADE"), nullable=False, index=True)
+    
+    razorpay_order_id = Column(String, unique=True, index=True, nullable=False)
+    razorpay_payment_id = Column(String, nullable=True)
+    razorpay_signature = Column(String, nullable=True)
+    
+    amount = Column(Float, nullable=False)
+    status = Column(String(20), nullable=False, default="created", index=True)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    verified_at = Column(DateTime, nullable=True)
+
+    booking = relationship("BandBooking")

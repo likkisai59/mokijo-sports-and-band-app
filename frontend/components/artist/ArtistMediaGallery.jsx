@@ -367,7 +367,7 @@ export function ArtistMediaGallery({ media = {}, onSave }) {
           <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
             {youtubeLinks.map((link, idx) => (
               <div key={idx} className="flex items-center justify-between p-3 rounded-xl border border-border/80 bg-bg-elevated/20 hover:border-primary/30 transition-colors">
-                <span className="text-xs text-text-primary truncate max-w-[280px]">{link}</span>
+                <span className="text-xs text-text-primary truncate max-w-70">{link}</span>
                 <button type="button" onClick={() => removeYoutube(idx)} className="text-error hover:text-red-400 p-1 shrink-0">
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -402,7 +402,7 @@ export function ArtistMediaGallery({ media = {}, onSave }) {
           <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
             {reels.map((link, idx) => (
               <div key={idx} className="flex items-center justify-between p-3 rounded-xl border border-border/80 bg-bg-elevated/20 hover:border-primary/30 transition-colors">
-                <span className="text-xs text-text-primary truncate max-w-[280px]">{link}</span>
+                <span className="text-xs text-text-primary truncate max-w-70">{link}</span>
                 <button type="button" onClick={() => removeInstagramReel(idx)} className="text-error hover:text-red-400 p-1 shrink-0">
                   <Trash2 className="h-4 w-4" />
                 </button>

@@ -88,7 +88,7 @@ export function AvailabilityCalendar({ availability = {}, onSave }) {
           <Button variant="outline" size="icon" onClick={handlePrevMonth} className="h-8 w-8">
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <span className="text-xs font-bold text-text-primary min-w-[80px] text-center uppercase tracking-wider">
+          <span className="text-xs font-bold text-text-primary min-w-20 text-center uppercase tracking-wider">
             {format(currentMonth, "MMMM yyyy")}
           </span>
           <Button variant="outline" size="icon" onClick={handleNextMonth} className="h-8 w-8">

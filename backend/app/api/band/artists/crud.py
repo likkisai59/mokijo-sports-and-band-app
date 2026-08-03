@@ -41,6 +41,55 @@ def list_filtered(db: Session, search: str | None = None, verification_status: s
     return items, total
 
 
+def list_public_filtered(
+    db: Session,
+    search: str | None = None,
+    city: str | None = None,
+    performer_type: str | None = None,
+    genre: str | None = None,
+    min_rate: float | None = None,
+    max_rate: float | None = None,
+    min_rating: float | None = None,
+    limit: int = 50,
+    offset: int = 0
+):
+    q = db.query(BandArtistProfile).filter(
+        BandArtistProfile.deleted_at.is_(None),
+        BandArtistProfile.verification_status == "approved"
+    )
+
+    if search:
+        like = f"%{search.lower()}%"
+        q = q.filter(
+            BandArtistProfile.display_name.ilike(like)
+            | BandArtistProfile.bio.ilike(like)
+        )
+    
+    # Simple JSON/JSONB text matching for city (since geography is minimal or in metadata)
+    # Actually, BandAccount doesn't have city directly, and BandArtistProfile relies on metadata/location in the app.
+    # We will ignore city for now, or match it if there is a column. There's no direct city column on BandArtistProfile.
+    
+    if performer_type:
+        q = q.filter(BandArtistProfile.band_type.ilike(performer_type))
+    
+    if genre:
+        q = q.join(BandArtistProfile.genres).filter(BandCategory.name.ilike(genre))
+        
+    if min_rate is not None:
+        q = q.filter(BandArtistProfile.base_rate >= min_rate)
+        
+    if max_rate is not None:
+        q = q.filter(BandArtistProfile.base_rate <= max_rate)
+        
+    if min_rating is not None:
+        q = q.filter(BandArtistProfile.rating >= min_rating)
+        
+    total = q.count()
+    items = q.order_by(BandArtistProfile.rating.desc(), BandArtistProfile.created_at.desc()).offset(offset).limit(limit).all()
+    return items, total
+
+
+
 def resolve_category(db: Session, name: str, type_: str) -> BandCategory:
     """Find or auto-create a taxonomy category by name+type (reference behavior)."""
     cat = (

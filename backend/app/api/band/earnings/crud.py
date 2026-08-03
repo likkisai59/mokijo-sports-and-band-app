@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.models.band_models import BandTransaction
+from app.models.band_models import BandTransaction, BandBooking
 
 def _serialize(t: BandTransaction) -> dict:
     return {
@@ -15,64 +15,66 @@ def _serialize(t: BandTransaction) -> dict:
     }
 
 def get_summary_core(db: Session, artist_profile_id=None, venue_id=None) -> dict:
-    q = db.query(BandTransaction)
+    q = db.query(BandBooking).filter(BandBooking.deleted_at.is_(None))
     if artist_profile_id:
-        q = q.filter(BandTransaction.artist_profile_id == artist_profile_id)
+        q = q.filter(BandBooking.artist_profile_id == artist_profile_id)
     if venue_id:
-        q = q.filter(BandTransaction.venue_id == venue_id)
+        q = q.filter(BandBooking.venue_id == venue_id)
 
-    credits_completed = q.filter(BandTransaction.type == "credit", BandTransaction.status == "completed")
-    debits_completed = q.filter(BandTransaction.type == "debit", BandTransaction.status == "completed")
+    completed_bookings = q.filter(BandBooking.status == "completed")
+    pending_bookings = q.filter(BandBooking.status.in_(["accepted", "confirmed"]))
 
-    total_earnings = float(credits_completed.with_entities(func.sum(BandTransaction.amount)).scalar() or 0)
-    total_withdrawals = float(debits_completed.with_entities(func.sum(BandTransaction.amount)).scalar() or 0)
+    # Total earnings (Gross)
+    total_earnings = float(
+        completed_bookings.with_entities(func.sum(func.coalesce(BandBooking.counter_price, BandBooking.proposed_price))).scalar() or 0
+    )
 
     now = datetime.utcnow()
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    
     monthly_earnings = float(
-        q.filter(BandTransaction.type == "credit", BandTransaction.status == "completed",
-                 BandTransaction.created_at >= month_start)
-        .with_entities(func.sum(BandTransaction.amount)).scalar() or 0
+        completed_bookings.filter(BandBooking.created_at >= month_start)
+        .with_entities(func.sum(func.coalesce(BandBooking.counter_price, BandBooking.proposed_price))).scalar() or 0
     )
-    pending = q.filter(BandTransaction.type == "credit", BandTransaction.status == "pending").count()
-    completed = credits_completed.count()
+    
+    # Pending Amount
+    pending_amount = float(
+        pending_bookings.with_entities(func.sum(func.coalesce(BandBooking.counter_price, BandBooking.proposed_price))).scalar() or 0
+    )
+    
+    completed_count = completed_bookings.count()
 
+    # Generate Chart Data
     chart = []
     for i in range(5, -1, -1):
         d = now - timedelta(days=30 * i)
-        label = d.strftime("%b")
+        start = d.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        end = (start + timedelta(days=32)).replace(day=1)
+        
         amount = float(
-            q.filter(BandTransaction.type == "credit", BandTransaction.status == "completed")
-            .with_entities(func.sum(BandTransaction.amount)).scalar() or 0
-        ) / 6  # spread placeholder; real per-month grouping below
-        chart.append({"month": label, "amount": round(amount, 2)})
+            completed_bookings.filter(BandBooking.created_at >= start, BandBooking.created_at < end)
+            .with_entities(func.sum(func.coalesce(BandBooking.counter_price, BandBooking.proposed_price))).scalar() or 0
+        )
+        chart.append({"month": start.strftime("%b"), "revenue": round(amount, 2)})
+
+    # Calculate wallet balance by subtracting withdrawals from total_earnings
+    withdrawals = float(
+        db.query(BandTransaction)
+        .filter(BandTransaction.type == "debit", BandTransaction.status == "completed")
+        .with_entities(func.sum(BandTransaction.amount)).scalar() or 0
+    )
 
     return {
-        "wallet_balance": round(total_earnings - total_withdrawals, 2),
+        "wallet_balance": round(total_earnings - withdrawals, 2),
         "total_earnings": round(total_earnings, 2),
         "monthly_earnings": round(monthly_earnings, 2),
-        "pending_payments": int(pending),
-        "completed_payments": int(completed),
+        "pending_payments": round(pending_amount, 2),
+        "completed_payments": int(completed_count),
         "revenue_chart": chart,
     }
 
 def seed_mock_transactions(db: Session, artist_profile_id=None, venue_id=None):
-    """Seed a few demo transactions when none exist (sandbox)."""
-    now = datetime.utcnow()
-    rows = []
-    for i, amt in enumerate([15000, 25000, 40000, 12000]):
-        rows.append(BandTransaction(
-            artist_profile_id=artist_profile_id, venue_id=venue_id,
-            amount=float(amt), type="credit", status="completed",
-            description=f"Earnings payout {i + 1}", created_at=now - timedelta(days=30 * i),
-        ))
-    rows.append(BandTransaction(
-        artist_profile_id=artist_profile_id, venue_id=venue_id,
-        amount=5000, type="debit", status="completed",
-        description="Withdrawal", created_at=now - timedelta(days=15),
-    ))
-    db.add_all(rows)
-    db.commit()
+    pass
 
 def get_transaction_count_for_artist(db: Session, profile_id: int) -> int:
     return db.query(BandTransaction).filter(BandTransaction.artist_profile_id == profile_id).count()
