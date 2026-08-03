@@ -25,11 +25,3 @@ async def get_coach_dashboard(
 ):
     return await service.get_coach_dashboard(request, db, owner_id, coach_email, current_user)
 
-@router.get("/debug/overview", summary="Debug endpoint — shows raw DB values to diagnose count issues.", tags=["Dashboard"])
-async def debug_overview(
-    request: Request,
-    owner_id: int,
-    current_user: dict = Depends(check_user_authorization),
-    db: Session = Depends(get_db)
-):
-    return await service.debug_overview(request, db, owner_id, current_user)

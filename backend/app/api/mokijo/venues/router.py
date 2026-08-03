@@ -51,20 +51,6 @@ async def create_booking(request: Request, booking: schemas.BookingCreate, curre
     db: Session = Depends(get_db)):
     return await service.create_booking(request, db, booking, current_user)
 
-@router.post("/bookings/request-approval", response_model=schemas.BookingResponse, summary="Create a booking request that requires venue owner approval.", tags=["Venues"])
-async def request_booking_approval(request: Request, booking: schemas.BookingCreate, current_user: dict = Depends(check_user_authorization),
-    db: Session = Depends(get_db)):
-    if not booking.status:
-        booking.status = "pending_approval"
-    if not booking.payment_status:
-        booking.payment_status = "pending"
-    return await service.create_booking(request, db, booking, current_user)
-
-@router.get("/venues/owner/{owner_id}", response_model=List[schemas.VenueResponse], summary="Retrieve all venues owned by a specific partner/owner.", tags=["Venues"])
-async def get_owner_venues(request: Request, owner_id: int, current_user: dict = Depends(check_user_authorization),
-    db: Session = Depends(get_db)):
-    return await service.get_owner_venues(request, db, owner_id, current_user)
-
 @router.post("/venues/{venue_id}/block-slots", summary="Block slots within a date range for holidays or partner reservation.", tags=["Venues"])
 async def block_venue_slots(request: Request, venue_id: int, req: schemas.BlockSlotsRequest, current_user: dict = Depends(check_user_authorization),
     db: Session = Depends(get_db)):
@@ -95,11 +81,6 @@ async def get_venue_analytics(request: Request, venue_id: int, current_user: dic
     db: Session = Depends(get_db)):
     return await service.get_venue_analytics(request, db, venue_id, current_user)
 
-@router.post("/venues/{venue_id}/courts", response_model=schemas.CourtResponse, summary="Register a new court inside a sports venue.", tags=["Venues"])
-async def create_court(request: Request, venue_id: int, court: schemas.CourtCreate, current_user: dict = Depends(check_user_authorization),
-    db: Session = Depends(get_db)):
-    return await service.create_court(request, db, venue_id, court, current_user)
-
 @router.post("/venues/{venue_id}/reviews", response_model=schemas.ReviewResponse, summary="Post a customer review for a venue.", tags=["Venues"])
 async def create_review(request: Request, venue_id: int, review: schemas.ReviewCreate, current_user: dict = Depends(check_user_authorization),
     db: Session = Depends(get_db)):
@@ -109,11 +90,6 @@ async def create_review(request: Request, venue_id: int, review: schemas.ReviewC
 async def hold_booking_slots(request: Request, req: schemas.SlotHoldRequest, current_user: dict = Depends(check_user_authorization),
     db: Session = Depends(get_db)):
     return await service.hold_booking_slots(request, db, req, current_user)
-
-@router.post("/bookings/confirm", response_model=schemas.BookingResponse, summary="Confirm user slots booking after payment gateway webhook response.", tags=["Venues"])
-async def confirm_booking(request: Request, req: schemas.BookingConfirmRequest, current_user: dict = Depends(check_user_authorization),
-    db: Session = Depends(get_db)):
-    return await service.confirm_booking(request, db, req, current_user)
 
 @router.post("/bookings/razorpay/order", response_model=schemas.VenueBookingOrderResponse, summary="Create a Razorpay order for a pending venue booking payment.", tags=["Venues"])
 async def create_venue_booking_razorpay_order(request: Request, order_request: schemas.VenueBookingOrderCreate, current_user: dict = Depends(check_user_authorization),

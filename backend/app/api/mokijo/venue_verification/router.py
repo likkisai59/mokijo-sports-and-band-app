@@ -30,16 +30,6 @@ async def submit_verification(
     _require_venue_owner(current_user)
     return await service.submit_verification(request, db, venue_id, payload, background_tasks, current_user)
 
-@router.get("/venues/{venue_id}/verification-status", summary="Get venue verification status", tags=["Venue Verification"])
-async def get_verification_status(
-    request: Request,
-    venue_id: int,
-    current_user: dict = Depends(check_user_authorization),
-    db: Session = Depends(get_db)
-):
-    _require_venue_owner(current_user)
-    return await service.get_verification_status(request, db, venue_id, current_user)
-
 @router.post("/venues/{venue_id}/gps-location", summary="Save venue GPS coordinates", tags=["Venue Verification"])
 async def save_gps_location(
     request: Request,
@@ -153,15 +143,6 @@ async def suspend_venue(
     return await service.suspend_venue(request, db, venue_id, payload, background_tasks, current_user)
 
 # ── Mukijo Admin Auth ────────────────────────────────────────────────────
-
-@router.post("/mukijo-admin/register", summary="Register a Mukijo platform admin", tags=["Venue Verification"])
-async def register_mukijo_admin(
-    request: Request,
-    payload: dict
-,
-    db: Session = Depends(get_db)
-):
-    return await service.register_mukijo_admin(request, db, payload)
 
 @router.post("/mukijo-admin/login", summary="Login as Mukijo platform admin", tags=["Venue Verification"])
 async def login_mukijo_admin(

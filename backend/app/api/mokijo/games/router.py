@@ -48,18 +48,6 @@ async def join_game(
 ):
     return await service.join_game(request, db, game_id, user_id, payload, current_user)
 
-@router.post("/games/{game_id}/join-requests/{request_id}/respond", summary="Allow hosts to accept/reject joining requests. Triggers spot reservation hold upon acceptance.", tags=["Games"])
-async def respond_join_request(
-    request: Request,
-    game_id: str,
-    request_id: str,
-    host_id: int,
-    payload: schemas.JoinRequestRespondBody,
-    current_user: dict = Depends(check_user_authorization),
-    db: Session = Depends(get_db)
-):
-    return await service.respond_join_request(request, db, game_id, request_id, host_id, payload, current_user)
-
 @router.post("/games/{game_id}/waitlist", response_model=schemas.WaitlistEntryOut, summary="Place player on game waitlist if lobby is full.", tags=["Games"])
 async def join_waitlist(
     request: Request,
@@ -69,16 +57,6 @@ async def join_waitlist(
     db: Session = Depends(get_db)
 ):
     return await service.join_waitlist(request, db, game_id, user_id, current_user)
-
-@router.delete("/games/{game_id}/players/me", summary="Cancel own registration in a game lobby. Calculates refund rate based on cancellation window tiers.", tags=["Games"])
-async def leave_game(
-    request: Request,
-    game_id: str,
-    user_id: int,
-    current_user: dict = Depends(check_user_authorization),
-    db: Session = Depends(get_db)
-):
-    return await service.leave_game(request, db, game_id, user_id, current_user)
 
 @router.get("/games/{game_id}", response_model=schemas.GameDetailOut, summary="Retrieve full details of a game lobby including active players list and waitlist count.", tags=["Games"])
 async def get_game_detail(
@@ -108,8 +86,3 @@ async def cancel_game_lobby(
 ):
     return await service.cancel_game_lobby(request, db, game_id, host_id, current_user)
 
-@router.websocket("/ws/game/{game_id}")
-async def websocket_endpoint(websocket: WebSocket, game_id: str,
-    db: Session = Depends(get_db)
-):
-    await logic.websocket_endpoint(websocket, game_id)

@@ -38,16 +38,6 @@ async def delete_campaign(
 ):
     return await service.delete_campaign(request, db, campaign_id, owner_id, current_user)
 
-@router.post("/fundraising/{campaign_id}/donate", response_model=schemas.FundraisingCampaignResponse, summary="Record a standard off-line or test donation directly increasing the campaign's raised amount.", tags=["Fundraising"])
-async def record_donation(
-    request: Request,
-    campaign_id: int,
-    donation: schemas.DonationCreate,
-    current_user: dict = Depends(check_user_authorization),
-    db: Session = Depends(get_db)
-):
-    return await service.record_donation(request, db, campaign_id, donation, current_user)
-
 @router.post("/fundraising/{campaign_id}/initiate-donation", summary="Initiate an online donation payment request for a fundraising campaign.", tags=["Fundraising"])
 async def initiate_donation(
     request: Request,
