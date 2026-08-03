@@ -89,10 +89,7 @@ export default function Home() {
                 <HeroSlideshow />
 
                 <div className="mkt-container relative z-10 py-16 md:py-24 pb-24">
-                    <p className="mkt-brand mkt-hero-anim text-[28px] sm:text-[36px] md:text-[48px] lg:text-[56px] text-white leading-none mb-5 md:mb-6">
-                        MUKIJO
-                    </p>
-                    <h1 className="mkt-display mkt-hero-anim-delay text-[28px] sm:text-[36px] md:text-[44px] lg:text-[52px] text-white max-w-xl leading-[1.1] mb-4">
+                    <h1 className="mkt-display mkt-hero-anim text-[28px] sm:text-[36px] md:text-[44px] lg:text-[52px] text-white max-w-xl leading-[1.1] mb-4">
                         Sports and stage. One home.
                     </h1>
                     <p className="mkt-hero-anim-delay text-[15px] md:text-[17px] text-white/80 max-w-md leading-relaxed mb-8">
@@ -110,93 +107,146 @@ export default function Home() {
             </section>
 
             {/* ── Dual platforms ── */}
-            <section className="bg-[#f7f7f8] border-y border-[rgba(10,10,15,0.06)]">
-                <div className="mkt-container py-16 md:py-24 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-0 mkt-grid-full">
-                    <div id="sports" className="mkt-reveal mkt-platform-col scroll-mt-24 lg:pr-16">
-                        <span className="text-[12px] font-bold uppercase tracking-[0.18em] text-[#9fcc1f]">Sports Club</span>
-                        <h2 className="mkt-display text-[28px] md:text-[34px] text-[#0a0a0f] leading-tight">
-                            Your club. Your court. Your game.
+            <section className="bg-[#f7f7f8] border-y border-[rgba(10,10,15,0.06)] py-20 md:py-28 my-10 md:my-16">
+                <div className="mkt-container">
+                    <div className="mkt-section-head mb-12 md:mb-16">
+                        <span className="text-[12px] font-bold uppercase tracking-[0.2em] text-[#5c5c66]">Dual Platforms</span>
+                        <h2 className="mkt-display text-[28px] md:text-[38px] text-[#0a0a0f] mt-2">
+                            Choose Your Experience
                         </h2>
-                        <p className="text-[15px] md:text-[16px] text-[#5c5c66] leading-relaxed">
-                            Groups, members, matches, events, fundraising, venues, and trainings — built for admins,
-                            players, venue owners, and trainers.
+                        <p>
+                            Whether you're running sports club operations or booking live music performances, Mukijo provides dedicated tools for both.
                         </p>
-                        <div className="flex flex-wrap gap-2">
-                            <span className="text-[12px] font-semibold px-3 py-1.5 rounded-xl border border-[rgba(10,10,15,0.1)] text-[#0a0a0f]/80 bg-white">
-                                Matches
-                            </span>
-                            <span className="text-[12px] font-semibold px-3 py-1.5 rounded-xl border border-[rgba(10,10,15,0.1)] text-[#0a0a0f]/80 bg-white">
-                                Venues
-                            </span>
-                            <span className="text-[12px] font-semibold px-3 py-1.5 rounded-xl border border-[rgba(10,10,15,0.1)] text-[#0a0a0f]/80 bg-white">
-                                Payments
-                            </span>
-                            <span className="text-[12px] font-semibold px-3 py-1.5 rounded-xl border border-[rgba(10,10,15,0.1)] text-[#0a0a0f]/80 bg-white">
-                                Trainings
-                            </span>
-                        </div>
-                        <div className="mkt-platform-actions">
-                            <a href="#get-started" className="mkt-btn mkt-btn-primary">
-                                Get started in Sports
-                            </a>
-                        </div>
                     </div>
 
-                    <div id="band" className="mkt-reveal mkt-platform-col scroll-mt-24 lg:border-l lg:border-[rgba(10,10,15,0.08)] lg:pl-16">
-                        <span className="text-[12px] font-bold uppercase tracking-[0.18em] text-[#ff2e93]">Music Band</span>
-                        <h2 className="mkt-display text-[28px] md:text-[34px] text-[#0a0a0f] leading-tight">
-                            Where music meets the stage.
-                        </h2>
-                        <p className="text-[15px] md:text-[16px] text-[#5c5c66] leading-relaxed">
-                            Artist profiles, booking requests, venues, and earnings — for bands, performers, and clients
-                            who book live.
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                            <span className="text-[12px] font-semibold px-3 py-1.5 rounded-xl border border-[rgba(10,10,15,0.1)] text-[#0a0a0f]/80 bg-white">
-                                Bookings
-                            </span>
-                            <span className="text-[12px] font-semibold px-3 py-1.5 rounded-xl border border-[rgba(10,10,15,0.1)] text-[#0a0a0f]/80 bg-white">
-                                Artists
-                            </span>
-                            <span className="text-[12px] font-semibold px-3 py-1.5 rounded-xl border border-[rgba(10,10,15,0.1)] text-[#0a0a0f]/80 bg-white">
-                                Venues
-                            </span>
-                            <span className="text-[12px] font-semibold px-3 py-1.5 rounded-xl border border-[rgba(10,10,15,0.1)] text-[#0a0a0f]/80 bg-white">
-                                Earnings
-                            </span>
+                    <div className="mkt-platform-grid">
+                        {/* Sports Platform Card */}
+                        <div id="sports" className="mkt-reveal mkt-platform-card mkt-platform-card-sports scroll-mt-24">
+                            <div className="flex items-center gap-3">
+                                <span className="w-11 h-11 rounded-xl flex items-center justify-center bg-[#c6ff3d]/15 text-white border border-[#c6ff3d]/30 shrink-0">
+                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+                                        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+                                        <path d="M4 22h16" />
+                                        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+                                        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+                                        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+                                    </svg>
+                                </span>
+                                <div>
+                                    <span className="text-[12px] font-bold uppercase tracking-[0.18em] text-white">Sports Club</span>
+                                    <h2 className="mkt-display text-[24px] md:text-[30px] text-white leading-tight">
+                                        Your club. Your court. Your game.
+                                    </h2>
+                                </div>
+                            </div>
+
+                            <p className="text-[15px] md:text-[16px] text-white leading-relaxed">
+                                Groups, members, matches, events, fundraising, venues, and trainings — built for admins,
+                                players, venue owners, and trainers.
+                            </p>
+
+                            <div className="flex flex-wrap gap-2">
+                                <span className="mkt-chip text-[12px] font-semibold px-3 py-1.5 rounded-xl text-white">
+                                    Matches
+                                </span>
+                                <span className="mkt-chip text-[12px] font-semibold px-3 py-1.5 rounded-xl text-white">
+                                    Venues
+                                </span>
+                                <span className="mkt-chip text-[12px] font-semibold px-3 py-1.5 rounded-xl text-white">
+                                    Payments
+                                </span>
+                                <span className="mkt-chip text-[12px] font-semibold px-3 py-1.5 rounded-xl text-white">
+                                    Trainings
+                                </span>
+                            </div>
+
+                            <div className="mkt-platform-actions mt-auto pt-2">
+                                <a href="#get-started" className="mkt-btn mkt-btn-primary">
+                                    Get started in Sports
+                                </a>
+                            </div>
                         </div>
-                        <div className="mkt-platform-actions">
-                            <Link href="/band" className="mkt-btn mkt-btn-band">
-                                Open Band
-                            </Link>
-                            <a href="#get-started" className="mkt-btn mkt-btn-secondary">
-                                Role entry
-                            </a>
+
+                        {/* Music Band Platform Card */}
+                        <div id="band" className="mkt-reveal mkt-platform-card mkt-platform-card-band scroll-mt-24">
+                            <div className="flex items-center gap-3">
+                                <span className="w-11 h-11 rounded-xl flex items-center justify-center bg-[#ff2e93]/15 text-white border border-[#ff2e93]/30 shrink-0">
+                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M9 18V5l12-2v13" />
+                                        <circle cx="6" cy="18" r="3" />
+                                        <circle cx="18" cy="16" r="3" />
+                                    </svg>
+                                </span>
+                                <div>
+                                    <span className="text-[12px] font-bold uppercase tracking-[0.18em] text-white">Music Band</span>
+                                    <h2 className="mkt-display text-[24px] md:text-[30px] text-white leading-tight">
+                                        Where music meets the stage.
+                                    </h2>
+                                </div>
+                            </div>
+
+                            <p className="text-[15px] md:text-[16px] text-white leading-relaxed">
+                                Artist profiles, booking requests, venues, and earnings — for bands, performers, and clients
+                                who book live.
+                            </p>
+
+                            <div className="flex flex-wrap gap-2">
+                                <span className="mkt-chip text-[12px] font-semibold px-3 py-1.5 rounded-xl text-white">
+                                    Bookings
+                                </span>
+                                <span className="mkt-chip text-[12px] font-semibold px-3 py-1.5 rounded-xl text-white">
+                                    Artists
+                                </span>
+                                <span className="mkt-chip text-[12px] font-semibold px-3 py-1.5 rounded-xl text-white">
+                                    Venues
+                                </span>
+                                <span className="mkt-chip text-[12px] font-semibold px-3 py-1.5 rounded-xl text-white">
+                                    Earnings
+                                </span>
+                            </div>
+
+                            <div className="mkt-platform-actions mt-auto pt-2">
+                                <Link href="/band" className="mkt-btn mkt-btn-band">
+                                    Open Band
+                                </Link>
+                                <a href="#get-started" className="mkt-btn mkt-btn-secondary" style={{ background: "rgba(255, 255, 255, 0.12)", color: "#ffffff", borderColor: "rgba(255, 255, 255, 0.22)" }}>
+                                    Role entry
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
             {/* ── Who it's for ── */}
-            <section className="bg-white">
-                <div className="mkt-container py-16 md:py-20">
-                    <div className="mkt-section-head">
-                        <h2 className="mkt-display text-[26px] md:text-[32px] text-[#0a0a0f]">Built for every role</h2>
+            <section className="bg-white py-20 md:py-28 my-10 md:my-16 border-y border-[rgba(10,10,15,0.06)]">
+                <div className="mkt-container">
+                    <div className="mkt-section-head mb-12 md:mb-16">
+                        <span className="text-[12px] font-bold uppercase tracking-[0.2em] text-[#5c5c66]">User Ecosystem</span>
+                        <h2 className="mkt-display text-[28px] md:text-[38px] text-[#0a0a0f] mt-2">Built for Every Role</h2>
                         <p>Pick how you show up — registration takes you straight into the right flow.</p>
                     </div>
-                    <div className="mkt-grid-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="mkt-grid-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {[
-                            { href: "/register", title: "Club Admin", desc: "Run groups, events, and payments." },
-                            { href: "/register-member", title: "Club Member", desc: "Join your club and stay booked in." },
-                            { href: "/register-venue", title: "Venue Owner", desc: "List courts and manage slots." },
-                            { href: "/register-trainer", title: "Trainer", desc: "Publish trainings and enroll athletes." },
-                            { href: "/register-user", title: "Player / User", desc: "Find venues, games, and courses." },
-                            { href: "/band/register", title: "Artist / Band", desc: "Get booked for live shows." },
+                            { href: "/register", title: "Club Admin", desc: "Run groups, events, and payments.", tag: "Sports Club", type: "sports" },
+                            { href: "/register-member", title: "Club Member", desc: "Join your club and stay booked in.", tag: "Sports Club", type: "sports" },
+                            { href: "/register-venue", title: "Venue Owner", desc: "List courts and manage slots.", tag: "Sports Club", type: "sports" },
+                            { href: "/register-trainer", title: "Trainer", desc: "Publish trainings and enroll athletes.", tag: "Sports Club", type: "sports" },
+                            { href: "/register-user", title: "Player / User", desc: "Find venues, games, and courses.", tag: "Sports Club", type: "sports" },
+                            { href: "/band/register", title: "Artist / Band", desc: "Get booked for live shows.", tag: "Music Band", type: "band" },
                         ].map((item) => (
-                            <Link key={item.href} href={item.href} className="mkt-role-card">
-                                <span className="text-[16px] font-bold text-[#0a0a0f]">{item.title}</span>
-                                <span className="text-[13px] text-[#5c5c66] leading-relaxed">{item.desc}</span>
-                                <span className="mkt-role-card-cta">Register →</span>
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={`mkt-role-card ${item.type === "band" ? "mkt-role-card-band" : "mkt-role-card-sports"}`}
+                            >
+                                <span className={`text-[10px] font-bold uppercase tracking-[0.15em] ${item.type === "band" ? "text-[#ff75c3]" : "text-[#c6ff3d]"}`}>
+                                    {item.tag}
+                                </span>
+                                <span className="text-[17px] font-bold text-white mt-1">{item.title}</span>
+                                <span className="text-[13.5px] text-white/75 leading-relaxed">{item.desc}</span>
+                                <span className="mkt-role-card-cta font-bold text-[13px] mt-auto pt-2">Register →</span>
                             </Link>
                         ))}
                     </div>
@@ -204,35 +254,81 @@ export default function Home() {
             </section>
 
             {/* ── How it works ── */}
-            <section className="bg-[#f7f7f8] border-y border-[rgba(10,10,15,0.06)]">
-                <div className="mkt-container py-16 md:py-20">
-                    <div className="mkt-section-head">
-                        <h2 className="mkt-display text-[26px] md:text-[32px] text-[#0a0a0f]">How it works</h2>
-                        <p>Three simple steps from landing on Mukijo to running your day.</p>
+            <section className="bg-[#f7f7f8] border-y border-[rgba(10,10,15,0.06)] py-20 md:py-28 my-10 md:my-16">
+                <div className="mkt-container">
+                    <div className="mkt-section-head mb-14 md:mb-20">
+                        <span className="text-[12px] font-bold uppercase tracking-[0.2em] text-[#5c5c66]">Simple & Powerful Workflow</span>
+                        <h2 className="mkt-display text-[28px] md:text-[38px] text-[#0a0a0f] mt-2">How Mukijo Works</h2>
+                        <p>From setup to full-scale operations — four simple steps to power sports clubs and live band bookings.</p>
                     </div>
-                    <ol className="mkt-grid-full grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 list-none p-0 m-0">
+
+                    <div className="mkt-grid-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
                         {[
-                            { n: "01", t: "Choose your side", d: "Sports club ops or live music bookings — same brand, clear path." },
-                            { n: "02", t: "Create your account", d: "Register for your role. Email and password — you’re in." },
-                            { n: "03", t: "Run the day", d: "Manage clubs, courts, trainings, or stage bookings from your dashboard." },
+                            {
+                                n: "01",
+                                badge: "Platform Entry",
+                                title: "Select Domain & Role",
+                                sub: "Sports Club or Live Music",
+                                desc: "Choose between Sports Club management or Music Band booking. Register as a Club Admin, Member, Venue Owner, Trainer, Player, or Artist.",
+                                tags: ["Dual Hub", "Tailored Workflows", "1-Click Sign-in"]
+                            },
+                            {
+                                n: "02",
+                                badge: "Configuration",
+                                title: "Setup & Customize",
+                                sub: "Courts, Gigs & Forms",
+                                desc: "Admins configure candidate application forms. Venue owners publish time slots. Bands build press kits with audio/video media clips.",
+                                tags: ["Custom Forms", "Slot Inventory", "Press Kit"]
+                            },
+                            {
+                                n: "03",
+                                badge: "Transactions",
+                                title: "Engage & Book",
+                                sub: "Real-time & Escrow",
+                                desc: "Players join pickup games and pay court fees. Event hosts book live bands directly with automated Razorpay escrow payment protection.",
+                                tags: ["Razorpay Escrow", "Instant RSVP", "Verified Ratings"]
+                            },
+                            {
+                                n: "04",
+                                badge: "Management",
+                                title: "Automate & Scale",
+                                sub: "Real-Time Dashboard Control",
+                                desc: "Manage rosters, approve candidate applications, track payouts, coordinate match schedules, and view real-time analytics in one place.",
+                                tags: ["Live Dashboard", "Auto Payouts", "Analytics"]
+                            }
                         ].map((step) => (
-                            <li key={step.n} className="flex flex-col gap-3 text-center md:text-left items-center md:items-start">
-                                <span className="mkt-brand text-[18px] text-[#c6ff3d] bg-[#0a0a0f] inline-flex w-fit px-2.5 py-1 rounded-lg not-italic">
-                                    {step.n}
-                                </span>
-                                <h3 className="text-[18px] font-bold text-[#0a0a0f]">{step.t}</h3>
-                                <p className="text-[14px] text-[#5c5c66] leading-relaxed">{step.d}</p>
-                            </li>
+                            <div key={step.n} className="mkt-step-card">
+                                <div className="flex items-center justify-between gap-3">
+                                    <span className="mkt-step-number">{step.n}</span>
+                                    <span className="mkt-step-badge">{step.badge}</span>
+                                </div>
+
+                                <div>
+                                    <h3 className="text-[18px] font-bold text-[#0a0a0f] leading-snug">{step.title}</h3>
+                                    <p className="text-[12px] font-semibold text-[#7aab18] mt-0.5">{step.sub}</p>
+                                </div>
+
+                                <p className="text-[13.5px] text-[#5c5c66] leading-relaxed mb-2">{step.desc}</p>
+
+                                <div className="flex flex-wrap gap-1.5 mt-auto pt-2 border-t border-[rgba(10,10,15,0.06)]">
+                                    {step.tags.map((tag) => (
+                                        <span key={tag} className="mkt-step-tag">
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
                         ))}
-                    </ol>
+                    </div>
                 </div>
             </section>
 
             {/* ── Get started / role hub ── */}
-            <section id="get-started" className="bg-white scroll-mt-24">
-                <div className="mkt-container py-16 md:py-24">
-                    <div className="mkt-section-head">
-                        <h2 className="mkt-display text-[26px] md:text-[34px] text-[#0a0a0f]">Get started</h2>
+            <section id="get-started" className="bg-white scroll-mt-24 py-20 md:py-28 my-10 md:my-16">
+                <div className="mkt-container">
+                    <div className="mkt-section-head mb-12 md:mb-16">
+                        <span className="text-[12px] font-bold uppercase tracking-[0.2em] text-[#5c5c66]">Instant Access</span>
+                        <h2 className="mkt-display text-[28px] md:text-[38px] text-[#0a0a0f] mt-2">Get Started</h2>
                         <p>Log in or register with the role that matches how you use Mukijo.</p>
                     </div>
 
@@ -258,10 +354,10 @@ export default function Home() {
 
                             <div>
                                 <div className="mkt-section-label">Login As</div>
-                                <Link href="/login" className="mkt-btn mkt-btn-primary mkt-btn-block">
-                                    Club Admin
-                                </Link>
-                                <div className="mkt-role-grid mt-2.5">
+                                <div className="mkt-role-grid">
+                                    <Link href="/login" className="mkt-btn mkt-btn-role mkt-btn-role-primary">
+                                        Club Admin
+                                    </Link>
                                     <Link href="/super-admin/login" className="mkt-btn mkt-btn-role">
                                         Super Admin
                                     </Link>
@@ -284,10 +380,10 @@ export default function Home() {
 
                             <div>
                                 <div className="mkt-section-label">Register As</div>
-                                <Link href="/register" className="mkt-btn mkt-btn-primary-soft mkt-btn-block">
-                                    Club Admin
-                                </Link>
-                                <div className="mkt-role-grid mt-2.5">
+                                <div className="mkt-role-grid">
+                                    <Link href="/register" className="mkt-btn mkt-btn-role mkt-btn-role-primary-soft">
+                                        Club Admin
+                                    </Link>
                                     <Link href="/register-member" className="mkt-btn mkt-btn-role">
                                         Member
                                     </Link>
@@ -322,14 +418,16 @@ export default function Home() {
 
                             <div>
                                 <div className="mkt-section-label">Login As</div>
-                                <Link href="/band/login" className="mkt-btn mkt-btn-band mkt-btn-block">
-                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                        <path d="M9 18V5l12-2v13" />
-                                        <circle cx="6" cy="18" r="3" />
-                                        <circle cx="18" cy="16" r="3" />
-                                    </svg>
-                                    Band Admin / Artist
-                                </Link>
+                                <div className="mkt-role-grid">
+                                    <Link href="/band/login" className="mkt-btn mkt-btn-role mkt-btn-role-band">
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                            <path d="M9 18V5l12-2v13" />
+                                            <circle cx="6" cy="18" r="3" />
+                                            <circle cx="18" cy="16" r="3" />
+                                        </svg>
+                                        Band Admin / Artist
+                                    </Link>
+                                </div>
                                 <p className="text-[12px] leading-relaxed text-[#5c5c66] mt-2.5">
                                     Access the band dashboard for scheduling and booking coordination.
                                 </p>
@@ -339,14 +437,16 @@ export default function Home() {
 
                             <div>
                                 <div className="mkt-section-label">Register As</div>
-                                <Link href="/band/register" className="mkt-btn mkt-btn-band-outline mkt-btn-block">
-                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                        <path d="M9 18V5l12-2v13" />
-                                        <circle cx="6" cy="18" r="3" />
-                                        <circle cx="18" cy="16" r="3" />
-                                    </svg>
-                                    Band Admin / Artist
-                                </Link>
+                                <div className="mkt-role-grid">
+                                    <Link href="/band/register" className="mkt-btn mkt-btn-role mkt-btn-role-band-outline">
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                            <path d="M9 18V5l12-2v13" />
+                                            <circle cx="6" cy="18" r="3" />
+                                            <circle cx="18" cy="16" r="3" />
+                                        </svg>
+                                        Band Admin / Artist
+                                    </Link>
+                                </div>
                                 <p className="text-[12px] leading-relaxed text-[#5c5c66] mt-2.5">
                                     Create a band or artist account to publish profiles and accept bookings.
                                 </p>

@@ -181,16 +181,64 @@
     font-size: 0.8125rem;
     font-weight: 600;
     background: #ffffff;
-    border: 1.5px solid rgba(10, 10, 15, 0.12);
+    border: 1px solid rgba(10, 10, 15, 0.1);
     color: var(--mkt-text);
     white-space: normal;
     text-align: center;
 }
 
 .mkt-btn-role:hover {
+    background: #f7f7f8;
+    border-color: rgba(10, 10, 15, 0.22);
+    box-shadow: 0 4px 12px rgba(10, 10, 15, 0.06);
+}
+
+.mkt-btn-role-primary {
+    background: var(--mkt-lime);
+    border: 1px solid rgba(10, 10, 15, 0.1);
+    color: #08080f;
+    font-weight: 700;
+}
+
+.mkt-btn-role-primary:hover {
+    background: var(--mkt-lime-hover);
+    border-color: rgba(10, 10, 15, 0.25);
+}
+
+.mkt-btn-role-primary-soft {
+    background: var(--mkt-lime-soft);
+    border: 1px solid rgba(198, 255, 61, 0.4);
+    color: #0a0a0f;
+    font-weight: 700;
+}
+
+.mkt-btn-role-primary-soft:hover {
+    background: rgba(198, 255, 61, 0.42);
+    border-color: rgba(198, 255, 61, 0.6);
+}
+
+.mkt-btn-role-band {
+    background: var(--mkt-magenta);
+    border: 1px solid rgba(255, 46, 147, 0.4);
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.mkt-btn-role-band:hover {
+    background: var(--mkt-magenta-hover);
+    border-color: var(--mkt-magenta);
+}
+
+.mkt-btn-role-band-outline {
     background: #ffffff;
-    border-color: rgba(10, 10, 15, 0.28);
-    box-shadow: 0 2px 8px rgba(10, 10, 15, 0.06);
+    border: 1px solid rgba(255, 46, 147, 0.25);
+    color: var(--mkt-magenta);
+    font-weight: 700;
+}
+
+.mkt-btn-role-band-outline:hover {
+    background: rgba(255, 46, 147, 0.06);
+    border-color: var(--mkt-magenta);
 }
 
 .mkt-role-grid {
@@ -211,9 +259,10 @@
     flex-direction: column;
     gap: 1.75rem;
     padding: 1.75rem;
-    border-radius: 1rem;
+    border-radius: 1.25rem;
     border: 1px solid rgba(10, 10, 15, 0.08);
-    background: var(--mkt-alt);
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(10, 10, 15, 0.04);
     height: 100%;
 }
 
@@ -236,7 +285,7 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    color: rgba(92, 92, 102, 0.55);
+    color: rgba(92, 92, 102, 0.7);
     font-size: 0.65rem;
     font-weight: 800;
     letter-spacing: 0.12em;
@@ -248,7 +297,7 @@
     content: "";
     flex: 1;
     height: 1px;
-    background: rgba(10, 10, 15, 0.1);
+    background: rgba(10, 10, 15, 0.08);
 }
 
 .mkt-role-card {
@@ -280,6 +329,43 @@
     color: #7aab18;
 }
 
+/* Dual Tone Role Cards */
+.mkt-role-card-sports {
+    background: linear-gradient(145deg, #0e160a 0%, #16240f 100%);
+    border: 1px solid rgba(198, 255, 61, 0.18);
+    color: #ffffff;
+    box-shadow: 0 4px 18px rgba(198, 255, 61, 0.08);
+}
+
+.mkt-role-card-sports:hover {
+    background: linear-gradient(145deg, #091006 0%, #101c0b 100%);
+    border-color: rgba(198, 255, 61, 0.45);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(198, 255, 61, 0.2);
+}
+
+.mkt-role-card-sports .mkt-role-card-cta {
+    color: #c6ff3d;
+}
+
+.mkt-role-card-band {
+    background: linear-gradient(145deg, #1a0a17 0%, #290c25 100%);
+    border: 1px solid rgba(255, 46, 147, 0.18);
+    color: #ffffff;
+    box-shadow: 0 4px 18px rgba(255, 46, 147, 0.08);
+}
+
+.mkt-role-card-band:hover {
+    background: linear-gradient(145deg, #120610 0%, #20081e 100%);
+    border-color: rgba(255, 46, 147, 0.45);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(255, 46, 147, 0.2);
+}
+
+.mkt-role-card-band .mkt-role-card-cta {
+    color: #ff75c3;
+}
+
 .mkt-platform-col {
     display: flex;
     flex-direction: column;
@@ -299,6 +385,84 @@
     margin-top: auto;
 }
 
+/* ── Dual Tone Platform Cards ── */
+.mkt-platform-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+@media (min-width: 1024px) {
+    .mkt-platform-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+    }
+}
+
+.mkt-platform-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 2rem;
+    border-radius: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    box-sizing: border-box;
+    height: 100%;
+}
+
+@media (min-width: 768px) {
+    .mkt-platform-card {
+        padding: 2.5rem;
+    }
+}
+
+.mkt-platform-card:hover {
+    transform: translateY(-4px);
+}
+
+/* Sports Tone - Electric Lime & Dark Mesh */
+.mkt-platform-card-sports {
+    background: linear-gradient(145deg, #0d1509 0%, #15230e 50%, #0c1808 100%);
+    border: 1px solid rgba(198, 255, 61, 0.18);
+    color: #ffffff;
+    box-shadow: 0 12px 36px -10px rgba(198, 255, 61, 0.12);
+}
+
+.mkt-platform-card-sports:hover {
+    background: linear-gradient(145deg, #091006 0%, #101b0b 50%, #081105 100%);
+    border-color: rgba(198, 255, 61, 0.45);
+    box-shadow: 0 20px 45px -10px rgba(198, 255, 61, 0.2);
+}
+
+.mkt-platform-card-sports .mkt-chip {
+    background: rgba(198, 255, 61, 0.14);
+    border: 1px solid rgba(198, 255, 61, 0.22);
+    color: #ffffff;
+}
+
+/* Band Tone - Vivid Magenta & Dark Velvet */
+.mkt-platform-card-band {
+    background: linear-gradient(145deg, #190916 0%, #2b0b26 50%, #170715 100%);
+    border: 1px solid rgba(255, 46, 147, 0.18);
+    color: #ffffff;
+    box-shadow: 0 12px 36px -10px rgba(255, 46, 147, 0.12);
+}
+
+.mkt-platform-card-band:hover {
+    background: linear-gradient(145deg, #120610 0%, #20081d 50%, #10040e 100%);
+    border-color: rgba(255, 46, 147, 0.45);
+    box-shadow: 0 20px 45px -10px rgba(255, 46, 147, 0.2);
+}
+
+.mkt-platform-card-band .mkt-chip {
+    background: rgba(255, 46, 147, 0.14);
+    border: 1px solid rgba(255, 46, 147, 0.22);
+    color: #ffffff;
+}
+
 @keyframes mkt-hero-in {
     from {
         opacity: 0;
@@ -308,6 +472,67 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* ── Elaborated How It Works Cards ── */
+.mkt-step-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 1.75rem;
+    border-radius: 1.25rem;
+    background: #ffffff;
+    border: 1.5px solid rgba(10, 10, 15, 0.08);
+    position: relative;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+    box-sizing: border-box;
+    height: 100%;
+}
+
+.mkt-step-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(10, 10, 15, 0.2);
+    box-shadow: 0 12px 32px rgba(10, 10, 15, 0.08);
+}
+
+.mkt-step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.85rem;
+    font-family: var(--mkt-brand-font);
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: #0a0a0f;
+    background: #c6ff3d;
+    border: 1px solid rgba(10, 10, 15, 0.12);
+    box-shadow: 0 4px 12px rgba(198, 255, 61, 0.35);
+}
+
+.mkt-step-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: rgba(10, 10, 15, 0.05);
+    color: #5c5c66;
+    border: 1px solid rgba(10, 10, 15, 0.08);
+}
+
+.mkt-step-tag {
+    font-size: 0.725rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    border-radius: 0.5rem;
+    background: #f7f7f8;
+    color: #5c5c66;
+    border: 1px solid rgba(10, 10, 15, 0.06);
 }
 
 @keyframes mkt-reveal {
