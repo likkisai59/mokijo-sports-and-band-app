@@ -1,7 +1,13 @@
-import { API_BASE_URL } from "./api";
-import { getAuthToken } from "@/utils/auth";
+import { API_BASE_URL } from "@/lib/bandApi";
 import { isPreviewActive } from "@/utils/preview-fixtures";
 import { mockEarningsSummary } from "@/utils/preview-fixtures";
+
+const getAuthToken = () => {
+    if (typeof window !== "undefined") {
+        return localStorage.getItem("bandAccessToken");
+    }
+    return null;
+};
 
 const getHeaders = () => {
   const token = getAuthToken();

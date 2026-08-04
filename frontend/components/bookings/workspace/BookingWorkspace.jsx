@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { bookingService } from "@/services/bookingService";
 import { artistService } from "@/services/artistService";
+import { venueService } from "@/services/venueService";
 import { BookingInboxTab } from "./BookingInboxTab";
 import { EventCalendarTab } from "./EventCalendarTab";
 import { BookingHistoryTab } from "./BookingHistoryTab";
@@ -43,6 +44,9 @@ export function BookingWorkspace({ role, basePath }) {
       } else if (role === "admin") {
         const res = await bookingService.adminGetBookings({ limit: 100 });
         setBookings(res.bookings || []);
+      } else if (role === "venue") {
+        const res = await bookingService.getVenueBookings({ limit: 100 });
+        setBookings(res.bookings || []);
       } else {
         const res = await bookingService.getArtistBookings({ limit: 100 });
         setBookings(res.bookings || []);
@@ -55,9 +59,11 @@ export function BookingWorkspace({ role, basePath }) {
   }, [role]);
 
   const fetchAvailability = React.useCallback(async () => {
-    if (role !== "artist") return;
+    if (role !== "artist" && role !== "venue") return;
     try {
-      const data = await artistService.getAvailability();
+      const data = role === "venue" 
+        ? await venueService.getAvailability() 
+        : await artistService.getAvailability();
       setAvailability(data);
     } catch {
       // ignore
@@ -74,7 +80,9 @@ export function BookingWorkspace({ role, basePath }) {
 
   const handleSaveAvailability = async (updated) => {
     try {
-      const data = await artistService.updateAvailability(updated);
+      const data = role === "venue"
+        ? await venueService.updateAvailability(updated)
+        : await artistService.updateAvailability(updated);
       setAvailability(data);
       toast.success("Calendar availability updated!");
     } catch {

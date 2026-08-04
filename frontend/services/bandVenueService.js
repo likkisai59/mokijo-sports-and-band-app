@@ -90,5 +90,45 @@ export const bandVenueService = {
     if (isPreviewActive()) return Promise.resolve({ venues: [], total: 0 });
     const response = await bandApi.get("/venues", { params });
     return response.data;
+  },
+
+  // Mocked Favorite methods for Sprint 10 until backend APIs are ready
+  addFavoriteVenue: async (id) => {
+    const key = `favorites_venues_${typeof window !== 'undefined' ? localStorage.getItem("bandconnect_user_id") || "guest" : "guest"}`;
+    const favorites = JSON.parse(localStorage.getItem(key) || "[]");
+    if (!favorites.includes(id)) {
+      favorites.push(id);
+      localStorage.setItem(key, JSON.stringify(favorites));
+    }
+    return Promise.resolve({ success: true });
+  },
+
+  removeFavoriteVenue: async (id) => {
+    const key = `favorites_venues_${typeof window !== 'undefined' ? localStorage.getItem("bandconnect_user_id") || "guest" : "guest"}`;
+    let favorites = JSON.parse(localStorage.getItem(key) || "[]");
+    favorites = favorites.filter(favId => favId !== id);
+    localStorage.setItem(key, JSON.stringify(favorites));
+    return Promise.resolve({ success: true });
+  },
+
+  isFavoriteVenue: async (id) => {
+    const key = `favorites_venues_${typeof window !== 'undefined' ? localStorage.getItem("bandconnect_user_id") || "guest" : "guest"}`;
+    const favorites = JSON.parse(localStorage.getItem(key) || "[]");
+    return Promise.resolve(favorites.includes(id));
+  },
+
+  getFavoriteVenues: async () => {
+    const key = `favorites_venues_${typeof window !== 'undefined' ? localStorage.getItem("bandconnect_user_id") || "guest" : "guest"}`;
+    const favorites = JSON.parse(localStorage.getItem(key) || "[]");
+    if (favorites.length === 0) return Promise.resolve([]);
+    if (isPreviewActive()) return Promise.resolve([]);
+    
+    try {
+      const promises = favorites.map(id => bandApi.get(`/venues/${id}`).then(res => res.data).catch(() => null));
+      const results = await Promise.all(promises);
+      return results.filter(r => r !== null);
+    } catch (e) {
+      return Promise.resolve([]);
+    }
   }
 };

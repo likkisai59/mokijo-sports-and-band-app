@@ -1,0 +1,1 @@
+import{i as n,k as r}from"./index-B_Lqx_Ub.js";function c(){const t=n(),{user:o,accessToken:s,setAuth:u,clearAuth:e}=r();return{user:o,accessToken:s,isLoading:t.isLoading,logout:t.logout,setAuth:u,clearAuth:e}}export{c as u};

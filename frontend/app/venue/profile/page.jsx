@@ -221,11 +221,11 @@ export default function VenueProfilePage() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-extrabold text-text-primary tracking-tight">
+      <div>
+        <h1 className="vd-page-title">
           Venue Space Management
         </h1>
-        <p className="text-xs text-text-secondary">
+        <p className="vd-page-sub">
           Configure capacities, locations, media galleries, facility amenities, rental pricing packages, and preview the public presentation.
         </p>
       </div>

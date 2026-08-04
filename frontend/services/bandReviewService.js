@@ -1,5 +1,11 @@
-import { API_BASE_URL } from "./api";
-import { getAuthToken } from "@/utils/auth";
+import { API_BASE_URL } from "@/lib/bandApi";
+
+const getAuthToken = () => {
+    if (typeof window !== "undefined") {
+        return localStorage.getItem("bandAccessToken");
+    }
+    return null;
+};
 
 const getHeaders = () => {
   const token = getAuthToken();

@@ -1,6 +1,12 @@
-import { API_BASE_URL } from "./api";
+import { API_BASE_URL } from "@/lib/bandApi";
 import { loadRazorpayCheckout } from "@/lib/venueRazorpay";
-import { getAuthToken } from "@/utils/auth";
+
+const getAuthToken = () => {
+    if (typeof window !== "undefined") {
+        return localStorage.getItem("bandAccessToken");
+    }
+    return null;
+};
 
 function formatDetail(detail, fallback) {
     if (Array.isArray(detail)) {

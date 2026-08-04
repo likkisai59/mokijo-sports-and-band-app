@@ -52,12 +52,12 @@ export default function VenueEarningsPage() {
     <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-extrabold text-text-primary tracking-tight flex items-center gap-2">
+        <div>
+          <h1 className="vd-page-title flex items-center gap-2">
             <Wallet className="h-6.5 w-6.5 text-primary" />
             Earnings & Wallet Dashboard
           </h1>
-          <p className="text-xs text-text-secondary">
+          <p className="vd-page-sub">
             Inspect payouts, track monthly revenue graphs, review tax specifications, and audit transaction ledgers.
           </p>
         </div>

@@ -21,7 +21,8 @@ import {
   Award,
   Video,
   Globe,
-  Youtube
+  Youtube,
+  Heart
 } from "lucide-react";
 
 export default function PublicvenueProfilePage() {
@@ -38,23 +39,54 @@ export default function PublicvenueProfilePage() {
   const [activeMediaUrl, setActiveMediaUrl] = React.useState(null);
   const [activeMediaType, setActiveMediaType] = React.useState(null);
 
+  const [isFavorite, setIsFavorite] = React.useState(false);
+
   const fetchvenueDetail = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await bandVenueService.getPublicVenueDetail(venueId);
       setvenue(data);
+      if (user?.role === "client") {
+        const fav = await bandVenueService.isFavoriteVenue(venueId);
+        setIsFavorite(fav);
+      }
     } catch (err) {
       console.error(err);
       setError("Failed to load public venue details.");
     } finally {
       setLoading(false);
     }
-  }, [venueId]);
+  }, [venueId, user]);
 
   React.useEffect(() => {
     fetchvenueDetail();
   }, [fetchvenueDetail]);
+
+  const handleToggleFavorite = async () => {
+    if (!user) {
+      toast.success("Please log in to save favorites.");
+      router.push("/band/login");
+      return;
+    }
+    if (user.role !== "client") {
+      toast.error("Only client accounts can save favorites.");
+      return;
+    }
+    try {
+      if (isFavorite) {
+        await bandVenueService.removeFavoriteVenue(venueId);
+        setIsFavorite(false);
+        toast.success("Removed from favorites");
+      } else {
+        await bandVenueService.addFavoriteVenue(venueId);
+        setIsFavorite(true);
+        toast.success("Added to favorites");
+      }
+    } catch (err) {
+      toast.error("Failed to update favorites");
+    }
+  };
 
   if (loading) {
     return (
@@ -140,6 +172,15 @@ export default function PublicvenueProfilePage() {
           </div>
           
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleToggleFavorite}
+              className={`rounded-xl border-white/20 bg-black/40 backdrop-blur-md hover:bg-black/60 transition-colors ${isFavorite ? 'text-rose-500 border-rose-500/50' : 'text-white'}`}
+              title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            >
+              <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
+            </Button>
             {venue.gallery && venue.gallery.length > 0 && (
               <Button 
                 onClick={() => {

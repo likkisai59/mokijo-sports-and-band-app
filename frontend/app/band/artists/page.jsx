@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { artistService } from "@/services/artistService";
+import { bandArtistService as artistService } from "@/services/bandArtistService";
 import { Spinner } from "@/components/ui/spinner";
 import { ErrorState } from "@/components/ui/error-state";
 import { Card, CardContent } from "@/components/ui/card";

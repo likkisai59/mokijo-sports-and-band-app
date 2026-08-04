@@ -59,12 +59,12 @@ export default function VenueAnalyticsPage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-extrabold text-text-primary tracking-tight flex items-center gap-2">
+        <div>
+          <h1 className="vd-page-title flex items-center gap-2">
             <TrendingUp className="h-6.5 w-6.5 text-primary" />
             Venue Performance & Review Analytics Hub
           </h1>
-          <p className="text-xs text-text-secondary">
+          <p className="vd-page-sub">
             Inspect booking demand trends, occupancy levels, revenue velocity, client rankings, and ratings growth.
           </p>
         </div>

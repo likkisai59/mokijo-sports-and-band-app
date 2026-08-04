@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
-import { artistService } from "@/services/artistService";
+import { bandArtistService as artistService } from "@/services/bandArtistService";
 import { Spinner } from "@/components/ui/spinner";
 import { ErrorState } from "@/components/ui/error-state";
 import { Card } from "@/components/ui/card";
@@ -21,7 +21,8 @@ import {
   Award,
   Video,
   Globe,
-  Youtube
+  Youtube,
+  Heart
 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { BookingRequestForm } from "@/components/bookings/BookingRequestForm";
@@ -45,23 +46,54 @@ export default function PublicArtistProfilePage() {
   const [isBookingModalOpen, setIsBookingModalOpen] = React.useState(false);
   const [selectedDate, setSelectedDate] = React.useState(null);
 
+  const [isFavorite, setIsFavorite] = React.useState(false);
+
   const fetchArtistDetail = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await artistService.getPublicArtistDetail(artistId);
       setArtist(data);
+      if (user?.role === "client") {
+        const fav = await artistService.isFavoriteArtist(artistId);
+        setIsFavorite(fav);
+      }
     } catch (err) {
       console.error(err);
       setError("Failed to load public performer details.");
     } finally {
       setLoading(false);
     }
-  }, [artistId]);
+  }, [artistId, user]);
 
   React.useEffect(() => {
     fetchArtistDetail();
   }, [fetchArtistDetail]);
+
+  const handleToggleFavorite = async () => {
+    if (!user) {
+      toast.success("Please log in to save favorites.");
+      router.push("/band/login");
+      return;
+    }
+    if (user.role !== "client") {
+      toast.error("Only client accounts can save favorites.");
+      return;
+    }
+    try {
+      if (isFavorite) {
+        await artistService.removeFavoriteArtist(artistId);
+        setIsFavorite(false);
+        toast.success("Removed from favorites");
+      } else {
+        await artistService.addFavoriteArtist(artistId);
+        setIsFavorite(true);
+        toast.success("Added to favorites");
+      }
+    } catch (err) {
+      toast.error("Failed to update favorites");
+    }
+  };
 
   if (loading) {
     return (
@@ -140,6 +172,15 @@ export default function PublicArtistProfilePage() {
           </div>
           
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleToggleFavorite}
+              className={`rounded-xl border-white/20 bg-black/40 backdrop-blur-md hover:bg-black/60 transition-colors ${isFavorite ? 'text-rose-500 border-rose-500/50' : 'text-white'}`}
+              title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            >
+              <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
+            </Button>
             {artist.gallery && artist.gallery.length > 0 && (
               <Button 
                 onClick={() => {

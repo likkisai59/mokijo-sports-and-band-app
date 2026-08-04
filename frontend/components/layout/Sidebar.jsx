@@ -38,37 +38,37 @@ export function Sidebar({ role }) {
 
       case "artist":
         return [
-          { name: "Home",       href: "/artist/dashboard",  icon: Home },
-          { name: "Profile",    href: "/artist/profile",    icon: User },
-          { name: "Bookings",   href: "/artist/bookings",   icon: Calendar },
-          { name: "Reviews",    href: "/artist/reviews",    icon: MessageSquare },
-          { name: "Inbox",      href: "/artist/messages",   icon: Inbox },
-          { name: "Payments",   href: "/artist/earnings",   icon: IndianRupee },
-          { name: "Settings",   href: "/artist/settings",   icon: Settings },
+          { name: "Home",       href: "/band/artist/dashboard",  icon: Home },
+          { name: "Profile",    href: "/band/artist/profile",    icon: User },
+          { name: "Bookings",   href: "/band/artist/bookings",   icon: Calendar },
+          { name: "Reviews",    href: "/band/artist/reviews",    icon: MessageSquare },
+          { name: "Inbox",      href: "/band/artist/messages",   icon: Inbox },
+          { name: "Payments",   href: "/band/artist/earnings",   icon: IndianRupee },
+          { name: "Settings",   href: "/band/artist/settings",   icon: Settings },
         ];
 
-      case "venue":
+      case "venue_owner":
         return [
-          { name: "Home",       href: "/venue/dashboard",   icon: Home },
-          { name: "Profile",    href: "/venue/profile",     icon: Building2 },
-          { name: "Bookings",   href: "/venue/bookings",    icon: Calendar },
-          { name: "Reviews",    href: "/venue/reviews",     icon: MessageSquare },
-          { name: "Inbox",      href: "/venue/messages",    icon: Inbox },
-          { name: "Payments",   href: "/venue/earnings",    icon: IndianRupee },
-          { name: "Settings",   href: "/venue/settings",    icon: Settings },
+          { name: "Home",       href: "/band/venue/dashboard",   icon: Home },
+          { name: "Profile",    href: "/band/venue/profile",     icon: Building2 },
+          { name: "Bookings",   href: "/band/venue/bookings",    icon: Calendar },
+          { name: "Reviews",    href: "/band/venue/reviews",     icon: MessageSquare },
+          { name: "Inbox",      href: "/band/venue/messages",    icon: Inbox },
+          { name: "Payments",   href: "/band/venue/earnings",    icon: IndianRupee },
+          { name: "Settings",   href: "/band/venue/settings",    icon: Settings },
         ];
 
       case "admin":
         return [
-          { name: "Home",       href: "/admin/dashboard",   icon: Home },
-          { name: "Users",      href: "/admin/users",       icon: Users },
-          { name: "Artists",    href: "/admin/artists",     icon: Music },
-          { name: "Venues",     href: "/admin/venues",      icon: Building2 },
-          { name: "Bookings",   href: "/admin/bookings",    icon: Calendar },
-          { name: "Inbox",      href: "/admin/messages",    icon: Inbox },
-          { name: "Payments",   href: "/admin/payments",    icon: IndianRupee },
-          { name: "Reports",    href: "/admin/reports",     icon: BarChart2 },
-          { name: "Settings",   href: "/admin/settings",    icon: Settings },
+          { name: "Home",       href: "/band/admin/dashboard",   icon: Home },
+          { name: "Users",      href: "/band/admin/users",       icon: Users },
+          { name: "Artists",    href: "/band/admin/artists",     icon: Music },
+          { name: "Venues",     href: "/band/admin/venues",      icon: Building2 },
+          { name: "Bookings",   href: "/band/admin/bookings",    icon: Calendar },
+          { name: "Inbox",      href: "/band/admin/messages",    icon: Inbox },
+          { name: "Payments",   href: "/band/admin/payments",    icon: IndianRupee },
+          { name: "Reports",    href: "/band/admin/reports",     icon: BarChart2 },
+          { name: "Settings",   href: "/band/admin/settings",    icon: Settings },
         ];
 
       default:
