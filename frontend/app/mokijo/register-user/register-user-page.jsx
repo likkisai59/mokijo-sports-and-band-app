@@ -15,7 +15,7 @@ import {
     getAuthClasses,
 } from "@/components/auth";
 
-const c = getAuthClasses("dark");
+const c = getAuthClasses("light");
 import {
     digitsOnly,
     isValidPhone,
@@ -178,14 +178,14 @@ export default function RegisterUserPage() {
     };
 
     return (
-        <AuthShell variant="dark">
-            <AuthCard size="md" variant="dark">
+        <AuthShell variant="light">
+            <AuthCard size="register" variant="light">
                 <Link href="/" className={c.backLink}>
                     ← Back to Home
                 </Link>
 
                 <AuthBrand
-                    variant="dark"
+                    variant="light"
                     align="center"
                     title="Create User Account"
                     subtitle="Register as a sports user to start booking slots"

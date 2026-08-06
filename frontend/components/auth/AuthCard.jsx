@@ -2,7 +2,7 @@ const SIZE_CLASS = {
     sm: "max-w-[440px]",
     md: "max-w-[560px]",
     lg: "max-w-[720px]",
-    register: "max-w-[460px]",
+    register: "max-w-[500px]",
 };
 
 export default function AuthCard({ children, size = "sm", className = "", variant = "light" }) {

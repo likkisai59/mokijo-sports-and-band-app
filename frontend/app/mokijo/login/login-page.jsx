@@ -120,7 +120,9 @@ function LoginContent() {
                     <div className="flex flex-col items-center text-center mb-6">
                         <AuthBrand
                             variant="light"
+                            align="center"
                             title="Admin Sign In"
+                            subtitle="Welcome back — enter your credentials to continue."
                         />
                     </div>
 

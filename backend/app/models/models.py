@@ -47,7 +47,7 @@ class Event(Base):
     name = Column(String, nullable=False)
     type = Column(String, nullable=False) # Event category
     date = Column(String, nullable=False)
-    time = Column(String, nullable=False)
+    time = Column(String, nullable=True)
     start_time = Column(String, nullable=True)
     end_time = Column(String, nullable=True)
     location = Column(String, nullable=True)

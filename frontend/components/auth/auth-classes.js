@@ -1,18 +1,18 @@
 /** Shared class strings for light (registers) and dark Band-matched (logins) auth forms. */
 
 export const authInputClass =
-    "w-full h-11 bg-white border border-[rgba(10,10,15,0.12)] rounded-xl px-4 text-sm text-[#0a0a0f] placeholder:text-[#5c5c66]/55 transition-all duration-200 focus:outline-none focus:border-[#c6ff3d] focus:ring-2 focus:ring-[rgba(198,255,61,0.35)]";
+    "w-full max-w-[380px] mx-auto h-11 bg-white border-2 border-gray-300 rounded-xl px-4 text-sm font-semibold text-black placeholder:text-gray-400 transition-all duration-200 focus:outline-none focus:border-black focus:ring-2 focus:ring-black/10 shadow-sm block text-left";
 
 export const authSelectClass =
-    "w-full h-11 bg-white border border-[rgba(10,10,15,0.12)] rounded-xl px-4 text-sm text-[#0a0a0f] focus:outline-none focus:border-[#c6ff3d] focus:ring-2 focus:ring-[rgba(198,255,61,0.35)]";
+    "w-full max-w-[380px] mx-auto h-11 bg-white border-2 border-gray-300 rounded-xl px-4 text-sm font-semibold text-black focus:outline-none focus:border-black focus:ring-2 focus:ring-black/10 shadow-sm block text-left";
 
-export const authLabelClass = "text-[13px] font-medium text-[#0a0a0f]";
+export const authLabelClass = "text-sm font-bold text-black text-left block w-full";
 
 export const authPrimaryBtnClass =
-    "w-full h-11 bg-[#c6ff3d] text-[#0a0a0f] font-semibold text-sm px-6 rounded-xl transition-all duration-200 hover:bg-[#b5eb29] disabled:opacity-50 disabled:cursor-not-allowed";
+    "w-full max-w-[380px] mx-auto h-11 bg-black text-white font-bold text-sm px-6 rounded-xl transition-all duration-200 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg block";
 
 export const authSecondaryBtnClass =
-    "w-full h-11 bg-white border border-[rgba(10,10,15,0.12)] text-[#0a0a0f] font-semibold text-sm px-6 rounded-xl transition-all duration-200 hover:border-[rgba(10,10,15,0.2)] hover:bg-[#f7f7f8] disabled:opacity-50 disabled:cursor-not-allowed";
+    "w-full max-w-[380px] mx-auto h-11 bg-white border-2 border-gray-300 text-black font-bold text-sm px-6 rounded-xl transition-all duration-200 hover:border-black hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed block";
 
 export const authLinkClass =
     "font-semibold text-[#0a0a0f] hover:text-[#5c5c66] transition-colors underline-offset-2 hover:underline";

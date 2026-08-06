@@ -27,7 +27,14 @@ import {
     DOB_MESSAGE,
 } from "@/lib/validation";
 
-const c = getAuthClasses("dark");
+const c = getAuthClasses("light");
+
+// Inner input class: same style as c.input but without max-w/mx-auto
+// (the field wrapper already constrains width to 380px)
+const fieldInputClass =
+    "w-full h-11 bg-white border-2 border-gray-300 rounded-xl px-4 text-sm font-semibold text-black placeholder:text-gray-400 transition-all duration-200 focus:outline-none focus:border-black focus:ring-2 focus:ring-black/10 shadow-sm block text-left";
+const fieldSelectClass =
+    "w-full h-11 bg-white border-2 border-gray-300 rounded-xl px-4 text-sm font-semibold text-black focus:outline-none focus:border-black focus:ring-2 focus:ring-black/10 shadow-sm block text-left";
 
 const AADHAAR_REQUIRED_ROLES = ["coach", "referee", "trainer"];
 
@@ -298,16 +305,16 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
     if (loading && !formConfig) {
         return (
             <div className="text-center py-10">
-                <div className="w-8 h-8 border-[3px] border-[rgba(255,255,255,0.12)] border-t-[#c6ff3d] rounded-full animate-spin mx-auto mb-3" />
-                <p className="text-sm text-[rgba(244,244,245,0.5)]">Fetching customized form configuration...</p>
+                <div className="w-8 h-8 border-[3px] border-gray-200 border-t-black rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-sm text-gray-500">Fetching customized form configuration...</p>
             </div>
         );
     }
 
     return (
-        <div>
-            <div className="flex justify-start mb-4">
-                <button type="button" className="text-[13px] font-medium text-[rgba(244,244,245,0.45)] hover:text-[#f4f4f5] transition-colors w-fit" onClick={onBack}>
+        <div className="flex flex-col items-center w-full">
+            <div className="flex justify-start mb-4 w-full max-w-[380px]">
+                <button type="button" className="text-[13px] font-medium text-gray-500 hover:text-gray-900 transition-colors w-fit" onClick={onBack}>
                     {backLabel}
                 </button>
             </div>
@@ -318,40 +325,30 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                 </div>
             )}
 
-            <h2 className="text-xl font-semibold text-[#f4f4f5] tracking-tight text-center">{formConfig?.title || `${role} Signup`}</h2>
-            <p className="text-sm text-[rgba(244,244,245,0.5)] mt-1 text-center mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 tracking-tight text-center">{formConfig?.title || `${role} Signup`}</h2>
+            <p className="text-sm text-gray-500 mt-1 text-center mb-6">
                 {selectedClub?.club_name ? `Joining ${selectedClub.club_name}. ` : ""}
                 {formConfig?.description || "Apply to join our organisation by filling in your details below."}
             </p>
 
-            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4 items-center w-full">
                 {/* Customized Club Onboarding Fields */}
                 {formConfig?.fields?.
                     filter((field) => !field.name.toLowerCase().includes("password"))
                     .map((field) => {
                         const isEmailField = field.name.toLowerCase() === "email";
                         return (
-                            <div key={field.name} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                                <div className="flex flex-col gap-2 mb-4">
+                            <div key={field.name} className="w-full max-w-[380px]">
+                                <div className="flex flex-col gap-2 mb-2">
                                     <label className={c.label}>
                                         {field.label} {field.required && <span style={{ color: "#ef4444" }}>*</span>}
                                     </label>
                                     {isYesNoSelect(field) ? (
-                                        <div style={{ display: "flex", gap: "20px", alignItems: "center", paddingTop: "4px" }}>
+                                        <div className="flex gap-5 items-center pt-1">
                                             {(field.options || ["Yes", "No"]).map((opt) => (
                                                 <label
                                                     key={opt}
-                                                    style={{
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                        gap: "8px",
-                                                        color: "#f4f4f5",
-                                                        fontSize: "14px",
-                                                        fontWeight: 600,
-                                                        cursor: "pointer",
-                                                        textTransform: "none",
-                                                        letterSpacing: "normal",
-                                                    }}
+                                                    className="flex items-center gap-2 text-sm font-semibold text-gray-900 cursor-pointer"
                                                 >
                                                     <input
                                                         type="radio"
@@ -366,7 +363,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                         </div>
                                     ) : field.type === "select" ? (
                                         <select
-                                            className={c.select}
+                                            className={fieldSelectClass}
                                             value={formData[field.name] || ""}
                                             onChange={(e) => handleFieldChange(field.name, e.target.value)}
                                         >
@@ -397,15 +394,15 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                             onDigitsChange={(digits) =>
                                                 handlePhoneMetaChange(field.name, { digits })
                                             }
-                                            className={c.input}
-                                            selectClassName={c.select}
+                                            className={fieldInputClass}
+                                            selectClassName={fieldSelectClass}
                                             placeholder={field.placeholder || "00000 00000"}
                                         />
                                     ) : isAadhaarField(field) ? (
                                         <input
                                             type="text"
                                             inputMode="numeric"
-                                            className={c.input}
+                                            className={fieldInputClass}
                                             placeholder={field.placeholder || "12-digit Aadhaar number"}
                                             maxLength={12}
                                             value={formData[field.name] || ""}
@@ -416,19 +413,19 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                     ) : isDobField(field) ? (
                                         <input
                                             type="date"
-                                            className={c.input}
+                                            className={fieldInputClass}
                                             value={dobToIso(formData[field.name] || "")}
                                             min="1900-01-01"
                                             max={new Date().toISOString().slice(0, 10)}
                                             onChange={(e) =>
                                                 handleFieldChange(field.name, isoToDob(e.target.value))
                                             }
-                                            style={{ colorScheme: "dark" }}
+                                            style={{ colorScheme: "light" }}
                                         />
                                     ) : (
                                         <input
                                             type={field.type}
-                                            className={c.input}
+                                            className={fieldInputClass}
                                             placeholder={field.placeholder || ""}
                                             value={formData[field.name] || ""}
                                             onChange={(e) =>
@@ -451,13 +448,13 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                 </div>
                                 {isEmailField && (
                                     <>
-                                        <div className="flex flex-col gap-2 mb-4">
+                                        <div className="flex flex-col gap-2 mb-2 w-full max-w-[380px]">
                                             <label className={c.label}>
                                                 Create Password <span style={{ color: "#ef4444" }}>*</span>
                                             </label>
                                             <PasswordField
-                                                tone="dark"
-                                                className={c.input}
+                                                tone="light"
+                                                className={fieldInputClass}
                                                 placeholder="Choose a password for your account"
                                                 value={formData["password"] || ""}
                                                 onChange={(e) => handleFieldChange("password", e.target.value)}
@@ -475,13 +472,13 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="flex flex-col gap-2 mb-4">
+                                        <div className="flex flex-col gap-2 mb-2 w-full max-w-[380px]">
                                             <label className={c.label}>
                                                 Confirm Password <span style={{ color: "#ef4444" }}>*</span>
                                             </label>
                                             <PasswordField
-                                                tone="dark"
-                                                className={c.input}
+                                                tone="light"
+                                                className={fieldInputClass}
                                                 placeholder="Re-enter your password"
                                                 value={confirmPassword}
                                                 onChange={(e) => {
@@ -510,7 +507,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                         );
                     })}
 
-                <div className="flex flex-col gap-2 mb-4">
+                <div className="flex flex-col gap-2 mb-2 w-full max-w-[380px]">
                     <label className={c.label}>
                         Interested Sports <span style={{ color: "#ef4444" }}>*</span> (Select all that apply)
                     </label>
@@ -522,7 +519,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                 return (
                                     <label
                                         key={sport}
-                                        className="flex items-center gap-2 cursor-pointer text-sm text-[#f4f4f5]"
+                                        className="flex items-center gap-2 cursor-pointer text-sm text-gray-800"
                                     >
                                         <input
                                             type="checkbox"
@@ -536,7 +533,7 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                                                 }
                                                 handleFieldChange("sports", updated);
                                             }}
-                                            className="w-4 h-4 accent-[#c6ff3d] cursor-pointer"
+                                            className="w-4 h-4 accent-black cursor-pointer"
                                         />
                                         <span>{sport}</span>
                                     </label>
@@ -555,7 +552,6 @@ export default function CustomRoleRegistration({ role, selectedClub, onBack, onC
                     type="submit"
                     className={c.primaryBtn}
                     disabled={loading}
-                    style={{ marginTop: "10px" }}
                 >
                     {loading ? "Submitting Application..." : "Submit Application"}
                 </button>

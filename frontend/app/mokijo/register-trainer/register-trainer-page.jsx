@@ -15,7 +15,7 @@ import {
     getAuthClasses,
 } from "@/components/auth";
 
-const c = getAuthClasses("dark");
+const c = getAuthClasses("light");
 import {
     digitsOnly,
     applyNameInput,
@@ -174,14 +174,14 @@ export default function RegisterTrainerPage() {
     }
 
     return (
-        <AuthShell variant="dark">
-            <AuthCard size="md" variant="dark">
+        <AuthShell variant="light">
+            <AuthCard size="register" variant="light">
                 <Link href="/" className={c.backLink}>
                     ← Back to Home
                 </Link>
 
                 <AuthBrand
-                    variant="dark"
+                    variant="light"
                     align="center"
                     title="Trainer Registration"
                     subtitle="Create your independent trainer account"

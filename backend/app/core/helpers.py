@@ -299,11 +299,20 @@ def serialize_course_registration(registration, db_driver=None):
 
 def serialize_event(event: dict, db_driver):
     group_name = "Club-Wide"
-    group_id = event.get("group_id")
-    if group_id:
-        group = db_driver.fetch_one("SELECT group_name FROM groups WHERE id = %s", (group_id,))
-        if group:
-            group_name = group.get("group_name")
+    group_id = event.get("group_id") if isinstance(event, dict) else getattr(event, "group_id", None)
+    if group_id and db_driver:
+        try:
+            if hasattr(db_driver, "fetch_one"):
+                group = db_driver.fetch_one("SELECT group_name FROM groups WHERE id = %s", (group_id,))
+                if group:
+                    group_name = group.get("group_name") if isinstance(group, dict) else getattr(group, "group_name", "Club-Wide")
+            elif hasattr(db_driver, "query"):
+                from app.models.models import Group
+                g = db_driver.query(Group).filter(Group.id == group_id).first()
+                if g:
+                    group_name = g.group_name
+        except Exception:
+            group_name = "Club-Wide"
 
     return {
         "id": event.get("id"),

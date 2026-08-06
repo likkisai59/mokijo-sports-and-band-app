@@ -13,7 +13,7 @@ import {
 } from "@/components/auth";
 import Link from "next/link";
 
-const c = getAuthClasses("dark");
+const c = getAuthClasses("light");
 
 export default function SignupPage() {
     const [currentStep, setCurrentStep] = useState(1);
@@ -94,8 +94,8 @@ export default function SignupPage() {
     }
 
     return (
-        <AuthShell variant="dark">
-            <AuthCard size="register" variant="dark">
+        <AuthShell variant="light">
+            <AuthCard size="register" variant="light">
                 {!submitted ? (
                     <Link href="/" className={c.backLink}>
                         ← Back to Home
@@ -103,13 +103,13 @@ export default function SignupPage() {
                 ) : null}
 
                 <AuthBrand
-                    variant="dark"
+                    variant="light"
                     align="center"
                     title="Club Administrator Sign Up"
                     subtitle={submitted ? undefined : `Step ${currentStep} of 2`}
                 />
 
-                {error ? <AuthErrorBanner variant="dark">{error}</AuthErrorBanner> : null}
+                {error ? <AuthErrorBanner variant="light">{error}</AuthErrorBanner> : null}
 
                 {submitted ? (
                     <SuccessScreen role="admin" />

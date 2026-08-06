@@ -10,7 +10,7 @@ import {
     applyClubNameInput,
 } from "@/lib/validation";
 
-const c = getAuthClasses("dark");
+const c = getAuthClasses("light");
 const fieldErrorStyle = { color: "#ef4444", fontSize: "12px", marginTop: "6px", marginBottom: 0 };
 
 export default function Step1({ formData, onChange, onNext }) {
@@ -75,20 +75,20 @@ export default function Step1({ formData, onChange, onNext }) {
     }
 
     return (
-        <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-center gap-4 mb-2">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold bg-[#c6ff3d] text-[#08080f]">1</div>
-                <div className="flex-1 h-px bg-[rgba(255,255,255,0.1)] max-w-[60px]"></div>
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.1)] text-[rgba(244,244,245,0.5)]">2</div>
+        <div className="flex flex-col gap-6 w-full items-center">
+            <div className="flex items-center justify-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-black text-white">1</div>
+                <div className="flex-1 h-px bg-gray-200 max-w-[60px]"></div>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-gray-100 border border-gray-300 text-gray-500">2</div>
             </div>
 
             <div className="text-center mb-4">
-                <h2 className={c.heading}>Club Information</h2>
-                <p className={`${c.subtext} mt-1`}>Tell us about your club or organisation</p>
+                <h2 className="text-2xl font-black text-black tracking-tight">Club Information</h2>
+                <p className="text-sm font-medium text-gray-600 mt-1">Tell us about your club or organisation</p>
             </div>
 
-            <div className="flex flex-col gap-2">
-                <label className={`${c.label} text-[rgba(244,244,245,0.75)]`}>Club Name *</label>
+            <div className="flex flex-col gap-2 w-full max-w-[380px] mx-auto text-left">
+                <label className={c.label}>Club Name *</label>
                 <input
                     type="text"
                     className={c.input}
@@ -99,9 +99,9 @@ export default function Step1({ formData, onChange, onNext }) {
                 {fieldErrors.clubName ? <p style={fieldErrorStyle}>{fieldErrors.clubName}</p> : null}
             </div>
 
-            <div className="flex flex-col gap-2">
-                <label className={`${c.label} text-[rgba(244,244,245,0.75)]`}>
-                    Club ID <span className="text-xs text-[rgba(244,244,245,0.5)] ml-1 font-normal">(Auto-Generated)</span>
+            <div className="flex flex-col gap-2 w-full max-w-[380px] mx-auto text-left">
+                <label className={c.label}>
+                    Club ID <span className="text-xs text-gray-500 ml-1 font-normal">(Auto-Generated)</span>
                 </label>
                 <input
                     type="text"
@@ -111,8 +111,8 @@ export default function Step1({ formData, onChange, onNext }) {
                 />
             </div>
 
-            <div className="flex flex-col gap-2">
-                <label className={`${c.label} text-[rgba(244,244,245,0.75)]`}>Country *</label>
+            <div className="flex flex-col gap-2 w-full max-w-[380px] mx-auto text-left">
+                <label className={c.label}>Country *</label>
                 <select
                     className={c.select}
                     value={formData.country}
@@ -127,8 +127,8 @@ export default function Step1({ formData, onChange, onNext }) {
                 </select>
             </div>
 
-            <div className="flex flex-col gap-2">
-                <label className={`${c.label} text-[rgba(244,244,245,0.75)]`}>State *</label>
+            <div className="flex flex-col gap-2 w-full max-w-[380px] mx-auto text-left">
+                <label className={c.label}>State *</label>
                 {stateList ? (
                     <select
                         className={c.select}
@@ -154,8 +154,8 @@ export default function Step1({ formData, onChange, onNext }) {
                 )}
             </div>
 
-            <div className="flex flex-col gap-2">
-                <label className={`${c.label} text-[rgba(244,244,245,0.75)]`}>Number of Members *</label>
+            <div className="flex flex-col gap-2 w-full max-w-[380px] mx-auto text-left">
+                <label className={c.label}>Number of Members *</label>
                 <select
                     className={c.select}
                     value={formData.memberCount}
@@ -170,16 +170,16 @@ export default function Step1({ formData, onChange, onNext }) {
                 </select>
             </div>
 
-            <div className="flex flex-col gap-2">
-                <label className={`${c.label} text-[rgba(244,244,245,0.75)]`}>Sports / Activities * (Select all that apply)</label>
-                <div className={c.checkList}>
+            <div className="flex flex-col gap-2 w-full max-w-[380px] mx-auto text-left">
+                <label className={c.label}>Sports / Activities * (Select all that apply)</label>
+                <div className="max-h-[180px] overflow-y-auto border-2 border-gray-300 rounded-xl p-3 bg-gray-50 flex flex-col gap-2 w-full max-w-[380px] mx-auto">
                     {sportsOptions.map((sport) => {
                         const selectedSports = Array.isArray(formData.sport) ? formData.sport : [];
                         const isChecked = selectedSports.includes(sport);
                         return (
                             <label
                                 key={sport}
-                                className="flex items-center gap-2.5 cursor-pointer text-sm text-[#f4f4f5]"
+                                className="flex items-center gap-2.5 cursor-pointer text-sm text-black font-bold"
                             >
                                 <input
                                     type="checkbox"
@@ -193,7 +193,7 @@ export default function Step1({ formData, onChange, onNext }) {
                                         }
                                         onChange("sport", updated);
                                     }}
-                                    className="w-4 h-4 accent-[#c6ff3d] cursor-pointer"
+                                    className="w-4 h-4 accent-black cursor-pointer"
                                 />
                                 <span>{sport}</span>
                             </label>
@@ -204,10 +204,13 @@ export default function Step1({ formData, onChange, onNext }) {
 
             {formError ? <p style={fieldErrorStyle}>{formError}</p> : null}
 
-            <div className="flex justify-between items-center mt-4">
-                <div></div>
-                <button type="button" className={c.primaryBtn} onClick={handleNext}>
-                    Next →
+            <div className="flex justify-end items-center mt-6 w-full max-w-[380px] mx-auto">
+                <button
+                    type="button"
+                    className="h-10 px-6 bg-black text-white font-bold text-sm rounded-xl transition-all duration-200 hover:bg-gray-800 shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+                    onClick={handleNext}
+                >
+                    Next Step →
                 </button>
             </div>
         </div>

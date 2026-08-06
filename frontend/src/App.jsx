@@ -55,6 +55,7 @@ const DashboardActivities = React.lazy(() => import('@/app/mokijo/dashboard/acti
 const DashboardActivityDetail = React.lazy(() => import('@/app/mokijo/dashboard/activities/[id]/page.jsx'));
 const DashboardEvents = React.lazy(() => import('@/app/mokijo/dashboard/events/page.jsx'));
 const DashboardEventNew = React.lazy(() => import('@/app/mokijo/dashboard/events/new/page.jsx'));
+const DashboardEventDetail = React.lazy(() => import('@/app/mokijo/dashboard/events/[id]/page.jsx'));
 const DashboardMembers = React.lazy(() => import('@/app/mokijo/dashboard/members/page.jsx'));
 const DashboardMemberEdit = React.lazy(() => import('@/app/mokijo/dashboard/members/[id]/edit/page.jsx'));
 const DashboardFundraising = React.lazy(() => import('@/app/mokijo/dashboard/fundraising/page.jsx'));
@@ -215,6 +216,7 @@ export default function App() {
                       <Route path="activities/:id" element={<PageWrapper Component={DashboardActivityDetail} />} />
                       <Route path="events" element={<DashboardEvents />} />
                       <Route path="events/new" element={<DashboardEventNew />} />
+                      <Route path="events/:id" element={<PageWrapper Component={DashboardEventDetail} />} />
                       <Route path="members" element={<DashboardMembers />} />
                       <Route path="members/:id/edit" element={<PageWrapper Component={DashboardMemberEdit} />} />
                       <Route path="fundraising" element={<DashboardFundraising />} />

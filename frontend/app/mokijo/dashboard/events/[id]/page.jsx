@@ -7,9 +7,10 @@ import Link from "next/link";
 import api from "@/lib/api";
 import "@/app/styles/events.css";
 
-export default function EventDetailPage() {
+export default function EventDetailPage({ params }) {
     const router = useRouter();
-    const { id } = useParams();
+    const routeParams = useParams() || {};
+    const id = params?.id || routeParams.id;
 
     // States
     const [event, setEvent] = useState(null);
@@ -53,8 +54,11 @@ export default function EventDetailPage() {
             }
 
             try {
+                const token = localStorage.getItem("accessToken");
+                const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
                 // Fetch Event Details
-                const eventRes = await fetch(`${API_BASE_URL}/events/${id}?owner_id=${userId}`);
+                const eventRes = await fetch(`${API_BASE_URL}/events/${id}?owner_id=${userId}`, { headers: authHeaders });
                 if (!eventRes.ok) {
                     throw new Error("Event not found");
                 }
@@ -62,15 +66,13 @@ export default function EventDetailPage() {
                 setEvent(eventData);
 
                 // Fetch Registrations
-                const regRes = await fetch(`${API_BASE_URL}/events/${id}/participants`);
+                const regRes = await fetch(`${API_BASE_URL}/events/${id}/participants`, { headers: authHeaders });
                 if (regRes.ok) {
                     const regData = await regRes.json();
                     setRegistrations(regData);
                 }
 
                 // Fetch Club Groups
-                const token = localStorage.getItem("accessToken");
-                const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
                 const groupRes = await fetch(`${API_BASE_URL}/groups?owner_id=${userId}`, { headers: authHeaders });
                 if (groupRes.ok) {
                     const groupData = await groupRes.json();
@@ -84,7 +86,6 @@ export default function EventDetailPage() {
                 }
             } catch (error) {
                 console.error("Error loading event detail page:", error);
-                alert("Failed to load event dashboard details.");
             } finally {
                 setLoading(false);
             }

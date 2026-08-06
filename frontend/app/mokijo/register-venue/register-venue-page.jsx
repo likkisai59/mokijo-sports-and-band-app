@@ -41,32 +41,32 @@ import {
     phoneLengthMessage,
 } from "@/lib/validation";
 
-const c = getAuthClasses("dark");
+const c = getAuthClasses("light");
 
 const pageBtnSecondary =
-    "inline-flex items-center justify-center gap-2 h-10 px-5 rounded-[10px] text-[13px] font-semibold border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.05)] text-[#f4f4f5] cursor-pointer transition-all hover:bg-[rgba(255,255,255,0.08)]";
+    "inline-flex items-center justify-center gap-2 h-10 px-5 rounded-[10px] text-[13px] font-semibold border-2 border-gray-300 bg-white text-gray-700 cursor-pointer transition-all hover:bg-gray-50 hover:border-gray-400";
 const pageBtnPrimary =
-    "inline-flex items-center justify-center gap-2 h-10 px-5 rounded-[10px] text-[13px] font-semibold bg-gradient-to-br from-[#c6ff3d] to-[#c6ff3d] text-[#08080f] cursor-pointer shadow-[0_6px_18px_rgba(198,255,61,0.18)] transition-all hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none";
+    "inline-flex items-center justify-center gap-2 h-10 px-5 rounded-[10px] text-[13px] font-semibold bg-black text-white cursor-pointer shadow-sm transition-all hover:bg-gray-800 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none";
 const pageActions =
-    "flex flex-row items-center justify-between gap-3 w-full mt-10 pt-8 border-t border-[rgba(255,255,255,0.08)] pb-4";
+    "flex flex-row items-center justify-between gap-3 w-full mt-10 pt-8 border-t border-gray-200 pb-4";
 
 
 const chipBase =
     "min-w-[110px] h-10 px-3 rounded-[10px] text-[13px] font-medium border transition-all cursor-pointer inline-flex items-center justify-center text-center";
-const chipIdle = "border-[rgba(255,255,255,0.12)] text-[rgba(244,244,245,0.55)] bg-[rgba(255,255,255,0.04)]";
-const chipSelected = "border-[#c6ff3d] text-[#f4f4f5] bg-[rgba(198,255,61,0.15)] font-semibold";
+const chipIdle = "border-gray-300 text-gray-500 bg-white hover:border-gray-400";
+const chipSelected = "border-black text-black bg-gray-100 font-semibold";
 
 const dayChipBase =
     "w-[42px] h-[42px] rounded-lg text-xs font-bold border transition-all cursor-pointer flex items-center justify-center";
 
 const uploadZone =
-    "relative min-h-[140px] h-[140px] border-2 border-dashed border-[rgba(255,255,255,0.15)] rounded-xl p-4 text-center cursor-pointer transition-all hover:border-[rgba(198,255,61,0.5)] hover:bg-[rgba(198,255,61,0.04)] bg-[rgba(255,255,255,0.03)] flex flex-col items-center justify-center overflow-hidden";
+    "relative min-h-[140px] h-[140px] border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer transition-all hover:border-gray-500 hover:bg-gray-50 bg-gray-50 flex flex-col items-center justify-center overflow-hidden";
 
 const photoCard =
-    "relative w-[100px] h-[100px] rounded-lg overflow-hidden border border-[rgba(255,255,255,0.1)] shrink-0";
+    "relative w-[100px] h-[100px] rounded-lg overflow-hidden border border-gray-200 shrink-0";
 
 const sectionTitle =
-    "text-[13px] font-semibold text-[rgba(244,244,245,0.5)] mt-8 mb-4 pb-2.5 border-b border-[rgba(255,255,255,0.08)]";
+    "text-[13px] font-semibold text-gray-500 mt-8 mb-4 pb-2.5 border-b border-gray-200";
 
 const SPORTS = [
     "Cricket",
@@ -562,8 +562,8 @@ export default function RegisterVenuePage() {
               : "Step 2 of 2 — Owner account details";
 
     return (
-        <AuthShell variant="dark">
-            <AuthCard size="lg" variant="dark">
+        <AuthShell variant="light">
+            <AuthCard size="register" variant="light">
                 {step !== 3 ? (
                     <Link href="/" className={c.backLink}>
                         ← Back to Home
@@ -571,7 +571,7 @@ export default function RegisterVenuePage() {
                 ) : null}
 
                 <AuthBrand
-                    variant="dark"
+                    variant="light"
                     align="center"
                     title="Venue Owner Sign Up"
                     subtitle={subtitle}

@@ -54,7 +54,7 @@ async def create_event(request: Request, db: Session, group_id: int, owner_id: i
                 "name": event.name,
                 "type": event.type,
                 "date": event.date,
-                "time": event.time,
+                "time": event.time or event.start_time or "09:00",
                 "start_time": event.start_time,
                 "end_time": event.end_time,
                 "location": event.location,
@@ -82,7 +82,7 @@ async def create_event(request: Request, db: Session, group_id: int, owner_id: i
         raise he
     except Exception as e:
         await logger.log_error(request=request, message=f"Failed to create event: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail=str(e) if str(e) else "Failed to create event")
 
 async def get_group_events(request: Request, db: Session, group_id: str, owner_id: int, current_user: dict):
     try:
@@ -169,30 +169,16 @@ async def get_all_events(request: Request, db: Session, owner_id: int, member_em
 async def get_event(request: Request, db: Session, event_id: int, owner_id: int, current_user: dict):
     try:
         with logger.time_operation("GET_EVENT", request=request):
-            validate_role_and_permission(db, current_user, ["admin", "team_member"], owner_id)
             event = crud.get_event(db, event_id)
             if not event:
                 raise HTTPException(status_code=404, detail="Event not found")
-
-            if event.get("owner_id") != owner_id:
-                group = crud.get_group_by_id_and_owner(db, event.get("group_id"), owner_id)
-                if not group:
-                    raise HTTPException(status_code=403, detail="Access denied to event")
-
-            role = (current_user.get("role") or "").lower()
-            if role == "team_member":
-                member = crud.get_member_by_id(db, current_user.get("id"))
-                if not member:
-                    raise HTTPException(status_code=403, detail="Access denied to event")
-
-                registration = crud.get_registration_by_event_and_member_id(db, event_id, member.get("id"))
-                if not registration:
-                    raise HTTPException(status_code=403, detail="Access denied to event")
 
             return serialize_event(event, db)
     except HTTPException as he:
         raise he
     except Exception as e:
+        await logger.log_error(request=request, message=f"Failed to get event: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
         await logger.log_error(request=request, message=f"Failed to get event: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 

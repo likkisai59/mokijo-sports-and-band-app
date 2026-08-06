@@ -13,8 +13,9 @@ import {
     AuthNavLinks,
     getAuthClasses,
 } from "@/components/auth";
+import { Mail, Lock, ArrowRight, ArrowLeft, ShieldCheck } from "lucide-react";
 
-const c = getAuthClasses("dark");
+const c = getAuthClasses("light");
 
 export default function MukijoAdminLoginPage() {
     const [form, setForm] = useState({ email: "", password: "" });
@@ -56,55 +57,103 @@ export default function MukijoAdminLoginPage() {
     };
 
     return (
-        <AuthShell variant="dark">
-            <AuthCard variant="dark">
-                <Link href="/" className={c.backLink}>
-                    ← Back to Home
-                </Link>
+        <AuthShell variant="light">
+            <AuthCard variant="light">
+                <div className="flex flex-col items-center justify-center w-full">
+                    {/* Back to Home Link */}
+                    <div className="w-full flex justify-start mb-4">
+                        <Link
+                            href="/"
+                            className="inline-flex items-center gap-2 text-xs font-semibold text-[#5c5c66] hover:text-[#0a0a0f] transition-colors group"
+                        >
+                            <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-1" />
+                            <span>Back to Home</span>
+                        </Link>
+                    </div>
 
-                <AuthBrand
-                    variant="dark"
-                    title="Platform Sign In"
-                    subtitle="Welcome back — enter your credentials to continue."
-                />
-
-                <form className="block" onSubmit={handleSubmit}>
-                    <AuthField variant="dark" label="Admin Email" htmlFor="email" required>
-                        <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            required
-                            placeholder="admin@example.com"
-                            className={c.input}
-                            value={form.email}
-                            onChange={handleChange}
+                    {/* Title */}
+                    <div className="flex flex-col items-center text-center mb-6">
+                        <AuthBrand
+                            variant="light"
+                            align="center"
+                            title="Platform Sign In"
+                            subtitle="Welcome back — enter your credentials to continue."
                         />
-                    </AuthField>
+                    </div>
 
-                    <AuthField variant="dark" label="Password" htmlFor="password" required>
-                        <PasswordField
-                            id="password"
-                            name="password"
-                            placeholder="••••••••"
-                            className={c.input}
-                            value={form.password}
-                            onChange={handleChange}
-                            autoComplete="current-password"
+                    {/* Centered Form Block */}
+                    <form className="block space-y-4 max-w-[360px] w-full text-left" onSubmit={handleSubmit}>
+                        <AuthField variant="light" label="Admin Email" htmlFor="email" required>
+                            <div className="relative">
+                                <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
+                                <input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    required
+                                    placeholder="admin@example.com"
+                                    className={c.input}
+                                    style={{ paddingLeft: "42px" }}
+                                    value={form.email}
+                                    onChange={handleChange}
+                                />
+                            </div>
+                        </AuthField>
+
+                        <AuthField
+                            variant="light"
+                            label="Password"
+                            htmlFor="password"
                             required
-                            tone="dark"
-                        />
-                    </AuthField>
+                            labelRight={
+                                <Link href="/forgot-password" className={`text-[13px] ${c.accentLink}`}>
+                                    Forgot password?
+                                </Link>
+                            }
+                        >
+                            <div className="relative">
+                                <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
+                                <PasswordField
+                                    id="password"
+                                    name="password"
+                                    placeholder="••••••••"
+                                    className={c.input}
+                                    inputStyle={{ paddingLeft: "42px" }}
+                                    value={form.password}
+                                    onChange={handleChange}
+                                    autoComplete="current-password"
+                                    required
+                                    tone="light"
+                                />
+                            </div>
+                        </AuthField>
 
-                    <AuthErrorBanner variant="dark">{error}</AuthErrorBanner>
+                        <AuthErrorBanner variant="light">{error}</AuthErrorBanner>
 
-                    <button type="submit" className={c.primaryBtn} disabled={loading}>
-                        {loading ? "Signing in…" : "Sign in →"}
-                    </button>
-                </form>
+                        <button
+                            type="submit"
+                            className={`${c.primaryBtn} flex items-center justify-center gap-2 font-bold tracking-wide transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 !mt-6`}
+                            disabled={loading}
+                        >
+                            <span>{loading ? "Signing in…" : "Sign in →"}</span>
+                            {!loading && <ArrowRight className="w-4 h-4" />}
+                        </button>
 
-                <AuthNavLinks variant="dark" showBackHome={false} />
+                        <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                            <span className="inline-flex items-center gap-1.5 font-medium">
+                                <ShieldCheck className="w-3.5 h-3.5 text-[#10b981]" />
+                                256-Bit Encrypted
+                            </span>
+                            <span>Mokijo Sports v1.0</span>
+                        </div>
+                    </form>
+
+                    <div className="w-full max-w-[360px]">
+                        <AuthNavLinks variant="light" showBackHome={false} />
+                    </div>
+                </div>
             </AuthCard>
         </AuthShell>
     );
 }
+
