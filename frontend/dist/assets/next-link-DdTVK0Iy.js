@@ -1,1 +1,0 @@
-import{R as e,j as i,L as n}from"./index-hzQY8yid.js";const h=e.forwardRef(({href:o,children:s,...a},r)=>{const t=o||"#";return typeof t=="string"&&(t.startsWith("http://")||t.startsWith("https://")||t.startsWith("mailto:")||t.startsWith("tel:"))?i.jsx("a",{href:t,ref:r,...a,children:s}):i.jsx(n,{to:t,ref:r,...a,children:s})});h.displayName="Link";export{h as L};
