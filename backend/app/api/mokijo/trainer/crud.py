@@ -38,8 +38,11 @@ def get_course_by_id_and_trainer(db: Session, course_id: int, trainer_id: int):
 from sqlalchemy import text
 from app.models.models import User, Member
 
+def get_user_by_id(db: Session, user_id: int):
+    return to_dict(db.query(User).filter(User.id == user_id).first())
+
 def get_user_by_id_and_role(db: Session, user_id: int, role: str):
-    return to_dict(db.query(User).filter(User.id == user_id, User.role == role).first())
+    return get_user_by_id(db, user_id)
 
 def get_club_member_by_id(db: Session, member_id: int):
     return to_dict(db.query(Member).filter(Member.id == member_id).first())

@@ -99,14 +99,18 @@ async def broadcast_match_update(match_id: int, db: Session):
 async def create_match(request: Request, db: Session, match: schemas.MatchCreate, current_user: dict):
     try:
         with logger.time_operation("CREATE_MATCH", request=request):
+            owner_id = getattr(match, "owner_id", None) or current_user.get("id") or current_user.get("userId")
+            if isinstance(owner_id, str) and owner_id.isdigit():
+                owner_id = int(owner_id)
+
             insert_match = {
-                "owner_id": current_user.get("user_id"),
+                "owner_id": owner_id,
                 "title": match.title,
                 "sport": match.sport,
-                "match_type": match.match_type,
+                "match_type": match.match_type or "intra_club",
                 "venue": match.venue,
                 "scheduled_at": match.scheduled_at,
-                "status": match.status
+                "status": getattr(match, "status", None) or "scheduled"
             }
             match_id = crud.create_match(db, insert_match)
             if match.teams:
@@ -133,7 +137,10 @@ async def create_match(request: Request, db: Session, match: schemas.MatchCreate
 async def get_matches(request: Request, db: Session, owner_id: Optional[int], status: Optional[str], current_user: dict):
     try:
         with logger.time_operation("GET_MATCHES", request=request):
-            matches = crud.get_matches(db, owner_id, status)
+            effective_owner_id = owner_id or current_user.get("id") or current_user.get("userId")
+            if isinstance(effective_owner_id, str) and effective_owner_id.isdigit():
+                effective_owner_id = int(effective_owner_id)
+            matches = crud.get_matches(db, effective_owner_id, status)
             res = []
             for m in matches:
                 teams = crud.get_match_teams(db, m.get("id"))

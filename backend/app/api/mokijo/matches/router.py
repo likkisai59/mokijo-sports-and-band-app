@@ -50,6 +50,7 @@ async def get_match_events(request: Request, match_id: int, current_user: dict =
 
 @router.websocket("/ws/scoreboard/{match_id}")
 async def websocket_scoreboard(websocket: WebSocket, match_id: int, db: Session = Depends(get_db)):
+    await websocket.accept()
     await service.manager.connect(match_id, websocket)
 
     try:

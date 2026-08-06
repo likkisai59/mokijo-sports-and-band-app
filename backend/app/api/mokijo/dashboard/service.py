@@ -51,65 +51,85 @@ async def get_dashboard_overview(request: Request, db: Session, owner_id: int, c
                 "location": e.location
             } for e in upcoming_events_sorted[:5]]
 
-            live_matches = crud.get_live_matches_by_owner(db, owner_id)
             live_match_items = []
             active_team_activity = []
-            for match in live_matches:
-                teams = crud.get_teams_by_match(db, match.id)
-                team_names = [team.team_name for team in teams if team.team_name]
-                live_match_items.append({
-                    "id": match.id,
-                    "title": match.title,
-                    "sport": match.sport,
-                    "status": match.status,
-                    "venue": match.venue,
-                    "scheduled_at": str(match.scheduled_at) if match.scheduled_at else None,
-                    "teams": team_names,
-                    "summary": " vs ".join(team_names) if team_names else match.title
-                })
+            try:
+                live_matches = crud.get_live_matches_by_owner(db, owner_id)
+                for match in live_matches:
+                    teams = crud.get_teams_by_match(db, match.id)
+                    team_names = [team.team_name for team in teams if team.team_name]
+                    live_match_items.append({
+                        "id": match.id,
+                        "title": match.title,
+                        "sport": match.sport,
+                        "status": match.status,
+                        "venue": match.venue,
+                        "scheduled_at": str(match.scheduled_at) if match.scheduled_at else None,
+                        "teams": team_names,
+                        "summary": " vs ".join(team_names) if team_names else match.title
+                    })
 
-                for team in teams:
-                    group_id = team.group_id
-                    if not group_id:
-                        continue
-                    team_members = crud.get_members_by_group(db, group_id)
-                    team_member_ids = {m.id for m in team_members}
-
-                    match_events = crud.get_match_events_by_match(db, match.id)
-                    
-                    recent_events = []
-                    for ev in match_events:
-                        if ev.event_type in ['SCORE', 'YELLOW_CARD', 'RED_CARD', 'SUBSTITUTION'] and ev.player_id in team_member_ids:
-                            player = next((m for m in team_members if m.id == ev.player_id), None)
-                            player_name = f"{player.first_name} {player.last_name}" if player else "Unknown"
+                    for team in teams:
+                        group_id = team.group_id
+                        if not group_id:
+                            continue
+                        team_members = crud.get_members_by_group(db, group_id)
+                        
+                        try:
+                            match_events = crud.get_match_events_by_match(db, match.id)
+                        except Exception:
+                            match_events = []
+                        
+                        recent_events = []
+                        for ev in match_events:
+                            ev_type = getattr(ev, "event_type", "") or ""
+                            desc = getattr(ev, "description", None) or f"Event: {ev_type}"
+                            created_at = getattr(ev, "created_at", None)
+                            time_str = created_at.isoformat() if isinstance(created_at, datetime) else (str(created_at) if created_at else None)
                             
-                            desc = f"{player_name} scored" if ev.event_type == 'SCORE' else f"{player_name} received {ev.event_type.replace('_', ' ').title()}"
-                            if ev.event_type == 'SUBSTITUTION':
-                                desc = f"{player_name} was substituted"
-                                
                             recent_events.append({
-                                "type": ev.event_type,
+                                "type": ev_type,
                                 "description": desc,
-                                "time": str(ev.timestamp) if ev.timestamp else None,
-                                "player": player_name
+                                "time": time_str,
+                                "player": "Team Event"
                             })
 
-                    if recent_events:
-                        active_team_activity.append({
-                            "matchId": match.id,
-                            "matchTitle": match.title,
-                            "teamName": team.team_name,
-                            "recentEvents": recent_events[:5]
-                        })
+                        if recent_events:
+                            active_team_activity.append({
+                                "matchId": match.id,
+                                "matchTitle": match.title,
+                                "teamName": team.team_name,
+                                "recentEvents": recent_events[:5]
+                            })
+            except Exception as e:
+                pass
+
+            registered_venues = []
+            try:
+                registered_venues = crud.get_all_registered_venues(db)
+            except Exception:
+                registered_venues = []
+
+            pending_payments = crud.get_pending_payments_sum(db, owner_id)
+            fundraising = crud.get_fundraising_sum(db, owner_id)
 
             return {
                 "totalMembers": total_members,
+                "total_members": total_members,
                 "totalGroups": total_groups,
+                "total_groups": total_groups,
+                "pendingPayments": pending_payments,
+                "pending_payments": pending_payments,
                 "upcomingEvents": len(upcoming_events),
+                "upcoming_events": len(upcoming_events),
+                "fundraisingTotal": fundraising,
+                "fundraising": fundraising,
+                "liveMatches": live_match_items,
+                "live_matches": len(live_match_items),
                 "recentRegistrations": recent_list,
                 "upcomingEventList": upcoming_list,
-                "liveMatches": live_match_items,
-                "activeTeamActivity": active_team_activity
+                "activeTeamActivity": active_team_activity,
+                "venues": registered_venues
             }
     except HTTPException as he:
         raise he

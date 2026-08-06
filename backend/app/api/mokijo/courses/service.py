@@ -202,9 +202,9 @@ async def get_user_training_registrations(request: Request, db: Session, user_id
 async def create_trainer_training_enroll_order(request: Request, db: Session, course_id: int, current_user: dict):
     try:
         with logger.time_operation("CREATE_TRAINER_TRAINING_ENROLL_ORDER", request=request):
-            validate_role_and_permission(db, current_user, ["user", "admin", "club_admin", "team_member"])
+            validate_role_and_permission(db, current_user, ["user", "member", "club_member", "admin", "club_admin", "team_member"])
 
-            user_id = current_user.get("id")
+            user_id = current_user.get("id") or current_user.get("userId")
             if not user_id:
                 raise HTTPException(status_code=401, detail="User id missing from token.")
 
@@ -216,14 +216,26 @@ async def create_trainer_training_enroll_order(request: Request, db: Session, co
             if serialized.get("status") not in {"open", "full"}:
                 raise HTTPException(status_code=400, detail="Training is not open for registrations")
 
-            user = crud.get_user_by_id(db, user_id)
-            if not user:
-                raise HTTPException(status_code=404, detail="User not found")
+            user = crud.get_user_by_id(db, int(user_id)) if user_id else None
+            member = None
+            if not user and user_id:
+                try:
+                    member = crud.get_member_by_id(db, int(user_id))
+                except Exception:
+                    member = None
 
-            email_clean = (user.get("email") if user else None or "").replace(" ", "").lower()
-            participant_name = f"{user.get('first_name') or ''} {user.get('last_name') or ''}".strip()
+            email_clean = (
+                (user.get("email") if user else (member.get("email") if member else None))
+                or current_user.get("email")
+                or ""
+            ).replace(" ", "").lower()
+
+            first_name = (user.get("first_name") if user else (member.get("first_name") if member else "")) or ""
+            last_name = (user.get("last_name") if user else (member.get("last_name") if member else "")) or ""
+            participant_name = f"{first_name} {last_name}".strip()
             if not participant_name:
-                participant_name = email_clean or f"User {user_id}"
+                participant_name = (member.get("name") if member else None) or current_user.get("username") or email_clean or f"User {user_id}"
+            user_phone = (user.get("phone") if user else (member.get("phone") if member else None)) or current_user.get("phone")
 
             existing = None
             if email_clean:
@@ -242,13 +254,16 @@ async def create_trainer_training_enroll_order(request: Request, db: Session, co
                 reg_id = existing.get("id")
                 registration = existing
             else:
+                member_id_val = int(user_id) if member else None
+                user_id_val = int(user_id) if user else None
                 insert_data = {
                     "owner_id": None,
+                    "user_id": user_id_val,
                     "course_id": course_id,
-                    "member_id": None,
+                    "member_id": member_id_val,
                     "participant_name": participant_name,
                     "participant_email": email_clean or None,
-                    "participant_phone": user.get("phone"),
+                    "participant_phone": user_phone,
                     "status": status_val,
                     "payment_status": "unpaid",
                     "notes": f"user_id:{user_id}",
@@ -288,7 +303,7 @@ async def create_trainer_training_enroll_order(request: Request, db: Session, co
             local_order_id = crud.insert(db, "training_enrollment_orders", {
                 "registration_id": reg_id,
                 "course_id": course_id,
-                "user_id": user_id,
+                "user_id": int(user_id) if user else None,
                 "razorpay_order_id": razorpay_order["id"],
                 "amount": amount_in_paise,
                 "currency": razorpay_order.get("currency", settings.RAZORPAY_CURRENCY),
@@ -297,7 +312,7 @@ async def create_trainer_training_enroll_order(request: Request, db: Session, co
 
             prefill_name = participant_name
             prefill_email = email_clean
-            prefill_contact = user.get("phone")
+            prefill_contact = user_phone
 
             return {
                 "free": False,
@@ -321,28 +336,47 @@ async def create_trainer_training_enroll_order(request: Request, db: Session, co
         raise HTTPException(status_code=500, detail="Internal server error")
 
 async def verify_trainer_training_enroll_payment(
-    self,
     request: Request,
+    db: Session,
     course_id: int,
     verification: schemas.TrainingEnrollVerifyRequest,
     current_user: dict,
 ):
     try:
         with logger.time_operation("VERIFY_TRAINER_TRAINING_ENROLL_PAYMENT", request=request):
-            validate_role_and_permission(db, current_user, ["user", "admin", "club_admin", "team_member"])
+            validate_role_and_permission(db, current_user, ["user", "member", "club_member", "admin", "club_admin", "team_member"])
 
-            user_id = current_user.get("id")
+            user_id = current_user.get("id") or current_user.get("userId")
             registration = crud.get_course_registration_by_id_and_course(db, verification.registration_id, course_id)
             if not registration:
                 raise HTTPException(status_code=404, detail="Registration not found")
 
             notes = registration.get("notes") or ""
             if f"user_id:{user_id}" not in notes:
-                # Also allow match by email for safety
-                user = crud.get_user_by_id(db, user_id)
-                email_clean = (user.get("email") if user else None or "").replace(" ", "").lower() if user else ""
+                user = crud.get_user_by_id(db, user_id) if user_id else None
+                member = None
+                if not user and user_id:
+                    try:
+                        member = crud.get_member_by_id(db, user_id)
+                    except Exception:
+                        member = None
+
+                email_clean = (
+                    (user.get("email") if user else (member.get("email") if member else None))
+                    or current_user.get("email")
+                    or ""
+                ).replace(" ", "").lower()
                 reg_email = (registration.get("participant_email") or "").replace(" ", "").lower()
-                if not email_clean or email_clean != reg_email:
+                reg_member_id = registration.get("member_id")
+                reg_user_id = registration.get("user_id")
+
+                is_match = (
+                    (reg_user_id and user_id and int(reg_user_id) == int(user_id)) or
+                    (reg_member_id and user_id and int(reg_member_id) == int(user_id)) or
+                    (email_clean and reg_email and email_clean == reg_email)
+                )
+
+                if not is_match and current_user.get("role") not in ["admin", "club_admin", "mukijo_admin"]:
                     raise HTTPException(status_code=403, detail="Access denied for this registration")
 
             gateway_order = crud.get_training_enrollment_order(db, verification.registration_id, verification.razorpay_order_id, user_id)
@@ -368,8 +402,8 @@ async def verify_trainer_training_enroll_payment(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 async def get_courses(
-    self,
     request: Request,
+    db: Session,
     owner_id: int,
     status: str,
     group_id: Optional[int],
@@ -470,8 +504,8 @@ async def get_course(request: Request, db: Session, course_id: int, owner_id: in
         raise HTTPException(status_code=500, detail="Internal server error")
 
 async def update_course(
-    self,
     request: Request,
+    db: Session,
     course_id: int,
     owner_id: int,
     course_update: schemas.CourseUpdate,
@@ -549,8 +583,8 @@ async def get_course_registrations(request: Request, db: Session, course_id: int
         raise HTTPException(status_code=500, detail="Internal server error")
 
 async def create_course_registration(
-    self,
     request: Request,
+    db: Session,
     course_id: int,
     registration: schemas.CourseRegistrationCreate,
     current_user: dict
@@ -622,8 +656,8 @@ async def create_course_registration(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 async def update_course_registration(
-    self,
     request: Request,
+    db: Session,
     registration_id: int,
     owner_id: int,
     registration_update: schemas.CourseRegistrationUpdate,
@@ -673,4 +707,110 @@ async def delete_course_registration(request: Request, db: Session, registration
         raise he
     except Exception as e:
         await logger.log_error(request=request, message=f"Failed delete registration: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+async def create_training_enroll_order(request: Request, db: Session, course_id: int, current_user: dict):
+    try:
+        with logger.time_operation("CREATE_TRAINING_ENROLL_ORDER", request=request):
+            user_id = current_user.get("id") or current_user.get("userId")
+            if not user_id:
+                raise HTTPException(status_code=401, detail="Invalid token - user id missing")
+
+            course = crud.get_course_by_id(db, course_id)
+            if not course:
+                raise HTTPException(status_code=404, detail="Training course not found")
+
+            fee = course.get("fee") or 0
+            user = crud.get_user_by_id(db, int(user_id)) if hasattr(crud, "get_user_by_id") else None
+
+            # Register user in course_registrations
+            existing_reg = crud.get_existing_course_registration_by_user(db, course_id, int(user_id)) if hasattr(crud, "get_existing_course_registration_by_user") else None
+            
+            if not existing_reg:
+                participant_name = f"{user.get('first_name', '')} {user.get('last_name', '')}".strip() if user else "User"
+                participant_email = user.get("email") if user else None
+                participant_phone = user.get("phone") if user else None
+
+                reg_data = {
+                    "course_id": course_id,
+                    "user_id": int(user_id),
+                    "participant_name": participant_name or "User",
+                    "participant_email": participant_email,
+                    "participant_phone": participant_phone,
+                    "status": "registered",
+                    "payment_status": "free" if fee <= 0 else "unpaid"
+                }
+                reg_id = crud.create_registration(db, reg_data)
+            else:
+                reg_id = existing_reg.get("id")
+
+            if fee <= 0:
+                crud.update_registration_status(db, reg_id, "registered", "paid")
+                return {
+                    "free": True,
+                    "registration_id": reg_id,
+                    "message": "Free training enrolled successfully"
+                }
+
+            # Create Razorpay Order
+            key_id, key_secret = get_razorpay_credentials()
+            amount_in_paise = int(fee * 100)
+            receipt_id = f"trn_{course_id}_{reg_id}_{uuid.uuid4().hex[:6]}"
+
+            razorpay_res = call_razorpay_api(
+                "POST",
+                "/orders",
+                {
+                    "amount": amount_in_paise,
+                    "currency": "INR",
+                    "receipt": receipt_id,
+                    "notes": {
+                        "course_id": str(course_id),
+                        "registration_id": str(reg_id),
+                        "user_id": str(user_id),
+                    }
+                },
+                key_id,
+                key_secret
+            )
+
+            return {
+                "free": False,
+                "key_id": key_id,
+                "amount": amount_in_paise,
+                "currency": "INR",
+                "razorpay_order_id": razorpay_res.get("id"),
+                "registration_id": reg_id,
+                "name": "Mokijo Sports",
+                "description": f"Enrollment for {course.get('title')}",
+                "prefill_name": f"{user.get('first_name', '')} {user.get('last_name', '')}".strip() if user else "",
+                "prefill_email": user.get("email") if user else "",
+                "prefill_contact": user.get("phone") if user else ""
+            }
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        await logger.log_error(request=request, message=f"Failed to create training enrollment order: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+async def verify_training_enrollment(request: Request, db: Session, course_id: int, payload: schemas.TrainingEnrollVerifyRequest, current_user: dict):
+    try:
+        with logger.time_operation("VERIFY_TRAINING_ENROLLMENT", request=request):
+            key_id, key_secret = get_razorpay_credentials()
+            is_valid = build_razorpay_signature(
+                payload.razorpay_order_id,
+                payload.razorpay_payment_id,
+                payload.razorpay_signature,
+                key_secret
+            )
+            if not is_valid:
+                raise HTTPException(status_code=400, detail="Invalid Razorpay payment signature")
+
+            crud.update_registration_status(db, payload.registration_id, "registered", "paid")
+            reg = crud.get_registration_by_id(db, payload.registration_id)
+            return serialize_course_registration(reg, db)
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        await logger.log_error(request=request, message=f"Failed to verify training enrollment: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")

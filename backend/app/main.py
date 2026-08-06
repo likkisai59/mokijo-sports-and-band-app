@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+# Reload trigger
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from contextlib import asynccontextmanager
@@ -19,9 +20,6 @@ from app.core.exceptions import (
 
 settings = get_settings()
 
-# Create database tables on startup
-models.Base.metadata.create_all(bind=engine)
-
 # Background scheduler instance
 scheduler = BackgroundScheduler()
 
@@ -29,6 +27,11 @@ scheduler = BackgroundScheduler()
 async def lifespan(app: FastAPI):
     # Startup tasks
     logger.log_message_sync(message="Starting up Mukijo Club Management API...")
+    try:
+        models.Base.metadata.create_all(bind=engine)
+        logger.log_message_sync(message="Database tables verified/created successfully.")
+    except Exception as e:
+        logger.log_error_sync(message=f"Failed to create database tables: {e}")
     
     try:
         scheduler.add_job(HoldExpiryService.active_cleanup_job, "interval", seconds=60)

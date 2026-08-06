@@ -5,7 +5,7 @@ from app.models import schemas
 from app.api.mokijo.games import service
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.auth.authorization import check_user_authorization
+from app.auth.authorization import check_user_authorization, optional_user_authorization
 from app.logger import logger
 
 router = APIRouter()
@@ -14,7 +14,7 @@ router = APIRouter()
 async def get_games(
     request: Request,
     sport: Optional[str] = None,
-    current_user: dict = Depends(check_user_authorization),
+    current_user: dict = Depends(optional_user_authorization),
     db: Session = Depends(get_db)
 ):
     return await service.get_games(request, db, sport, current_user)
@@ -23,7 +23,7 @@ async def get_games(
 async def get_user_games(
     request: Request,
     user_id: int,
-    current_user: dict = Depends(check_user_authorization),
+    current_user: dict = Depends(optional_user_authorization),
     db: Session = Depends(get_db)
 ):
     return await service.get_user_games(request, db, user_id, current_user)
@@ -62,7 +62,7 @@ async def join_waitlist(
 async def get_game_detail(
     request: Request,
     game_id: str,
-    current_user: dict = Depends(check_user_authorization),
+    current_user: dict = Depends(optional_user_authorization),
     db: Session = Depends(get_db)
 ):
     return await service.get_game_detail(request, db, game_id, current_user)
@@ -75,6 +75,26 @@ async def payment_webhook(
     db: Session = Depends(get_db)
 ):
     return await service.payment_webhook(request, db, payload)
+
+@router.post("/games/{game_id}/razorpay/order", response_model=schemas.GameRazorpayOrderResponse, summary="Create Razorpay order for joining a game match.", tags=["Games"])
+async def create_game_razorpay_order(
+    request: Request,
+    game_id: str,
+    payload: schemas.GameRazorpayOrderRequest,
+    current_user: dict = Depends(optional_user_authorization),
+    db: Session = Depends(get_db)
+):
+    return await service.create_game_razorpay_order(request, db, game_id, payload, current_user)
+
+@router.post("/games/{game_id}/razorpay/verify", summary="Verify Razorpay payment and confirm player spot in game match.", tags=["Games"])
+async def verify_game_razorpay_payment(
+    request: Request,
+    game_id: str,
+    verification: schemas.GameRazorpayVerifyRequest,
+    current_user: dict = Depends(optional_user_authorization),
+    db: Session = Depends(get_db)
+):
+    return await service.verify_game_razorpay_payment(request, db, game_id, verification, current_user)
 
 @router.delete("/games/{game_id}", summary="Cancel the entire game lobby and trigger refunds for all confirmed players.", tags=["Games"])
 async def cancel_game_lobby(

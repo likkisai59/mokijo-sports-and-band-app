@@ -41,13 +41,17 @@ export default function DashboardMatchCreatePage() {
     const [teamBMembers, setTeamBMembers] = useState([]);
     const [loadingTeamBMembers, setLoadingTeamBMembers] = useState(false);
 
+    const [sameTeamError, setSameTeamError] = useState("");
+
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         const loadGroups = async () => {
             if (!ownerId) return;
             try {
-                const r = await fetch(`${API}/groups?owner_id=${ownerId}`);
+                const token = localStorage.getItem("accessToken");
+                const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                const r = await fetch(`${API}/groups?owner_id=${ownerId}`, { headers });
                 if (r.ok) {
                     const data = await r.json();
                     setGroups(data || []);
@@ -64,7 +68,9 @@ export default function DashboardMatchCreatePage() {
     const fetchGroupMembers = async (groupId) => {
         if (!ownerId || !groupId) return [];
         try {
-            const r = await fetch(`${API}/groups/${groupId}/members?owner_id=${ownerId}`);
+            const token = localStorage.getItem("accessToken");
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            const r = await fetch(`${API}/groups/${groupId}/members?owner_id=${ownerId}`, { headers });
             if (r.ok) {
                 return (await r.json()) || [];
             }
@@ -75,6 +81,14 @@ export default function DashboardMatchCreatePage() {
     };
 
     const handleTeamAGroupChange = async (groupId) => {
+        if (groupId && String(groupId) === String(teamBSelectedGroup)) {
+            setSameTeamError("Team A and Team B should not be same");
+            setTeamASelectedGroup("");
+            setTeamAName("");
+            setTeamAMembers([]);
+            return;
+        }
+        setSameTeamError("");
         setTeamASelectedGroup(groupId);
         if (groupId) {
             const grp = groups.find((g) => g.id === Number(groupId));
@@ -90,6 +104,14 @@ export default function DashboardMatchCreatePage() {
     };
 
     const handleTeamBGroupChange = async (groupId) => {
+        if (groupId && String(groupId) === String(teamASelectedGroup)) {
+            setSameTeamError("Team A and Team B should not be same");
+            setTeamBSelectedGroup("");
+            setTeamBName("");
+            setTeamBMembers([]);
+            return;
+        }
+        setSameTeamError("");
         setTeamBSelectedGroup(groupId);
         if (groupId) {
             const grp = groups.find((g) => g.id === Number(groupId));
@@ -159,9 +181,14 @@ export default function DashboardMatchCreatePage() {
         };
 
         try {
+            const token = localStorage.getItem("accessToken");
+            const headers = {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            };
             const r = await fetch(`${API}/matches`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers,
                 body: JSON.stringify(body),
             });
 
@@ -251,7 +278,7 @@ export default function DashboardMatchCreatePage() {
                                 <label className="m-label">Sport *</label>
                                 <select className="m-select" value={sport} onChange={(e) => setSport(e.target.value)}>
                                     {SPORTS_LIST.map((s) => (
-                                        <option key={s} value={s}>
+                                        <option key={s} value={s} style={{ backgroundColor: "#181920", color: "#ffffff" }}>
                                             {s}
                                         </option>
                                     ))}
@@ -271,8 +298,8 @@ export default function DashboardMatchCreatePage() {
                                         setTeamBMembers([]);
                                     }}
                                 >
-                                    <option value="intra_club">Intra-Club (Between Club Groups)</option>
-                                    <option value="inter_club">Inter-Club (Against Outside Club)</option>
+                                    <option value="intra_club" style={{ backgroundColor: "#181920", color: "#ffffff" }}>Intra-Club (Between Club Groups)</option>
+                                    <option value="inter_club" style={{ backgroundColor: "#181920", color: "#ffffff" }}>Inter-Club (Against Outside Club)</option>
                                 </select>
                             </div>
                         </div>
@@ -341,12 +368,23 @@ export default function DashboardMatchCreatePage() {
                                         value={teamASelectedGroup}
                                         onChange={(e) => handleTeamAGroupChange(e.target.value)}
                                     >
-                                        <option value="">-- Select Existing Group --</option>
-                                        {groups.map((g) => (
-                                            <option key={g.id} value={g.id}>
-                                                {g.group_name} ({g.activity})
-                                            </option>
-                                        ))}
+                                        <option value="" style={{ backgroundColor: "#181920", color: "#ffffff" }}>-- Select Existing Group --</option>
+                                        {groups.map((g) => {
+                                            const isSelectedInTeamB = String(g.id) === String(teamBSelectedGroup);
+                                            return (
+                                                <option
+                                                    key={g.id}
+                                                    value={g.id}
+                                                    disabled={isSelectedInTeamB}
+                                                    style={{
+                                                        backgroundColor: "#181920",
+                                                        color: isSelectedInTeamB ? "#64748b" : "#ffffff",
+                                                    }}
+                                                >
+                                                    {g.group_name} ({g.activity}) {isSelectedInTeamB ? "— (Already Team B)" : ""}
+                                                </option>
+                                            );
+                                        })}
                                     </select>
                                 </div>
 
@@ -381,29 +419,24 @@ export default function DashboardMatchCreatePage() {
                                                 value={teamBSelectedGroup}
                                                 onChange={(e) => handleTeamBGroupChange(e.target.value)}
                                             >
-                                                <option value="">-- Select Existing Group --</option>
-                                                {groups.map((g) => (
-                                                    <option key={g.id} value={g.id}>
-                                                        {g.group_name} ({g.activity})
-                                                    </option>
-                                                ))}
+                                                <option value="" style={{ backgroundColor: "#181920", color: "#ffffff" }}>-- Select Existing Group --</option>
+                                                {groups.map((g) => {
+                                                    const isSelectedInTeamA = String(g.id) === String(teamASelectedGroup);
+                                                    return (
+                                                        <option
+                                                            key={g.id}
+                                                            value={g.id}
+                                                            disabled={isSelectedInTeamA}
+                                                            style={{
+                                                                backgroundColor: "#181920",
+                                                                color: isSelectedInTeamA ? "#64748b" : "#ffffff",
+                                                            }}
+                                                        >
+                                                            {g.group_name} ({g.activity}) {isSelectedInTeamA ? "— (Already Team A)" : ""}
+                                                        </option>
+                                                    );
+                                                })}
                                             </select>
-                                            {matchType === "intra_club" &&
-                                                teamASelectedGroup &&
-                                                teamBSelectedGroup &&
-                                                String(teamASelectedGroup) === String(teamBSelectedGroup) && (
-                                                    <p
-                                                        style={{
-                                                            color: "#ef4444",
-                                                            fontSize: "13px",
-                                                            marginTop: "8px",
-                                                            marginBottom: 0,
-                                                            fontWeight: 600,
-                                                        }}
-                                                    >
-                                                        Same group should not be selected
-                                                    </p>
-                                                )}
                                         </div>
 
                                         {teamBSelectedGroup && renderMemberPreview(teamBMembers, loadingTeamBMembers)}
@@ -414,18 +447,29 @@ export default function DashboardMatchCreatePage() {
                                         <input
                                             type="text"
                                             className="m-input"
-                                            placeholder="e.g. City Lions Club"
+                                            placeholder="e.g. Thunderbolts SC, City Strikers"
                                             value={teamBClub}
-                                            onChange={(e) => {
-                                                setTeamBClub(e.target.value);
-                                                setTeamBName(e.target.value);
-                                            }}
+                                            onChange={(e) => setTeamBClub(e.target.value)}
                                             required
                                         />
                                     </div>
                                 )}
                             </div>
                         </div>
+
+                        {sameTeamError && (
+                            <p
+                                style={{
+                                    color: "#ef4444",
+                                    fontSize: "13px",
+                                    marginTop: "12px",
+                                    marginBottom: 0,
+                                    fontWeight: 600,
+                                }}
+                            >
+                                ⚠️ {sameTeamError}
+                            </p>
+                        )}
                     </div>
 
                     <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "24px" }}>

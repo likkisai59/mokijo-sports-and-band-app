@@ -72,7 +72,7 @@ export default function OverviewPage() {
     const [registeredCourses, setRegisteredCourses] = useState([]);
     const [memberRegistrations, setMemberRegistrations] = useState([]);
 
-    const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
+    const userId = typeof window !== "undefined" ? (localStorage.getItem("userId") || localStorage.getItem("user_id") || localStorage.getItem("memberId") || localStorage.getItem("member_id") || localStorage.getItem("ownerId")) : null;
 
     useEffect(() => {
         const storedIsMember = localStorage.getItem("isMember") === "true";
@@ -165,15 +165,15 @@ export default function OverviewPage() {
                         fetch(`${API_BASE_URL}/members?owner_id=${userId || 1}`, { headers: authHeaders }).catch(() => null),
                         storedEmail
                             ? fetch(
-                                  `${API_BASE_URL}/courses?owner_id=${userId || 1}&member_email=${encodeURIComponent(storedEmail)}`,
-                                  { headers: authHeaders }
-                              ).catch(() => null)
+                                `${API_BASE_URL}/courses?owner_id=${userId || 1}&member_email=${encodeURIComponent(storedEmail)}`,
+                                { headers: authHeaders }
+                            ).catch(() => null)
                             : Promise.resolve(null),
                         storedEmail
                             ? fetch(
-                                  `${API_BASE_URL}/members/registrations?member_email=${encodeURIComponent(storedEmail)}`,
-                                  { headers: authHeaders }
-                              ).catch(() => null)
+                                `${API_BASE_URL}/members/registrations?member_email=${encodeURIComponent(storedEmail)}`,
+                                { headers: authHeaders }
+                            ).catch(() => null)
                             : Promise.resolve(null),
                     ]);
 
@@ -511,6 +511,9 @@ export default function OverviewPage() {
                 {/* Page heading */}
                 <div className={styles.pageHeader}>
                     <div>
+                        <div className="auth-brand text-[28px] md:text-[36px] font-black uppercase tracking-wider text-[#c6ff3d] mb-1">
+                            MUKIJO
+                        </div>
                         <h1 className={styles.pageTitle}>Club Overview</h1>
                         <p className={styles.pageSubtitle}>A snapshot of {clubName}&apos;s activity and performance</p>
                     </div>
@@ -576,7 +579,7 @@ export default function OverviewPage() {
                                                     if (Array.isArray(parsed)) {
                                                         return parsed.join(", ");
                                                     }
-                                                } catch (e) {}
+                                                } catch (e) { }
                                                 return venue.sports_supported.replace(/[\[\]"]/g, "");
                                             })()}
                                         </p>
@@ -602,7 +605,7 @@ export default function OverviewPage() {
                         loading={loading}
                         color="blue"
                         label="Total Members"
-                        value={adminData?.total_members ?? 0}
+                        value={adminData?.total_members ?? adminData?.totalMembers ?? 0}
                         sub="Across all groups"
                         href="/dashboard/members"
                         icon={
@@ -618,7 +621,7 @@ export default function OverviewPage() {
                         loading={loading}
                         color="violet"
                         label="Total Groups"
-                        value={adminData?.total_groups ?? 0}
+                        value={adminData?.total_groups ?? adminData?.totalGroups ?? 0}
                         sub="Active groups"
                         href="/dashboard"
                         icon={
@@ -633,7 +636,7 @@ export default function OverviewPage() {
                         loading={loading}
                         color="amber"
                         label="Pending Payments"
-                        value={`\u20B9${(adminData?.pending_payments ?? 0).toLocaleString()}`}
+                        value={`\u20B9${(adminData?.pending_payments ?? adminData?.pendingPayments ?? 0).toLocaleString()}`}
                         sub="Awaiting collection"
                         icon={
                             <svg
@@ -656,7 +659,7 @@ export default function OverviewPage() {
                         loading={loading}
                         color="emerald"
                         label="Upcoming Events"
-                        value={adminData?.upcoming_events_count ?? 0}
+                        value={adminData?.upcoming_events_count ?? adminData?.upcoming_events ?? adminData?.upcomingEvents ?? 0}
                         sub="Scheduled ahead"
                         href="/dashboard"
                         icon={
@@ -672,7 +675,7 @@ export default function OverviewPage() {
                         loading={loading}
                         color="rose"
                         label="Fundraising"
-                        value={`\u20B9${(adminData?.fundraising_total ?? 0).toLocaleString()}`}
+                        value={`\u20B9${(adminData?.fundraising_total ?? adminData?.fundraising ?? adminData?.fundraisingTotal ?? 0).toLocaleString()}`}
                         sub="Total raised"
                         icon={
                             <svg
@@ -692,7 +695,7 @@ export default function OverviewPage() {
                         loading={loading}
                         color="cyan"
                         label="Live Matches"
-                        value={adminData?.live_matches_count ?? 0}
+                        value={adminData?.live_matches_count ?? adminData?.live_matches ?? (Array.isArray(adminData?.liveMatches) ? adminData.liveMatches.length : 0)}
                         sub="Currently in play"
                         href="/dashboard/matches"
                         icon={
@@ -789,6 +792,9 @@ export default function OverviewPage() {
                 {/* Page heading */}
                 <div className={styles.pageHeader}>
                     <div>
+                        <div className="auth-brand text-[28px] md:text-[36px] font-black uppercase tracking-wider text-[#c6ff3d] mb-1">
+                            MUKIJO
+                        </div>
                         <h1 className={styles.pageTitle}>Coach Console</h1>
                         <p className={styles.pageSubtitle}>
                             Welcome back, Coach {userName}! Manage your team & practices.

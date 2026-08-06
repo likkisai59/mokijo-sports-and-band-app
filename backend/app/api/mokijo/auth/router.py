@@ -39,7 +39,7 @@ async def get_clubs(request: Request, db: Session = Depends(get_db)):
 async def login_member(request: Request, req: MemberLoginRequest, db: Session = Depends(get_db)):
     return await service.login_member(request, db, req)
 
-@router.post("/auth/resend-verification", summary="Resend email verification token.", tags=["Auth"])
+@router.post("/resend-verification", summary="Resend email verification token.", tags=["Auth"])
 async def resend_verification(request: Request, payload: schemas.ResendVerificationPayload, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     return await service.resend_verification(request, db, payload, background_tasks)
 

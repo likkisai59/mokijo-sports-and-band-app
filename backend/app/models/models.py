@@ -141,7 +141,7 @@ class User(Base):
     fundraising_campaigns = relationship("FundraisingCampaign", back_populates="owner")
     payments = relationship("Payment", back_populates="owner")
     courses = relationship("Course", back_populates="owner")
-    course_registrations = relationship("CourseRegistration", back_populates="owner")
+    course_registrations = relationship("CourseRegistration", foreign_keys="CourseRegistration.owner_id", back_populates="owner")
     signup_forms = relationship("SignupForm", back_populates="owner", cascade="all, delete-orphan")
     signup_submissions = relationship("SignupSubmission", back_populates="owner", cascade="all, delete-orphan")
     venues = relationship("Venue", back_populates="owner")
@@ -214,8 +214,9 @@ class Course(Base):
     __tablename__ = "courses"
 
     id = Column(Integer, primary_key=True, index=True)
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     group_id = Column(Integer, ForeignKey("groups.id"), nullable=True)
+    trainer_id = Column(Integer, ForeignKey("trainers.id"), nullable=True)
     title = Column(String, nullable=False)
     code = Column(String, nullable=True)
     category = Column(String, default="Training")
@@ -230,6 +231,12 @@ class Course(Base):
     fee = Column(Integer, default=0)
     status = Column(String, default="open") # draft, open, full, closed, completed
     created_at = Column(DateTime, default=datetime.utcnow)
+    reschedule_reason = Column(Text, nullable=True)
+    rescheduled_at = Column(DateTime, nullable=True)
+    cover_image = Column(String, nullable=True)
+    start_time = Column(String, nullable=True)
+    end_time = Column(String, nullable=True)
+    days = Column(Text, nullable=True)
 
     owner = relationship("User", back_populates="courses")
     group = relationship("Group", back_populates="courses")
@@ -239,7 +246,8 @@ class CourseRegistration(Base):
     __tablename__ = "course_registrations"
 
     id = Column(Integer, primary_key=True, index=True)
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     course_id = Column(Integer, ForeignKey("courses.id"), nullable=False)
     member_id = Column(Integer, ForeignKey("members.id"), nullable=True)
     participant_name = Column(String, nullable=False)
@@ -250,7 +258,7 @@ class CourseRegistration(Base):
     notes = Column(Text, nullable=True)
     registered_at = Column(DateTime, default=datetime.utcnow)
 
-    owner = relationship("User", back_populates="course_registrations")
+    owner = relationship("User", foreign_keys=[owner_id], back_populates="course_registrations")
     course = relationship("Course", back_populates="registrations")
     member = relationship("Member", back_populates="course_registrations")
 
@@ -288,6 +296,9 @@ class VenueOwner(Base):
     aadhar_number = Column(String, nullable=True)
     password = Column(String, nullable=False)
     is_verified = Column(Boolean, default=True)
+    approval_status = Column(String, default="PENDING_APPROVAL", nullable=True)
+    approved_at = Column(DateTime, nullable=True)
+    rejection_reason = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     venues = relationship("Venue", back_populates="venue_owner", foreign_keys="Venue.venue_owner_id")
@@ -393,7 +404,8 @@ class Booking(Base):
     __tablename__ = "bookings"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    member_id = Column(Integer, ForeignKey("members.id"), nullable=True)
     court_id = Column(Integer, ForeignKey("courts.id"), nullable=True)
     booking_date = Column(DateTime, default=datetime.utcnow)
     status = Column(String, default="reserved") # reserved, pending_payment, confirmed, cancelled, completed
@@ -418,7 +430,8 @@ class VenueBookingOrder(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     booking_id = Column(Integer, ForeignKey("bookings.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    member_id = Column(Integer, ForeignKey("members.id"), nullable=True)
     razorpay_order_id = Column(String, unique=True, index=True, nullable=False)
     razorpay_payment_id = Column(String, nullable=True)
     razorpay_signature = Column(String, nullable=True)
@@ -679,6 +692,8 @@ class TrainingEnrollmentOrder(Base):
     __tablename__ = "training_enrollment_orders"
     id = Column(Integer, primary_key=True, index=True)
     registration_id = Column(Integer, ForeignKey("course_registrations.id"), nullable=False)
+    course_id = Column(Integer, ForeignKey("courses.id"), nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     razorpay_order_id = Column(String, unique=True, index=True, nullable=False)
     razorpay_payment_id = Column(String, nullable=True)
     razorpay_signature = Column(String, nullable=True)

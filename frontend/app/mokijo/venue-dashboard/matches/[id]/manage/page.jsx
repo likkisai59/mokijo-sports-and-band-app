@@ -139,13 +139,18 @@ export default function MatchManagePage() {
         const newScore = Math.max(0, currentScore + delta);
         if (newScore === currentScore) return;
 
-        const team = match.teams.find((t) => t.id === teamId);
-        const actionLabel = delta > 0 ? "scored" : "score corrected";
+        // Optimistic UI update for instant score feedback
+        setMatch((prev) => {
+            if (!prev) return prev;
+            const updatedTeams = prev.teams.map((t) => (t.id === teamId ? { ...t, score: newScore } : t));
+            return { ...prev, teams: updatedTeams };
+        });
 
-        let scoreEventDesc = `${team.team_name} score updated to ${newScore}.`;
+        const team = match.teams.find((t) => t.id === teamId);
+        let scoreEventDesc = `${team?.team_name || "Team"} score updated to ${newScore}.`;
         let logEventType = "score_update";
 
-        if (delta > 0) {
+        if (delta > 0 && team) {
             if (match.sport === "Football") {
                 scoreEventDesc = `GOAL! ${team.team_name} scores!`;
                 logEventType = "goal";
@@ -155,10 +160,16 @@ export default function MatchManagePage() {
             }
         }
 
+        const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+        const headers = {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        };
+
         try {
             const r = await fetch(`${API}/matches/${matchId}/score`, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                headers,
                 body: JSON.stringify({
                     team_id: teamId,
                     new_score: newScore,
@@ -170,10 +181,15 @@ export default function MatchManagePage() {
 
             if (!r.ok) {
                 alert("Failed to update score.");
+                fetchMatch();
+            } else {
+                const updatedData = await r.json().catch(() => null);
+                if (updatedData) setMatch(updatedData);
             }
         } catch (err) {
             console.error("Error updating score:", err);
             alert("Error communicating with server.");
+            fetchMatch();
         }
     };
 

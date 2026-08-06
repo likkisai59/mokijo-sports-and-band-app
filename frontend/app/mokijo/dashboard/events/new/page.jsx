@@ -47,12 +47,14 @@ export default function NewEventPage() {
     useEffect(() => {
         const fetchGroups = async () => {
             const userId = localStorage.getItem("userId");
+            const token = localStorage.getItem("accessToken");
             if (!userId) {
                 router.push("/login");
                 return;
             }
             try {
-                const response = await fetch(`${API_BASE_URL}/groups?owner_id=${userId}`);
+                const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                const response = await fetch(`${API_BASE_URL}/groups?owner_id=${userId}`, { headers });
                 if (response.ok) {
                     const data = await response.json();
                     setGroups(data);
@@ -108,11 +110,14 @@ export default function NewEventPage() {
         };
 
         try {
+            const token = localStorage.getItem("accessToken");
+            const headers = {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            };
             const response = await fetch(`${API_BASE_URL}/groups/${groupId}/events?owner_id=${userId}`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers,
                 body: JSON.stringify(eventData),
             });
 

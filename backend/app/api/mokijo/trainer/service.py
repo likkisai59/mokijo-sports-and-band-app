@@ -27,7 +27,7 @@ def enrich_registration_for_trainer(registration: dict, db) -> dict:
             match = USER_ID_NOTE_RE.search(notes)
             if match:
                 user_id = int(match.group(1))
-                user = crud.get_user_by_id_and_role(db, user_id, "user")
+                user = crud.get_user_by_id(db, user_id)
                 email = (user.get("email") or "").strip().lower() if user else ""
                 member = None
                 if email:
@@ -133,8 +133,8 @@ async def get_trainer_courses(request: Request, db: Session, trainer_id: int, cu
         raise HTTPException(status_code=500, detail="Internal server error")
 
 async def create_trainer_course(
-        self,
         request: Request,
+        db: Session,
         trainer_id: int,
         course: schemas.CourseCreate,
         current_user: dict
@@ -209,8 +209,8 @@ async def create_trainer_course(
             raise HTTPException(status_code=500, detail="Internal server error")
 
 async def update_trainer_course(
-        self,
         request: Request,
+        db: Session,
         trainer_id: int,
         course_id: int,
         course_update: schemas.CourseUpdate,

@@ -141,10 +141,10 @@ export default function EventsPage() {
                 )}
             </div>
 
-            {/* Statistics Cards */}
+            {/* Statistics Filter Cards */}
             <div className="events-stats-grid">
                 <div
-                    className="stat-card upcoming"
+                    className={`stat-card upcoming ${activeTab === "upcoming" ? "active" : ""}`}
                     onClick={() => setActiveTab("upcoming")}
                     style={{ cursor: "pointer" }}
                 >
@@ -155,7 +155,7 @@ export default function EventsPage() {
                     </div>
                 </div>
                 <div
-                    className="stat-card ongoing"
+                    className={`stat-card ongoing ${activeTab === "ongoing" ? "active" : ""}`}
                     onClick={() => setActiveTab("ongoing")}
                     style={{ cursor: "pointer" }}
                 >
@@ -165,35 +165,17 @@ export default function EventsPage() {
                         <span className="stat-number">{ongoingCount}</span>
                     </div>
                 </div>
-                <div className="stat-card past" onClick={() => setActiveTab("past")} style={{ cursor: "pointer" }}>
+                <div
+                    className={`stat-card past ${activeTab === "past" ? "active" : ""}`}
+                    onClick={() => setActiveTab("past")}
+                    style={{ cursor: "pointer" }}
+                >
                     <div className="stat-icon">📁</div>
                     <div className="stat-info">
                         <h3>Past & Archived</h3>
                         <span className="stat-number">{pastCount}</span>
                     </div>
                 </div>
-            </div>
-
-            {/* Premium Navigation Tabs */}
-            <div className="tabs-container">
-                <button
-                    onClick={() => setActiveTab("upcoming")}
-                    className={`tab-btn ${activeTab === "upcoming" ? "active" : ""}`}
-                >
-                    Upcoming Events ({upcomingCount})
-                </button>
-                <button
-                    onClick={() => setActiveTab("ongoing")}
-                    className={`tab-btn ${activeTab === "ongoing" ? "active" : ""}`}
-                >
-                    Ongoing Events ({ongoingCount})
-                </button>
-                <button
-                    onClick={() => setActiveTab("past")}
-                    className={`tab-btn ${activeTab === "past" ? "active" : ""}`}
-                >
-                    Past & Archived ({pastCount})
-                </button>
             </div>
 
             {loading ? (
@@ -317,15 +299,6 @@ export default function EventsPage() {
                             ? "There are currently no events scheduled for your roster in this category."
                             : "There are no events currently in this category. You can schedule a new match, training, or meeting immediately."}
                     </p>
-                    {!isMember && activeTab === "upcoming" && (
-                        <Link
-                            href="/dashboard/events/new"
-                            className="primary-btn"
-                            style={{ textDecoration: "none", marginTop: "20px" }}
-                        >
-                            Create Event
-                        </Link>
-                    )}
                 </div>
             )}
         </div>

@@ -1,6 +1,6 @@
 from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy import desc, or_
 from app.models.models import VenueOwner, Venue, Booking, Slot, User
 
 def to_dict(obj):
@@ -31,7 +31,7 @@ def create_venue(db: Session, insert_data: dict) -> int:
     return venue.id
 
 def get_venues_by_owner_id(db: Session, owner_id: int):
-    return to_dict_list(db.query(Venue).filter(Venue.venue_owner_id == owner_id).all())
+    return to_dict_list(db.query(Venue).filter(or_(Venue.venue_owner_id == owner_id, Venue.owner_id == owner_id)).all())
 
 def get_owner_by_email(db: Session, email: str):
     return to_dict(db.query(VenueOwner).filter(VenueOwner.email.ilike(email)).first())

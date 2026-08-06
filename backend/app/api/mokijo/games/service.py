@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Request, HTTPException, WebSocket, WebSo
 from typing import List, Optional
 from datetime import datetime, timedelta, timezone
 import uuid
+import hmac
 
 from app.models import schemas
 from sqlalchemy.orm import Session
@@ -9,12 +10,24 @@ from app.auth.authorization import check_user_authorization
 from app.core.websocket import ws_manager
 from app.services.hold_expiry import redis_client, promote_next_waitlisted, HoldExpiryService
 from app.logger import logger
+from app.services.razorpay import call_razorpay_api, build_razorpay_signature, get_razorpay_credentials
+from app.core.config import settings
 
 CANCELLATION_TIERS = [
 {"hours": 24, "refund_percent": 1.00},
 {"hours": 6,  "refund_percent": 0.50},
 {"hours": 0,  "refund_percent": 0.00},
 ]
+
+def parse_datetime(dt_val):
+    if isinstance(dt_val, datetime):
+        return dt_val
+    if isinstance(dt_val, str):
+        try:
+            return datetime.fromisoformat(dt_val.replace("Z", "+00:00"))
+        except Exception:
+            pass
+    return datetime.utcnow()
 
 def serialize_game_player(p, db):
     if not p:
@@ -57,7 +70,7 @@ def serialize_game(game, db):
         "updated_at": updated_at.isoformat() if isinstance(updated_at, datetime) else updated_at,
     }
 
-    from app.api.mokijo.games import crud
+from app.api.mokijo.games import crud
 
 async def get_games(request: Request, db: Session, sport: Optional[str], current_user: dict):
     try:
@@ -157,8 +170,8 @@ async def join_game(request: Request, db: Session, game_id: str, user_id: int, p
                 raise HTTPException(status_code=400, detail="Game lobby is not open")
             
             # Check slot_start timezone offset
-            s_start = game.get("slot_start")
-            if s_start.tzinfo is not None:
+            s_start = parse_datetime(game.get("slot_start"))
+            if getattr(s_start, "tzinfo", None) is not None:
                 now = datetime.now(timezone.utc)
             else:
                 now = datetime.utcnow()
@@ -168,8 +181,8 @@ async def join_game(request: Request, db: Session, game_id: str, user_id: int, p
             if game.get("host_id") == user_id:
                 raise HTTPException(status_code=400, detail="Host is already counted as player 1")
 
-            existing = crud.get_active_player_by_game_and_user(db, str(game_id), user_id)
-            if existing:
+            existing = crud.get_player_by_game_and_user(db, str(game_id), user_id)
+            if existing and existing.get("status") in ["confirmed", "pending_payment", "pending_approval"]:
                 raise HTTPException(status_code=400, detail="You are already in this game or have a pending request")
 
             HoldExpiryService.passive_check(game.get("id"), db)
@@ -188,15 +201,19 @@ async def join_game(request: Request, db: Session, game_id: str, user_id: int, p
 
             policy = game.get("join_policy")
             if policy == "instant":
-                p_id = str(uuid.uuid4())
-                insert_player = {
-                    "id": p_id,
-                    "game_id": str(game_id),
-                    "user_id": user_id,
-                    "status": "pending_payment",
-                    "joined_at": now,
-                }
-                crud.create_game_player(db, insert_player)
+                if existing:
+                    p_id = existing.get("id")
+                    crud.update_player_rejoin(db, p_id, "pending_payment", now)
+                else:
+                    p_id = str(uuid.uuid4())
+                    insert_player = {
+                        "id": p_id,
+                        "game_id": str(game_id),
+                        "user_id": user_id,
+                        "status": "pending_payment",
+                        "joined_at": now,
+                    }
+                    crud.create_game_player(db, insert_player)
                 
                 curr_players += 1
                 status_val = game.get("status")
@@ -222,15 +239,19 @@ async def join_game(request: Request, db: Session, game_id: str, user_id: int, p
                 }
 
             elif policy == "request_approval":
-                p_id = str(uuid.uuid4())
-                insert_player = {
-                    "id": p_id,
-                    "game_id": str(game_id),
-                    "user_id": user_id,
-                    "status": "pending_approval",
-                    "joined_at": now,
-                }
-                crud.create_game_player(db, insert_player)
+                if existing:
+                    p_id = existing.get("id")
+                    crud.update_player_rejoin(db, p_id, "pending_approval", now)
+                else:
+                    p_id = str(uuid.uuid4())
+                    insert_player = {
+                        "id": p_id,
+                        "game_id": str(game_id),
+                        "user_id": user_id,
+                        "status": "pending_approval",
+                        "joined_at": now,
+                    }
+                    crud.create_game_player(db, insert_player)
 
                 ws_manager.send_host_notification(game.get("host_id"), {
                     "event": "join_request_received",
@@ -251,8 +272,8 @@ async def join_game(request: Request, db: Session, game_id: str, user_id: int, p
         raise HTTPException(status_code=500, detail="Internal server error")
 
 async def respond_join_request(
-    self,
     request: Request,
+    db: Session,
     game_id: str,
     request_id: str,
     host_id: int,
@@ -514,4 +535,117 @@ async def cancel_game_lobby(request: Request, db: Session, game_id: str, host_id
         raise he
     except Exception as e:
         await logger.log_error(request=request, message=f"Failed cancel game lobby: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+async def create_game_razorpay_order(
+    request: Request,
+    db: Session,
+    game_id: str,
+    payload: schemas.GameRazorpayOrderRequest,
+    current_user: dict
+):
+    try:
+        with logger.time_operation("CREATE_GAME_RAZORPAY_ORDER", request=request):
+            user_id = payload.user_id or current_user.get("id") or current_user.get("userId")
+            if not user_id:
+                raise HTTPException(status_code=401, detail="User ID required")
+            
+            game = crud.get_game(db, str(game_id))
+            if not game:
+                raise HTTPException(status_code=404, detail="Game lobby not found")
+
+            player = crud.get_player_by_game_and_user(db, str(game_id), int(user_id))
+            if not player:
+                p_id = str(uuid.uuid4())
+                insert_player = {
+                    "id": p_id,
+                    "game_id": str(game_id),
+                    "user_id": int(user_id),
+                    "status": "pending_payment",
+                    "joined_at": datetime.utcnow(),
+                }
+                crud.create_game_player(db, insert_player)
+                player = crud.get_player(db, p_id)
+            elif player.get("status") == "confirmed":
+                return {"free": True, "message": "Already confirmed in game lobby"}
+
+            fee = float(game.get("price_per_player") or 0.0)
+            if fee <= 0:
+                crud.update_player_confirmation(db, player.get("id"), "FREE")
+                return {"free": True, "message": "Free game joined successfully"}
+
+            key_id, _ = get_razorpay_credentials()
+            amount_in_paise = int(round(fee * 100))
+            receipt = f"game_{game_id[:8]}_{user_id}_{uuid.uuid4().hex[:6]}"
+            
+            razorpay_order = call_razorpay_api("POST", "/orders", {
+                "amount": amount_in_paise,
+                "currency": settings.RAZORPAY_CURRENCY,
+                "receipt": receipt,
+                "notes": {
+                    "game_id": str(game_id),
+                    "user_id": str(user_id),
+                    "player_id": str(player.get("id")),
+                    "type": "game_join",
+                },
+            })
+
+            user = crud.get_user_basic(db, int(user_id))
+            prefill_name = f"{user.get('first_name', '')} {user.get('last_name', '')}".strip() if user else ""
+            prefill_email = user.get("email", "") if user else ""
+
+            return {
+                "free": False,
+                "key_id": key_id,
+                "razorpay_order_id": razorpay_order["id"],
+                "amount": amount_in_paise,
+                "currency": razorpay_order.get("currency", settings.RAZORPAY_CURRENCY),
+                "name": "Mukijo Sports Arena",
+                "description": f"Game Lobby: {str(game.get('sport', '')).capitalize()} Match",
+                "prefill_name": prefill_name,
+                "prefill_email": prefill_email,
+                "prefill_contact": user.get("phone", "") if user else "",
+            }
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        await logger.log_error(request=request, message=f"Failed create game razorpay order: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+async def verify_game_razorpay_payment(
+    request: Request,
+    db: Session,
+    game_id: str,
+    verification: schemas.GameRazorpayVerifyRequest,
+    current_user: dict
+):
+    try:
+        with logger.time_operation("VERIFY_GAME_RAZORPAY_PAYMENT", request=request):
+            user_id = verification.user_id or current_user.get("id") or current_user.get("userId")
+            player = crud.get_player_by_game_and_user_for_update(db, str(game_id), int(user_id))
+            if not player:
+                raise HTTPException(status_code=404, detail="Player registration not found for this game")
+
+            expected_signature = build_razorpay_signature(
+                verification.razorpay_order_id,
+                verification.razorpay_payment_id,
+            )
+            if not hmac.compare_digest(expected_signature, verification.razorpay_signature):
+                raise HTTPException(status_code=400, detail="Payment verification failed")
+
+            crud.update_player_confirmation(db, player.get("id"), verification.razorpay_payment_id)
+            redis_client.delete(f"game:{game_id}:hold:{user_id}")
+
+            ws_manager.broadcast_game_update(str(game_id), {
+                "event": "player_confirmed",
+                "game_id": str(game_id),
+                "user_id": str(user_id)
+            })
+
+            return {"status": "confirmed", "message": "Joined game match successfully!"}
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        await logger.log_error(request=request, message=f"Failed verify game razorpay payment: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")

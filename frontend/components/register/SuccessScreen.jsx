@@ -11,7 +11,7 @@ export default function SuccessScreen({ role }) {
         return (
             <AuthSuccess
                 title="Club Registered"
-                message="Your club has been registered successfully. A verification link has been sent to your email. Please verify your email before logging in."
+                message="Your club has been registered successfully. You can now sign in to access your admin dashboard."
                 ctaHref="/login?registered=true"
                 ctaLabel="Go to Admin Login"
             />

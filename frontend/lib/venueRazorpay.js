@@ -30,7 +30,7 @@ export function getPostVenueBookingPath() {
         return "/dashboard/bookings";
     }
 
-    return "/bookings";
+    return "/user-dashboard";
 }
 
 export function loadRazorpayCheckout() {
@@ -82,9 +82,12 @@ export async function openVenueBookingRazorpay({
         throw new Error("Razorpay Checkout failed to load.");
     }
 
+    const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+    const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
     const orderRes = await fetch(`${API_BASE_URL}/bookings/razorpay/order`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders },
         body: JSON.stringify({
             booking_id: Number(bookingId),
             user_id: Number(userId),
@@ -119,7 +122,7 @@ export async function openVenueBookingRazorpay({
                 try {
                     const verifyRes = await fetch(`${API_BASE_URL}/bookings/razorpay/verify`, {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                        headers: { "Content-Type": "application/json", ...authHeaders },
                         body: JSON.stringify({
                             booking_id: Number(bookingId),
                             razorpay_order_id: response.razorpay_order_id,

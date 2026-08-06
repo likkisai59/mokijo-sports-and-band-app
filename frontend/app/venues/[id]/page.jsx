@@ -2,9 +2,10 @@
 import { API_BASE_URL } from "@/lib/api";
 import { openVenueBookingRazorpay, getPostVenueBookingPath } from "@/lib/venueRazorpay";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useParams as useReactRouterParams } from "react-router-dom";
 import {
     ArrowLeft,
     MapPin,
@@ -17,9 +18,9 @@ import {
     MessageSquare,
 } from "lucide-react";
 
-export default function VenueDetailPage({ params: paramsPromise }) {
-    const params = use(paramsPromise);
-    const id = params.id;
+export default function VenueDetailPage(props) {
+    const routeParams = useReactRouterParams() || {};
+    const id = props?.params?.id || routeParams?.id;
     const router = useRouter();
 
     const [venue, setVenue] = useState(null);
@@ -59,22 +60,27 @@ export default function VenueDetailPage({ params: paramsPromise }) {
         const fetchVenueDetail = async () => {
             setLoadingVenue(true);
             try {
-                const res = await fetch(`${API_BASE_URL}/venues`);
-                if (res.ok) {
-                    const allVenues = await res.json();
-                    const found = allVenues.find((v) => v.id.toString() === id.toString());
-                    if (found) {
-                        setVenue(found);
-                        setCourts(found.courts || []);
-                        setReviews(found.reviews || []);
-                        if (found.courts && found.courts.length > 0) {
-                            setSelectedCourt(found.courts[0]);
-                        }
-                    } else {
-                        setError("Venue not found.");
+                let found = null;
+                const directRes = await fetch(`${API_BASE_URL}/venues/${id}`);
+                if (directRes.ok) {
+                    found = await directRes.json();
+                } else {
+                    const listRes = await fetch(`${API_BASE_URL}/venues`);
+                    if (listRes.ok) {
+                        const allVenues = await listRes.json();
+                        found = (allVenues || []).find((v) => v.id.toString() === id.toString());
+                    }
+                }
+
+                if (found) {
+                    setVenue(found);
+                    setCourts(found.courts || []);
+                    setReviews(found.reviews || []);
+                    if (found.courts && found.courts.length > 0) {
+                        setSelectedCourt(found.courts[0]);
                     }
                 } else {
-                    setError("Failed to fetch venue detail.");
+                    setError("Venue detail not found.");
                 }
             } catch (err) {
                 console.error(err);
@@ -126,8 +132,7 @@ export default function VenueDetailPage({ params: paramsPromise }) {
     const handleBook = async () => {
         if (selectedSlots.length === 0) return;
         const userId = localStorage.getItem("userId");
-        const token = localStorage.getItem("accessToken");
-        if (!userId || !token) {
+        if (!userId) {
             setError("Please log in to book a slot and pay with Razorpay.");
             router.push("/login-user");
             return;
@@ -136,11 +141,15 @@ export default function VenueDetailPage({ params: paramsPromise }) {
         setSubmitting(true);
         setError(null);
         try {
+            const token = localStorage.getItem("accessToken");
+            const headers = { "Content-Type": "application/json" };
+            if (token) {
+                headers["Authorization"] = `Bearer ${token}`;
+            }
+
             const res = await fetch(`${API_BASE_URL}/bookings/hold`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers,
                 body: JSON.stringify({
                     slot_ids: selectedSlots,
                     user_id: Number(userId),
@@ -197,10 +206,12 @@ export default function VenueDetailPage({ params: paramsPromise }) {
 
         setSubmittingReview(true);
         try {
+            const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
             const res = await fetch(`${API_BASE_URL}/venues/${id}/reviews`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
                 body: JSON.stringify({
                     user_id: Number(userId),

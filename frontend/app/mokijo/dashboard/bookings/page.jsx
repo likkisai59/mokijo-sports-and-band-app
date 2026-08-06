@@ -11,14 +11,17 @@ export default function DashboardBookingsPage() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const userId = localStorage.getItem("userId");
+        const userId = typeof window !== "undefined" ? (localStorage.getItem("userId") || localStorage.getItem("user_id") || localStorage.getItem("memberId") || localStorage.getItem("member_id")) : null;
         if (!userId) {
             setError("Session expired. Please log in.");
             setLoading(false);
             return;
         }
 
-        fetch(`${API_BASE_URL}/users/${userId}/bookings`)
+        const token = typeof window !== "undefined" ? (localStorage.getItem("accessToken") || localStorage.getItem("access_token")) : null;
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+        fetch(`${API_BASE_URL}/users/${userId}/bookings`, { headers })
             .then((r) => (r.ok ? r.json() : Promise.reject()))
             .then((data) => setBookings(Array.isArray(data) ? data : []))
             .catch(() => setError("Failed to load booked venues."))
@@ -46,7 +49,7 @@ export default function DashboardBookingsPage() {
     };
 
     const bookedList = bookings.filter(
-        (b) => b.status !== "cancelled" && (b.payment_status === "paid" || b.status === "confirmed")
+        (b) => b.status !== "cancelled" && b.status !== "failed"
     );
 
     return (

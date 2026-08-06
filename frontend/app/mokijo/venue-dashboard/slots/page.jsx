@@ -36,19 +36,48 @@ export default function SlotsPage() {
     const [loading, setLoading] = useState(false);
     const [actionMsg, setActionMsg] = useState("");
     const [showForm, setShowForm] = useState(false);
+    const [editingSlot, setEditingSlot] = useState(null);
     const [newSlot, setNewSlot] = useState(emptyNewSlot());
     const [creating, setCreating] = useState(false);
     const [createError, setCreateError] = useState("");
     const [togglingId, setTogglingId] = useState(null);
 
     useEffect(() => {
-        const ownerId = localStorage.getItem("venueOwnerId");
-        if (!ownerId) return;
-        fetch(`${API}/venue-owner/${ownerId}/venues`)
+        const ownerId =
+            localStorage.getItem("venueOwnerId") ||
+            localStorage.getItem("userId") ||
+            localStorage.getItem("owner_id") ||
+            localStorage.getItem("group_owner_id");
+
+        const fetchUrl = ownerId
+            ? `${API}/venue-owner/${ownerId}/venues`
+            : `${API}/venues?registered=true`;
+
+        fetch(fetchUrl)
             .then((r) => (r.ok ? r.json() : []))
             .then((data) => {
-                setVenues(data);
-                if (data.length > 0) setSelVenue(data[0].id);
+                const list = Array.isArray(data) ? data : [];
+                if (list.length > 0) {
+                    setVenues(list);
+                    setSelVenue(list[0].id);
+                } else {
+                    fetch(`${API}/venues?registered=true`)
+                        .then((r) => (r.ok ? r.json() : []))
+                        .then((allVenues) => {
+                            const allList = Array.isArray(allVenues) ? allVenues : [];
+                            setVenues(allList);
+                            if (allList.length > 0) setSelVenue(allList[0].id);
+                        });
+                }
+            })
+            .catch(() => {
+                fetch(`${API}/venues?registered=true`)
+                    .then((r) => (r.ok ? r.json() : []))
+                    .then((allVenues) => {
+                        const allList = Array.isArray(allVenues) ? allVenues : [];
+                        setVenues(allList);
+                        if (allList.length > 0) setSelVenue(allList[0].id);
+                    });
             });
     }, []);
 
@@ -68,6 +97,7 @@ export default function SlotsPage() {
     useEffect(() => {
         loadSlots();
         setShowForm(false);
+        setEditingSlot(null);
         setCreateError("");
         setActionMsg("");
     }, [selVenue, date]);
@@ -135,9 +165,32 @@ export default function SlotsPage() {
         }
     };
 
-    const createSlot = async () => {
-        if (!selVenue) return;
+    const openEditExistingSlot = (slot) => {
+        setEditingSlot(slot);
+        let startStr = "07:00";
+        let endStr = "08:00";
+        try {
+            if (slot.start_time) startStr = new Date(slot.start_time).toISOString().substring(11, 16);
+            if (slot.end_time) endStr = new Date(slot.end_time).toISOString().substring(11, 16);
+        } catch (e) {}
+
+        setNewSlot({
+            sport: slot.sport || venueSports[0],
+            start_time: startStr,
+            end_time: endStr,
+            base_price: slot.current_price || slot.base_price || 1000,
+        });
         setCreateError("");
+        setShowForm(true);
+    };
+
+    const saveOrUpdateSlot = async () => {
+        setCreateError("");
+        const targetVenueId = selVenue || (venues.length > 0 ? venues[0].id : null);
+        if (!targetVenueId) {
+            setCreateError("No venue selected or registered. Please register a venue first.");
+            return;
+        }
         if (!newSlot.start_time || !newSlot.end_time) {
             setCreateError("Please provide both a start and end time.");
             return;
@@ -154,34 +207,85 @@ export default function SlotsPage() {
 
         setCreating(true);
         try {
-            const payload = [
-                {
-                    venue_id: selVenue,
-                    sport: newSlot.sport,
-                    start_time: `${date}T${newSlot.start_time}:00`,
-                    end_time: `${date}T${newSlot.end_time}:00`,
-                    base_price: price,
-                    current_price: price,
-                    is_blocked: false,
-                },
-            ];
-            const r = await fetch(`${API}/venues/${selVenue}/slots`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
-            if (r.ok) {
-                setShowForm(false);
-                setNewSlot(emptyNewSlot(venueSports[0]));
-                loadSlots();
+            const cleanTime = (t) => {
+                if (!t) return "00:00:00";
+                const parts = t.split(":");
+                const h = (parts[0] || "00").padStart(2, "0");
+                const m = (parts[1] || "00").padStart(2, "0");
+                return `${h}:${m}:00`;
+            };
+
+            const dateOnly = date ? date.split("T")[0] : new Date().toISOString().split("T")[0];
+            const startISO = `${dateOnly}T${cleanTime(newSlot.start_time)}`;
+            const endISO = `${dateOnly}T${cleanTime(newSlot.end_time)}`;
+
+            if (editingSlot) {
+                const r = await fetch(`${API}/venues/${targetVenueId}/slots/${editingSlot.id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        sport: newSlot.sport,
+                        start_time: startISO,
+                        end_time: endISO,
+                        base_price: price,
+                        current_price: price,
+                    }),
+                });
+                if (r.ok) {
+                    setShowForm(false);
+                    setEditingSlot(null);
+                    setNewSlot(emptyNewSlot(venueSports[0]));
+                    loadSlots();
+                } else {
+                    const d = await r.json().catch(() => ({}));
+                    const msg = typeof d.detail === "string" ? d.detail : (Array.isArray(d.detail) ? d.detail.map(e => e.msg || JSON.stringify(e)).join(", ") : "Failed to update slot.");
+                    setCreateError(msg);
+                }
             } else {
-                const d = await r.json().catch(() => ({}));
-                setCreateError(d.detail || "Failed to create slot.");
+                const payload = [
+                    {
+                        venue_id: targetVenueId,
+                        sport: newSlot.sport,
+                        start_time: startISO,
+                        end_time: endISO,
+                        base_price: price,
+                        current_price: price,
+                        is_blocked: false,
+                    },
+                ];
+                const r = await fetch(`${API}/venues/${targetVenueId}/slots`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                });
+                if (r.ok) {
+                    setShowForm(false);
+                    setNewSlot(emptyNewSlot(venueSports[0]));
+                    loadSlots();
+                } else {
+                    const d = await r.json().catch(() => ({}));
+                    const msg = typeof d.detail === "string" ? d.detail : (Array.isArray(d.detail) ? d.detail.map(e => e.msg || JSON.stringify(e)).join(", ") : "Failed to create slot.");
+                    setCreateError(msg);
+                }
             }
-        } catch {
+        } catch (err) {
             setCreateError("Cannot connect to server.");
         } finally {
             setCreating(false);
+        }
+    };
+
+    const deleteSlot = async (slotId) => {
+        if (!confirm("Are you sure you want to delete this slot?")) return;
+        try {
+            const r = await fetch(`${API}/venues/${selVenue}/slots/${slotId}`, { method: "DELETE" });
+            if (r.ok) {
+                loadSlots();
+            } else {
+                setActionMsg("Failed to delete slot.");
+            }
+        } catch {
+            setActionMsg("Error deleting slot.");
         }
     };
 
@@ -201,7 +305,7 @@ export default function SlotsPage() {
     return (
         <>
             <h1 className="vd-page-title">Slots &amp; Availability</h1>
-            <p className="vd-page-sub">View and manage time slots for each venue. Block or unblock individual slots anytime.</p>
+            <p className="vd-page-sub">View and manage time slots for each venue. Edit details, block, unblock or add slots anytime.</p>
 
             <div className="vd-controls">
                 <select
@@ -217,16 +321,19 @@ export default function SlotsPage() {
                 </select>
                 <input type="date" className="vd-input-sm" value={date} onChange={(e) => setDate(e.target.value)} />
                 <button
+                    type="button"
                     className="vd-btn-primary"
-                    disabled={!selVenue}
                     onClick={() => {
+                        setEditingSlot(null);
+                        setNewSlot(emptyNewSlot(venueSports[0]));
                         setCreateError("");
                         setShowForm((s) => !s);
                     }}
                 >
-                    {showForm ? "Cancel" : "Edit Slot"}
+                    {showForm ? "Cancel" : "+ Add Slot"}
                 </button>
                 <button
+                    type="button"
                     className="vd-btn-primary"
                     style={{
                         background: "rgba(239,68,68,0.15)",
@@ -238,11 +345,12 @@ export default function SlotsPage() {
                     Block All Day
                 </button>
                 <button
+                    type="button"
                     className="vd-btn-primary"
                     style={{
-                        background: "rgba(34,197,94,0.1)",
-                        color: "#4ade80",
-                        border: "1px solid rgba(34,197,94,0.3)",
+                        background: "rgba(198,255,61,0.15)",
+                        color: "#c6ff3d",
+                        border: "1px solid rgba(198,255,61,0.3)",
                     }}
                     onClick={() => blockAction("unblock")}
                 >
@@ -253,7 +361,14 @@ export default function SlotsPage() {
             {actionMsg && <p style={{ color: "#c6ff3d", fontSize: 13, marginBottom: 14 }}>{actionMsg}</p>}
 
             {showForm && (
-                <div className="vd-card" style={{ marginBottom: 20 }}>
+                <form
+                    className="vd-card"
+                    style={{ marginBottom: 20 }}
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        saveOrUpdateSlot();
+                    }}
+                >
                     <div
                         style={{
                             display: "flex",
@@ -263,14 +378,16 @@ export default function SlotsPage() {
                             marginBottom: 14,
                         }}
                     >
-                        <div style={{ fontSize: 14, fontWeight: 700 }}>Edit slot for {date}</div>
+                        <div style={{ fontSize: 14, fontWeight: 700 }}>
+                            {editingSlot ? `Edit Slot Details (#${editingSlot.id})` : `Create Slot for ${date}`}
+                        </div>
                         <button
+                            type="submit"
                             className="vd-btn-primary"
-                            onClick={createSlot}
                             disabled={creating}
                             style={{ flexShrink: 0 }}
                         >
-                            {creating ? "Saving…" : "Edit Slot"}
+                            {creating ? "Saving…" : editingSlot ? "Update Slot" : "Create Slot"}
                         </button>
                     </div>
                     <div className="vd-form-grid" style={{ gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14, marginBottom: 14 }}>
@@ -318,7 +435,7 @@ export default function SlotsPage() {
                         </div>
                     </div>
                     {createError && <p style={{ color: "#f87171", fontSize: 13, marginBottom: 0 }}>{createError}</p>}
-                </div>
+                </form>
             )}
 
             {loading ? (
@@ -331,7 +448,7 @@ export default function SlotsPage() {
                         <div className="vd-empty-icon">⏳</div>
                         <div className="vd-empty-text">No slots for this date</div>
                         <div className="vd-empty-sub">
-                            Use &ldquo;Edit Slot&rdquo; above to create availability for this venue and date.
+                            Use &ldquo;+ Add Slot&rdquo; above to create availability for this venue and date.
                         </div>
                     </div>
                 </div>
@@ -342,9 +459,29 @@ export default function SlotsPage() {
                         const canToggle = status === "available" || status === "blocked";
                         const busy = togglingId === slot.id;
                         return (
-                            <div key={slot.id} className={`vd-slot-tile ${status}`}>
-                                <div className="vd-slot-time">
-                                    {fmt(slot.start_time)} – {fmt(slot.end_time)}
+                            <div key={slot.id} className={`vd-slot-tile ${status}`} style={{ position: "relative" }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                                    <div className="vd-slot-time">
+                                        {fmt(slot.start_time)} – {fmt(slot.end_time)}
+                                    </div>
+                                    <div style={{ display: "flex", gap: "4px" }}>
+                                        <button
+                                            type="button"
+                                            title="Edit Slot"
+                                            onClick={() => openEditExistingSlot(slot)}
+                                            style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", borderRadius: "4px", padding: "2px 6px", fontSize: "11px", cursor: "pointer" }}
+                                        >
+                                            ✎
+                                        </button>
+                                        <button
+                                            type="button"
+                                            title="Delete Slot"
+                                            onClick={() => deleteSlot(slot.id)}
+                                            style={{ background: "rgba(239,68,68,0.25)", border: "none", color: "#f87171", borderRadius: "4px", padding: "2px 6px", fontSize: "11px", cursor: "pointer" }}
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
                                 </div>
                                 <div className="vd-slot-sport" style={{ textTransform: "capitalize" }}>
                                     {slot.sport}

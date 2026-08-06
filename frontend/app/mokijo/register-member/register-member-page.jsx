@@ -159,8 +159,8 @@ export default function RegisterMemberPage() {
                                                             setClubDropdownOpen(false);
                                                         }}
                                                         className={`w-full px-3.5 py-2.5 border-none border-b border-[rgba(255,255,255,0.06)] text-left text-sm cursor-pointer ${selected
-                                                                ? "bg-[rgba(198,255,61,0.2)] text-[#f4f4f5] font-bold"
-                                                                : "bg-transparent text-[rgba(244,244,245,0.55)] hover:bg-[rgba(255,255,255,0.06)]"
+                                                            ? "bg-[rgba(198,255,61,0.2)] text-[#f4f4f5] font-bold"
+                                                            : "bg-transparent text-[rgba(244,244,245,0.55)] hover:bg-[rgba(255,255,255,0.06)]"
                                                             }`}
                                                     >
                                                         {cid} - {club.club_name}

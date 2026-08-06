@@ -19,6 +19,7 @@ export default function PasswordField({
     style,
     required = false,
     tone = "light",
+    inputStyle = {},
 }) {
     const [visible, setVisible] = useState(false);
     const isDark = tone === "dark";
@@ -43,7 +44,7 @@ export default function PasswordField({
                 disabled={disabled}
                 autoComplete={autoComplete}
                 required={required}
-                style={isDark ? undefined : { paddingRight: "56px", width: "100%", boxSizing: "border-box" }}
+                style={isDark ? inputStyle : { paddingRight: "56px", width: "100%", boxSizing: "border-box", ...inputStyle }}
             />
             <button
                 type="button"

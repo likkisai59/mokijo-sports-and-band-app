@@ -42,6 +42,8 @@ const UserDashboard = React.lazy(() => import('@/app/user-dashboard/page.jsx'));
 const Checkout = React.lazy(() => import('@/app/checkout/page.jsx'));
 const Scoreboard = React.lazy(() => import('@/app/scoreboard/[match_id]/page.jsx'));
 const TrainingDetail = React.lazy(() => import('@/app/trainings/[id]/page.jsx'));
+const SportsVenues = React.lazy(() => import('@/app/venues/page.jsx'));
+const SportsVenueDetail = React.lazy(() => import('@/app/venues/[id]/page.jsx'));
 
 // Dashboard and Layouts
 const DashboardLayout = React.lazy(() => import('@/app/mokijo/dashboard/layout.jsx'));
@@ -73,6 +75,7 @@ const DashboardImportGroups = React.lazy(() => import('@/app/mokijo/dashboard/im
 const DashboardSignupForms = React.lazy(() => import('@/app/mokijo/dashboard/signup-forms/page.jsx'));
 const DashboardMatches = React.lazy(() => import('@/app/mokijo/dashboard/matches/page.jsx'));
 const DashboardMatchesCreate = React.lazy(() => import('@/app/mokijo/dashboard/matches/create/page.jsx'));
+const DashboardMatchManage = React.lazy(() => import('@/app/mokijo/dashboard/matches/[id]/manage/page.jsx'));
 
 // Trainer Dashboard
 const TrainerDashboardLayout = React.lazy(() => import('@/app/mokijo/trainer-dashboard/layout.jsx'));
@@ -193,10 +196,8 @@ export default function App() {
                       <Route index element={<BandArtists />} />
                       <Route path=":id" element={<PageWrapper Component={BandArtistDetail} />} />
                     </Route>
-                    <Route path="/venues" element={<LayoutWrapper LayoutComponent={BandLayout} />}>
-                      <Route index element={<BandVenues />} />
-                      <Route path=":id" element={<PageWrapper Component={BandVenueDetail} />} />
-                    </Route>
+                    <Route path="/venues" element={<SportsVenues />} />
+                    <Route path="/venues/:id" element={<PageWrapper Component={SportsVenueDetail} />} />
                     
                     <Route path="/developer" element={<Developer />} />
                     <Route path="/messages" element={<Messages />} />
@@ -232,6 +233,7 @@ export default function App() {
                       <Route path="signup-forms" element={<DashboardSignupForms />} />
                       <Route path="matches" element={<DashboardMatches />} />
                       <Route path="matches/create" element={<DashboardMatchesCreate />} />
+                      <Route path="matches/:id/manage" element={<PageWrapper Component={DashboardMatchManage} />} />
                     </Route>
 
                     {/* Trainer Dashboard Routes */}

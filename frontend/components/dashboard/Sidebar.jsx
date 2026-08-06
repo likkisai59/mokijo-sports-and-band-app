@@ -41,10 +41,12 @@ export default function Sidebar() {
         setMemberRole(localStorage.getItem("memberRole") || "");
         const fetchGroups = async () => {
             const userId = localStorage.getItem("userId");
+            const token = localStorage.getItem("accessToken");
             if (!userId) return;
 
             try {
-                const response = await fetch(`${API_BASE_URL}/groups?owner_id=${userId}`);
+                const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                const response = await fetch(`${API_BASE_URL}/groups?owner_id=${userId}`, { headers });
                 if (response.ok) {
                     const data = await response.json();
                     setGroups(data);

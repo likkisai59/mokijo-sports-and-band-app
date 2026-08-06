@@ -5,7 +5,7 @@ from app.models import schemas
 from app.api.mokijo.venues import service
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.auth.authorization import check_user_authorization
+from app.auth.authorization import check_user_authorization, optional_user_authorization
 
 router = APIRouter()
 
@@ -28,23 +28,38 @@ async def get_venues(
     date: Optional[str] = None,
     only_available: Optional[bool] = False,
     registered: Optional[bool] = False,
-    current_user: dict = Depends(check_user_authorization),
+    current_user: dict = Depends(optional_user_authorization),
     db: Session = Depends(get_db)
 ):
-    return await logic.get_venues(
-        request, sport, location, min_price, max_price, min_rating, latitude, longitude,
-        max_distance, date, only_available, current_user, registered=registered
+    return await service.get_venues(
+        request, db, sport=sport, location=location, min_price=min_price, max_price=max_price, min_rating=min_rating, latitude=latitude, longitude=longitude,
+        max_distance=max_distance, date_str=date, only_available=only_available, current_user=current_user, registered=registered
     )
 
+@router.get("/venues/{venue_id}", response_model=schemas.VenueResponse, summary="Retrieve details of a single venue by ID.", tags=["Venues"])
+async def get_venue_by_id(request: Request, venue_id: int, current_user: dict = Depends(optional_user_authorization),
+    db: Session = Depends(get_db)):
+    return await service.get_venue_by_id(request, db, venue_id, current_user)
+
 @router.post("/venues/{venue_id}/slots", response_model=List[schemas.SlotResponse], summary="Batch insert sports slot inventories for a venue.", tags=["Venues"])
-async def create_venue_slots(request: Request, venue_id: int, slots: List[schemas.SlotCreate], current_user: dict = Depends(check_user_authorization),
+async def create_venue_slots(request: Request, venue_id: int, slots: List[schemas.SlotCreate], current_user: dict = Depends(optional_user_authorization),
     db: Session = Depends(get_db)):
     return await service.create_venue_slots(request, db, venue_id, slots, current_user)
 
 @router.get("/venues/{venue_id}/slots", response_model=List[schemas.SlotResponse], summary="Fetch availability schedules/slots for a specific venue, filtered by YYYY-MM-DD.", tags=["Venues"])
-async def get_venue_slots(request: Request, venue_id: int, date_str: Optional[str] = None, current_user: dict = Depends(check_user_authorization),
+async def get_venue_slots(request: Request, venue_id: int, date_str: Optional[str] = None, current_user: dict = Depends(optional_user_authorization),
     db: Session = Depends(get_db)):
     return await service.get_venue_slots(request, db, venue_id, date_str, current_user)
+
+@router.put("/venues/{venue_id}/slots/{slot_id}", response_model=schemas.SlotResponse, summary="Edit details of a specific venue slot.", tags=["Venues"])
+async def update_venue_slot(request: Request, venue_id: int, slot_id: int, slot_update: schemas.SlotUpdate, current_user: dict = Depends(optional_user_authorization),
+    db: Session = Depends(get_db)):
+    return await service.update_venue_slot(request, db, venue_id, slot_id, slot_update, current_user)
+
+@router.delete("/venues/{venue_id}/slots/{slot_id}", summary="Delete a specific venue slot.", tags=["Venues"])
+async def delete_venue_slot(request: Request, venue_id: int, slot_id: int, current_user: dict = Depends(optional_user_authorization),
+    db: Session = Depends(get_db)):
+    return await service.delete_venue_slot(request, db, venue_id, slot_id, current_user)
 
 @router.post("/bookings", response_model=schemas.BookingResponse, summary="Place a venue slot reservation with concurrency protection to prevent double bookings.", tags=["Venues"])
 async def create_booking(request: Request, booking: schemas.BookingCreate, current_user: dict = Depends(check_user_authorization),

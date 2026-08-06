@@ -132,8 +132,10 @@ async def login_user(request: Request, db: Session, user_data: schemas.UserLogin
     except HTTPException as he:
         raise he
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         await logger.log_error(request=request, message=f"Failed to login user: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail=str(e))
 
 async def login_standard_user(request: Request, db: Session, user_data: schemas.UserLogin):
     try:

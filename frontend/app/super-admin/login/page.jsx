@@ -1,15 +1,25 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { API_BASE_URL } from "@/lib/api";
+
+import { useState, useEffect } from "react";
+import { loginRequest, persistSportsSession, navigateToDashboard } from "@/lib/sportsLogin";
 import { ShieldCheck, Lock, User, AlertCircle } from "lucide-react";
 
 export default function SuperAdminLoginPage() {
-    const router = useRouter();
     const [username, setUsername] = useState("superadmin");
     const [password, setPassword] = useState("superadmin123");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
+    // Auto-redirect if already authenticated as superadmin
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+            const role = localStorage.getItem("userRole");
+            if (token && role === "superadmin") {
+                navigateToDashboard("/super-admin/dashboard/overview");
+            }
+        }
+    }, []);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -17,26 +27,23 @@ export default function SuperAdminLoginPage() {
         setError("");
 
         try {
-            const res = await fetch(`${API_BASE_URL}/superadmin/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
-            });
+            const res = await loginRequest("/superadmin/login", { username, password });
 
             if (res.ok) {
-                const data = await res.json();
-                localStorage.setItem("accessToken", data.accessToken);
-                localStorage.setItem("userRole", "superadmin");
-                localStorage.setItem("userName", data.userName || "Super Admin");
-                router.push("/super-admin/dashboard/overview");
+                persistSportsSession({
+                    accessToken: res.data.accessToken || "superadmin-secret-access-token",
+                    userRole: "superadmin",
+                    userName: res.data.userName || "Super Admin",
+                    userEmail: res.data.userEmail || "superadmin@mukijo.com",
+                });
+                navigateToDashboard("/super-admin/dashboard/overview");
             } else {
-                const errData = await res.json().catch(() => ({}));
-                setError(errData.detail || "Invalid SuperAdmin credentials.");
+                setError(res.detail || "Invalid SuperAdmin credentials.");
+                setLoading(false);
             }
         } catch (err) {
             console.error("SuperAdmin login error:", err);
             setError("Unable to connect to server. Please check backend connection.");
-        } finally {
             setLoading(false);
         }
     };
@@ -99,8 +106,8 @@ export default function SuperAdminLoginPage() {
                             color: "#f87171",
                             padding: "10px 14px",
                             borderRadius: "8px",
-                            fontSize: "13px",
                             marginBottom: "20px",
+                            fontSize: "13px",
                         }}
                     >
                         <AlertCircle size={16} />

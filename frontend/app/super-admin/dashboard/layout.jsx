@@ -1,30 +1,30 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import SuperAdminSidebar from "@/components/super-admin/SuperAdminSidebar";
 import SuperAdminTopHeader from "@/components/super-admin/SuperAdminTopHeader";
+import { navigateToDashboard } from "@/lib/sportsLogin";
 import "@/app/styles/dashboard.css";
 
 export default function SuperAdminDashboardLayout({ children }) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [authorized, setAuthorized] = useState(false);
     const pathname = usePathname();
-    const router = useRouter();
 
     const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
     useEffect(() => {
-        const token = localStorage.getItem("accessToken");
+        const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
         const userRole = localStorage.getItem("userRole");
 
         if (!token || userRole !== "superadmin") {
-            router.replace("/super-admin/login");
+            navigateToDashboard("/super-admin/login");
             return;
         }
 
         setAuthorized(true);
-    }, [pathname, router]);
+    }, [pathname]);
 
     if (!authorized) {
         return (

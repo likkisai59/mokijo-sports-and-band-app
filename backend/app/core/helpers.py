@@ -2,6 +2,39 @@ import json
 from datetime import date, datetime
 from fastapi import HTTPException
 
+from sqlalchemy import text
+
+def safe_to_dict(obj):
+    if not obj:
+        return {}
+    if isinstance(obj, dict):
+        return obj
+    if hasattr(obj, "__dict__"):
+        d = dict(obj.__dict__)
+        d.pop('_sa_instance_state', None)
+        return d
+    return {}
+
+def safe_db_fetch_one(db_driver, query_str, params):
+    if not db_driver:
+        return None
+    if hasattr(db_driver, "fetch_one"):
+        try:
+            return db_driver.fetch_one(query_str, params)
+        except Exception:
+            pass
+    if hasattr(db_driver, "execute"):
+        try:
+            q = query_str.replace('%s', ':p_')
+            for i in range(q.count(':p_')):
+                q = q.replace(':p_', f':p_{i}', 1)
+            bind_params = {f'p_{i}': val for i, val in enumerate(params)}
+            res = db_driver.execute(text(q), bind_params).mappings().first()
+            return dict(res) if res else None
+        except Exception:
+            pass
+    return None
+
 def get_effective_payment_status(payment: dict):
     due_date = payment.get("due_date")
     status = payment.get("status")
@@ -16,14 +49,14 @@ def serialize_payment(payment: dict, db_driver=None):
     member_name = ""
     member_id = payment.get("member_id")
     if member_id and db_driver:
-        member = db_driver.fetch_one("SELECT first_name, last_name FROM members WHERE id = %s", (member_id,))
+        member = safe_db_fetch_one(db_driver, "SELECT first_name, last_name FROM members WHERE id = %s", (member_id,))
         if member:
             member_name = f"{member.get('first_name', '')} {member.get('last_name', '')}".strip()
 
     group_name = None
     group_id = payment.get("group_id")
     if group_id and db_driver:
-        group = db_driver.fetch_one("SELECT group_name FROM groups WHERE id = %s", (group_id,))
+        group = safe_db_fetch_one(db_driver, "SELECT group_name FROM groups WHERE id = %s", (group_id,))
         if group:
             group_name = group.get("group_name")
 
@@ -38,22 +71,41 @@ def serialize_payment(payment: dict, db_driver=None):
         "owner_id": payment.get("owner_id"),
         "group_id": group_id,
         "member_id": member_id,
-        "title": payment.get("title"),
-        "description": payment.get("description"),
-        "category": payment.get("category"),
         "amount": payment.get("amount"),
+        "payment_type": payment.get("payment_type"),
+        "description": payment.get("description"),
         "due_date": str(payment.get("due_date")) if payment.get("due_date") else None,
         "status": get_effective_payment_status(payment),
-        "payment_method": payment.get("payment_method"),
-        "paid_at": str(payment.get("paid_at")) if payment.get("paid_at") else None,
         "created_at": created_at_str,
-        "group_name": group_name,
         "member_name": member_name,
+        "group_name": group_name
+    }
+
+def serialize_course_registration(reg: dict):
+    created_at = reg.get("created_at")
+    if isinstance(created_at, datetime):
+        created_at_str = created_at.isoformat()
+    else:
+        created_at_str = str(created_at) if created_at else None
+
+    return {
+        "id": reg.get("id"),
+        "course_id": reg.get("course_id"),
+        "user_id": reg.get("user_id"),
+        "member_id": reg.get("member_id"),
+        "member_name": reg.get("member_name"),
+        "member_email": reg.get("member_email"),
+        "member_phone": reg.get("member_phone"),
+        "status": reg.get("status"),
+        "payment_status": reg.get("payment_status"),
+        "notes": reg.get("notes"),
+        "created_at": created_at_str
     }
 
 def validate_payment_scope(owner_id: int, group_id: int | None, member_id: int | None, db_driver):
     if member_id:
-        member = db_driver.fetch_one(
+        member = safe_db_fetch_one(
+            db_driver,
             "SELECT m.*, g.owner_id FROM members m JOIN groups g ON m.group_id = g.id WHERE m.id = %s AND g.owner_id = %s",
             (member_id, owner_id)
         )
@@ -64,7 +116,8 @@ def validate_payment_scope(owner_id: int, group_id: int | None, member_id: int |
         group_id = member.get("group_id")
 
     if group_id:
-        group = db_driver.fetch_one(
+        group = safe_db_fetch_one(
+            db_driver,
             "SELECT * FROM groups WHERE id = %s AND owner_id = %s",
             (group_id, owner_id)
         )
@@ -73,14 +126,28 @@ def validate_payment_scope(owner_id: int, group_id: int | None, member_id: int |
 
     return group_id, member_id
 
+def validate_course_group(group_id: int, owner_id: int, db_driver):
+    if group_id:
+        group = safe_db_fetch_one(
+            db_driver,
+            "SELECT * FROM groups WHERE id = %s AND owner_id = %s",
+            (group_id, owner_id)
+        )
+        if not group:
+            raise HTTPException(status_code=404, detail="Group not found or access denied")
+
+    return group_id, None
+
 def get_course_registration_count(course_id: int, db_driver):
-    res = db_driver.fetch_one(
+    res = safe_db_fetch_one(
+        db_driver,
         "SELECT COUNT(*) as count FROM course_registrations WHERE course_id = %s AND status != 'cancelled'",
         (course_id,)
     )
     return res.get("count", 0) if res else 0
 
 def serialize_course(course: dict, db_driver):
+    course = safe_to_dict(course)
     course_id = course.get("id")
     registration_count = get_course_registration_count(course_id, db_driver)
     capacity = course.get("capacity") or 0
@@ -89,11 +156,12 @@ def serialize_course(course: dict, db_driver):
     group_name = None
     group_id = course.get("group_id")
     if group_id:
-        group = db_driver.fetch_one("SELECT group_name FROM groups WHERE id = %s", (group_id,))
+        group = safe_db_fetch_one(db_driver, "SELECT group_name FROM groups WHERE id = %s", (group_id,))
         if group:
             group_name = group.get("group_name")
 
-    paid_res = db_driver.fetch_one(
+    paid_res = safe_db_fetch_one(
+        db_driver,
         "SELECT COUNT(*) as count FROM course_registrations WHERE course_id = %s AND payment_status = 'paid'",
         (course_id,)
     )
@@ -113,7 +181,8 @@ def serialize_course(course: dict, db_driver):
     trainer_name = course.get("trainer_name")
     trainer_phone = course.get("trainer_phone")
     if trainer_id:
-        trainer = db_driver.fetch_one(
+        trainer = safe_db_fetch_one(
+            db_driver,
             "SELECT first_name, last_name, phone FROM trainers WHERE id = %s LIMIT 1",
             (trainer_id,)
         )
@@ -175,40 +244,57 @@ def serialize_course(course: dict, db_driver):
         "days": days_list,
     }
 
-def serialize_course_registration(registration: dict, db_driver):
-    course_id = registration.get("course_id")
-    course_title = None
-    group_name = None
-    if course_id:
-        course = db_driver.fetch_one("SELECT title, group_id FROM courses WHERE id = %s", (course_id,))
-        if course:
-            course_title = course.get("title")
-            group_id = course.get("group_id")
-            if group_id:
-                group = db_driver.fetch_one("SELECT group_name FROM groups WHERE id = %s", (group_id,))
-                if group:
-                    group_name = group.get("group_name")
+def serialize_course_registration(registration, db_driver=None):
+    if not registration:
+        return None
+    d = safe_to_dict(registration)
+    course_id = d.get("course_id")
+    course_title = d.get("course_title")
+    group_name = d.get("group_name")
 
-    registered_at = registration.get("registered_at")
-    if isinstance(registered_at, datetime):
+    if course_id and not course_title:
+        try:
+            if hasattr(db_driver, "query"):
+                from app.models.models import Course, Group
+                course = db_driver.query(Course).filter(Course.id == course_id).first()
+                if course:
+                    course_title = course.title
+                    if course.group_id:
+                        group = db_driver.query(Group).filter(Group.id == course.group_id).first()
+                        if group:
+                            group_name = group.group_name
+            elif db_driver:
+                course = safe_db_fetch_one(db_driver, "SELECT title, group_id FROM courses WHERE id = %s", (course_id,))
+                if course:
+                    course_title = course.get("title")
+                    group_id = course.get("group_id")
+                    if group_id:
+                        group = safe_db_fetch_one(db_driver, "SELECT group_name FROM groups WHERE id = %s", (group_id,))
+                        if group:
+                            group_name = group.get("group_name")
+        except Exception:
+            pass
+
+    registered_at = d.get("registered_at")
+    if isinstance(registered_at, (datetime, date)):
         registered_at_str = registered_at.isoformat()
     else:
         registered_at_str = str(registered_at) if registered_at else None
 
     return {
-        "id": registration.get("id"),
-        "owner_id": registration.get("owner_id"),
+        "id": d.get("id"),
+        "owner_id": d.get("owner_id"),
         "course_id": course_id,
-        "member_id": registration.get("member_id"),
-        "participant_name": registration.get("participant_name"),
-        "participant_email": registration.get("participant_email"),
-        "participant_phone": registration.get("participant_phone"),
-        "status": registration.get("status"),
-        "payment_status": registration.get("payment_status"),
-        "notes": registration.get("notes"),
+        "member_id": d.get("member_id"),
+        "participant_name": d.get("participant_name"),
+        "participant_email": d.get("participant_email"),
+        "participant_phone": d.get("participant_phone"),
+        "status": d.get("status") or "registered",
+        "payment_status": d.get("payment_status") or "unpaid",
+        "notes": d.get("notes"),
         "registered_at": registered_at_str,
-        "course_title": course_title,
-        "group_name": group_name,
+        "course_title": course_title or "Training Course",
+        "group_name": group_name or "",
     }
 
 def serialize_event(event: dict, db_driver):
@@ -278,13 +364,39 @@ def parse_submission_data(submitted_data: str):
 def get_submission_email(data: dict):
     return normalize_email(get_case_insensitive_value(data, "email"))
 
+from sqlalchemy import text
+
+def safe_fetch_one(db_driver, raw_sql: str, params: tuple = ()):
+    if hasattr(db_driver, "fetch_one"):
+        return db_driver.fetch_one(raw_sql, params)
+    sql_text = raw_sql
+    param_dict = {}
+    for i, val in enumerate(params, start=1):
+        sql_text = sql_text.replace("%s", f":p{i}", 1)
+        param_dict[f"p{i}"] = val
+    res = db_driver.execute(text(sql_text), param_dict).mappings().first()
+    return dict(res) if res else None
+
+def safe_fetch_all(db_driver, raw_sql: str, params: tuple = ()):
+    if hasattr(db_driver, "fetch_all"):
+        return db_driver.fetch_all(raw_sql, params)
+    sql_text = raw_sql
+    param_dict = {}
+    for i, val in enumerate(params, start=1):
+        sql_text = sql_text.replace("%s", f":p{i}", 1)
+        param_dict[f"p{i}"] = val
+    rows = db_driver.execute(text(sql_text), param_dict).mappings().all()
+    return [dict(r) for r in rows]
+
 def find_approved_member_by_email(db_driver, email_clean: str, owner_id: int | None = None):
     if owner_id is not None:
-        return db_driver.fetch_one(
+        return safe_fetch_one(
+            db_driver,
             "SELECT m.* FROM members m JOIN groups g ON m.group_id = g.id WHERE LOWER(REPLACE(m.email, ' ', '')) = %s AND g.owner_id = %s LIMIT 1",
             (email_clean, owner_id)
         )
-    return db_driver.fetch_one(
+    return safe_fetch_one(
+        db_driver,
         "SELECT * FROM members WHERE LOWER(REPLACE(email, ' ', '')) = %s LIMIT 1",
         (email_clean,)
     )
@@ -309,7 +421,7 @@ def has_pending_submission_for_email(
     if conditions:
         query += " WHERE " + " AND ".join(conditions)
         
-    submissions = db_driver.fetch_all(query, tuple(params))
+    submissions = safe_fetch_all(db_driver, query, tuple(params))
     for pending_submission in submissions:
         try:
             data = json.loads(pending_submission.get("submitted_data"))
@@ -324,7 +436,8 @@ def validate_course_group(owner_id: int, group_id: int | None, db_driver):
     if not group_id:
         return None
 
-    group = db_driver.fetch_one(
+    group = safe_fetch_one(
+        db_driver,
         "SELECT * FROM groups WHERE id = %s AND owner_id = %s",
         (group_id, owner_id)
     )

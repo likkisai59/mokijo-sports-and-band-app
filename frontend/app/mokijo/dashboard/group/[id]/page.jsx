@@ -54,9 +54,11 @@ export default function GroupProfilePage() {
 
     const refreshMembers = async () => {
         const userId = localStorage.getItem("userId");
+        const token = localStorage.getItem("accessToken");
         if (!userId || !id) return;
         const encodedId = encodeURIComponent(id);
-        const membersResponse = await fetch(`${API_BASE_URL}/groups/${encodedId}/members?owner_id=${userId}`);
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const membersResponse = await fetch(`${API_BASE_URL}/groups/${encodedId}/members?owner_id=${userId}`, { headers });
         if (membersResponse.ok) {
             const membersData = await membersResponse.json();
             setMembers(buildMembersList(membersData));
@@ -66,15 +68,18 @@ export default function GroupProfilePage() {
     const handleAddMember = async (e) => {
         e.preventDefault();
         const userId = localStorage.getItem("userId");
+        const token = localStorage.getItem("accessToken");
         if (!userId) return;
 
         try {
             const encodedId = encodeURIComponent(id);
+            const headers = {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            };
             const response = await fetch(`${API_BASE_URL}/groups/${encodedId}/members?owner_id=${userId}`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers,
                 body: JSON.stringify({
                     first_name: memberForm.first_name,
                     last_name: memberForm.last_name || "",
@@ -151,8 +156,11 @@ export default function GroupProfilePage() {
         formData.append("owner_id", userId);
 
         try {
+            const token = localStorage.getItem("accessToken");
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
             const response = await fetch(`${API_BASE_URL}/groups/${group.id}/members/import`, {
                 method: "POST",
+                headers,
                 body: formData,
             });
 
@@ -177,6 +185,7 @@ export default function GroupProfilePage() {
     useEffect(() => {
         const fetchGroupData = async () => {
             const userId = localStorage.getItem("userId");
+            const token = localStorage.getItem("accessToken");
             if (!userId || userId === "undefined") {
                 setError("Please sign in again to view this group profile.");
                 setLoading(false);
@@ -185,22 +194,20 @@ export default function GroupProfilePage() {
 
             try {
                 const encodedId = encodeURIComponent(id);
-                const groupResponse = await fetch(`${API_BASE_URL}/groups/${encodedId}?owner_id=${userId}`);
+                const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                const groupResponse = await fetch(`${API_BASE_URL}/groups/${encodedId}?owner_id=${userId}`, { headers });
 
                 if (groupResponse.ok) {
                     const groupData = await groupResponse.json();
                     setGroup(groupData);
                     if (groupData.avatar) setCoverPhoto(groupData.avatar);
+                    if (Array.isArray(groupData.members)) {
+                        setMembers(buildMembersList(groupData.members));
+                    }
                 } else {
                     setError("This group could not be found for the signed-in club.");
                     setLoading(false);
                     return;
-                }
-
-                const membersResponse = await fetch(`${API_BASE_URL}/groups/${encodedId}/members?owner_id=${userId}`);
-                if (membersResponse.ok) {
-                    const membersData = await membersResponse.json();
-                    setMembers(buildMembersList(membersData));
                 }
             } catch (error) {
                 console.error("Network error fetching group data:", error);
@@ -216,8 +223,12 @@ export default function GroupProfilePage() {
     const handleDeleteGroup = async () => {
         if (!confirm(`Delete group "${group.group_name}"?`)) return;
         try {
-            const response = await fetch(`${API_BASE_URL}/groups/${id}?owner_id=${localStorage.getItem("userId")}`, {
+            const userId = localStorage.getItem("userId");
+            const token = localStorage.getItem("accessToken");
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            const response = await fetch(`${API_BASE_URL}/groups/${id}?owner_id=${userId}`, {
                 method: "DELETE",
+                headers,
             });
             if (response.ok) window.location.href = "/dashboard";
         } catch (error) {

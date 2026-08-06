@@ -69,7 +69,9 @@ export default function EventDetailPage() {
                 }
 
                 // Fetch Club Groups
-                const groupRes = await fetch(`${API_BASE_URL}/groups?owner_id=${userId}`);
+                const token = localStorage.getItem("accessToken");
+                const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+                const groupRes = await fetch(`${API_BASE_URL}/groups?owner_id=${userId}`, { headers: authHeaders });
                 if (groupRes.ok) {
                     const groupData = await groupRes.json();
                     setGroups(groupData);

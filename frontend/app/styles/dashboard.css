@@ -2,7 +2,7 @@
    MUKIJO DASHBOARD — PREMIUM DARK DESIGN SYSTEM
    ═══════════════════════════════════════════════════════════════════ */
 
-@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=Raleway:wght@700;800;900&display=swap");
 
 /* ─── GLOBAL RESET ───────────────────────────────────────────────── */
 *,
@@ -213,6 +213,7 @@ body {
     flex-direction: column;
     position: relative;
     overflow-y: auto;
+    font-family: "Raleway", "Outfit", sans-serif;
 }
 
 .sidebar::before {
@@ -251,9 +252,10 @@ body {
 
 .club-name-text {
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 800;
     color: #ffffff;
     letter-spacing: -0.3px;
+    font-family: "Raleway", "Outfit", sans-serif;
 }
 
 /* ─── NAV ITEMS ──────────────────────────────────────────────────── */
@@ -263,7 +265,9 @@ body {
     gap: 12px;
     padding: 11px 14px;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 700;
+    font-family: "Raleway", "Outfit", sans-serif;
+    letter-spacing: 0.02em;
     color: #ffffff;
     cursor: pointer;
     border-radius: var(--radius-md);
@@ -295,7 +299,7 @@ body {
 .menu-item.active {
     background: var(--brand-light);
     color: var(--brand);
-    font-weight: 700;
+    font-weight: 800;
     border: 1px solid rgba(198, 255, 61, 0.2);
     transform: skewX(-6deg);
 }
@@ -333,6 +337,7 @@ body {
 .sidebar-section {
     margin-top: 28px;
     padding: 0 8px;
+    font-family: "Raleway", "Outfit", sans-serif;
 }
 
 .sidebar-section h4 {
@@ -341,8 +346,9 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     margin-bottom: 10px;
-    font-weight: 700;
+    font-weight: 800;
     padding: 0 6px;
+    font-family: "Raleway", "Outfit", sans-serif;
 }
 
 .sidebar-section p {
@@ -356,6 +362,8 @@ body {
     align-items: center;
     gap: 10px;
     margin: 0;
+    font-family: "Raleway", "Outfit", sans-serif;
+    font-weight: 700;
 }
 
 .sidebar-section p:hover {
@@ -370,7 +378,8 @@ body {
     gap: 10px;
     color: #ffffff;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 700;
+    font-family: "Raleway", "Outfit", sans-serif;
     padding: 10px 8px;
     border-radius: var(--radius-sm);
     cursor: pointer;

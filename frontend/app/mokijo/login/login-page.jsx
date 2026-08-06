@@ -15,8 +15,9 @@ import {
     AuthNavLinks,
     getAuthClasses,
 } from "@/components/auth";
+import { Mail, Lock, ArrowRight, ArrowLeft, ShieldCheck } from "lucide-react";
 
-const c = getAuthClasses("dark");
+const c = getAuthClasses("light");
 
 function LoginContent() {
     const searchParams = useSearchParams();
@@ -101,93 +102,130 @@ function LoginContent() {
     };
 
     return (
-        <AuthShell variant="dark">
-            <AuthCard variant="dark">
-                <Link href="/" className={c.backLink}>
-                    ← Back to Home
-                </Link>
-
-                <AuthBrand
-                    variant="dark"
-                    title="Admin Sign In"
-                    subtitle="Welcome back — enter your credentials to continue."
-                />
-
-                {showSuccess ? (
-                    <AuthSuccessBanner variant="dark">
-                        A verification link has been sent to your email. Please verify your email before signing in.
-                    </AuthSuccessBanner>
-                ) : null}
-
-                <form className="block" onSubmit={handleSubmit}>
-                    <AuthField variant="dark" label="Email address" htmlFor="email" required>
-                        <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            placeholder="name@example.com"
-                            className={c.input}
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                        />
-                    </AuthField>
-
-                    <AuthField
-                        variant="dark"
-                        label="Password"
-                        htmlFor="password"
-                        required
-                        labelRight={
-                            <Link href="/forgot-password" className={`text-[13px] ${c.accentLink}`}>
-                                Forgot password?
-                            </Link>
-                        }
-                    >
-                        <PasswordField
-                            id="password"
-                            name="password"
-                            placeholder="••••••••"
-                            className={c.input}
-                            value={formData.password}
-                            onChange={handleChange}
-                            autoComplete="current-password"
-                            required
-                            tone="dark"
-                        />
-                    </AuthField>
-
-                    <AuthErrorBanner variant="dark">{error}</AuthErrorBanner>
-
-                    {showResend && !resendSuccess ? (
-                        <button
-                            type="button"
-                            onClick={handleResend}
-                            disabled={resendLoading}
-                            className="w-full py-2.5 bg-[rgba(198,255,61,0.1)] border border-[rgba(198,255,61,0.35)] rounded-[10px] text-[#d9ff6e] font-semibold text-sm disabled:opacity-50"
+        <AuthShell variant="light">
+            <AuthCard variant="light">
+                <div className="flex flex-col items-center justify-center w-full">
+                    {/* Back to Home Link */}
+                    <div className="w-full flex justify-start mb-4">
+                        <Link
+                            href="/"
+                            className="inline-flex items-center gap-2 text-xs font-semibold text-[#5c5c66] hover:text-[#0a0a0f] transition-colors group"
                         >
-                            {resendLoading ? "Resending..." : "Resend Verification Link"}
-                        </button>
-                    ) : null}
+                            <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-1" />
+                            <span>Back to Home</span>
+                        </Link>
+                    </div>
 
-                    {resendSuccess ? (
-                        <div className="bg-[rgba(16,185,129,0.12)] border border-[rgba(16,185,129,0.3)] text-[#6ee7b7] px-[14px] py-3 rounded-[10px] text-[13px] text-center">
-                            {resendSuccess}
+                    {/* Title */}
+                    <div className="flex flex-col items-center text-center mb-6">
+                        <AuthBrand
+                            variant="light"
+                            title="Admin Sign In"
+                        />
+                    </div>
+
+                    {showSuccess ? (
+                        <div className="w-full max-w-[360px] mb-4">
+                            <AuthSuccessBanner variant="light">
+                                Your club has been registered successfully. You can now sign in below.
+                            </AuthSuccessBanner>
                         </div>
                     ) : null}
 
-                    <button type="submit" className={c.primaryBtn} disabled={loading}>
-                        {loading ? "Signing in…" : "Sign in →"}
-                    </button>
-                </form>
+                    {/* Centered Form Block */}
+                    <form className="block space-y-4 max-w-[360px] w-full text-left" onSubmit={handleSubmit}>
+                        <AuthField variant="light" label="Email Address" htmlFor="email" required>
+                            <div className="relative">
+                                <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
+                                <input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    placeholder="admin@example.com"
+                                    className={c.input}
+                                    style={{ paddingLeft: "42px" }}
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
+                        </AuthField>
 
-                <AuthNavLinks
-                    variant="dark"
-                    showBackHome={false}
-                    footerPrompt="Don't have an account?"
-                    footerHref="/register"
-                    footerLabel="Create one free"
-                />
+                        <AuthField
+                            variant="light"
+                            label="Password"
+                            htmlFor="password"
+                            required
+                            labelRight={
+                                <Link href="/forgot-password" className={`text-[13px] ${c.accentLink}`}>
+                                    Forgot password?
+                                </Link>
+                            }
+                        >
+                            <div className="relative">
+                                <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
+                                <PasswordField
+                                    id="password"
+                                    name="password"
+                                    placeholder="••••••••"
+                                    className={c.input}
+                                    inputStyle={{ paddingLeft: "42px" }}
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    autoComplete="current-password"
+                                    required
+                                    tone="light"
+                                />
+                            </div>
+                        </AuthField>
+
+                        <AuthErrorBanner variant="light">{error}</AuthErrorBanner>
+
+                        {showResend && !resendSuccess ? (
+                            <button
+                                type="button"
+                                onClick={handleResend}
+                                disabled={resendLoading}
+                                className="w-full py-2.5 bg-[#c6ff3d]/20 border border-[#c6ff3d] rounded-[10px] text-[#0a0a0f] font-semibold text-sm disabled:opacity-50 hover:bg-[#c6ff3d]/30 transition-all"
+                            >
+                                {resendLoading ? "Resending..." : "Resend Verification Link"}
+                            </button>
+                        ) : null}
+
+                        {resendSuccess ? (
+                            <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-[14px] py-3 rounded-[10px] text-[13px] text-center font-medium">
+                                {resendSuccess}
+                            </div>
+                        ) : null}
+
+                        <button
+                            type="submit"
+                            className={`${c.primaryBtn} flex items-center justify-center gap-2 font-bold tracking-wide transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 !mt-6`}
+                            disabled={loading}
+                        >
+                            <span>{loading ? "Signing in…" : "Sign in to Dashboard"}</span>
+                            {!loading && <ArrowRight className="w-4 h-4" />}
+                        </button>
+
+                        <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                            <span className="inline-flex items-center gap-1.5 font-medium">
+                                <ShieldCheck className="w-3.5 h-3.5 text-[#10b981]" />
+                                256-Bit Encrypted
+                            </span>
+                            <span>Mokijo Sports v1.0</span>
+                        </div>
+                    </form>
+
+                    <div className="w-full max-w-[360px]">
+                        <AuthNavLinks
+                            variant="light"
+                            showBackHome={false}
+                            footerPrompt="Don't have an account?"
+                            footerHref="/register"
+                            footerLabel="Create one free"
+                        />
+                    </div>
+                </div>
             </AuthCard>
         </AuthShell>
     );
@@ -200,3 +238,5 @@ export default function LoginPage() {
         </Suspense>
     );
 }
+
+

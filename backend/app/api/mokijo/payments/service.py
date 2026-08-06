@@ -96,8 +96,9 @@ async def create_razorpay_payment_order(request: Request, db: Session, order_req
                     member_email = member.get("email")
                     member_phone = member.get("phone")
 
-            owner = crud.get_user_club_name(db, payment.get("owner_id"))
-            club_name = owner.get("club_name") if owner and owner.get("club_name") else "Mukijo Club"
+            club_name = crud.get_user_club_name(db, payment.get("owner_id"))
+            if not club_name or not isinstance(club_name, str):
+                club_name = "Mukijo Club"
 
             return {
                 "key_id": key_id,
@@ -164,8 +165,8 @@ async def verify_razorpay_payment(request: Request, db: Session, verification: s
         raise HTTPException(status_code=500, detail="Internal server error")
 
 async def get_payments(
-    self,
     request: Request,
+    db: Session,
     owner_id: int,
     status: str,
     group_id: Optional[int],
@@ -249,66 +250,68 @@ async def get_payments_member_status(request: Request, db: Session, owner_id: in
             members = crud.get_members_by_group_ids(db, group_ids)
 
             payments = crud.get_payments_by_owner_desc(db, owner_id)
-
             group_map = {g.get("id"): g for g in groups}
-            payments_by_member = {}
-            payments_by_group = {}
-            club_wide_payments = []
-
-            for payment in payments:
-                m_id = payment.get("member_id")
-                g_id = payment.get("group_id")
-                if m_id:
-                    payments_by_member.setdefault(m_id, []).append(payment)
-                elif g_id:
-                    payments_by_group.setdefault(g_id, []).append(payment)
-                else:
-                    club_wide_payments.append(payment)
-
-                def display_status(p):
-                    return "paid" if get_effective_payment_status(p) == "paid" else "unpaid"
-
-                def member_details(m):
-                    g_id = m.get("group_id")
-                    group_obj = group_map.get(g_id)
-                    return {
-                        "member_id": m.get("id"),
-                        "full_name": f"{m.get('first_name')} {m.get('last_name')}".strip(),
-                        "email": m.get("email"),
-                        "role": m.get("role") or "Member",
-                        "sport": group_obj.get("activity") if group_obj else "N/A",
-                        "group_name": group_obj.get("group_name") if group_obj else "N/A",
-                        "member_group_name": group_obj.get("group_name") if group_obj else "N/A",
-                    }
+            member_map = {m.get("id"): m for m in members}
 
             result = []
-            for member in members:
-                m_id = member.get("id")
-                g_id = member.get("group_id")
-                applicable_payments = [
-                    *payments_by_member.get(m_id, []),
-                    *payments_by_group.get(g_id, []),
-                    *club_wide_payments,
-                ]
+            seen_keys = set()
 
-                if not applicable_payments:
-                    result.append({
-                        **member_details(member),
-                        "payment_for": "No Assigned Payments",
-                        "amount": 0,
-                        "status": "unpaid",
-                        "payment_id": None,
-                    })
+            for payment in payments:
+                eff_status = get_effective_payment_status(payment)
+                if eff_status != "paid":
+                    continue
+
+                p_id = payment.get("id")
+                if p_id and p_id in seen_keys:
+                    continue
+                if p_id:
+                    seen_keys.add(p_id)
+
+                m_id = payment.get("member_id")
+                member = member_map.get(m_id) if m_id else None
+
+                full_name = "Paid Contributor"
+                email = "N/A"
+                role = "Member"
+                sport = "N/A"
+                group_name = "General Club"
+
+                if member:
+                    full_name = f"{member.get('first_name')} {member.get('last_name')}".strip()
+                    email = member.get("email") or "N/A"
+                    role = member.get("role") or "Member"
+                    g_id = member.get("group_id")
+                    group_obj = group_map.get(g_id)
+                    if group_obj:
+                        sport = group_obj.get("activity") or "N/A"
+                        group_name = group_obj.get("group_name") or "General Club"
                 else:
-                    for payment in applicable_payments:
-                        result.append({
-                            **member_details(member),
-                            "payment_for": payment.get("title"),
-                            "amount": payment.get("amount") or 0,
-                            "status": display_status(payment),
-                            "raw_status": get_effective_payment_status(payment),
-                            "payment_id": payment.get("id"),
-                        })
+                    desc = payment.get("description") or ""
+                    parts = {}
+                    if "|" in desc:
+                        for part in desc.split("|"):
+                            if ":" in part:
+                                k, v = part.split(":", 1)
+                                parts[k.strip()] = v.strip()
+                    if parts.get("donor_name"):
+                        full_name = parts.get("donor_name")
+                    if parts.get("donor_email"):
+                        email = parts.get("donor_email")
+
+                result.append({
+                    "member_id": m_id,
+                    "full_name": full_name,
+                    "email": email,
+                    "role": role,
+                    "sport": sport,
+                    "group_name": group_name,
+                    "member_group_name": group_name,
+                    "payment_for": payment.get("title") or "Club Payment",
+                    "amount": payment.get("amount") or 0,
+                    "status": "paid",
+                    "raw_status": "paid",
+                    "payment_id": p_id,
+                })
             return result
     except HTTPException as he:
         raise he
@@ -354,8 +357,8 @@ async def create_payment(request: Request, db: Session, payment: schemas.Payment
         raise HTTPException(status_code=500, detail="Internal server error")
 
 async def update_payment(
-    self,
     request: Request,
+    db: Session,
     payment_id: int,
     owner_id: int,
     payment_update: schemas.PaymentUpdate,
@@ -401,8 +404,8 @@ async def update_payment(
             raise HTTPException(status_code=500, detail="Internal server error")
 
 async def delete_payment(
-    self,
     request: Request,
+    db: Session,
     payment_id: int,
     owner_id: int,
     x_is_member: Optional[str],

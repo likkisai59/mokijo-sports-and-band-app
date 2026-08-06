@@ -11,7 +11,12 @@ export default function MemberMyTrainingsPage() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const userId = localStorage.getItem("userId") || localStorage.getItem("memberId") || "0";
+        const userId =
+            localStorage.getItem("userId") ||
+            localStorage.getItem("memberId") ||
+            localStorage.getItem("user_id") ||
+            localStorage.getItem("member_id") ||
+            "0";
         if (!userId || userId === "0") {
             setError("Session expired. Please log in.");
             setLoading(false);

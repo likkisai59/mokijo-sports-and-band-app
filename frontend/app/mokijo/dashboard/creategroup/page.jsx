@@ -43,25 +43,33 @@ export default function CreateGroupPage() {
 
         setIsSubmitting(true);
         const userId = localStorage.getItem("userId");
+        const token = localStorage.getItem("accessToken");
 
         const groupData = {
             activity: activity,
             group_name: groupName,
             description: description,
-            owner_id: userId,
+            owner_id: userId ? parseInt(userId) : null,
         };
+
+        const headers = {
+            "Content-Type": "application/json",
+        };
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
 
         try {
             const response = await fetch(`${API_BASE_URL}/groups`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: headers,
                 body: JSON.stringify(groupData),
             });
 
             if (!response.ok) {
-                alert("Something went wrong");
+                const errData = await response.json().catch(() => null);
+                const errMsg = errData?.detail || "Failed to create group. Please check your login session.";
+                alert(errMsg);
                 setIsSubmitting(false);
                 return;
             }

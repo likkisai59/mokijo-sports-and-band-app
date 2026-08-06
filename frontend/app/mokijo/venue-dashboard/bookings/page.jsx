@@ -21,9 +21,11 @@ export default function BookingsPage() {
     const fetchOwnerBookings = async () => {
         const ownerId = localStorage.getItem("venueOwnerId");
         if (!ownerId) return;
+        const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
         setLoading(true);
         try {
-            const res = await fetch(`${API}/bookings/venue-owner/${ownerId}`);
+            const res = await fetch(`${API}/bookings/venue-owner/${ownerId}`, { headers });
             if (res.ok) {
                 const data = await res.json();
                 setBookings(data);
@@ -42,9 +44,12 @@ export default function BookingsPage() {
 
     const handleBookingAction = async (bookingId, action) => {
         setActionLoading(bookingId);
+        const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
         try {
             const res = await fetch(`${API}/bookings/${bookingId}/${action}`, {
                 method: "POST",
+                headers,
             });
             if (res.ok) {
                 await fetchOwnerBookings();

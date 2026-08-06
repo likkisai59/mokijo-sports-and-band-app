@@ -54,11 +54,13 @@ export default function MyVenuesPage() {
     const [saving, setSaving] = useState(false);
     const [msg, setMsg] = useState("");
 
-    const ownerId = typeof window !== "undefined" ? localStorage.getItem("venueOwnerId") : null;
+    const ownerId = typeof window !== "undefined" ? (localStorage.getItem("venueOwnerId") || localStorage.getItem("userId")) : null;
 
     const load = async () => {
         if (!ownerId) return;
-        const r = await fetch(`${API}/venue-owner/${ownerId}/venues`);
+        const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const r = await fetch(`${API}/venue-owner/${ownerId}/venues`, { headers });
         if (r.ok) setVenues(await r.json());
         setLoading(false);
     };
@@ -139,9 +141,11 @@ export default function MyVenuesPage() {
             state_name: editVenue.state_name || null,
             postal_code: editVenue.postal_code || null,
         };
+        const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+        const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
         const r = await fetch(`${API}/venues/${editVenue.id}?owner_id=${ownerId}`, {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", ...authHeader },
             body: JSON.stringify(body),
         });
         if (r.ok) {

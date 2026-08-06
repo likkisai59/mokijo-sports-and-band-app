@@ -107,11 +107,18 @@ export default function UserDashboard() {
     }, [dropdownOpen]);
 
     useEffect(() => {
+        const storedUserId = localStorage.getItem("userId");
         const storedName = localStorage.getItem("userName");
         const storedEmail = localStorage.getItem("userEmail");
+
+        if (!storedUserId) {
+            router.push("/login-user");
+            return;
+        }
+
         if (storedName) setUserName(storedName);
         if (storedEmail) setUserEmail(storedEmail);
-    }, []);
+    }, [router]);
 
     // Fetch Venues dynamically with filters
     useEffect(() => {
@@ -305,9 +312,13 @@ export default function UserDashboard() {
         if (!userId) return;
         setJoiningGameId(gameId);
         try {
+            const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
             const res = await fetch(`${API_BASE_URL}/games/${gameId}/join?user_id=${userId}`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
                 body: JSON.stringify({}),
             });
 
@@ -356,7 +367,10 @@ export default function UserDashboard() {
     };
 
     useEffect(() => {
-        if (activeTab === "my-trainings") {
+        if (activeTab === "home") {
+            fetchBookings();
+            fetchHostedGames();
+        } else if (activeTab === "my-trainings") {
             fetchMyTrainings();
         } else if (activeTab === "my-bookings") {
             fetchBookings();
@@ -410,9 +424,12 @@ export default function UserDashboard() {
     const handleCancelBooking = async (bookingId) => {
         if (!confirm("Are you sure you want to cancel this slot reservation?")) return;
         setCancellingId(bookingId);
+        const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
         try {
             const res = await fetch(`${API_BASE_URL}/bookings/${bookingId}/cancel`, {
                 method: "POST",
+                headers,
             });
             if (res.ok) {
                 await fetchBookings();
@@ -452,9 +469,10 @@ export default function UserDashboard() {
         };
 
         try {
+            const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
             const res = await fetch(`${API_BASE_URL}/games`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
                 body: JSON.stringify(payload),
             });
 
@@ -1416,6 +1434,7 @@ export default function UserDashboard() {
                                             );
                                             const spotsLeft = game.total_spots - game.current_players;
                                             const isFull = spotsLeft <= 0;
+                                            const isHost = game.host_id === Number(userId);
 
                                             return (
                                                 <div key={game.id} style={styles.miniGameCard}>
@@ -1431,16 +1450,20 @@ export default function UserDashboard() {
                                                         <span
                                                             style={{
                                                                 ...styles.badge,
-                                                                backgroundColor: isFull
+                                                                backgroundColor: isHost
+                                                                    ? "rgba(59, 130, 246, 0.1)"
+                                                                    : isFull
                                                                     ? "rgba(239, 68, 68, 0.1)"
                                                                     : "rgba(198, 255, 61, 0.1)",
-                                                                color: isFull ? "#f87171" : "#c6ff3d",
-                                                                borderColor: isFull
+                                                                color: isHost ? "#60a5fa" : isFull ? "#f87171" : "#c6ff3d",
+                                                                borderColor: isHost
+                                                                    ? "rgba(59, 130, 246, 0.2)"
+                                                                    : isFull
                                                                     ? "rgba(239, 68, 68, 0.2)"
                                                                     : "rgba(198, 255, 61, 0.2)",
                                                             }}
                                                         >
-                                                            {isFull ? "FULL" : "JOINABLE"}
+                                                            {isHost ? "YOUR MATCH" : isFull ? "FULL" : "JOINABLE"}
                                                         </span>
                                                     </div>
 
@@ -1506,8 +1529,10 @@ export default function UserDashboard() {
                                                                 color: "rgba(148, 163, 184, 0.4)",
                                                             }}
                                                         >
-                                                            {isFull
-                                                                ? "Lobby is full. Join waitlist to get auto-promoted on cancellations."
+                                                            {isHost
+                                                                ? "You created this lobby (counted as Player 1)."
+                                                                : isFull
+                                                                ? "Lobby is full. Join waitlist to get auto-promoted."
                                                                 : `Only ${spotsLeft} spots remaining.`}
                                                         </span>
                                                     </div>
@@ -1523,7 +1548,23 @@ export default function UserDashboard() {
                                                                 ? "Instant Join ⚡"
                                                                 : "Requires Host Approval ⏳"}
                                                         </span>
-                                                        {isFull ? (
+                                                        {isHost ? (
+                                                            <button
+                                                                disabled
+                                                                style={{
+                                                                    ...styles.cancelBtn,
+                                                                    backgroundColor: "rgba(255, 255, 255, 0.08)",
+                                                                    color: "rgba(148, 163, 184, 0.6)",
+                                                                    fontWeight: "bold",
+                                                                    borderColor: "transparent",
+                                                                    cursor: "not-allowed",
+                                                                    padding: "6px 12px",
+                                                                    fontSize: "12px",
+                                                                }}
+                                                            >
+                                                                Hosting (Player 1)
+                                                            </button>
+                                                        ) : isFull ? (
                                                             <button
                                                                 onClick={() => handleJoinWaitlist(game.id)}
                                                                 style={{

@@ -16,7 +16,7 @@ def get_match_by_id(db: Session, match_id: int):
     return to_dict(db.query(Match).filter(Match.id == match_id).first())
 
 def get_match_for_update(db: Session, match_id: int):
-    return to_dict(db.query(Match).filter(Match.id == match_id).with_for_update().first())
+    return to_dict(db.query(Match).filter(Match.id == match_id).first())
 
 def get_match_teams(db: Session, match_id: int):
     return to_dict_list(db.query(MatchTeam).filter(MatchTeam.match_id == match_id).order_by(MatchTeam.id.asc()).all())
@@ -80,7 +80,7 @@ def delete_match(db: Session, match_id: int):
         db.commit()
 
 def get_match_team_for_update(db: Session, team_id: int, match_id: int):
-    return to_dict(db.query(MatchTeam).filter(MatchTeam.id == team_id, MatchTeam.match_id == match_id).with_for_update().first())
+    return to_dict(db.query(MatchTeam).filter(MatchTeam.id == team_id, MatchTeam.match_id == match_id).first())
 
 def update_team_score(db: Session, team_id: int, new_score: int):
     team = db.query(MatchTeam).filter(MatchTeam.id == team_id).first()

@@ -29,7 +29,9 @@ export default function DashboardMatchesPage() {
     const loadMatches = async () => {
         if (!ownerId) return;
         try {
-            const r = await fetch(`${API}/matches?owner_id=${ownerId}`);
+            const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            const r = await fetch(`${API}/matches?owner_id=${ownerId}`, { headers });
             if (r.ok) {
                 const data = await r.json();
                 setMatches(data);
@@ -55,10 +57,14 @@ export default function DashboardMatchesPage() {
     const startMatch = async (matchId) => {
         if (!confirm("Are you sure you want to start this match? It will go LIVE and live scoring will be enabled."))
             return;
+        const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
         try {
             const r = await fetch(`${API}/matches/${matchId}`, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
                 body: JSON.stringify({ status: "live" }),
             });
             if (r.ok) {
@@ -98,9 +104,11 @@ export default function DashboardMatchesPage() {
 
     const deleteMatch = async (matchId) => {
         if (!confirm("Are you sure you want to delete this match? This action cannot be undone.")) return;
+        const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
         try {
             const r = await fetch(`${API}/matches/${matchId}`, {
                 method: "DELETE",
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
             });
             if (r.ok) {
                 loadMatches();

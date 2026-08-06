@@ -82,6 +82,15 @@ def update_player_status(db: Session, player_id: str, status: str):
         player.status = status
         db.commit()
 
+def update_player_rejoin(db: Session, player_id: str, status: str, joined_at: datetime):
+    db.query(GamePlayer).filter(GamePlayer.id == player_id).update({
+        "status": status,
+        "joined_at": joined_at,
+        "cancelled_at": None,
+        "payment_id": None
+    }, synchronize_session=False)
+    db.commit()
+
 def delete_player(db: Session, player_id: str):
     player = db.query(GamePlayer).filter(GamePlayer.id == player_id).first()
     if player:

@@ -46,7 +46,9 @@ export default function DashboardMatchManagePage() {
     // Fetch match info (fallback / initial load)
     const fetchMatch = async () => {
         try {
-            const r = await fetch(`${API}/matches/${matchId}`);
+            const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            const r = await fetch(`${API}/matches/${matchId}`, { headers });
             if (r.ok) {
                 const data = await r.json();
                 setMatch(data);
@@ -144,10 +146,12 @@ export default function DashboardMatchManagePage() {
             const tA = match.teams[0];
             const tB = match.teams[1];
             const owner = match.owner_id;
+            const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
             if (tA && tA.group_id) {
                 try {
-                    const r = await fetch(`${API}/groups/${tA.group_id}/members?owner_id=${owner}`);
+                    const r = await fetch(`${API}/groups/${tA.group_id}/members?owner_id=${owner}`, { headers });
                     if (r.ok) {
                         const data = await r.json();
                         setTeamAMembers(data || []);
@@ -159,7 +163,7 @@ export default function DashboardMatchManagePage() {
 
             if (tB && tB.group_id) {
                 try {
-                    const r = await fetch(`${API}/groups/${tB.group_id}/members?owner_id=${owner}`);
+                    const r = await fetch(`${API}/groups/${tB.group_id}/members?owner_id=${owner}`, { headers });
                     if (r.ok) {
                         const data = await r.json();
                         setTeamBMembers(data || []);
@@ -178,11 +182,18 @@ export default function DashboardMatchManagePage() {
         const newScore = Math.max(0, currentScore + delta);
         if (newScore === currentScore) return;
 
+        // Optimistic UI update for instant score feedback
+        setMatch((prev) => {
+            if (!prev) return prev;
+            const updatedTeams = prev.teams.map((t) => (t.id === teamId ? { ...t, score: newScore } : t));
+            return { ...prev, teams: updatedTeams };
+        });
+
         const team = match.teams.find((t) => t.id === teamId);
-        let scoreEventDesc = `${team.team_name} score updated to ${newScore}.`;
+        let scoreEventDesc = `${team?.team_name || "Team"} score updated to ${newScore}.`;
         let logEventType = "score_update";
 
-        if (delta > 0) {
+        if (delta > 0 && team) {
             if (match.sport === "Football") {
                 scoreEventDesc = `GOAL! ${team.team_name} scores!`;
                 logEventType = "goal";
@@ -192,10 +203,16 @@ export default function DashboardMatchManagePage() {
             }
         }
 
+        const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+        const headers = {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        };
+
         try {
             const r = await fetch(`${API}/matches/${matchId}/score`, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                headers,
                 body: JSON.stringify({
                     team_id: teamId,
                     new_score: newScore,
@@ -207,12 +224,16 @@ export default function DashboardMatchManagePage() {
 
             if (!r.ok) {
                 toast.error("Failed to update score.");
+                fetchMatch();
             } else {
+                const updatedData = await r.json().catch(() => null);
+                if (updatedData) setMatch(updatedData);
                 toast.success("Score updated! ⚽");
             }
         } catch (err) {
             console.error("Error updating score:", err);
             toast.error("Error communicating with server.");
+            fetchMatch();
         }
     };
 
@@ -222,10 +243,16 @@ export default function DashboardMatchManagePage() {
         if (!eventDesc.trim()) return;
 
         setSubmittingEvent(true);
+        const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+        const headers = {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        };
+
         try {
             const r = await fetch(`${API}/matches/${matchId}/events`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers,
                 body: JSON.stringify({
                     event_type: eventType,
                     description: eventDesc.trim(),

@@ -88,7 +88,10 @@ function CheckoutContent() {
                         setError("Failed to load booking details.");
                     }
                 } else if (gameId) {
-                    const res = await fetch(`${API_BASE_URL}/games/${gameId}`);
+                    const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+                    const res = await fetch(`${API_BASE_URL}/games/${gameId}`, {
+                        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+                    });
                     if (res.ok) {
                         const data = await res.json();
                         setBooking({
@@ -232,30 +235,104 @@ function CheckoutContent() {
             }
 
             if (gameId) {
-                const res = await fetch(`${API_BASE_URL}/webhooks/payments/game-join`, {
+                const userId = localStorage.getItem("userId");
+                if (!userId) {
+                    setError("Please sign in to complete payment.");
+                    setPaying(false);
+                    router.push("/login-user");
+                    return;
+                }
+
+                await loadRazorpayCheckout();
+
+                const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+                const orderRes = await fetch(`${API_BASE_URL}/games/${gameId}/razorpay/order`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
                     },
                     body: JSON.stringify({
-                        event: "payment.captured",
-                        payment_id: "pay_game_" + Math.random().toString(36).substring(2, 9).toUpperCase(),
-                        game_id: gameId,
-                        user_id: Number(localStorage.getItem("userId") || 2),
+                        user_id: Number(userId),
                     }),
                 });
 
-                if (res.ok) {
-                    setPaid(true);
-                } else {
-                    setError("Payment webhook routing failed.");
+                if (!orderRes.ok) {
+                    const errorData = await orderRes.json().catch(() => ({}));
+                    throw new Error(errorData.detail || "Failed to create payment order for match.");
                 }
+
+                const order = await orderRes.json();
+                if (order.free) {
+                    setPaid(true);
+                    return;
+                }
+
+                if (!order?.razorpay_order_id || !order?.key_id) {
+                    throw new Error("Razorpay is not configured correctly. Please try again later.");
+                }
+
+                const checkout = new window.Razorpay({
+                    key: order.key_id,
+                    amount: order.amount,
+                    currency: order.currency,
+                    name: order.name || "Mukijo Sports Arena",
+                    description: order.description || "Match Join Payment",
+                    order_id: order.razorpay_order_id,
+                    prefill: {
+                        name: order.prefill_name || "",
+                        email: order.prefill_email || "",
+                        contact: order.prefill_contact || "",
+                    },
+                    theme: { color: "#c6ff3d" },
+                    handler: async (response) => {
+                        try {
+                            const verifyRes = await fetch(`${API_BASE_URL}/games/${gameId}/razorpay/verify`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                                },
+                                body: JSON.stringify({
+                                    user_id: Number(userId),
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                }),
+                            });
+
+                            if (!verifyRes.ok) {
+                                const errorData = await verifyRes.json().catch(() => ({}));
+                                setError(errorData.detail || "Payment verification failed.");
+                                setPaying(false);
+                                return;
+                            }
+
+                            setPaid(true);
+                        } catch (verifyErr) {
+                            console.error(verifyErr);
+                            setError("Payment completed but verification failed. Contact support.");
+                        } finally {
+                            setPaying(false);
+                        }
+                    },
+                    modal: {
+                        ondismiss: () => setPaying(false),
+                    },
+                });
+
+                checkout.on("payment.failed", (response) => {
+                    setError(response?.error?.description || "Payment failed. Please try again.");
+                    setPaying(false);
+                });
+
+                checkout.open();
+                return;
             }
         } catch (err) {
             console.error(err);
             setError(err?.message || "Connection issue. Please verify and try again.");
-        } finally {
-            if (!bookingId) setPaying(false);
+            setPaying(false);
         }
     };
 

@@ -228,9 +228,12 @@ export default function NotificationBell({
         const load = async () => {
             setLoading(true);
             try {
+                const token = localStorage.getItem("accessToken");
+                const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
                 const [appRes, overviewRes] = await Promise.all([
                     fetch(`${API_BASE_URL}/signup-submissions?owner_id=${userId}`).catch(() => null),
-                    fetch(`${API_BASE_URL}/dashboard/overview?owner_id=${userId}`).catch(() => null),
+                    fetch(`${API_BASE_URL}/dashboard/overview?owner_id=${userId}`, { headers: authHeaders }).catch(() => null),
                 ]);
 
                 if (appRes?.ok) {

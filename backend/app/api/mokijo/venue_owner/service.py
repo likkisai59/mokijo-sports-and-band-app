@@ -3,6 +3,7 @@ from typing import List
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from datetime import date, datetime
+import json
 
 from app.models import schemas
 from app.connectors.connection_service import ConnectionService
@@ -29,27 +30,35 @@ async def register_venue_owner(request: Request, db: Session, payload: schemas.V
                 "phone": payload.owner.phone.strip(),
                 "aadhar_number": payload.owner.aadhar_number,
                 "password": hash_password(payload.owner.password.strip()),
-                "is_verified": True
+                "approval_status": "PENDING_APPROVAL",
+                "approved_at": None,
+                "is_verified": False
             }
             owner_id = crud.create_venue_owner(db, insert_owner)
 
             created_venues_count = 0
             for v in payload.venues:
+                sports_supp = json.dumps(v.sports_supported) if isinstance(v.sports_supported, (dict, list)) else v.sports_supported
+                sport_pr = json.dumps(v.sport_prices) if isinstance(v.sport_prices, (dict, list)) else v.sport_prices
+                amen = json.dumps(v.amenities) if isinstance(v.amenities, (dict, list)) else v.amenities
+                v_imgs = json.dumps(v.venue_images) if isinstance(v.venue_images, (dict, list)) else v.venue_images
+                d_open = json.dumps(v.days_open) if isinstance(v.days_open, (dict, list)) else v.days_open
+
                 insert_venue = {
                     "venue_owner_id": owner_id,
                     "owner_id": None,
                     "name": v.name.strip(),
                     "location": v.location.strip(),
                     "landmark": v.landmark,
-                    "sports_supported": v.sports_supported,
-                    "sport_prices": v.sport_prices,
+                    "sports_supported": sports_supp,
+                    "sport_prices": sport_pr,
                     "base_price_per_hour": v.base_price_per_hour or 0,
-                    "amenities": v.amenities,
+                    "amenities": amen,
                     "cover_image": v.cover_image,
-                    "venue_images": v.venue_images,
+                    "venue_images": v_imgs,
                     "opening_time": v.opening_time,
                     "closing_time": v.closing_time,
-                    "days_open": v.days_open,
+                    "days_open": d_open,
                     "slot_duration": v.slot_duration or 60,
                     "rating": 5.0,
                     "verification_status": "DRAFT",
@@ -64,16 +73,17 @@ async def register_venue_owner(request: Request, db: Session, payload: schemas.V
 
             owner = crud.get_venue_owner_by_id(db, owner_id)
             return {
-                "message": "Venue registered successfully!",
+                "message": "Venue owner registered successfully! Application submitted to Super Admin for approval.",
                 "ownerId": owner.get("id"),
                 "ownerName": owner.get("full_name"),
-                "venuesCount": created_venues_count
+                "venuesCount": created_venues_count,
+                "approval_status": "PENDING_APPROVAL"
             }
     except HTTPException as he:
         raise he
     except Exception as e:
         await logger.log_error(request=request, message=f"Failed to register venue owner: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail=str(e) if str(e) else "Failed to register venue owner.")
 
 async def login_venue_owner(request: Request, db: Session, credentials: schemas.VenueOwnerLogin):
     try:
@@ -85,6 +95,13 @@ async def login_venue_owner(request: Request, db: Session, credentials: schemas.
                 raise HTTPException(status_code=400, detail="Invalid email or password.")
             if not verify_password(credentials.password.strip(), owner.get("password")):
                 raise HTTPException(status_code=400, detail="Invalid email or password.")
+
+            status_val = owner.get("approval_status")
+            if status_val == "PENDING_APPROVAL":
+                raise HTTPException(status_code=403, detail="Your Venue Owner registration is pending Super Admin approval. Please try again after approval.")
+            elif status_val == "REJECTED":
+                reason = owner.get("rejection_reason") or "Application rejected by Super Admin."
+                raise HTTPException(status_code=403, detail=f"Your registration was rejected: {reason}")
 
             # Migrate plain password if not hashed properly
             hashed_pw = owner.get("password")

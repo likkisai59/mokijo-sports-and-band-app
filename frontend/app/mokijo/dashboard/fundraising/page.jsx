@@ -196,12 +196,19 @@ export default function FundraisingPage() {
     const [paymentsError, setPaymentsError] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
 
+    const getAuthHeaders = () => {
+        const token = typeof window !== "undefined" ? (localStorage.getItem("accessToken") || localStorage.getItem("access_token")) : null;
+        return token ? { Authorization: `Bearer ${token}` } : {};
+    };
+
     const fetchCampaigns = async () => {
-        const userId = localStorage.getItem("userId");
+        const userId = localStorage.getItem("userId") || localStorage.getItem("user_id");
         if (!userId) return;
 
         try {
-            const res = await fetch(`${API_BASE_URL}/fundraising?owner_id=${userId}`);
+            const res = await fetch(`${API_BASE_URL}/fundraising?owner_id=${userId}`, {
+                headers: { ...getAuthHeaders() },
+            });
             if (res.ok) {
                 const data = await res.json();
                 setCampaigns(data);
@@ -214,7 +221,7 @@ export default function FundraisingPage() {
     };
 
     const fetchPayments = async () => {
-        const userId = localStorage.getItem("userId");
+        const userId = localStorage.getItem("userId") || localStorage.getItem("user_id");
         if (!userId) return;
 
         setPaymentsLoading(true);
@@ -223,9 +230,11 @@ export default function FundraisingPage() {
         try {
             const [paymentsResponse, membersResponse] = await Promise.all([
                 fetch(`${API_BASE_URL}/payments/member-status?owner_id=${userId}`, {
-                    headers: { "X-Is-Member": "false" },
+                    headers: { "X-Is-Member": "false", ...getAuthHeaders() },
                 }),
-                fetch(`${API_BASE_URL}/members?owner_id=${userId}`),
+                fetch(`${API_BASE_URL}/members?owner_id=${userId}`, {
+                    headers: { ...getAuthHeaders() },
+                }),
             ]);
 
             if (paymentsResponse.ok && membersResponse.ok) {
@@ -262,10 +271,28 @@ export default function FundraisingPage() {
     }, []);
 
     const filteredPayments = useMemo(() => {
-        const query = searchQuery.toLowerCase().trim();
-        if (!query) return payments;
+        const paidOnly = (payments || []).filter((payment) => {
+            const statusClean = String(payment.status || payment.raw_status || "").toLowerCase();
+            return statusClean === "paid";
+        });
 
-        return payments.filter((payment) => {
+        const seenKeys = new Set();
+        const uniquePaid = [];
+
+        for (const p of paidOnly) {
+            const uniqueKey = p.payment_id
+                ? `pid-${p.payment_id}`
+                : `${p.email || p.full_name}-${p.payment_for}-${p.amount}`;
+            if (!seenKeys.has(uniqueKey)) {
+                seenKeys.add(uniqueKey);
+                uniquePaid.push(p);
+            }
+        }
+
+        const query = searchQuery.toLowerCase().trim();
+        if (!query) return uniquePaid;
+
+        return uniquePaid.filter((payment) => {
             const searchableText = [
                 payment.full_name,
                 payment.email,
@@ -284,11 +311,12 @@ export default function FundraisingPage() {
 
     const handleDelete = async (id) => {
         if (!confirm("Delete this campaign?")) return;
-        const userId = localStorage.getItem("userId");
+        const userId = localStorage.getItem("userId") || localStorage.getItem("user_id");
 
         try {
             const res = await fetch(`${API_BASE_URL}/fundraising/${id}?owner_id=${userId}`, {
                 method: "DELETE",
+                headers: { ...getAuthHeaders() },
             });
             if (res.ok) fetchCampaigns();
         } catch {

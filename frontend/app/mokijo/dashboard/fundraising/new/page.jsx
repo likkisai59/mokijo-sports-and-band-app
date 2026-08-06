@@ -22,7 +22,8 @@ export default function NewCampaignPage() {
         e.preventDefault();
         if (!form.title || !form.goal) return;
 
-        const userId = localStorage.getItem("userId");
+        const token = typeof window !== "undefined" ? (localStorage.getItem("accessToken") || localStorage.getItem("access_token")) : null;
+        const userId = typeof window !== "undefined" ? (localStorage.getItem("userId") || localStorage.getItem("user_id")) : null;
         if (!userId) {
             alert("Please log in first");
             return;
@@ -30,9 +31,14 @@ export default function NewCampaignPage() {
 
         setLoading(true);
         try {
+            const headers = {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            };
+
             const res = await fetch(`${API_BASE_URL}/fundraising`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers,
                 body: JSON.stringify({
                     ...form,
                     owner_id: parseInt(userId),
@@ -43,7 +49,7 @@ export default function NewCampaignPage() {
             if (res.ok) {
                 router.push("/dashboard/fundraising");
             } else {
-                const err = await res.json();
+                const err = await res.json().catch(() => ({}));
                 alert(err.detail || "Failed to create campaign");
             }
         } catch (error) {

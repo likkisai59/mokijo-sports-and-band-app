@@ -48,7 +48,7 @@ export default function TopHeader({ isMobileMenuOpen = false, onMenuToggle }) {
                 >
                     {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
                 </button>
-                <strong className="logo">Mukijo</strong>
+                <span className="auth-brand text-[24px] md:text-[28px] font-black uppercase tracking-wider text-white">MUKIJO</span>
             </div>
 
             <div className="user-box" style={{ position: "relative" }}>

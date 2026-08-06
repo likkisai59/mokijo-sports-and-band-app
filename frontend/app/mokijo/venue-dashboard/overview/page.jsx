@@ -26,13 +26,16 @@ export default function VenueOverviewPage() {
 
         const load = async () => {
             try {
-                const vRes = await fetch(`${API}/venue-owner/${ownerId}/venues`);
+                const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+                const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+                const vRes = await fetch(`${API}/venue-owner/${ownerId}/venues`, { headers });
                 const vData = vRes.ok ? await vRes.json() : [];
                 setVenues(vData);
 
                 const analyticsArr = await Promise.all(
                     vData.map((v) =>
-                        fetch(`${API}/venues/${v.id}/analytics`)
+                        fetch(`${API}/venues/${v.id}/analytics`, { headers })
                             .then((r) => (r.ok ? r.json() : null))
                             .catch(() => null)
                     )

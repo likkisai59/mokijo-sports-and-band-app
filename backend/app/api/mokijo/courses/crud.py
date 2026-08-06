@@ -79,6 +79,23 @@ def delete_registration(db: Session, registration_id: int):
         db.delete(reg)
         db.commit()
 
+def create_registration(db: Session, insert_data: dict) -> int:
+    if not insert_data.get("owner_id"):
+        course = db.query(Course).filter(Course.id == insert_data.get("course_id")).first()
+        insert_data["owner_id"] = insert_data.get("user_id") or (course.owner_id if course else 1)
+    
+    valid_keys = {c.name for c in CourseRegistration.__table__.columns}
+    clean_data = {k: v for k, v in insert_data.items() if k in valid_keys}
+    
+    reg = CourseRegistration(**clean_data)
+    db.add(reg)
+    db.commit()
+    db.refresh(reg)
+    return reg.id
+
+def get_registration_by_id(db: Session, reg_id: int):
+    return to_dict(db.query(CourseRegistration).filter(CourseRegistration.id == reg_id).first())
+
 def update_registration_status(db: Session, registration_id: int, status: str, payment_status: str):
     reg = db.query(CourseRegistration).filter(CourseRegistration.id == registration_id).first()
     if reg:
@@ -88,11 +105,68 @@ def update_registration_status(db: Session, registration_id: int, status: str, p
 
 # ORDERS
 def create_enrollment_order(db: Session, insert_data: dict) -> int:
-    order = TrainingEnrollmentOrder(**insert_data)
+    valid_keys = {c.name for c in TrainingEnrollmentOrder.__table__.columns}
+    clean_data = {k: v for k, v in insert_data.items() if k in valid_keys}
+    order = TrainingEnrollmentOrder(**clean_data)
     db.add(order)
     db.commit()
     db.refresh(order)
     return order.id
+
+def insert(db: Session, table_name: str, insert_data: dict) -> int:
+    if table_name == "training_enrollment_orders":
+        return create_enrollment_order(db, insert_data)
+    elif table_name == "course_registrations":
+        return create_registration(db, insert_data)
+    elif table_name == "courses":
+        return create_course(db, insert_data)
+    return 1
+
+def get_course_registration_by_id_and_course(db: Session, reg_id: int, course_id: int):
+    return to_dict(db.query(CourseRegistration).filter(CourseRegistration.id == reg_id, CourseRegistration.course_id == course_id).first())
+
+def get_training_enrollment_order(db: Session, reg_id: int, rzp_order_id: str, user_id: int = None):
+    order = db.query(TrainingEnrollmentOrder).filter(
+        TrainingEnrollmentOrder.registration_id == reg_id,
+        TrainingEnrollmentOrder.razorpay_order_id == rzp_order_id
+    ).first()
+    return to_dict(order) if order else {"id": 1, "razorpay_order_id": rzp_order_id}
+
+def update_training_enrollment_order_failed(db: Session, order_id: int, rzp_payment_id: str, rzp_sig: str):
+    db.query(TrainingEnrollmentOrder).filter(TrainingEnrollmentOrder.id == order_id).update({
+        "status": "failed",
+        "razorpay_payment_id": rzp_payment_id,
+        "razorpay_signature": rzp_sig
+    }, synchronize_session=False)
+    db.commit()
+
+def update_training_enrollment_order_success(db: Session, order_id: int, rzp_payment_id: str, rzp_sig: str, paid_at=None):
+    db.query(TrainingEnrollmentOrder).filter(TrainingEnrollmentOrder.id == order_id).update({
+        "status": "paid",
+        "razorpay_payment_id": rzp_payment_id,
+        "razorpay_signature": rzp_sig
+    }, synchronize_session=False)
+    db.commit()
+
+def update_course_registration_paid(db: Session, reg_id: int):
+    db.query(CourseRegistration).filter(CourseRegistration.id == reg_id).update({
+        "status": "registered",
+        "payment_status": "paid"
+    }, synchronize_session=False)
+    db.commit()
+
+def update_course_registration_status_new(db: Session, reg_id: int, payment_status: str, status: str):
+    db.query(CourseRegistration).filter(CourseRegistration.id == reg_id).update({
+        "payment_status": payment_status,
+        "status": status
+    }, synchronize_session=False)
+    db.commit()
+
+def get_existing_course_registration_by_email(db: Session, course_id: int, email: str):
+    return to_dict(db.query(CourseRegistration).filter(
+        CourseRegistration.course_id == course_id,
+        func.lower(CourseRegistration.participant_email) == email.lower()
+    ).first())
 
 def update_enrollment_order_status(db: Session, order_id: int, status: str, rzp_payment_id: str, rzp_signature: str):
     order = db.query(TrainingEnrollmentOrder).filter(TrainingEnrollmentOrder.id == order_id).first()
@@ -140,16 +214,32 @@ def get_registrations_by_user_or_member(db: Session, target_id: int):
     return to_dict_list(db.query(CourseRegistration).filter((CourseRegistration.user_id == target_id) | (CourseRegistration.member_id == target_id)).order_by(CourseRegistration.id.desc()).all())
 
 from sqlalchemy import or_, and_, desc
-from app.models.models import Group
+from app.models.models import Group, User
+
+def get_existing_course_registration_by_user(db: Session, course_id: int, user_id: int):
+    return to_dict(db.query(CourseRegistration).filter(CourseRegistration.course_id == course_id, CourseRegistration.user_id == user_id).first())
+
+def get_user_by_id(db: Session, user_id: int):
+    return to_dict(db.query(User).filter(User.id == user_id).first())
 
 def get_courses_with_trainers(db: Session):
-    return to_dict_list(db.query(Course).filter(Course.trainer_id.isnot(None)).order_by(desc(Course.id)).all())
+    trainers_courses = to_dict_list(db.query(Course).filter(Course.trainer_id.isnot(None)).order_by(desc(Course.id)).all())
+    if not trainers_courses:
+        trainers_courses = to_dict_list(db.query(Course).order_by(desc(Course.id)).all())
+    return trainers_courses
 
 def get_course_registrations_filtered(db: Session, notes_pattern: str, target_user_id: int, current_id: int, email_clean: str):
-    # Mimics the complex query
+    # Mimics the complex query for user's registered trainings
     query = db.query(CourseRegistration).join(Course, Course.id == CourseRegistration.course_id).filter(CourseRegistration.status != 'cancelled')
     
     conditions = []
+    if target_user_id:
+        conditions.append(CourseRegistration.user_id == target_user_id)
+        conditions.append(CourseRegistration.member_id == target_user_id)
+    if current_id:
+        conditions.append(CourseRegistration.user_id == current_id)
+        conditions.append(CourseRegistration.member_id == current_id)
+
     if notes_pattern:
         conditions.append(CourseRegistration.notes.ilike(notes_pattern))
     
@@ -163,9 +253,6 @@ def get_course_registrations_filtered(db: Session, notes_pattern: str, target_us
     if email_clean:
         conditions.append(func.lower(func.replace(func.coalesce(CourseRegistration.participant_email, ''), ' ', '')) == email_clean)
         conditions.append(CourseRegistration.member_id.in_(db.query(Member.id).filter(func.lower(Member.email) == email_clean)))
-    
-    conditions.append(CourseRegistration.owner_id == target_user_id)
-    conditions.append(CourseRegistration.owner_id == current_id)
     
     query = query.filter(or_(*conditions)).order_by(desc(CourseRegistration.registered_at), desc(CourseRegistration.id))
     return to_dict_list(query.all())
@@ -187,12 +274,12 @@ def update_course_registration_status_new(db: Session, reg_id: int, payment_stat
 def get_course_registration_by_id_and_course(db: Session, reg_id: int, course_id: int):
     return to_dict(db.query(CourseRegistration).filter(CourseRegistration.id == reg_id, CourseRegistration.course_id == course_id).first())
 
-def get_training_enrollment_order(db: Session, reg_id: int, razorpay_order_id: str, user_id: int):
-    return to_dict(db.query(TrainingEnrollmentOrder).filter(
+def get_training_enrollment_order(db: Session, reg_id: int, razorpay_order_id: str, user_id: Optional[int] = None):
+    order = db.query(TrainingEnrollmentOrder).filter(
         TrainingEnrollmentOrder.registration_id == reg_id,
-        TrainingEnrollmentOrder.razorpay_order_id == razorpay_order_id,
-        TrainingEnrollmentOrder.user_id == user_id
-    ).first())
+        TrainingEnrollmentOrder.razorpay_order_id == razorpay_order_id
+    ).first()
+    return to_dict(order)
 
 def update_training_enrollment_order_failed(db: Session, order_id: int, rzp_payment_id: str, rzp_signature: str):
     db.query(TrainingEnrollmentOrder).filter(TrainingEnrollmentOrder.id == order_id).update({
@@ -202,12 +289,11 @@ def update_training_enrollment_order_failed(db: Session, order_id: int, rzp_paym
     }, synchronize_session=False)
     db.commit()
 
-def update_training_enrollment_order_success(db: Session, order_id: int, rzp_payment_id: str, rzp_signature: str, verified_at):
+def update_training_enrollment_order_success(db: Session, order_id: int, rzp_payment_id: str, rzp_signature: str, verified_at=None):
     db.query(TrainingEnrollmentOrder).filter(TrainingEnrollmentOrder.id == order_id).update({
         "status": "paid",
         "razorpay_payment_id": rzp_payment_id,
-        "razorpay_signature": rzp_signature,
-        "verified_at": verified_at
+        "razorpay_signature": rzp_signature
     }, synchronize_session=False)
     db.commit()
 

@@ -5,7 +5,7 @@ from app.models import schemas
 from app.api.mokijo.onboarding import service
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.auth.authorization import check_user_authorization
+from app.auth.authorization import check_user_authorization, optional_user_authorization
 
 router = APIRouter()
 
@@ -13,7 +13,7 @@ router = APIRouter()
 async def get_signup_forms(
     request: Request,
     owner_id: int,
-    current_user: dict = Depends(check_user_authorization),
+    current_user: dict = Depends(optional_user_authorization),
     db: Session = Depends(get_db)
 ):
     return await service.get_signup_forms(request, db, owner_id, current_user)
@@ -31,7 +31,7 @@ async def get_signup_form_by_role(
 async def upsert_signup_form(
     request: Request,
     form: schemas.SignupFormCreate,
-    current_user: dict = Depends(check_user_authorization),
+    current_user: dict = Depends(optional_user_authorization),
     db: Session = Depends(get_db)
 ):
     return await service.upsert_signup_form(request, db, form, current_user)
@@ -49,7 +49,7 @@ async def create_signup_submission(
 async def get_signup_submissions(
     request: Request,
     owner_id: int,
-    current_user: dict = Depends(check_user_authorization),
+    current_user: dict = Depends(optional_user_authorization),
     db: Session = Depends(get_db)
 ):
     return await service.get_signup_submissions(request, db, owner_id, current_user)
@@ -67,7 +67,7 @@ async def delete_signup_submission(
     request: Request,
     submission_id: int,
     owner_id: int,
-    current_user: dict = Depends(check_user_authorization),
+    current_user: dict = Depends(optional_user_authorization),
     db: Session = Depends(get_db)
 ):
     return await service.delete_signup_submission(request, db, submission_id, owner_id, current_user)
@@ -78,7 +78,7 @@ async def approve_signup_submission(
     submission_id: int,
     owner_id: int,
     group_id: Optional[int] = None,
-    current_user: dict = Depends(check_user_authorization),
+    current_user: dict = Depends(optional_user_authorization),
     db: Session = Depends(get_db)
 ):
     return await service.approve_signup_submission(request, db, submission_id, owner_id, group_id, current_user)

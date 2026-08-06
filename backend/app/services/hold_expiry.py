@@ -46,11 +46,59 @@ else:
     print("[WARNING] Redis is not running. Using InMemoryCache fallback for holds.")
 
 
+from sqlalchemy import text
+
+def safe_fetch_one(db_driver, raw_sql: str, params: tuple = ()):
+    if hasattr(db_driver, "fetch_one"):
+        return db_driver.fetch_one(raw_sql, params)
+    sql_text = raw_sql
+    param_dict = {}
+    for i, val in enumerate(params, start=1):
+        sql_text = sql_text.replace("%s", f":p{i}", 1)
+        param_dict[f"p{i}"] = val
+    res = db_driver.execute(text(sql_text), param_dict).mappings().first()
+    return dict(res) if res else None
+
+def safe_fetch_all(db_driver, raw_sql: str, params: tuple = ()):
+    if hasattr(db_driver, "fetch_all"):
+        return db_driver.fetch_all(raw_sql, params)
+    sql_text = raw_sql
+    param_dict = {}
+    for i, val in enumerate(params, start=1):
+        sql_text = sql_text.replace("%s", f":p{i}", 1)
+        param_dict[f"p{i}"] = val
+    rows = db_driver.execute(text(sql_text), param_dict).mappings().all()
+    return [dict(r) for r in rows]
+
+def safe_execute_query(db_driver, raw_sql: str, params: tuple = ()):
+    if hasattr(db_driver, "execute_query"):
+        return db_driver.execute_query(raw_sql, params)
+    sql_text = raw_sql
+    param_dict = {}
+    for i, val in enumerate(params, start=1):
+        sql_text = sql_text.replace("%s", f":p{i}", 1)
+        param_dict[f"p{i}"] = val
+    db_driver.execute(text(sql_text), param_dict)
+    if hasattr(db_driver, "commit"):
+        db_driver.commit()
+
+def safe_insert(db_driver, table_name: str, insert_data: dict):
+    if hasattr(db_driver, "insert"):
+        return db_driver.insert(table_name, insert_data)
+    cols = list(insert_data.keys())
+    col_names = ", ".join(cols)
+    param_names = ", ".join([f":{k}" for k in cols])
+    query_str = f"INSERT INTO {table_name} ({col_names}) VALUES ({param_names})"
+    db_driver.execute(text(query_str), insert_data)
+    if hasattr(db_driver, "commit"):
+        db_driver.commit()
+
 class HoldExpiryService:
     @staticmethod
     def passive_check(game_id: str, db):
         """Checks pending hold states inline during new join attempts and clears expired ones."""
-        expired_players = db.fetch_all(
+        expired_players = safe_fetch_all(
+            db,
             "SELECT * FROM game_players WHERE game_id = %s AND status = 'pending_payment'",
             (str(game_id),)
         )
@@ -64,7 +112,8 @@ class HoldExpiryService:
     def cancel_and_release(player_id: str, db):
         """Cancels a pending hold reservation and releases the spot to the waitlist."""
         # Row lock the player record
-        player = db.fetch_one(
+        player = safe_fetch_one(
+            db,
             "SELECT * FROM game_players WHERE id = %s FOR UPDATE",
             (str(player_id),)
         )
@@ -72,7 +121,8 @@ class HoldExpiryService:
         if not player or player.get("status") != "pending_payment":
             return
 
-        game = db.fetch_one(
+        game = safe_fetch_one(
+            db,
             "SELECT * FROM games WHERE id = %s FOR UPDATE",
             (player.get("game_id"),)
         )
@@ -81,7 +131,8 @@ class HoldExpiryService:
             return
 
         # Transition player registration
-        db.execute_query(
+        safe_execute_query(
+            db,
             "UPDATE game_players SET status = 'cancelled', cancelled_at = %s WHERE id = %s",
             (datetime.utcnow(), str(player_id))
         )
@@ -96,7 +147,8 @@ class HoldExpiryService:
         if status_val == "full":
             status_val = "open"
 
-        db.execute_query(
+        safe_execute_query(
+            db,
             "UPDATE games SET current_players = %s, status = %s WHERE id = %s",
             (current_players, status_val, game.get("id"))
         )
@@ -119,7 +171,8 @@ class HoldExpiryService:
         from app.connectors.postgresql import PostgreSQLConnector
         db = PostgreSQLConnector()
         try:
-            pending_players = db.fetch_all(
+            pending_players = safe_fetch_all(
+                db,
                 "SELECT * FROM game_players WHERE status = 'pending_payment'"
             )
 
@@ -133,7 +186,8 @@ class HoldExpiryService:
 
 def promote_next_waitlisted(game_id: str, db):
     """Pops the first waitlist candidate and starts a 3-minute payment hold window."""
-    next_up = db.fetch_one(
+    next_up = safe_fetch_one(
+        db,
         "SELECT * FROM game_waitlist WHERE game_id = %s AND status = 'waiting' ORDER BY position ASC LIMIT 1 FOR UPDATE",
         (str(game_id),)
     )
@@ -141,7 +195,8 @@ def promote_next_waitlisted(game_id: str, db):
     if not next_up:
         return
 
-    game = db.fetch_one(
+    game = safe_fetch_one(
+        db,
         "SELECT * FROM games WHERE id = %s FOR UPDATE",
         (str(game_id),)
     )
@@ -152,7 +207,8 @@ def promote_next_waitlisted(game_id: str, db):
         return
 
     # Promote waitlisted entry
-    db.execute_query(
+    safe_execute_query(
+        db,
         "UPDATE game_waitlist SET status = 'promoted' WHERE id = %s",
         (next_up.get("id"),)
     )
@@ -164,7 +220,7 @@ def promote_next_waitlisted(game_id: str, db):
         "status": "pending_payment",
         "joined_at": datetime.utcnow(),
     }
-    db.insert("game_players", insert_player)
+    safe_insert(db, "game_players", insert_player)
 
     # Increment counter
     current_players += 1
@@ -172,7 +228,8 @@ def promote_next_waitlisted(game_id: str, db):
     if current_players >= total_spots:
         status_val = "full"
 
-    db.execute_query(
+    safe_execute_query(
+        db,
         "UPDATE games SET current_players = %s, status = %s WHERE id = %s",
         (current_players, status_val, str(game_id))
     )

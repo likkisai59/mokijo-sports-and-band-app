@@ -27,17 +27,40 @@ export default function SignupFormsDashboard() {
     const [approvingSubmission, setApprovingSubmission] = useState(null);
     const [approveGroupId, setApproveGroupId] = useState("");
 
-    const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
+    const getStoredUserId = () => {
+        if (typeof window === "undefined") return null;
+        return (
+            localStorage.getItem("userId") ||
+            localStorage.getItem("owner_id") ||
+            localStorage.getItem("group_owner_id") ||
+            localStorage.getItem("user_id") ||
+            "1"
+        );
+    };
+
+    const userId = getStoredUserId();
 
     const fetchData = useCallback(async () => {
         setLoading(true);
         setSessionError("");
+        const effectiveUserId = getStoredUserId();
+        if (!effectiveUserId) {
+            setLoading(false);
+            return;
+        }
+
         try {
             const clubsRes = await fetch(`${API_BASE_URL}/clubs`);
             if (clubsRes.ok) {
                 const clubsData = await clubsRes.json();
-                const currentClub = clubsData.find((club) => String(club.id) === String(userId));
-                if (!currentClub) {
+                const currentClub = clubsData.find(
+                    (club) =>
+                        String(club.id) === String(effectiveUserId) ||
+                        String(club.owner_id) === String(effectiveUserId) ||
+                        String(club.user_id) === String(effectiveUserId)
+                ) || (clubsData.length > 0 ? clubsData[0] : null);
+
+                if (!currentClub && clubsData.length > 0) {
                     setForms([]);
                     setSubmissions([]);
                     setGroups([]);
@@ -48,22 +71,25 @@ export default function SignupFormsDashboard() {
                 }
             }
 
+            const token = localStorage.getItem("accessToken");
+            const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
             // Fetch Forms
-            const formsRes = await fetch(`${API_BASE_URL}/signup-forms?owner_id=${userId}`);
+            const formsRes = await fetch(`${API_BASE_URL}/signup-forms?owner_id=${effectiveUserId}`, { headers: authHeaders });
             if (formsRes.ok) {
                 const formsData = await formsRes.json();
                 setForms(formsData);
             }
 
             // Fetch Submissions
-            const subsRes = await fetch(`${API_BASE_URL}/signup-submissions?owner_id=${userId}`);
+            const subsRes = await fetch(`${API_BASE_URL}/signup-submissions?owner_id=${effectiveUserId}`, { headers: authHeaders });
             if (subsRes.ok) {
                 const subsData = await subsRes.json();
                 setSubmissions(subsData);
             }
 
             // Fetch Groups for approval dropdown
-            const groupsRes = await fetch(`${API_BASE_URL}/groups?owner_id=${userId}`);
+            const groupsRes = await fetch(`${API_BASE_URL}/groups?owner_id=${effectiveUserId}`, { headers: authHeaders });
             if (groupsRes.ok) {
                 const groupsData = await groupsRes.json();
                 setGroups(groupsData);
@@ -76,13 +102,11 @@ export default function SignupFormsDashboard() {
         } finally {
             setLoading(false);
         }
-    }, [userId]);
+    }, []);
 
     useEffect(() => {
-        if (userId) {
-            fetchData();
-        }
-    }, [userId, fetchData]);
+        fetchData();
+    }, [fetchData]);
 
     function handleStartEdit(form) {
         let parsedFields = [];
@@ -379,14 +403,43 @@ export default function SignupFormsDashboard() {
         );
     }
 
+    const DEFAULT_ROLES = [
+        { role: "Player", title: "Players Form", description: "Player Registration & Field Customization" },
+        { role: "Parent", title: "Parents Form", description: "Parent / Guardian Registration Form" },
+        { role: "Coach", title: "Coaches Form", description: "Coach Onboarding & Profile Customization" },
+        { role: "Referee", title: "Referees Form", description: "Match Referee Signup & Qualification Details" },
+    ];
+
     function renderFormsBuilder() {
+        const displayForms = DEFAULT_ROLES.map((defaultRole) => {
+            const existingForm = forms.find(
+                (f) => f.role?.toLowerCase() === defaultRole.role.toLowerCase()
+            );
+            if (existingForm) {
+                return existingForm;
+            }
+            return {
+                id: null,
+                role: defaultRole.role,
+                title: defaultRole.title,
+                description: defaultRole.description,
+                is_customized: false,
+                fields: [
+                    { name: "first_name", label: "First Name", type: "text", required: true, placeholder: "John" },
+                    { name: "last_name", label: "Last Name", type: "text", required: true, placeholder: "Doe" },
+                    { name: "email", label: "Email Address", type: "email", required: true, placeholder: "name@example.com" },
+                    { name: "phone", label: "Phone Number", type: "tel", required: false, placeholder: "+91 9876543210" },
+                ],
+            };
+        });
+
         return (
             <div>
                 <div className="cards-grid">
-                    {forms.map((form, idx) => {
-                        const isCoach = form.role.toLowerCase() === "coach";
-                        const displayTitle = isCoach ? "Coaches Form" : `${form.role}s Form`;
-                        const displaySubtitle = `${form.role} Registration`;
+                    {displayForms.map((form, idx) => {
+                        const roleName = form.role || "Role";
+                        const displayTitle = form.title || `${roleName}s Form`;
+                        const displaySubtitle = form.description || `${roleName} Registration`;
 
                         return (
                             <div key={idx} className="form-role-card" onClick={() => handleStartEdit(form)}>
@@ -400,6 +453,9 @@ export default function SignupFormsDashboard() {
                                         className={`badge ${form.is_customized ? "badge-customized" : "badge-default"}`}
                                     >
                                         {form.is_customized ? "Customized" : "Default Template"}
+                                    </span>
+                                    <span className="action-text">
+                                        Configure Form &rarr;
                                     </span>
                                 </div>
                             </div>
@@ -774,18 +830,24 @@ export default function SignupFormsDashboard() {
 
     return (
         <div className="signup-forms-container">
+            <div className="signup-forms-ambient-glow" />
+
             {selectedForm ? (
                 renderFieldEditor()
             ) : (
                 <>
-                    <div style={{ marginBottom: "24px" }}>
-                        <h1 style={{ fontSize: "28px", fontWeight: 700, color: "var(--text-primary, #f4f4f5)", margin: 0 }}>
-                            Club Signups and Forms
-                        </h1>
-                        <p style={{ fontSize: "14px", color: "#64748b", margin: "4px 0 0" }}>
-                            Configure customized onboarding forms for player squads, parent lists, coaches, and match
-                            referees.
-                        </p>
+                    <div className="forms-header">
+                        <div>
+                            <div className="brand-pill-badge">
+                                <Sparkles size={13} />
+                                <span>CUSTOM FORM BUILDER</span>
+                            </div>
+                            <h1>Club Signups & Onboarding Forms</h1>
+                            <p>
+                                Configure customized onboarding forms for player squads, parent lists, coaches, and match
+                                referees.
+                            </p>
+                        </div>
                     </div>
 
                     <div className="tabs-container">

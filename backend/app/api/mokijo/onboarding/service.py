@@ -31,6 +31,7 @@ AADHAAR_MESSAGE,
 phone_length_message,
 )
 from app.services.email import send_signup_verification_email
+from app.api.mokijo.onboarding import crud
 
 
 def get_default_fields(role: str):
@@ -232,12 +233,10 @@ async def create_signup_submission(request: Request, db: Session, submission: sc
                     detail="Your application is already in the onboarding queue. Club admin has to approve your application before you can log in."
                 )
 
-            verify_token = secrets.token_urlsafe(32)
-
             submitted_data["email"] = email_clean
             submitted_data["password"] = password_clean
-            submitted_data["email_verify_token"] = verify_token
-            submitted_data["email_verified_at"] = None
+            submitted_data["email_verify_token"] = None
+            submitted_data["email_verified_at"] = datetime.now(timezone.utc).isoformat()
 
             insert_data = {
                 "owner_id": submission.owner_id,
@@ -246,10 +245,8 @@ async def create_signup_submission(request: Request, db: Session, submission: sc
             }
             sub_id = crud.create_submission(db, insert_data)
 
-            background_tasks.add_task(send_signup_verification_email, email_clean, verify_token)
-
             return {
-                "message": "Application submitted. Please check your email to verify your address. Club admin still has to approve your application before you can log in.",
+                "message": "Application submitted successfully! The club admin will review and approve your application.",
                 "id": sub_id,
                 "role": submission.role,
                 "status": "pending"

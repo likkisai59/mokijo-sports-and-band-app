@@ -19,9 +19,11 @@ from app.api.mokijo.fundraising import crud
 async def get_campaigns(request: Request, db: Session, owner_id: int, current_user: dict):
     try:
         with logger.time_operation("GET_CAMPAIGNS", request=request):
-            validate_role_and_permission(db, current_user, ["admin", "team_member"], owner_id)
+            validate_role_and_permission(db, current_user, ["admin", "club_admin", "team_member", "user", "member", "club_member"], owner_id)
             campaigns = crud.get_campaigns_by_owner(db, owner_id)
             return campaigns
+    except HTTPException as he:
+        raise he
     except Exception as e:
         await logger.log_error(request=request, message=f"Failed to get campaigns: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -29,7 +31,7 @@ async def get_campaigns(request: Request, db: Session, owner_id: int, current_us
 async def create_campaign(request: Request, db: Session, campaign: schemas.FundraisingCampaignCreate, current_user: dict):
     try:
         with logger.time_operation("CREATE_CAMPAIGN", request=request):
-            validate_role_and_permission(db, current_user, ["admin"], campaign.owner_id)
+            validate_role_and_permission(db, current_user, ["admin", "club_admin", "team_member"], campaign.owner_id)
             insert_data = {
                 "owner_id": campaign.owner_id,
                 "title": campaign.title,
@@ -44,6 +46,8 @@ async def create_campaign(request: Request, db: Session, campaign: schemas.Fundr
             campaign_id = crud.create_campaign(db, insert_data)
             new_campaign = crud.get_campaign_by_id(db, campaign_id)
             return new_campaign
+    except HTTPException as he:
+        raise he
     except Exception as e:
         await logger.log_error(request=request, message=f"Failed to create campaign: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -51,7 +55,7 @@ async def create_campaign(request: Request, db: Session, campaign: schemas.Fundr
 async def delete_campaign(request: Request, db: Session, campaign_id: int, owner_id: int, current_user: dict):
     try:
         with logger.time_operation("DELETE_CAMPAIGN", request=request):
-            validate_role_and_permission(db, current_user, ["admin"], owner_id)
+            validate_role_and_permission(db, current_user, ["admin", "club_admin"], owner_id)
             campaign = crud.get_campaign_by_id_and_owner(db, campaign_id, owner_id)
             if not campaign:
                 raise HTTPException(status_code=404, detail="Campaign not found")
@@ -93,8 +97,23 @@ async def initiate_donation(request: Request, db: Session, campaign_id: int, don
             if not campaign:
                 raise HTTPException(status_code=404, detail="Campaign not found")
             
+            member_id = None
+            group_id = donation.group_id
+            if donation.donor_email:
+                try:
+                    email_clean = donation.donor_email.replace(" ", "").lower()
+                    member = crud.get_member_by_email(db, email_clean)
+                    if member:
+                        member_id = member.get("id")
+                        if not group_id:
+                            group_id = member.get("group_id")
+                except Exception:
+                    pass
+
             insert_data = {
                 "owner_id": campaign.get("owner_id"),
+                "group_id": group_id,
+                "member_id": member_id,
                 "title": f"Donation to: {campaign.get('title')}",
                 "description": f"campaign_id:{campaign_id}|donor_name:{donation.donor_name}|donor_email:{donation.donor_email or ''}",
                 "category": "Donation",

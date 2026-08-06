@@ -61,6 +61,7 @@ class Settings(BaseSettings):
     # ── Razorpay ──────────────────────────────────────────────────────────────
     RAZORPAY_KEY_ID: str | None = None
     RAZORPAY_KEY_SECRET: str | None = None
+    RAZORPAY_CURRENCY: str = "INR"
 
     # ── Email ─────────────────────────────────────────────────────────────────
     SMTP_HOST: str = "smtp.mailtrap.io"

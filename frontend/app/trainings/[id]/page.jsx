@@ -133,9 +133,12 @@ export default function TrainingDetailPage() {
             }
 
             if (order.free) {
-                setSuccessMessage("You are registered for this free training.");
+                setSuccessMessage("You are registered for this free training! Redirecting to My Trainings...");
                 setSuccess(true);
                 setPaying(false);
+                setTimeout(() => {
+                    router.push("/dashboard/my-trainings");
+                }, 1200);
                 return;
             }
 
@@ -178,8 +181,11 @@ export default function TrainingDetailPage() {
                             setPaying(false);
                             return;
                         }
-                        setSuccessMessage("Payment successful. You are registered for this training.");
+                        setSuccessMessage("Payment successful! You are registered for this training. Redirecting to My Trainings...");
                         setSuccess(true);
+                        setTimeout(() => {
+                            router.push("/dashboard/my-trainings");
+                        }, 1200);
                     } catch (verifyErr) {
                         console.error(verifyErr);
                         setError("Payment completed but verification failed. Contact support with your payment ID.");
@@ -316,8 +322,8 @@ export default function TrainingDetailPage() {
                                     {training.available_seats != null
                                         ? `${training.available_seats} seats left`
                                         : training.capacity
-                                          ? `Capacity ${training.capacity}`
-                                          : ""}
+                                            ? `Capacity ${training.capacity}`
+                                            : ""}
                                 </span>
                             </div>
                         </div>
@@ -379,19 +385,19 @@ export default function TrainingDetailPage() {
                             {(error.toLowerCase().includes("already") ||
                                 error.toLowerCase().includes("registered") ||
                                 error.toLowerCase().includes("paid")) && (
-                                <Link
-                                    href={dashboardUrl}
-                                    style={{
-                                        color: "#c6ff3d",
-                                        fontSize: "13px",
-                                        fontWeight: "700",
-                                        textDecoration: "underline",
-                                        whiteSpace: "nowrap",
-                                    }}
-                                >
-                                    My Trainings →
-                                </Link>
-                            )}
+                                    <Link
+                                        href={dashboardUrl}
+                                        style={{
+                                            color: "#c6ff3d",
+                                            fontSize: "13px",
+                                            fontWeight: "700",
+                                            textDecoration: "underline",
+                                            whiteSpace: "nowrap",
+                                        }}
+                                    >
+                                        My Trainings →
+                                    </Link>
+                                )}
                         </div>
                     )}
 
@@ -405,8 +411,8 @@ export default function TrainingDetailPage() {
                             {paying
                                 ? "Processing…"
                                 : fee > 0
-                                  ? "Register & Pay"
-                                  : "Register"}
+                                    ? "Register & Pay"
+                                    : "Register"}
                         </button>
                     )}
 

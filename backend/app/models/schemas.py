@@ -1,5 +1,5 @@
 from pydantic import BaseModel, computed_field, field_validator
-from typing import Optional, List
+from typing import Optional, List, Any
 from datetime import datetime
 
 from app.core.validators import (
@@ -734,6 +734,16 @@ class SlotCreate(BaseModel):
     current_price: int
     is_blocked: Optional[bool] = False
 
+class SlotUpdate(BaseModel):
+    court_id: Optional[int] = None
+    sport: Optional[str] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    base_price: Optional[int] = None
+    current_price: Optional[int] = None
+    is_blocked: Optional[bool] = None
+    status: Optional[str] = None
+
 class SlotResponse(BaseModel):
     id: int
     venue_id: int
@@ -949,15 +959,15 @@ class VenueInput(BaseModel):
     name: str
     location: str
     landmark: Optional[str] = None
-    sports_supported: Optional[str] = None
-    sport_prices: Optional[str] = None
+    sports_supported: Optional[Any] = None
+    sport_prices: Optional[Any] = None
     base_price_per_hour: Optional[int] = 0
-    amenities: Optional[str] = None
+    amenities: Optional[Any] = None
     cover_image: Optional[str] = None
-    venue_images: Optional[str] = None
+    venue_images: Optional[Any] = None
     opening_time: Optional[str] = None
     closing_time: Optional[str] = None
-    days_open: Optional[str] = None
+    days_open: Optional[Any] = None
     slot_duration: Optional[int] = 60
     contact_phone: Optional[str] = None
     contact_email: Optional[str] = None
@@ -1077,6 +1087,27 @@ class GameJoinResponse(BaseModel):
 
 class JoinRequestRespondBody(BaseModel):
     action: str
+
+class GameRazorpayOrderRequest(BaseModel):
+    user_id: Optional[int] = None
+
+class GameRazorpayVerifyRequest(BaseModel):
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+    user_id: Optional[int] = None
+
+class GameRazorpayOrderResponse(BaseModel):
+    free: bool
+    key_id: Optional[str] = None
+    razorpay_order_id: Optional[str] = None
+    amount: Optional[int] = None
+    currency: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    prefill_name: Optional[str] = None
+    prefill_email: Optional[str] = None
+    prefill_contact: Optional[str] = None
 
 class WaitlistEntryOut(BaseModel):
     id: str

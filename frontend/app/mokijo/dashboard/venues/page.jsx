@@ -33,11 +33,14 @@ function VenuesPageContent() {
     const fetchVenues = async () => {
         setLoading(true);
         try {
+            const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
             const params = new URLSearchParams({ registered: "true" });
             if (searchQuery.trim()) {
                 params.set("location", searchQuery.trim());
             }
-            const response = await fetch(`${API_BASE_URL}/venues?${params.toString()}`);
+            const response = await fetch(`${API_BASE_URL}/venues?${params.toString()}`, { headers });
             if (response.ok) {
                 const data = await response.json();
                 const list = Array.isArray(data) ? data : [];
@@ -60,7 +63,10 @@ function VenuesPageContent() {
 
     const fetchSlots = async (venueId) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/venues/${venueId}/slots?date_str=${date}`);
+            const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+            const response = await fetch(`${API_BASE_URL}/venues/${venueId}/slots?date_str=${date}`, { headers });
             if (response.ok) {
                 const data = await response.json();
                 setSlots(Array.isArray(data) ? data : []);
@@ -89,8 +95,8 @@ function VenuesPageContent() {
         setBookingStatus("loading");
 
         try {
-            const userId = localStorage.getItem("userId");
-            const token = localStorage.getItem("accessToken");
+            const userId = typeof window !== "undefined" ? (localStorage.getItem("userId") || localStorage.getItem("user_id") || localStorage.getItem("memberId") || localStorage.getItem("member_id")) : null;
+            const token = typeof window !== "undefined" ? (localStorage.getItem("accessToken") || localStorage.getItem("access_token")) : null;
             if (!userId || !token) {
                 setBookingStatus("error");
                 setBookingMessage("Please log in to book a slot and pay with Razorpay.");
@@ -99,7 +105,10 @@ function VenuesPageContent() {
 
             const response = await fetch(`${API_BASE_URL}/bookings/hold`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}` 
+                },
                 body: JSON.stringify({
                     user_id: parseInt(userId, 10),
                     slot_ids: [selectedSlot.id],

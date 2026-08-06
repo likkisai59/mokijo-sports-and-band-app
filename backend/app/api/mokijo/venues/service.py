@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, Request, HTTPException, status
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, time
 import math
 import hmac
 import uuid
 
 from app.models import schemas
+from app.models.models import Court, Slot
 from app.connectors.connection_service import ConnectionService
 from app.auth.authorization import check_user_authorization, validate_role_and_permission
 from app.core.config import get_settings
@@ -118,21 +119,21 @@ async def create_venue(request: Request, db: Session, venue: schemas.VenueCreate
         raise HTTPException(status_code=500, detail="Internal server error")
 
 async def get_venues(
-        self,
-        request: Request,
-        sport: Optional[str],
-        location: Optional[str],
-        min_price: Optional[int],
-        max_price: Optional[int],
-        min_rating: Optional[float],
-        latitude: Optional[float],
-        longitude: Optional[float],
-        max_distance: Optional[float],
-        date_str: Optional[str],
-        only_available: Optional[bool],
-        current_user: dict,
-        registered: Optional[bool] = False,
-    ):
+    request: Request,
+    db: Session,
+    sport: Optional[str] = None,
+    location: Optional[str] = None,
+    min_price: Optional[int] = None,
+    max_price: Optional[int] = None,
+    min_rating: Optional[float] = None,
+    latitude: Optional[float] = None,
+    longitude: Optional[float] = None,
+    max_distance: Optional[float] = None,
+    date_str: Optional[str] = None,
+    only_available: Optional[bool] = False,
+    current_user: Optional[dict] = None,
+    registered: Optional[bool] = False,
+):
         try:
             with logger.time_operation("GET_VENUES", request=request):
                 # Club admin / discovery of owner-registered venues vs public verified-only list
@@ -219,10 +220,26 @@ async def get_venues(
         except HTTPException as he:
             raise he
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             await logger.log_error(request=request, message=f"Failed getting venues: {e}")
-            raise HTTPException(status_code=500, detail="Internal server error")
+            raise HTTPException(status_code=500, detail=str(e))
+
+async def get_venue_by_id(request: Request, db: Session, venue_id: int, current_user: dict):
+    try:
+        with logger.time_operation("GET_VENUE_BY_ID", request=request):
+            venue = crud.get_venue(db, venue_id)
+            if not venue:
+                raise HTTPException(status_code=404, detail="Venue not found")
+            return serialize_venue(venue, db)
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        await logger.log_error(request=request, message=f"Failed getting venue: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 async def create_venue_slots(request: Request, db: Session, venue_id: int, slots: List[schemas.SlotCreate], current_user: dict):
+
     try:
         with logger.time_operation("CREATE_VENUE_SLOTS", request=request):
             created_slot_ids = []
@@ -247,6 +264,37 @@ async def create_venue_slots(request: Request, db: Session, venue_id: int, slots
         await logger.log_error(request=request, message=f"Failed creating slots: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
+async def update_venue_slot(request: Request, db: Session, venue_id: int, slot_id: int, slot_update: schemas.SlotUpdate, current_user: dict):
+    try:
+        with logger.time_operation("UPDATE_VENUE_SLOT", request=request):
+            slot = crud.get_slot_by_id(db, slot_id, venue_id)
+            if not slot:
+                raise HTTPException(status_code=404, detail="Slot not found for this venue.")
+            
+            update_data = slot_update.dict(exclude_unset=True)
+            updated_slot = crud.update_slot_by_id(db, slot_id, update_data)
+            return serialize_slot(updated_slot)
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        await logger.log_error(request=request, message=f"Failed updating slot {slot_id}: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+async def delete_venue_slot(request: Request, db: Session, venue_id: int, slot_id: int, current_user: dict):
+    try:
+        with logger.time_operation("DELETE_VENUE_SLOT", request=request):
+            slot = crud.get_slot_by_id(db, slot_id, venue_id)
+            if not slot:
+                raise HTTPException(status_code=404, detail="Slot not found for this venue.")
+            
+            crud.delete_slot_by_id(db, slot_id)
+            return {"message": "Slot deleted successfully"}
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        await logger.log_error(request=request, message=f"Failed deleting slot {slot_id}: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
 async def get_venue_slots(request: Request, db: Session, venue_id: int, date_str: Optional[str], current_user: dict):
     try:
         with logger.time_operation("GET_VENUE_SLOTS", request=request):
@@ -254,7 +302,10 @@ async def get_venue_slots(request: Request, db: Session, venue_id: int, date_str
                 date_str = date.today().isoformat()
 
             try:
-                target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+                if isinstance(date_str, date):
+                    target_date = date_str
+                else:
+                    target_date = datetime.strptime(str(date_str), "%Y-%m-%d").date()
             except ValueError:
                 raise HTTPException(status_code=400, detail="Invalid date format. Expected YYYY-MM-DD.")
 
@@ -269,29 +320,64 @@ async def get_venue_slots(request: Request, db: Session, venue_id: int, date_str
                 placeholders = ", ".join(["%s"] * len(expired_ids))
                 crud.release_slots(db, expired_ids)
 
-            # NOTE: Slots are no longer auto-seeded with hardcoded defaults here.
-            # Venue owners must explicitly create slots via POST /venues/{venue_id}/slots.
-            # If none exist yet for the requested date, this simply returns an empty list.
             slots = crud.get_slots_by_venue_and_date(db, venue_id, target_date)
 
-            if slots:
-                slot_ids = [s.get("id") for s in slots]
-                placeholders = ", ".join(["%s"] * len(slot_ids))
-                active_bookings = crud.get_active_bookings_for_slots(db, slot_ids)
-                booked_slot_ids = {b.get("slot_id") for b in active_bookings}
+            if not slots:
+                try:
+                    venue = crud.get_venue(db, venue_id)
+                    base_price = int(venue.get("base_price_per_hour") or 500) if venue else 500
+                    sports = venue.get("sports_supported") or "Turf" if venue else "Turf"
+                    primary_sport = sports.split(",")[0].strip() if "," in sports else sports.strip()
 
-                for slot in slots:
-                    if slot.get("status") == "AVAILABLE" and slot.get("id") in booked_slot_ids:
-                        # Update dynamically in response/db
-                        crud.update_slot_status(db, slot.get("id"), "BOOKED")
-                        slot["status"] = "BOOKED"
+                    court = db.query(Court).filter(Court.venue_id == venue_id).first()
+                    court_id = court.id if court else None
+                    if not court_id:
+                        new_court = Court(venue_id=venue_id, name="Main Court", sport=primary_sport)
+                        db.add(new_court)
+                        db.commit()
+                        db.refresh(new_court)
+                        court_id = new_court.id
+
+                    start_hours = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
+                    for h in start_hours:
+                        st = datetime.combine(target_date, time(h, 0))
+                        et = datetime.combine(target_date, time(h + 1, 0))
+                        s_obj = Slot(
+                            venue_id=venue_id,
+                            court_id=court_id,
+                            sport=primary_sport,
+                            start_time=st,
+                            end_time=et,
+                            current_price=base_price,
+                            status="AVAILABLE",
+                            is_blocked=False
+                        )
+                        db.add(s_obj)
+                    db.commit()
+                    slots = crud.get_slots_by_venue_and_date(db, venue_id, target_date)
+                except Exception as ex:
+                    print("Auto-seeding slots warning:", ex)
+                    db.rollback()
+
+            if slots:
+                slot_ids = [s.get("id") for s in slots if s.get("id")]
+                if slot_ids:
+                    active_bookings = crud.get_active_bookings_for_slots(db, slot_ids)
+                    booked_slot_ids = {b.get("slot_id") for b in active_bookings}
+
+                    for slot in slots:
+                        if slot.get("status") == "AVAILABLE" and slot.get("id") in booked_slot_ids:
+                            crud.update_slot_status(db, slot.get("id"), "BOOKED")
+                            slot["status"] = "BOOKED"
 
             return [serialize_slot(s) for s in slots]
     except HTTPException as he:
         raise he
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         await logger.log_error(request=request, message=f"Failed getting venue slots: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail=str(e))
 
 async def create_booking(request: Request, db: Session, booking: schemas.BookingCreate, current_user: dict):
     try:
@@ -327,8 +413,11 @@ async def create_booking(request: Request, db: Session, booking: schemas.Booking
             user_id = booking.user_id
             total_amount = booking.amount_paid or sum(slot.get("current_price") or 0 for slot in slots)
 
+            user_obj = crud.get_user_full(db, user_id) if user_id else None
+            user_id_fk = int(user_id) if user_obj else None
+
             insert_booking = {
-                "user_id": user_id,
+                "user_id": user_id_fk,
                 "court_id": booking.court_id,
                 "amount_paid": total_amount,
                 "payment_status": booking.payment_status or "pending",
@@ -415,7 +504,7 @@ async def unblock_venue_slots(request: Request, db: Session, venue_id: int, req:
         await logger.log_error(request=request, message=f"Failed unblocking slots: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-def _get_toggleable_slot(self, db, venue_id: int, slot_id: int):
+def _get_toggleable_slot(db, venue_id: int, slot_id: int):
     venue = crud.get_venue_id(db, venue_id)
     if not venue:
         raise HTTPException(status_code=404, detail="Venue not found")
@@ -728,8 +817,20 @@ async def hold_booking_slots(request: Request, db: Session, req: schemas.SlotHol
                 if s.get("court_id"):
                     court_id = s.get("court_id")
 
+            user_obj = crud.get_user_full(db, req.user_id) if req.user_id else None
+            member_obj = None
+            if not user_obj and req.user_id:
+                try:
+                    member_obj = crud.get_member_by_id(db, req.user_id)
+                except Exception:
+                    member_obj = None
+
+            user_id_fk = user_obj.get("id") if user_obj else None
+            member_id_fk = member_obj.get("id") if member_obj else None
+
             insert_booking = {
-                "user_id": req.user_id,
+                "user_id": user_id_fk,
+                "member_id": member_id_fk,
                 "court_id": court_id,
                 "status": "pending_payment",
                 "amount_paid": total_amount,
@@ -782,17 +883,19 @@ async def confirm_booking(request: Request, db: Session, req: schemas.BookingCon
         raise HTTPException(status_code=500, detail="Internal server error")
 
 async def create_venue_booking_razorpay_order(
-        self,
-        request: Request,
-        order_request: schemas.VenueBookingOrderCreate,
-        current_user: dict,
-    ):
+    request: Request,
+    db: Session,
+    order_request: schemas.VenueBookingOrderCreate,
+    current_user: dict,
+):
         try:
             with logger.time_operation("CREATE_VENUE_BOOKING_RAZORPAY_ORDER", request=request):
-                validate_role_and_permission(db, current_user, ["admin", "team_member", "user", "venue_owner"])
+                validate_role_and_permission(db, current_user, ["admin", "team_member", "user", "venue_owner", "member", "club_member", "club_admin"])
                 key_id, _ = get_razorpay_credentials()
 
                 booking = crud.get_booking_by_id_and_user(db, order_request.booking_id, order_request.user_id)
+                if not booking:
+                    booking = crud.get_booking(db, order_request.booking_id)
                 if not booking:
                     raise HTTPException(status_code=404, detail="Booking not found")
                 if booking.get("status") == "confirmed" or booking.get("payment_status") == "paid":
@@ -818,9 +921,25 @@ async def create_venue_booking_razorpay_order(
                     },
                 })
 
-                local_order_id = crud.create_venue_booking_order(db, {...})
-
                 user = crud.get_user_full(db, booking.get("user_id"))
+                member = None
+                if not user and booking.get("user_id"):
+                    try:
+                        member = crud.get_member_by_id(db, booking.get("user_id"))
+                    except Exception:
+                        member = None
+
+                user_id_fk = user.get("id") if user else None
+
+                local_order_id = crud.create_venue_booking_order(db, {
+                    "booking_id": booking.get("id"),
+                    "user_id": user_id_fk,
+                    "razorpay_order_id": razorpay_order["id"],
+                    "amount": amount_in_paise,
+                    "currency": razorpay_order.get("currency", settings.RAZORPAY_CURRENCY),
+                    "status": razorpay_order.get("status", "created"),
+                })
+
                 prefill_name = None
                 prefill_email = None
                 prefill_contact = None
@@ -830,6 +949,16 @@ async def create_venue_booking_razorpay_order(
                     prefill_name = f"{first} {last}".strip() or user.get("club_name")
                     prefill_email = user.get("email")
                     prefill_contact = user.get("phone")
+                elif member:
+                    first = member.get("first_name") or ""
+                    last = member.get("last_name") or ""
+                    prefill_name = f"{first} {last}".strip() or member.get("name")
+                    prefill_email = member.get("email")
+                    prefill_contact = member.get("phone")
+                else:
+                    prefill_name = current_user.get("username")
+                    prefill_email = current_user.get("email")
+                    prefill_contact = current_user.get("phone")
 
                 return {
                     "key_id": key_id,
@@ -851,14 +980,14 @@ async def create_venue_booking_razorpay_order(
             raise HTTPException(status_code=500, detail="Internal server error")
 
 async def verify_venue_booking_razorpay_payment(
-        self,
-        request: Request,
-        verification: schemas.VenueBookingVerifyRequest,
-        current_user: dict,
-    ):
+    request: Request,
+    db: Session,
+    verification: schemas.VenueBookingVerifyRequest,
+    current_user: dict,
+):
         try:
             with logger.time_operation("VERIFY_VENUE_BOOKING_RAZORPAY_PAYMENT", request=request):
-                validate_role_and_permission(db, current_user, ["admin", "team_member", "user", "venue_owner"])
+                validate_role_and_permission(db, current_user, ["admin", "team_member", "user", "venue_owner", "member", "club_member", "club_admin"])
 
                 booking = crud.get_booking_by_id(db, verification.booking_id)
                 if not booking:
@@ -880,6 +1009,7 @@ async def verify_venue_booking_razorpay_payment(
 
                 return await confirm_booking(
                     request,
+                    db,
                     schemas.BookingConfirmRequest(
                         booking_id=verification.booking_id,
                         payment_id=verification.razorpay_payment_id,
@@ -925,11 +1055,14 @@ async def get_user_bookings(request: Request, db: Session, user_id: int, current
         with logger.time_operation("GET_USER_BOOKINGS", request=request):
             now = datetime.utcnow()
             # Release expired slot holds automatically
-            expired = crud.get_expired_held_slot_ids(db, now)
-            if expired:
-                expired_ids = [s.get("id") for s in expired]
-                placeholders = ", ".join(["%s"] * len(expired_ids))
-                crud.release_slots(db, expired_ids)
+            try:
+                expired = crud.get_expired_held_slots(db, now)
+                if expired:
+                    expired_ids = [s.get("id") for s in expired if s.get("id")]
+                    if expired_ids:
+                        crud.release_slots(db, expired_ids)
+            except Exception:
+                pass
 
             bookings = crud.get_bookings_by_user(db, user_id)
             return [serialize_booking(b, db) for b in bookings]
@@ -1011,7 +1144,7 @@ async def reject_booking(request: Request, db: Session, booking_id: int, current
         await logger.log_error(request=request, message=f"Failed rejecting booking: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-def _send_booking_notification(self, db, current_user: dict, slots: list, booking_id: int, action: str, booking: Optional[dict] = None):
+def _send_booking_notification(db, current_user: dict, slots: list, booking_id: int, action: str, booking: Optional[dict] = None):
     try:
         if not slots:
             return
@@ -1069,3 +1202,4 @@ async def get_booking_by_id(request: Request, db: Session, booking_id: int, curr
     except Exception as e:
         await logger.log_error(request=request, message=f"Failed getting booking: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
