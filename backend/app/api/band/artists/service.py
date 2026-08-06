@@ -340,56 +340,71 @@ def get_dashboard_stats(db: Session, account_id: int) -> dict:
     if artist.videos:
         completion += 10
 
-    import uuid as _uuid
+    from app.models.band_models import BandBooking, BandReview
+    
+    # Real DB Queries
+    bookings = db.query(BandBooking).filter(
+        BandBooking.artist_profile_id == artist.id,
+        BandBooking.deleted_at.is_(None)
+    ).all()
+    
+    total_bookings = len(bookings)
+    pending_requests = [b for b in bookings if b.status == "pending"]
+    upcoming_events = [b for b in bookings if b.status in ("accepted", "confirmed")]
+    completed_events = [b for b in bookings if b.status == "completed"]
+    
+    monthly_revenue = sum(float(b.total_amount or 0) for b in upcoming_events if b.event_date and b.event_date.month == datetime.now().month)
+    total_earnings = sum(float(b.total_amount or 0) for b in completed_events)
+    
+    reviews = db.query(BandReview).filter(
+        BandReview.artist_profile_id == artist.id,
+        BandReview.deleted_at.is_(None)
+    ).all()
+    
+    avg_rating = sum(float(r.rating) for r in reviews) / len(reviews) if reviews else float(artist.rating or 0.0)
+
     return {
-        "total_bookings": 12,
-        "upcoming_events_count": 3,
-        "pending_requests_count": 2,
-        "monthly_revenue": 45000.0,
-        "total_earnings": 180000.0,
-        "average_rating": float(artist.rating or 4.8),
+        "total_bookings": total_bookings,
+        "upcoming_events_count": len(upcoming_events),
+        "pending_requests_count": len(pending_requests),
+        "monthly_revenue": monthly_revenue,
+        "total_earnings": total_earnings,
+        "average_rating": avg_rating,
         "profile_completion": min(completion, 100),
-        "profile_views": 340,
+        "profile_views": 0,
         "upcoming_events": [
-            {"id": str(_uuid.uuid4()), "client_name": "Priya Sharma", "event_name": "Wedding Reception",
-             "date": "2026-07-20", "time": "19:00 - 22:00",
-             "location": "Grand Ballroom, Palace Hotel, Bangalore", "status": "Confirmed", "amount": 25000.0},
-            {"id": str(_uuid.uuid4()), "client_name": "TechCorp India", "event_name": "Corporate Annual Bash",
-             "date": "2026-07-28", "time": "18:30 - 21:30",
-             "location": "Marriott Hotel, Outer Ring Road, Bangalore", "status": "Confirmed", "amount": 40000.0},
-            {"id": str(_uuid.uuid4()), "client_name": "Rajesh Kumar", "event_name": "Birthday Party",
-             "date": "2026-08-05", "time": "20:00 - 23:00",
-             "location": "Rooftop Lounge, Indiranagar, Bangalore", "status": "Confirmed", "amount": 15000.0},
+            {
+                "id": str(b.id),
+                "client_name": "Client", # Ideally fetched from relation
+                "event_name": b.event_name,
+                "date": str(b.event_date),
+                "time": f"{b.start_time} - {b.end_time}",
+                "location": b.location,
+                "status": b.status.capitalize(),
+                "amount": float(b.total_amount or 0)
+            } for b in upcoming_events[:3]
         ],
         "recent_booking_requests": [
-            {"id": str(_uuid.uuid4()), "client_name": "RV College of Engineering", "event_name": "8th Mile College Fest",
-             "date": "2026-08-15", "amount": 60000.0, "status": "Pending"},
-            {"id": str(_uuid.uuid4()), "client_name": "High Ultra Lounge", "event_name": "Private Club Gig",
-             "date": "2026-08-20", "amount": 30000.0, "status": "Pending"},
+            {
+                "id": str(b.id),
+                "client_name": "Client",
+                "event_name": b.event_name,
+                "date": str(b.event_date),
+                "amount": float(b.total_amount or 0),
+                "status": b.status.capitalize()
+            } for b in pending_requests[:2]
         ],
         "recent_reviews": [
-            {"id": str(_uuid.uuid4()), "client_name": "Priya Sharma", "rating": 5.0,
-             "comment": "Absolutely phenomenal! The band made our wedding reception unforgettable. Highly recommended!",
-             "date": "2026-06-15"},
-            {"id": str(_uuid.uuid4()), "client_name": "TechCorp India", "rating": 4.5,
-             "comment": "Great performance, very professional and punctual. The crowd loved the energy.",
-             "date": "2026-06-01"},
+            {
+                "id": str(r.id),
+                "client_name": "Client",
+                "rating": float(r.rating),
+                "comment": r.review_text,
+                "date": str(r.created_at.date() if r.created_at else "")
+            } for r in reviews[:2]
         ],
-        "notifications": [
-            {"id": str(_uuid.uuid4()), "title": "New Booking Request",
-             "message": "RV College has requested a booking for August 15th.", "created_at": "2 hours ago", "is_read": False},
-            {"id": str(_uuid.uuid4()), "title": "Profile Approved",
-             "message": "Congratulations! Your band profile verification has been approved by admin.",
-             "created_at": "1 day ago", "is_read": True},
-        ],
-        "revenue_chart": [
-            {"month": "Jan", "revenue": 30000.0, "bookings": 2},
-            {"month": "Feb", "revenue": 45000.0, "bookings": 3},
-            {"month": "Mar", "revenue": 25000.0, "bookings": 1},
-            {"month": "Apr", "revenue": 50000.0, "bookings": 4},
-            {"month": "May", "revenue": 60000.0, "bookings": 4},
-            {"month": "Jun", "revenue": 45000.0, "bookings": 3},
-        ],
+        "notifications": [],
+        "revenue_chart": [],
     }
 
 

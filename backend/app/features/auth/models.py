@@ -86,7 +86,7 @@ class RefreshToken(BaseModel):
     expires_at = Column(DateTime(timezone=True), nullable=False)
     is_revoked = Column(Boolean, default=False, nullable=False)
 
-    user = relationship("User", back_populates="refresh_tokens")
+    user = relationship("app.features.auth.models.User", back_populates="refresh_tokens")
 
     @property
     def is_expired(self) -> bool:

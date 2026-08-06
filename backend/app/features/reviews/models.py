@@ -79,13 +79,13 @@ class Review(BaseModel):
     videos = Column(JSON, default=list, nullable=False)  # ["url1", "url2"]
 
     # Relationships
-    reviewer = relationship("User", foreign_keys=[reviewer_id], backref="reviews_given")
+    reviewer = relationship("app.models.models.User", foreign_keys=[reviewer_id], backref="reviews_given")
     reviewee = relationship(
         "User", foreign_keys=[reviewee_id], backref="reviews_received"
     )
     artist_profile = relationship("ArtistProfile", backref="artist_reviews")
     venue = relationship("Venue", backref="venue_reviews")
-    client = relationship("User", foreign_keys=[client_id], backref="client_reviews")
+    client = relationship("app.models.models.User", foreign_keys=[client_id], backref="client_reviews")
     booking = relationship("Booking", backref="booking_reviews")
 
     @property

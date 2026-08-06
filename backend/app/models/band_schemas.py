@@ -12,6 +12,32 @@ from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field, EmailStr
 
+from typing_extensions import Annotated
+from pydantic import StringConstraints, field_validator, AfterValidator
+
+def validate_password(v: str) -> str:
+    if len(v) < 8 or len(v) > 50:
+        raise ValueError("Password must be between 8 and 50 characters")
+    if not any(c.islower() for c in v):
+        raise ValueError("Password must contain at least one lowercase letter")
+    if not any(c.isupper() for c in v):
+        raise ValueError("Password must contain at least one uppercase letter")
+    if not any(c.isdigit() for c in v):
+        raise ValueError("Password must contain at least one number")
+    if not any(c in "@$!%*?&" for c in v):
+        raise ValueError("Password must contain at least one special character (@$!%*?&)")
+    return v
+
+# Reusable strict types for validation
+StrippedStr = Annotated[str, StringConstraints(strip_whitespace=True)]
+NameStr = Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=50, pattern=r"^[A-Za-z]+(?: [A-Za-z]+)*$")]
+PhoneStr = Annotated[str, StringConstraints(strip_whitespace=True, pattern=r"^\+?[1-9]\d{9,14}$")]
+PasswordStr = Annotated[str, StringConstraints(strip_whitespace=True), AfterValidator(validate_password)]
+DescStr = Annotated[str, StringConstraints(strip_whitespace=True, max_length=2000)]
+PositiveFloat = Annotated[float, Field(ge=0.0)]
+PositiveInt = Annotated[int, Field(ge=0)]
+
+
 
 class BandORMSchema(BaseModel):
     class Config:
@@ -24,9 +50,9 @@ class BandORMSchema(BaseModel):
 
 class BandRegisterRequest(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=8)
-    name: str
-    phone: Optional[str] = None
+    password: PasswordStr
+    name: NameStr
+    phone: Optional[PhoneStr] = None
     role: str = Field(default="client", description="client | artist | venue_owner | admin")
 
 
@@ -38,8 +64,8 @@ class BandLoginRequest(BaseModel):
 class BandAccountResponse(BandORMSchema):
     id: int
     email: str
-    name: str
-    phone: Optional[str] = None
+    name: NameStr
+    phone: Optional[PhoneStr] = None
     role: str
     is_active: bool
     is_verified: bool
@@ -47,14 +73,14 @@ class BandAccountResponse(BandORMSchema):
 
 
 class BandTokenResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
+    access_token: StrippedStr
+    token_type: StrippedStr = "bearer"
     user: "BandAccountResponse"
 
 
 class BandChangePasswordRequest(BaseModel):
-    current_password: str
-    new_password: str = Field(min_length=8)
+    current_password: StrippedStr
+    new_password: PasswordStr
 
 
 class BandForgotPasswordRequest(BaseModel):
@@ -62,8 +88,8 @@ class BandForgotPasswordRequest(BaseModel):
 
 
 class BandResetPasswordRequest(BaseModel):
-    token: str
-    new_password: str = Field(min_length=8)
+    token: StrippedStr
+    new_password: PasswordStr
 
 
 class BandUserStatusUpdate(BaseModel):
@@ -80,23 +106,23 @@ class BandBulkStatusUpdate(BaseModel):
 # ──────────────────────────────────────────────────────────────────────────────
 
 class BandCategoryCreate(BaseModel):
-    name: str
-    type: str
-    description: Optional[str] = None
+    name: NameStr
+    type: StrippedStr
+    description: Optional[DescStr] = None
     is_active: bool = True
 
 
 class BandCategoryUpdate(BaseModel):
     name: Optional[str] = None
-    description: Optional[str] = None
+    description: Optional[DescStr] = None
     is_active: Optional[bool] = None
 
 
 class BandCategoryResponse(BandORMSchema):
     id: int
-    name: str
-    type: str
-    description: Optional[str] = None
+    name: NameStr
+    type: StrippedStr
+    description: Optional[DescStr] = None
     is_active: bool
     created_at: Optional[datetime] = None
 
@@ -111,41 +137,41 @@ class BandPaginatedCategoryList(BaseModel):
 # ──────────────────────────────────────────────────────────────────────────────
 
 class BandCountryCreate(BaseModel):
-    name: str
+    name: NameStr
     code: str
 
 
 class BandCountryResponse(BandORMSchema):
     id: int
-    name: str
+    name: NameStr
     code: str
 
 
 class BandStateCreate(BaseModel):
-    name: str
+    name: NameStr
     country_id: int
 
 
 class BandStateResponse(BandORMSchema):
     id: int
-    name: str
+    name: NameStr
     country_id: int
 
 
 class BandCityCreate(BaseModel):
-    name: str
+    name: NameStr
     state_id: int
 
 
 class BandCityResponse(BandORMSchema):
     id: int
-    name: str
+    name: NameStr
     state_id: int
 
 
 class BandAreaCreate(BaseModel):
-    name: str
-    pincode: str
+    name: NameStr
+    pincode: StrippedStr
     city_id: int
     latitude: Optional[float] = None
     longitude: Optional[float] = None
@@ -154,7 +180,7 @@ class BandAreaCreate(BaseModel):
 
 class BandAreaUpdate(BaseModel):
     name: Optional[str] = None
-    pincode: Optional[str] = None
+    pincode: Optional[StrippedStr] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     service_radius: Optional[float] = None
@@ -162,8 +188,8 @@ class BandAreaUpdate(BaseModel):
 
 class BandAreaResponse(BandORMSchema):
     id: int
-    name: str
-    pincode: str
+    name: NameStr
+    pincode: StrippedStr
     city_id: int
     latitude: Optional[float] = None
     longitude: Optional[float] = None
@@ -182,33 +208,33 @@ class BandPaginatedAreaList(BaseModel):
 class BandArtistRegisterRequest(BaseModel):
     """Self-service artist registration (creates account + profile)."""
     email: EmailStr
-    password: str = Field(min_length=8)
-    name: str
-    mobile_number: Optional[str] = None
-    display_name: Optional[str] = None
-    band_type: str = "Solo"
-    total_members: int = 1
+    password: PasswordStr
+    name: NameStr
+    mobile_number: Optional[PhoneStr] = None
+    display_name: Optional[NameStr] = None
+    band_type: StrippedStr = "Solo"
+    total_members: PositiveInt = 1
     genres: List[str] = Field(default_factory=list)   # category names
     languages: List[str] = Field(default_factory=list)
-    base_rate: float = 0.0
-    travel_charges: float = 0.0
-    bio: Optional[str] = None
+    base_rate: PositiveFloat = 0.0
+    travel_charges: PositiveFloat = 0.0
+    bio: Optional[DescStr] = None
 
 
 class BandArtistProfileUpdate(BaseModel):
-    display_name: Optional[str] = None
-    bio: Optional[str] = None
-    base_rate: Optional[float] = None
+    display_name: Optional[NameStr] = None
+    bio: Optional[DescStr] = None
+    base_rate: Optional[PositiveFloat] = None
     band_type: Optional[str] = None
-    total_members: Optional[int] = None
-    mobile_number: Optional[str] = None
-    years_of_experience: Optional[int] = None
+    total_members: Optional[PositiveInt] = None
+    mobile_number: Optional[PhoneStr] = None
+    years_of_experience: Optional[PositiveInt] = None
     profile_image: Optional[str] = None
     cover_image: Optional[str] = None
-    travel_radius: Optional[float] = None
-    travel_charges: Optional[float] = None
-    min_booking_hours: Optional[float] = None
-    max_booking_hours: Optional[float] = None
+    travel_radius: Optional[PositiveFloat] = None
+    travel_charges: Optional[PositiveFloat] = None
+    min_booking_hours: Optional[PositiveFloat] = None
+    max_booking_hours: Optional[PositiveFloat] = None
     currency: Optional[str] = None
     social_links: Optional[Dict[str, Any]] = None
     achievements: Optional[List[Any]] = None
@@ -224,23 +250,23 @@ class BandArtistProfileUpdate(BaseModel):
 
 class BandArtistVerificationUpdate(BaseModel):
     verification_status: str = Field(description="approved | rejected | pending")
-    verification_notes: Optional[str] = None
+    verification_notes: Optional[DescStr] = None
 
 
 class BandArtistProfileResponse(BandORMSchema):
     id: int
     account_id: int
-    display_name: Optional[str] = None
-    bio: Optional[str] = None
+    display_name: Optional[NameStr] = None
+    bio: Optional[DescStr] = None
     base_rate: float
     rating: float
     verification_status: str
-    verification_notes: Optional[str] = None
-    mobile_number: Optional[str] = None
+    verification_notes: Optional[DescStr] = None
+    mobile_number: Optional[PhoneStr] = None
     years_of_experience: int
     profile_image: Optional[str] = None
     cover_image: Optional[str] = None
-    band_type: str
+    band_type: StrippedStr
     total_members: int
     currency: str
     travel_radius: float
@@ -293,8 +319,8 @@ class BandMediaUpdate(BaseModel):
 
 
 class BandPricingUpdate(BaseModel):
-    base_rate: Optional[float] = None
-    travel_charges: Optional[float] = None
+    base_rate: Optional[PositiveFloat] = None
+    travel_charges: Optional[PositiveFloat] = None
     pricing_details: Optional[Dict[str, Any]] = None
 
 
@@ -305,21 +331,21 @@ class BandPricingUpdate(BaseModel):
 class BandVenueRegisterRequest(BaseModel):
     """Self-service venue-owner registration (creates account + venue)."""
     email: EmailStr
-    password: str = Field(min_length=8)
-    name: str  # owner name
-    venue_name: str
-    description: Optional[str] = None
-    address: str
+    password: PasswordStr
+    name: NameStr  # owner name
+    venue_name: NameStr
+    description: Optional[DescStr] = None
+    address: StrippedStr
     city_id: Optional[int] = None
-    pincode: Optional[str] = None
-    state: Optional[str] = None
-    country: Optional[str] = None
-    base_price: float = 0.0
-    capacity: int = 0
-    min_capacity: int = 0
-    venue_type: Optional[str] = None
-    business_name: Optional[str] = None
-    contact_details: Optional[str] = None
+    pincode: Optional[StrippedStr] = None
+    state: Optional[StrippedStr] = None
+    country: Optional[StrippedStr] = None
+    base_price: PositiveFloat = 0.0
+    capacity: PositiveInt = 0
+    min_capacity: PositiveInt = 0
+    venue_type: Optional[StrippedStr] = None
+    business_name: Optional[StrippedStr] = None
+    contact_details: Optional[DescStr] = None
     google_map_location: Optional[str] = None
     facilities: List[Any] = Field(default_factory=list)
     categories: List[str] = Field(default_factory=list)
@@ -327,46 +353,46 @@ class BandVenueRegisterRequest(BaseModel):
 
 class BandVenueProfileUpdate(BaseModel):
     name: Optional[str] = None
-    description: Optional[str] = None
-    address: Optional[str] = None
+    description: Optional[DescStr] = None
+    address: Optional[StrippedStr] = None
     city_id: Optional[int] = None
-    pincode: Optional[str] = None
-    state: Optional[str] = None
-    country: Optional[str] = None
-    base_price: Optional[float] = None
-    capacity: Optional[int] = None
-    min_capacity: Optional[int] = None
-    venue_type: Optional[str] = None
-    business_name: Optional[str] = None
-    contact_details: Optional[str] = None
+    pincode: Optional[StrippedStr] = None
+    state: Optional[StrippedStr] = None
+    country: Optional[StrippedStr] = None
+    base_price: Optional[PositiveFloat] = None
+    capacity: Optional[PositiveInt] = None
+    min_capacity: Optional[PositiveInt] = None
+    venue_type: Optional[StrippedStr] = None
+    business_name: Optional[StrippedStr] = None
+    contact_details: Optional[DescStr] = None
     google_map_location: Optional[str] = None
     categories: Optional[List[str]] = None
 
 
 class BandVenueVerificationUpdate(BaseModel):
     verification_status: str
-    verification_notes: Optional[str] = None
+    verification_notes: Optional[DescStr] = None
 
 
 class BandVenueResponse(BandORMSchema):
     id: int
     account_id: int
-    name: str
-    description: Optional[str] = None
-    address: str
+    name: NameStr
+    description: Optional[DescStr] = None
+    address: StrippedStr
     city_id: Optional[int] = None
     base_price: float
     capacity: int
     min_capacity: int
-    venue_type: Optional[str] = None
-    business_name: Optional[str] = None
-    contact_details: Optional[str] = None
-    pincode: Optional[str] = None
-    state: Optional[str] = None
-    country: Optional[str] = None
+    venue_type: Optional[StrippedStr] = None
+    business_name: Optional[StrippedStr] = None
+    contact_details: Optional[DescStr] = None
+    pincode: Optional[StrippedStr] = None
+    state: Optional[StrippedStr] = None
+    country: Optional[StrippedStr] = None
     google_map_location: Optional[str] = None
     verification_status: str
-    verification_notes: Optional[str] = None
+    verification_notes: Optional[DescStr] = None
     facilities: Any = None
     gallery: Any = None
     pricing_details: Any = None
@@ -391,7 +417,7 @@ class BandVenueFacilitiesUpdate(BaseModel):
 
 
 class BandVenuePricingUpdate(BaseModel):
-    base_price: Optional[float] = None
+    base_price: Optional[PositiveFloat] = None
     pricing_details: Optional[Dict[str, Any]] = None
 
 
@@ -413,18 +439,42 @@ class BandVenueSettingsUpdate(BaseModel):
 class BandBookingCreateRequest(BaseModel):
     artist_profile_id: Optional[int] = None
     venue_id: Optional[int] = None
-    event_name: str
+    event_name: NameStr
     event_date: str   # YYYY-MM-DD
     start_time: str    # HH:MM
     end_time: str      # HH:MM
-    location: str
-    proposed_price: float = 0.0
-    notes: Optional[str] = None
+    location: StrippedStr
+    proposed_price: PositiveFloat = 0.0
+    notes: Optional[DescStr] = None
+
+    @field_validator("event_date")
+    @classmethod
+    def validate_date(cls, v):
+        from datetime import datetime
+        try:
+            d = datetime.strptime(v, "%Y-%m-%d").date()
+            if d < datetime.now().date():
+                raise ValueError("Booking date cannot be in the past")
+        except ValueError as e:
+            if "does not match format" in str(e):
+                raise ValueError("Invalid date format, use YYYY-MM-DD")
+            raise e
+        return v
+
+    @field_validator("start_time", "end_time")
+    @classmethod
+    def validate_time(cls, v):
+        from datetime import datetime
+        try:
+            datetime.strptime(v, "%H:%M")
+        except ValueError:
+            raise ValueError("Invalid time format, use HH:MM")
+        return v
 
 
 class BandCounterOfferRequest(BaseModel):
-    counter_price: float
-    message: Optional[str] = None
+    counter_price: PositiveFloat
+    message: Optional[DescStr] = None
 
 
 class BandBookingResponse(BandORMSchema):
@@ -432,15 +482,39 @@ class BandBookingResponse(BandORMSchema):
     artist_profile_id: Optional[int] = None
     venue_id: Optional[int] = None
     client_id: int
-    event_name: str
+    event_name: NameStr
     event_date: datetime
     start_time: str
     end_time: str
-    location: str
+    location: StrippedStr
     proposed_price: float
     counter_price: Optional[float] = None
     status: str
-    notes: Optional[str] = None
+    notes: Optional[DescStr] = None
+
+    @field_validator("event_date")
+    @classmethod
+    def validate_date(cls, v):
+        from datetime import datetime
+        try:
+            d = datetime.strptime(v, "%Y-%m-%d").date()
+            if d < datetime.now().date():
+                raise ValueError("Booking date cannot be in the past")
+        except ValueError as e:
+            if "does not match format" in str(e):
+                raise ValueError("Invalid date format, use YYYY-MM-DD")
+            raise e
+        return v
+
+    @field_validator("start_time", "end_time")
+    @classmethod
+    def validate_time(cls, v):
+        from datetime import datetime
+        try:
+            datetime.strptime(v, "%H:%M")
+        except ValueError:
+            raise ValueError("Invalid time format, use HH:MM")
+        return v
     timeline: List[Any] = Field(default_factory=list)
     created_at: Optional[datetime] = None
 
@@ -459,13 +533,13 @@ class BandReviewCreateRequest(BaseModel):
     venue_id: Optional[int] = None
     booking_id: Optional[int] = None
     rating: int = Field(ge=1, le=5)
-    comment: str
+    comment: DescStr
     images: List[Any] = Field(default_factory=list)
     videos: List[Any] = Field(default_factory=list)
 
 
 class BandReviewReplyRequest(BaseModel):
-    reply_comment: str
+    reply_comment: DescStr
 
 
 class BandReviewResponse(BandORMSchema):
@@ -475,7 +549,7 @@ class BandReviewResponse(BandORMSchema):
     client_id: int
     booking_id: Optional[int] = None
     rating: int
-    comment: str
+    comment: DescStr
     reply_comment: Optional[str] = None
     reply_at: Optional[datetime] = None
     images: List[Any] = Field(default_factory=list)
@@ -501,9 +575,9 @@ class BandTransactionResponse(BandORMSchema):
     booking_id: Optional[int] = None
     account_id: Optional[int] = None
     amount: float
-    type: str
+    type: StrippedStr
     status: str
-    description: Optional[str] = None
+    description: Optional[DescStr] = None
     created_at: Optional[datetime] = None
 
 
@@ -529,20 +603,20 @@ class BandEarningsSummaryResponse(BaseModel):
 class BandSystemSettingResponse(BandORMSchema):
     key: str
     value: Any
-    description: Optional[str] = None
+    description: Optional[DescStr] = None
     updated_at: Optional[datetime] = None
 
 
 class BandSystemSettingUpdate(BaseModel):
     value: Any
-    description: Optional[str] = None
+    description: Optional[DescStr] = None
 
 
 class BandAuditLogResponse(BandORMSchema):
     id: int
     account_id: Optional[int] = None
     action: str
-    ip_address: Optional[str] = None
+    ip_address: Optional[StrippedStr] = None
     user_agent: Optional[str] = None
     payload: Any = None
     created_at: Optional[datetime] = None

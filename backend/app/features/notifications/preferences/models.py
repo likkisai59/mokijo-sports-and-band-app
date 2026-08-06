@@ -14,4 +14,4 @@ class NotificationPreference(BaseModel):
     system_enabled = Column(Boolean, default=True, nullable=False)
     realtime_enabled = Column(Boolean, default=True, nullable=False)
 
-    user = relationship("User", backref="notification_preferences", uselist=False)
+    user = relationship("app.models.models.User", backref="notification_preferences", uselist=False)

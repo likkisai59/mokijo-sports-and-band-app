@@ -8,15 +8,13 @@ import bandApi from "@/lib/bandApi";
 export const bandAdminService = {
   getOverviewStats: async () => {
     try {
-      // For now, reuse review analytics as a proxy or mock data
       const res = await bandApi.get("/reviews/admin/analytics");
       return res.data;
     } catch (error) {
-      // Fallback mock data if the API is missing/fails
       return {
-        platform_average_rating: 4.85,
-        total_reviews: 148,
-        growth_percentage: 12.5,
+        platform_average_rating: 0,
+        total_reviews: 0,
+        growth_percentage: 0,
         activity_breakdown: [],
         role_comparison: [],
         top_rated_artists: []
@@ -25,19 +23,47 @@ export const bandAdminService = {
   },
 
   getPendingVerifications: async () => {
-    // Mocking since backend verification API isn't isolated yet
-    return [
-      { id: "1", name: "The Metal Core", type: "Band", email: "metal@core.in", time: "10 min ago" },
-      { id: "2", name: "Royal Plaza Turf", type: "Venue", email: "plaza@royal.com", time: "1 hour ago" },
-      { id: "3", name: "Jazz Elements Trio", type: "Band", email: "elements@jazz.org", time: "2 hours ago" },
-    ];
+    try {
+      const artistsRes = await bandApi.get("/admin/artists?verification_status=pending");
+      const venuesRes = await bandApi.get("/admin/venues?verification_status=pending");
+      
+      const artists = (artistsRes.data?.items || []).map(a => ({
+        id: a.id,
+        name: a.display_name || a.username,
+        type: "Band",
+        email: "Artist",
+        time: a.created_at || "Recent"
+      }));
+
+      const venues = (venuesRes.data?.items || []).map(v => ({
+        id: v.id,
+        name: v.name,
+        type: "Venue",
+        email: "Venue",
+        time: v.created_at || "Recent"
+      }));
+
+      return [...artists, ...venues];
+    } catch (error) {
+      return [];
+    }
   },
 
-  approveProfile: async (id) => {
-    return { success: true, id };
+  approveProfile: async (id, type) => {
+    const route = type === "Band" ? "artists" : "venues";
+    const res = await bandApi.put(`/admin/${route}/${id}/verify`, {
+      verification_status: "approved",
+      verification_notes: "Approved by Admin"
+    });
+    return { success: true, data: res.data };
   },
 
-  rejectProfile: async (id) => {
-    return { success: true, id };
+  rejectProfile: async (id, type) => {
+    const route = type === "Band" ? "artists" : "venues";
+    const res = await bandApi.put(`/admin/${route}/${id}/verify`, {
+      verification_status: "rejected",
+      verification_notes: "Rejected by Admin"
+    });
+    return { success: true, data: res.data };
   },
 };

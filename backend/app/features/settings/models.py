@@ -30,7 +30,7 @@ class AuditLog(BaseModel):
     user_agent = Column(String(255), nullable=True)
     payload = Column(JSON, default=dict, nullable=False)  # Before/After changes
 
-    user = relationship("User", backref="audit_logs")
+    user = relationship("app.models.models.User", backref="audit_logs")
 ZOOM_NOTE = """
 AuditLog inherits created_at timestamp from BaseModel representing event occurrence.
 """

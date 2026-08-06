@@ -4,26 +4,36 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { Eye, EyeOff } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { bandLogin } from "@/lib/bandAuth";
+
+const loginSchema = z.object({
+    email: z.string().min(1, "Email is required.").email("Email is invalid.").trim().toLowerCase(),
+    password: z.string().min(1, "Password is required.")
+});
 
 export default function BandLoginPage() {
     const router = useRouter();
-    const [form, setForm] = useState({ email: "", password: "" });
-    const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
-    const handleChange = (e) => {
-        setError("");
-        setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
-    };
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting, isValid },
+    } = useForm({
+        resolver: zodResolver(loginSchema),
+        mode: "onChange",
+    });
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
+    const onSubmit = async (data) => {
         setError("");
         try {
-            const data = await bandLogin(form.email, form.password);
-            toast.success(`Welcome back, ${data.user.name}!`);
+            const res = await bandLogin(data.email, data.password);
+            toast.success(`Welcome back, ${res.user.name}!`);
             router.push("/band/dashboard");
         } catch (err) {
             const detail = err?.response?.data?.detail;
@@ -32,8 +42,6 @@ export default function BandLoginPage() {
             } else {
                 setError("Cannot connect to server. Is the backend running?");
             }
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -46,35 +54,41 @@ export default function BandLoginPage() {
 
                 {error && <div className="band-error">{error}</div>}
 
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit(onSubmit)}>
                     <div className="band-field">
                         <label className="band-field__label">Email address</label>
                         <input
-                            name="email"
                             type="email"
                             placeholder="name@example.com"
-                            className="band-field__input"
-                            value={form.email}
-                            onChange={handleChange}
-                            required
+                            className={`band-field__input ${errors.email ? "border-red-500" : ""}`}
+                            {...register("email")}
                         />
+                        {errors.email && <span className="text-red-500 text-xs mt-1">{errors.email.message}</span>}
                     </div>
 
                     <div className="band-field">
                         <label className="band-field__label">Password</label>
-                        <input
-                            name="password"
-                            type="password"
-                            placeholder="••••••••"
-                            className="band-field__input"
-                            value={form.password}
-                            onChange={handleChange}
-                            required
-                        />
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                placeholder="••••••••"
+                                className={`band-field__input ${errors.password ? "border-red-500" : ""}`}
+                                style={{ paddingRight: "40px" }}
+                                {...register("password")}
+                            />
+                            <button
+                                type="button"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a1a1aa] hover:text-white transition-colors"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
+                        {errors.password && <span className="text-red-500 text-xs mt-1">{errors.password.message}</span>}
                     </div>
 
-                    <button type="submit" className="band-btn band-btn--primary" style={{ width: "100%" }} disabled={loading}>
-                        {loading ? "Signing in…" : "Sign in →"}
+                    <button type="submit" className="band-btn band-btn--primary" style={{ width: "100%" }} disabled={isSubmitting || !isValid}>
+                        {isSubmitting ? "Signing in…" : "Sign in →"}
                     </button>
                 </form>
 

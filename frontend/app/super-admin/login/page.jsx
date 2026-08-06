@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/lib/api";
-import { ShieldCheck, Lock, User, AlertCircle } from "lucide-react";
+import { ShieldCheck, Lock, User, AlertCircle, Eye, EyeOff } from "lucide-react";
 
 export default function SuperAdminLoginPage() {
     const router = useRouter();
@@ -10,6 +10,7 @@ export default function SuperAdminLoginPage() {
     const [password, setPassword] = useState("superadmin123");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -142,12 +143,12 @@ export default function SuperAdminLoginPage() {
                         <div style={{ position: "relative" }}>
                             <Lock size={16} style={{ position: "absolute", left: "12px", top: "12px", color: "#64748b" }} />
                             <input
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 style={{
                                     width: "100%",
-                                    padding: "10px 12px 10px 38px",
+                                    padding: "10px 38px 10px 38px",
                                     backgroundColor: "#181826",
                                     border: "1px solid rgba(255, 255, 255, 0.12)",
                                     borderRadius: "8px",
@@ -158,6 +159,22 @@ export default function SuperAdminLoginPage() {
                                 }}
                                 required
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                style={{
+                                    position: "absolute",
+                                    right: "12px",
+                                    top: "12px",
+                                    color: "#64748b",
+                                    background: "none",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    padding: 0
+                                }}
+                            >
+                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
                         </div>
                     </div>
 

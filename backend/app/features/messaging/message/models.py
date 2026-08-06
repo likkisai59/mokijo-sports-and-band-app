@@ -25,7 +25,7 @@ class Message(BaseModel):
 
     # Relationships
     conversation = relationship("Conversation", backref="messages", foreign_keys=[conversation_id])
-    sender = relationship("User", backref="sent_messages", foreign_keys=[sender_id])
+    sender = relationship("app.models.models.User", backref="sent_messages", foreign_keys=[sender_id])
     reply_to = relationship("Message", remote_side="Message.id", foreign_keys=[reply_to_message_id])
     reactions = relationship("MessageReaction", backref="message", cascade="all, delete-orphan", lazy="joined")
 
@@ -37,7 +37,7 @@ class MessageReaction(BaseModel):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     emoji = Column(String(20), nullable=False)
 
-    user = relationship("User", backref="reactions")
+    user = relationship("app.models.models.User", backref="reactions")
 
     __table_args__ = (
         UniqueConstraint("message_id", "user_id", "emoji", name="uq_message_user_emoji"),

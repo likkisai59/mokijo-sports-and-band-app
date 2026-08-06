@@ -289,35 +289,60 @@ def get_dashboard_stats(db: Session, account_id: int) -> dict:
     if venue.documents:
         completion += 10
 
-    import uuid as _uuid
+    from app.models.band_models import BandBooking, BandReview
+    
+    # Real DB Queries
+    bookings = db.query(BandBooking).filter(
+        BandBooking.venue_profile_id == venue.id,
+        BandBooking.deleted_at.is_(None)
+    ).all()
+    
+    total_bookings = len(bookings)
+    pending_requests = [b for b in bookings if b.status == "pending"]
+    upcoming_events = [b for b in bookings if b.status in ("accepted", "confirmed")]
+    completed_events = [b for b in bookings if b.status == "completed"]
+    
+    monthly_revenue = sum(float(b.total_amount or 0) for b in upcoming_events if b.event_date and b.event_date.month == datetime.now().month)
+    total_revenue = sum(float(b.total_amount or 0) for b in completed_events)
+    
+    reviews = db.query(BandReview).filter(
+        BandReview.venue_profile_id == venue.id,
+        BandReview.deleted_at.is_(None)
+    ).all()
+    
     meta = venue.metadata_fields or {}
+    avg_rating = sum(float(r.rating) for r in reviews) / len(reviews) if reviews else float(meta.get("average_rating", 4.6) or 4.6)
+
     return {
-        "total_bookings": 18,
-        "upcoming_bookings": 4,
-        "pending_requests": 3,
-        "monthly_revenue": 125000.0,
-        "total_revenue": 980000.0,
-        "average_rating": float(meta.get("average_rating", 4.6) or 4.6),
+        "total_bookings": total_bookings,
+        "upcoming_bookings": len(upcoming_events),
+        "pending_requests": len(pending_requests),
+        "monthly_revenue": monthly_revenue,
+        "total_revenue": total_revenue,
+        "average_rating": avg_rating,
         "profile_completion": min(completion, 100),
-        "profile_views": 720,
-        "occupancy_rate": 68.0,
+        "profile_views": 0,
+        "occupancy_rate": 0.0,
         "upcoming_events": [
-            {"id": str(_uuid.uuid4()), "client_name": "Ananya Weddings", "event_name": "Wedding Reception",
-             "date": "2026-07-22", "time": "18:00 - 23:00", "status": "Confirmed", "amount": 150000.0},
-            {"id": str(_uuid.uuid4()), "client_name": "TechCorp", "event_name": "Annual Conference",
-             "date": "2026-07-30", "time": "09:00 - 17:00", "status": "Confirmed", "amount": 200000.0},
+            {
+                "id": str(b.id),
+                "client_name": "Client", 
+                "event_name": b.event_name,
+                "date": str(b.event_date),
+                "time": f"{b.start_time} - {b.end_time}",
+                "status": b.status.capitalize(),
+                "amount": float(b.total_amount or 0)
+            } for b in upcoming_events[:3]
         ],
         "recent_reviews": [
-            {"client_name": "Ananya Weddings", "rating": 5.0, "comment": "Excellent venue, top-notch service.", "date": "2026-06-20"},
+            {
+                "client_name": "Client",
+                "rating": float(r.rating),
+                "comment": r.review_text,
+                "date": str(r.created_at.date() if r.created_at else "")
+            } for r in reviews[:2]
         ],
-        "revenue_chart": [
-            {"month": "Jan", "revenue": 80000.0, "bookings": 3},
-            {"month": "Feb", "revenue": 120000.0, "bookings": 4},
-            {"month": "Mar", "revenue": 95000.0, "bookings": 3},
-            {"month": "Apr", "revenue": 150000.0, "bookings": 5},
-            {"month": "May", "revenue": 175000.0, "bookings": 6},
-            {"month": "Jun", "revenue": 140000.0, "bookings": 5},
-        ],
+        "revenue_chart": []
     }
 
 

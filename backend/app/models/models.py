@@ -32,7 +32,7 @@ class Group(Base):
 
     members = relationship("Member", back_populates="group")
 
-    owner = relationship("User", back_populates="groups")
+    owner = relationship("app.models.models.User", back_populates="groups")
     events = relationship("Event", back_populates="group")
     payments = relationship("Payment", back_populates="group")
     courses = relationship("Course", back_populates="group")
@@ -74,7 +74,7 @@ class Event(Base):
     event_posters = Column(String, nullable=True)
 
     group = relationship("Group", back_populates="events")
-    owner = relationship("User", back_populates="events")
+    owner = relationship("app.models.models.User", back_populates="events")
     registrations = relationship("EventRegistration", back_populates="event", cascade="all, delete-orphan")
 
 class EventRegistration(Base):
@@ -167,7 +167,7 @@ class FundraisingCampaign(Base):
     group_name = Column(String, nullable=True)
     donors_count = Column(Integer, default=0)
 
-    owner = relationship("User", back_populates="fundraising_campaigns")
+    owner = relationship("app.models.models.User", back_populates="fundraising_campaigns")
 
 class Payment(Base):
     __tablename__ = "payments"
@@ -186,7 +186,7 @@ class Payment(Base):
     paid_at = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    owner = relationship("User", back_populates="payments")
+    owner = relationship("app.models.models.User", back_populates="payments")
     group = relationship("Group", back_populates="payments")
     member = relationship("Member", back_populates="payments")
     gateway_orders = relationship("PaymentGatewayOrder", back_populates="payment", cascade="all, delete-orphan")
@@ -231,7 +231,7 @@ class Course(Base):
     status = Column(String, default="open") # draft, open, full, closed, completed
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    owner = relationship("User", back_populates="courses")
+    owner = relationship("app.models.models.User", back_populates="courses")
     group = relationship("Group", back_populates="courses")
     registrations = relationship("CourseRegistration", back_populates="course", cascade="all, delete-orphan")
 
@@ -250,7 +250,7 @@ class CourseRegistration(Base):
     notes = Column(Text, nullable=True)
     registered_at = Column(DateTime, default=datetime.utcnow)
 
-    owner = relationship("User", back_populates="course_registrations")
+    owner = relationship("app.models.models.User", back_populates="course_registrations")
     course = relationship("Course", back_populates="registrations")
     member = relationship("Member", back_populates="course_registrations")
 
@@ -264,7 +264,7 @@ class SignupForm(Base):
     description = Column(Text, nullable=True)
     fields = Column(Text, nullable=False) # JSON encoded fields array
 
-    owner = relationship("User", back_populates="signup_forms")
+    owner = relationship("app.models.models.User", back_populates="signup_forms")
 
 class SignupSubmission(Base):
     __tablename__ = "signup_submissions"
@@ -275,7 +275,7 @@ class SignupSubmission(Base):
     submitted_data = Column(Text, nullable=False) # JSON encoded data dictionary
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    owner = relationship("User", back_populates="signup_submissions")
+    owner = relationship("app.models.models.User", back_populates="signup_submissions")
 
 class VenueOwner(Base):
     __tablename__ = "venue_owners"
@@ -348,7 +348,7 @@ class Venue(Base):
     state_name = Column(String, nullable=True)
     postal_code = Column(String, nullable=True)
 
-    owner = relationship("User", back_populates="venues")
+    owner = relationship("app.models.models.User", back_populates="venues")
     venue_owner = relationship("VenueOwner", back_populates="venues", foreign_keys=[venue_owner_id])
     slots = relationship("Slot", back_populates="venue", cascade="all, delete-orphan")
     courts = relationship("Court", back_populates="venue", cascade="all, delete-orphan")
@@ -403,7 +403,7 @@ class Booking(Base):
     cancelled_at = Column(DateTime, nullable=True)
     cancellation_reason = Column(String, nullable=True)
 
-    user = relationship("User", back_populates="bookings")
+    user = relationship("app.models.models.User", back_populates="bookings")
     court = relationship("Court")
     slots = relationship("Slot", secondary=booking_slots, back_populates="bookings")
 
@@ -477,7 +477,7 @@ class Review(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     venue = relationship("Venue", back_populates="reviews")
-    user = relationship("User")
+    user = relationship("app.models.models.User")
 
 class Activity(Base):
     __tablename__ = "activities"
@@ -498,7 +498,7 @@ class Activity(Base):
     description = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    owner = relationship("User", back_populates="activities")
+    owner = relationship("app.models.models.User", back_populates="activities")
     venue = relationship("Venue")
     slot = relationship("Slot")
     rsvps = relationship("ActivityRSVP", back_populates="activity", cascade="all, delete-orphan")
@@ -513,7 +513,7 @@ class ActivityRSVP(Base):
     joined_at = Column(DateTime, default=datetime.utcnow)
 
     activity = relationship("Activity", back_populates="rsvps")
-    user = relationship("User", back_populates="rsvps")
+    user = relationship("app.models.models.User", back_populates="rsvps")
 
 
 class Message(Base):
@@ -551,7 +551,7 @@ class Game(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
-    host = relationship("User", back_populates="hosted_games")
+    host = relationship("app.models.models.User", back_populates="hosted_games")
     venue = relationship("Venue")
     players = relationship("GamePlayer", back_populates="game", cascade="all, delete-orphan")
     waitlist = relationship("GameWaitlist", back_populates="game", cascade="all, delete-orphan")
@@ -569,7 +569,7 @@ class GamePlayer(Base):
     cancelled_at = Column(DateTime, nullable=True)
 
     game = relationship("Game", back_populates="players")
-    user = relationship("User", back_populates="game_participations")
+    user = relationship("app.models.models.User", back_populates="game_participations")
 
     __table_args__ = (
         UniqueConstraint("game_id", "user_id", name="uq_game_user"),
@@ -588,7 +588,7 @@ class GameWaitlist(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     game = relationship("Game", back_populates="waitlist")
-    user = relationship("User", back_populates="waitlist_entries")
+    user = relationship("app.models.models.User", back_populates="waitlist_entries")
 
     __table_args__ = (
         Index("idx_game_waitlist_pos", "game_id", "position"),
@@ -609,7 +609,7 @@ class Match(Base):
     winner_team_id = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    owner = relationship("User", back_populates="matches")
+    owner = relationship("app.models.models.User", back_populates="matches")
     teams = relationship("MatchTeam", back_populates="match", cascade="all, delete-orphan")
     events = relationship("MatchEvent", back_populates="match", cascade="all, delete-orphan")
 

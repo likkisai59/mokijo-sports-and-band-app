@@ -250,7 +250,7 @@ export default function PublicVenuesListPage() {
           </div>
         ) : error ? (
           <div className="min-h-[40vh] flex items-center justify-center">
-            <ErrorState title="Failed to load venues" message={error} onRetry={fetchvenues} />
+            <ErrorState title="Failed to load venues" message={error} onRetry={fetchVenues} />
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

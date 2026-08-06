@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/lib/api";
-import { User, Lock, Save, AlertCircle, CheckCircle2, ShieldCheck, Mail, Phone, Key } from "lucide-react";
+import { User, Lock, Save, AlertCircle, CheckCircle2, ShieldCheck, Mail, Phone, Key, Eye, EyeOff } from "lucide-react";
 import "@/app/styles/profile.css";
 
 export default function MemberProfilePage() {
@@ -24,6 +24,7 @@ export default function MemberProfilePage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [error, setError] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -276,13 +277,33 @@ export default function MemberProfilePage() {
                                 <span>New Password</span>
                                 <Key size={14} style={{ color: "#64748b" }} />
                             </label>
-                            <input
-                                type="password"
-                                className="profile-input"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="Enter new password"
-                            />
+                            <div style={{ position: "relative" }}>
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    className="profile-input"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="Enter new password"
+                                    style={{ paddingRight: "40px" }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    style={{
+                                        position: "absolute",
+                                        right: "12px",
+                                        top: "50%",
+                                        transform: "translateY(-50%)",
+                                        color: "#64748b",
+                                        background: "none",
+                                        border: "none",
+                                        cursor: "pointer",
+                                        padding: 0
+                                    }}
+                                >
+                                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                </button>
+                            </div>
                         </div>
                     </div>
 

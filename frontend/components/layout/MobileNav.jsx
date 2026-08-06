@@ -52,13 +52,13 @@ export function MobileNav({ open, onOpenChange, role }) {
 
       case "venue_owner":
         return [
-          { name: "Home",       href: "/band/venue/dashboard",   icon: Home },
-          { name: "Profile",    href: "/band/venue/profile",     icon: Building2 },
-          { name: "Bookings",   href: "/band/venue/bookings",    icon: Calendar },
-          { name: "Reviews",    href: "/band/venue/reviews",     icon: MessageSquare },
-          { name: "Inbox",      href: "/band/venue/messages",    icon: Inbox },
-          { name: "Payments",   href: "/band/venue/earnings",    icon: IndianRupee },
-          { name: "Settings",   href: "/band/venue/settings",    icon: Settings },
+          { name: "Home",       href: "/venue/dashboard",   icon: Home },
+          { name: "Profile",    href: "/venue/profile",     icon: Building2 },
+          { name: "Bookings",   href: "/venue/bookings",    icon: Calendar },
+          { name: "Reviews",    href: "/venue/reviews",     icon: MessageSquare },
+          { name: "Inbox",      href: "/venue/messages",    icon: Inbox },
+          { name: "Payments",   href: "/venue/earnings",    icon: IndianRupee },
+          { name: "Settings",   href: "/venue/settings",    icon: Settings },
         ];
 
       case "admin":

@@ -47,8 +47,7 @@ export function makeDevToken(role, id) {
 }
 
 export function isPreviewActive() {
-  if (typeof window === "undefined") return false;
-  return isDevMode() && localStorage.getItem("dev_preview_enabled") === "true";
+  return false;
 }
 
 export function getPreviewRole() {
