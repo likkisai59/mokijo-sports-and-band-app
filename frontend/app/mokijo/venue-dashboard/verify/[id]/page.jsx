@@ -338,7 +338,7 @@ export default function VerificationWizardPage() {
             <p className="vd-page-sub">Verify your venue &ldquo;{venue?.name}&rdquo; to enable booking & listings</p>
 
             {/* Step Wizard Header */}
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 30, background: "rgba(255,255,255,0.02)", border: "1px solid var(--vd-border)", borderRadius: 12, padding: "16px 24px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 30, background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 12, padding: "16px 24px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
                 {[
                     { nr: 1, title: "Contact" },
                     { nr: 2, title: "Location" },
@@ -351,8 +351,9 @@ export default function VerificationWizardPage() {
                             width: 28,
                             height: 28,
                             borderRadius: "50%",
-                            background: activeStep === s.nr ? "var(--vd-brand)" : activeStep > s.nr ? "rgba(198, 255, 61,0.2)" : "rgba(255,255,255,0.05)",
-                            color: activeStep === s.nr ? "#000" : activeStep > s.nr ? "var(--vd-brand)" : "rgba(255,255,255,0.3)",
+                            background: activeStep === s.nr ? "#10b981" : activeStep > s.nr ? "#ecfdf5" : "#f1f5f9",
+                            color: activeStep === s.nr ? "#ffffff" : activeStep > s.nr ? "#047857" : "#64748b",
+                            border: activeStep > s.nr ? "1px solid #a7f3d0" : "1px solid #cbd5e1",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -361,7 +362,7 @@ export default function VerificationWizardPage() {
                         }}>
                             {activeStep > s.nr ? "✓" : s.nr}
                         </div>
-                        <span style={{ fontSize: 13, fontWeight: activeStep === s.nr ? 700 : 500, color: activeStep === s.nr ? "#fff" : "rgba(255,255,255,0.4)" }}>
+                        <span style={{ fontSize: 13, fontWeight: activeStep === s.nr ? 700 : 600, color: activeStep === s.nr ? "#0f172a" : activeStep > s.nr ? "#047857" : "#64748b" }}>
                             {s.title}
                         </span>
                     </div>
@@ -456,7 +457,7 @@ export default function VerificationWizardPage() {
             {activeStep === 2 && (
                 <div className="vd-card" style={{ textAlign: "center", padding: "40px 24px" }}>
                     <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Step 2: Location Verification (GPS Capture)</h2>
-                    <p style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", marginBottom: 24, maxWidth: 500, margin: "0 auto 24px auto" }}>
+                    <p style={{ fontSize: 14, color: "#64748b", marginBottom: 24, maxWidth: 500, margin: "0 auto 24px auto" }}>
                         We require GPS confirmation to ensure the physical authenticity of the sports venue.
                     </p>
 
@@ -467,7 +468,7 @@ export default function VerificationWizardPage() {
                     {locationCaptured && (
                         <div style={{ marginTop: 24, display: "inline-block", background: "rgba(198, 255, 61,0.08)", border: "1px solid rgba(198, 255, 61,0.2)", padding: "12px 24px", borderRadius: 10 }}>
                             <div style={{ fontSize: 13, color: "var(--vd-brand)", fontWeight: 700 }}>✓ GPS Coordinates Captured Successfully</div>
-                            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 4 }}>
+                            <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>
                                 Latitude: {gps.latitude} · Longitude: {gps.longitude}
                             </div>
                         </div>
@@ -479,7 +480,7 @@ export default function VerificationWizardPage() {
             {activeStep === 3 && (
                 <div className="vd-card">
                     <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 10 }}>Step 3: Venue Photos (At least 3)</h2>
-                    <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 20 }}>
+                    <p style={{ fontSize: 13, color: "#64748b", marginBottom: 20 }}>
                         Upload high-quality photos of courts, entries, and amenities. You currently have <strong>{photos.length}</strong> photo(s) uploaded.
                     </p>
 
@@ -497,7 +498,7 @@ export default function VerificationWizardPage() {
                         ))}
                         <label style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", border: "2px dashed var(--vd-border)", borderRadius: 10, cursor: "pointer", height: 110, background: "rgba(255,255,255,0.01)" }}>
                             <span style={{ fontSize: 24, opacity: 0.4 }}>+</span>
-                            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>Add Photo</span>
+                            <span style={{ fontSize: 11, color: "#64748b", marginTop: 4 }}>Add Photo</span>
                             <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} style={{ display: "none" }} />
                         </label>
                     </div>
@@ -508,7 +509,7 @@ export default function VerificationWizardPage() {
             {activeStep === 4 && (
                 <div className="vd-card">
                     <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 10 }}>Step 4: Upload Verification Document</h2>
-                    <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 20 }}>
+                    <p style={{ fontSize: 13, color: "#64748b", marginBottom: 20 }}>
                         Provide official legal documents (ownership proof, business registration, or rental agreement). At least 1 document is required.
                     </p>
 
@@ -561,7 +562,7 @@ export default function VerificationWizardPage() {
                                         <div style={{ fontSize: 13, fontWeight: 600 }}>{d.original_filename || "Document"}</div>
                                         <div style={{ fontSize: 11, color: "var(--vd-brand)" }}>{d.document_type.replace(/_/g, " ")} {d.document_label ? `(${d.document_label})` : ""}</div>
                                     </div>
-                                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
+                                    <span style={{ fontSize: 11, color: "#64748b" }}>
                                         {d.file_size ? `${Math.round(d.file_size / 1024)} KB` : ""}
                                     </span>
                                 </div>
@@ -578,35 +579,35 @@ export default function VerificationWizardPage() {
 
                     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                         <div style={{ borderBottom: "1px solid var(--vd-border)", paddingBottom: 10 }}>
-                            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Venue Name</div>
+                            <div style={{ fontSize: 12, color: "#64748b" }}>Venue Name</div>
                             <div style={{ fontSize: 14, fontWeight: 600 }}>{venue?.name}</div>
                         </div>
 
                         <div style={{ borderBottom: "1px solid var(--vd-border)", paddingBottom: 10 }}>
-                            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Contact Details</div>
+                            <div style={{ fontSize: 12, color: "#64748b" }}>Contact Details</div>
                             <div style={{ fontSize: 13 }}>Phone: {contactInfo.contact_phone}</div>
                             <div style={{ fontSize: 13 }}>Email: {contactInfo.contact_email}</div>
                         </div>
 
                         <div style={{ borderBottom: "1px solid var(--vd-border)", paddingBottom: 10 }}>
-                            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Address Info</div>
+                            <div style={{ fontSize: 12, color: "#64748b" }}>Address Info</div>
                             <div style={{ fontSize: 13 }}>{contactInfo.city}, {contactInfo.state_name} - {contactInfo.postal_code}</div>
                         </div>
 
                         <div style={{ borderBottom: "1px solid var(--vd-border)", paddingBottom: 10 }}>
-                            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>GPS Location</div>
+                            <div style={{ fontSize: 12, color: "#64748b" }}>GPS Location</div>
                             <div style={{ fontSize: 13 }}>
                                 {locationCaptured ? `Captured: ${gps.latitude}, ${gps.longitude}` : "⚠️ Geolocation not captured yet"}
                             </div>
                         </div>
 
                         <div style={{ borderBottom: "1px solid var(--vd-border)", paddingBottom: 10 }}>
-                            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Photos Uploaded</div>
+                            <div style={{ fontSize: 12, color: "#64748b" }}>Photos Uploaded</div>
                             <div style={{ fontSize: 13 }}>{photos.length} photos (minimum 3 required)</div>
                         </div>
 
                         <div style={{ borderBottom: "1px solid var(--vd-border)", paddingBottom: 10 }}>
-                            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Documents Uploaded</div>
+                            <div style={{ fontSize: 12, color: "#64748b" }}>Documents Uploaded</div>
                             <div style={{ fontSize: 13 }}>{docs.length} documents (minimum 1 required)</div>
                         </div>
                     </div>

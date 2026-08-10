@@ -120,6 +120,7 @@ class User(Base):
     state = Column(String)
     member_count = Column(String)
     sport = Column(String)
+    club_logo = Column(Text, nullable=True)
     first_name = Column(String)
     last_name = Column(String)
     dob = Column(String, nullable=True)

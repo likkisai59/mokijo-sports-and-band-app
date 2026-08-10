@@ -50,3 +50,12 @@ async def get_member_profile(request: Request, member_id: int, db: Session = Dep
 @router.put("/profile/member/{member_id}", response_model=schemas.MemberProfileResponse, summary="Update profile details for a club member.", tags=["Auth"])
 async def update_member_profile(request: Request, member_id: int, payload: schemas.MemberProfileUpdate, db: Session = Depends(get_db)):
     return await service.update_member_profile(request, db, member_id, payload)
+
+@router.get("/profile/club-admin/{user_id}", response_model=schemas.ClubAdminProfileResponse, summary="Retrieve profile details for a club administrator.", tags=["Auth"])
+async def get_club_admin_profile(request: Request, user_id: int, db: Session = Depends(get_db)):
+    return await service.get_club_admin_profile(request, db, user_id)
+
+@router.put("/profile/club-admin/{user_id}", response_model=schemas.ClubAdminProfileResponse, summary="Update profile details for a club administrator.", tags=["Auth"])
+async def update_club_admin_profile(request: Request, user_id: int, payload: schemas.ClubAdminProfileUpdate, db: Session = Depends(get_db)):
+    return await service.update_club_admin_profile(request, db, user_id, payload)
+

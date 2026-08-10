@@ -91,6 +91,11 @@ function LoginContent() {
                 userRole: "admin",
                 accessToken: token,
             });
+            if (data.clubLogo) {
+                localStorage.setItem("clubLogo", data.clubLogo);
+            } else {
+                localStorage.removeItem("clubLogo");
+            }
             navigateToDashboard("/dashboard");
         } else {
             setError(result.detail || "Invalid credentials. Please try again.");
@@ -125,14 +130,6 @@ function LoginContent() {
                             subtitle="Welcome back — enter your credentials to continue."
                         />
                     </div>
-
-                    {showSuccess ? (
-                        <div className="w-full max-w-[360px] mb-4">
-                            <AuthSuccessBanner variant="light">
-                                Your club has been registered successfully. You can now sign in below.
-                            </AuthSuccessBanner>
-                        </div>
-                    ) : null}
 
                     {/* Centered Form Block */}
                     <form className="block space-y-4 max-w-[360px] w-full text-left" onSubmit={handleSubmit}>

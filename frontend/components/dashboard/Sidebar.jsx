@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 export default function Sidebar() {
     const [groups, setGroups] = useState([]);
     const [clubName, setClubName] = useState("My Club");
+    const [clubLogo, setClubLogo] = useState("");
     const [isMember, setIsMember] = useState(false);
     const [userRole, setUserRole] = useState("");
     const [memberRole, setMemberRole] = useState("");
@@ -35,10 +36,16 @@ export default function Sidebar() {
     }, [pathname]);
 
     useEffect(() => {
-        setIsMember(localStorage.getItem("isMember") === "true");
-        setClubName(localStorage.getItem("clubName") || "My Club");
-        setUserRole(localStorage.getItem("userRole") || "");
-        setMemberRole(localStorage.getItem("memberRole") || "");
+        const syncSession = () => {
+            setIsMember(localStorage.getItem("isMember") === "true");
+            setClubName(localStorage.getItem("clubName") || "My Club");
+            setClubLogo(localStorage.getItem("clubLogo") || "");
+            setUserRole(localStorage.getItem("userRole") || "");
+            setMemberRole(localStorage.getItem("memberRole") || "");
+        };
+
+        syncSession();
+
         const fetchGroups = async () => {
             const userId = localStorage.getItem("userId");
             const token = localStorage.getItem("accessToken");
@@ -59,13 +66,21 @@ export default function Sidebar() {
         fetchGroups();
 
         window.addEventListener("groupsUpdated", fetchGroups);
-        return () => window.removeEventListener("groupsUpdated", fetchGroups);
+        window.addEventListener("storage", syncSession);
+        return () => {
+            window.removeEventListener("groupsUpdated", fetchGroups);
+            window.removeEventListener("storage", syncSession);
+        };
     }, []);
 
     return (
         <aside className="sidebar">
             <div className="sidebar-brand">
-                <span className="club-badge">{clubName.charAt(0)}</span>
+                {clubLogo ? (
+                    <img src={clubLogo} alt="Club Logo" className="club-badge-img" />
+                ) : (
+                    <span className="club-badge">{clubName.charAt(0)}</span>
+                )}
                 <span className="club-name-text">{clubName}</span>
             </div>
 

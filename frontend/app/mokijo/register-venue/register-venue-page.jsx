@@ -128,11 +128,10 @@ function fileToBase64(file) {
 function Stepper({ step }) {
     const circle = (n, active, done) => (
         <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${
-                active || done
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${active || done
                     ? "bg-[#c6ff3d] text-[#08080f]"
                     : "bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.1)] text-[rgba(244,244,245,0.5)]"
-            }`}
+                }`}
         >
             {done ? "✓" : n}
         </div>
@@ -360,9 +359,8 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
                     <button
                         key={d}
                         type="button"
-                        className={`${dayChipBase} ${
-                            venue.daysOpen.includes(d) ? chipSelected : chipIdle
-                        }`}
+                        className={`${dayChipBase} ${venue.daysOpen.includes(d) ? chipSelected : chipIdle
+                            }`}
                         onClick={() => update("daysOpen", toggle(venue.daysOpen, d))}
                     >
                         {d}
@@ -558,8 +556,8 @@ export default function RegisterVenuePage() {
         step === 3
             ? undefined
             : step === 1
-              ? "Step 1 of 2 — Tell us about your venue"
-              : "Step 2 of 2 — Owner account details";
+                ? "Step 1 of 2 — Tell us about your venue"
+                : "Step 2 of 2 — Owner account details";
 
     return (
         <AuthShell variant="light">

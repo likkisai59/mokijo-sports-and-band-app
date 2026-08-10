@@ -142,11 +142,11 @@ export default function DashboardMatchesPage() {
                 <div>
                     <h1
                         className="vd-page-title"
-                        style={{ color: "#fff", fontSize: "28px", fontWeight: "800", margin: 0 }}
+                        style={{ color: "#0f172a", fontSize: "28px", fontWeight: "800", margin: 0 }}
                     >
                         Live Matches & Scoreboard
                     </h1>
-                    <p className="vd-page-sub" style={{ color: "var(--vd-muted)", marginTop: "4px", marginBottom: 0 }}>
+                    <p className="vd-page-sub" style={{ color: "#64748b", marginTop: "4px", marginBottom: 0 }}>
                         Create, schedule, and score matches for teams in real time
                     </p>
                 </div>
@@ -172,16 +172,16 @@ export default function DashboardMatchesPage() {
                 <div className="m-stat-card">
                     <div className="m-stat-icon">🏆</div>
                     <div className="m-stat-info">
-                        <div className="m-stat-val">{stats.total}</div>
+                        <div className="m-stat-val" style={{ color: "#0f172a" }}>{stats.total}</div>
                         <div className="m-stat-lbl">Total Matches</div>
                     </div>
                 </div>
                 <div className="m-stat-card">
-                    <div className="m-stat-icon" style={{ color: "#ff3b30", borderColor: "rgba(255, 59, 48, 0.15)" }}>
+                    <div className="m-stat-icon" style={{ color: "#dc2626", borderColor: "#fca5a5", background: "#fef2f2" }}>
                         🔴
                     </div>
                     <div className="m-stat-info">
-                        <div className="m-stat-val" style={{ color: "#ff3b30" }}>
+                        <div className="m-stat-val" style={{ color: "#dc2626" }}>
                             {stats.live}
                         </div>
                         <div className="m-stat-lbl">Live Now</div>
@@ -190,12 +190,12 @@ export default function DashboardMatchesPage() {
                 <div className="m-stat-card">
                     <div
                         className="m-stat-icon"
-                        style={{ color: "var(--vd-cyan)", borderColor: "rgba(217, 255, 110, 0.15)" }}
+                        style={{ color: "#0284c7", borderColor: "#7dd3fc", background: "#e0f2fe" }}
                     >
                         ⏳
                     </div>
                     <div className="m-stat-info">
-                        <div className="m-stat-val" style={{ color: "var(--vd-cyan)" }}>
+                        <div className="m-stat-val" style={{ color: "#0284c7" }}>
                             {stats.scheduled}
                         </div>
                         <div className="m-stat-lbl">Scheduled</div>
@@ -204,12 +204,12 @@ export default function DashboardMatchesPage() {
                 <div className="m-stat-card">
                     <div
                         className="m-stat-icon"
-                        style={{ color: "var(--vd-muted)", borderColor: "rgba(255, 255, 255, 0.15)" }}
+                        style={{ color: "#64748b", borderColor: "#cbd5e1", background: "#f1f5f9" }}
                     >
                         🏁
                     </div>
                     <div className="m-stat-info">
-                        <div className="m-stat-val" style={{ color: "rgba(255, 255, 255, 0.7)" }}>
+                        <div className="m-stat-val" style={{ color: "#334155" }}>
                             {stats.completed}
                         </div>
                         <div className="m-stat-lbl">Completed</div>
@@ -219,7 +219,7 @@ export default function DashboardMatchesPage() {
 
             {/* Actions & Filters */}
             <div className="m-header-actions">
-                <h2 style={{ fontSize: "18px", fontWeight: "700", color: "#fff" }}>Match Schedule</h2>
+                <h2 style={{ fontSize: "18px", fontWeight: "700", color: "#0f172a" }}>Match Schedule</h2>
             </div>
 
             {/* Matches List Grid */}

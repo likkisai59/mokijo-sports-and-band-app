@@ -122,21 +122,20 @@ body::-webkit-scrollbar-corner,
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: none !important;
+    background: #fef2f2 !important;
+    border: 1px solid #fecaca !important;
     border-radius: 8px;
-    color: #ffffff !important;
+    color: #dc2626 !important;
     padding: 8px 16px;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
     font-family: "Outfit", sans-serif;
-    margin-left: 16px;
 }
 
 .user-logout-btn:hover {
-    color: rgba(255, 255, 255, 0.7) !important;
-    background: transparent !important;
+    color: #b91c1c !important;
+    background: #fee2e2 !important;
     box-shadow: none !important;
 }

@@ -257,7 +257,7 @@ export default function MyVenuesPage() {
                                             <span className="vd-sport-tag">+{sportsParsed.length - 3}</span>
                                         )}
                                     </div>
-                                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginBottom: 14 }}>
+                                    <div style={{ fontSize: 12, color: "#64748b", marginBottom: 14 }}>
                                         {v.opening_time} – {v.closing_time} · {v.slot_duration}min slots
                                     </div>
                                     <div className="vd-venue-footer" style={{ display: "flex", gap: 8 }}>

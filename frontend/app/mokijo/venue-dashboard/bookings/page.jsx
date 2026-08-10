@@ -119,7 +119,7 @@ export default function BookingsPage() {
                     <option value="pending">Pending</option>
                     <option value="cancelled">Cancelled</option>
                 </select>
-                <span style={{ marginLeft: "auto", fontSize: 13, color: "rgba(255,255,255,0.4)" }}>
+                <span style={{ marginLeft: "auto", fontSize: 13, color: "#64748b" }}>
                     {filtered.length} bookings
                 </span>
             </div>
@@ -155,12 +155,12 @@ export default function BookingsPage() {
                             <tbody>
                                 {filtered.map((b) => (
                                     <tr key={b.booking_id}>
-                                        <td style={{ color: "rgba(255,255,255,0.35)", fontSize: 11 }}>
+                                        <td style={{ color: "#94a3b8", fontSize: 11 }}>
                                             #{b.booking_id}
                                         </td>
                                         <td>
                                             <div style={{ fontWeight: 600 }}>{b.customer_name}</div>
-                                            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>
+                                            <div style={{ fontSize: 11, color: "#64748b" }}>
                                                 {b.customer_email}
                                             </div>
                                         </td>
@@ -170,7 +170,7 @@ export default function BookingsPage() {
                                             {fmt(b.start_time)} – {fmt(b.end_time)}
                                         </td>
                                         <td style={{ whiteSpace: "nowrap" }}>{fmtDate(b.booking_date)}</td>
-                                        <td style={{ color: "#c6ff3d", fontWeight: 600 }}>₹{b.amount_paid}</td>
+                                        <td style={{ color: "#059669", fontWeight: 600 }}>₹{b.amount_paid}</td>
                                         <td>{statusBadge(b.payment_status)}</td>
                                         <td>{statusBadge(b.booking_status)}</td>
                                         <td style={{ whiteSpace: "nowrap" }}>
@@ -192,7 +192,7 @@ export default function BookingsPage() {
                                                     </button>
                                                 </div>
                                             ) : (
-                                                <span style={{ color: "rgba(255,255,255,0.65)" }}>
+                                                <span style={{ color: "#94a3b8" }}>
                                                     No action
                                                 </span>
                                             )}

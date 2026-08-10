@@ -67,6 +67,7 @@ const DashboardVenueVerification = React.lazy(() => import('@/app/mokijo/dashboa
 const DashboardVenueVerificationDetail = React.lazy(() => import('@/app/mokijo/dashboard/venue-verification/[venueId]/page.jsx'));
 const DashboardSettings = React.lazy(() => import('@/app/mokijo/dashboard/settings/page.jsx'));
 const DashboardProfile = React.lazy(() => import('@/app/mokijo/dashboard/profile/page.jsx'));
+const DashboardClubProfile = React.lazy(() => import('@/app/mokijo/dashboard/club-profile/page.jsx'));
 const DashboardBookings = React.lazy(() => import('@/app/mokijo/dashboard/bookings/page.jsx'));
 const DashboardCourses = React.lazy(() => import('@/app/mokijo/dashboard/courses/page.jsx'));
 const DashboardMyTrainings = React.lazy(() => import('@/app/mokijo/dashboard/my-trainings/page.jsx'));
@@ -228,6 +229,7 @@ export default function App() {
                       <Route path="venue-verification/:venueId" element={<PageWrapper Component={DashboardVenueVerificationDetail} />} />
                       <Route path="settings" element={<DashboardSettings />} />
                       <Route path="profile" element={<DashboardProfile />} />
+                      <Route path="club-profile" element={<DashboardClubProfile />} />
                       <Route path="bookings" element={<DashboardBookings />} />
                       <Route path="courses" element={<DashboardCourses />} />
                       <Route path="my-trainings" element={<DashboardMyTrainings />} />

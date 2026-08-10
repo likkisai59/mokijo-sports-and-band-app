@@ -36,7 +36,7 @@ export default function SuperAdminTopHeader({ isMobileMenuOpen = false, onMenuTo
                 >
                     {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
                 </button>
-                <strong className="logo">Mukijo</strong>
+                <span className="mkt-brand text-[24px] md:text-[28px] font-black uppercase tracking-wider text-black">MUKIJO</span>
                 <span
                     style={{
                         fontSize: "11px",

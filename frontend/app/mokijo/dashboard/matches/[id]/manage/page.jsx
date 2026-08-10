@@ -477,7 +477,7 @@ export default function DashboardMatchManagePage() {
 
                     {/* Event Logger Form */}
                     <div className="op-log-form">
-                        <h2 style={{ fontSize: "16px", fontWeight: "700", color: "#fff", marginBottom: "16px" }}>
+                        <h2 style={{ fontSize: "16px", fontWeight: "700", color: "#0f172a", marginBottom: "16px" }}>
                             Log Match Event
                         </h2>
 
@@ -549,7 +549,7 @@ export default function DashboardMatchManagePage() {
                 <div className="timeline-card">
                     <div className="timeline-header">
                         <span>Match Timeline</span>
-                        <Clock size={16} style={{ color: "var(--vd-muted)" }} />
+                        <Clock size={16} style={{ color: "#64748b" }} />
                     </div>
 
                     <div className="timeline-list">
@@ -571,7 +571,7 @@ export default function DashboardMatchManagePage() {
                         ) : (
                             <div
                                 style={{
-                                    color: "var(--vd-muted)",
+                                    color: "#64748b",
                                     fontSize: "13px",
                                     textAlign: "center",
                                     padding: "40px 0",
@@ -586,50 +586,50 @@ export default function DashboardMatchManagePage() {
 
             {/* Team Squads Panel */}
             {(teamAMembers.length > 0 || teamBMembers.length > 0) && (
-                <div className="vd-card" style={{ marginTop: "24px", padding: "24px", background: "var(--vd-surface)", border: "1px solid var(--vd-border)", borderRadius: "20px" }}>
-                    <h2 style={{ fontSize: "16px", fontWeight: "800", color: "#fff", marginBottom: "20px", letterSpacing: "0.5px" }}>
+                <div className="vd-card" style={{ marginTop: "24px", padding: "24px", background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "20px", boxShadow: "0 4px 20px rgba(15, 23, 42, 0.06)" }}>
+                    <h2 style={{ fontSize: "16px", fontWeight: "800", color: "#0f172a", marginBottom: "20px", letterSpacing: "0.5px" }}>
                         Group-Specific Team Members & Lineups
                     </h2>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
                         {/* Team A Roster */}
                         <div>
-                            <h3 style={{ fontSize: "14px", fontWeight: "700", color: teamA.color || "var(--vd-brand)", borderBottom: "1px solid var(--vd-border)", paddingBottom: "8px", marginBottom: "12px" }}>
+                            <h3 style={{ fontSize: "14px", fontWeight: "700", color: "#059669", borderBottom: "1px solid #e2e8f0", paddingBottom: "8px", marginBottom: "12px" }}>
                                 {teamA?.team_name} Squad
                             </h3>
                             {teamAMembers.length > 0 ? (
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                     {teamAMembers.map((m) => (
-                                        <div key={m.id} style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(255, 255, 255, 0.02)", padding: "8px 12px", borderRadius: "8px" }}>
-                                            <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: teamA.color || "var(--vd-brand)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "800" }}>
+                                        <div key={m.id} style={{ display: "flex", alignItems: "center", gap: "10px", background: "#f8fafc", border: "1px solid #e2e8f0", padding: "8px 12px", borderRadius: "8px" }}>
+                                            <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: "#10b981", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "800" }}>
                                                 {m.first_name[0].toUpperCase()}
                                             </div>
-                                            <span style={{ fontSize: "13px", fontWeight: "500", color: "#e2e8f0" }}>{m.first_name} {m.last_name || ""}</span>
+                                            <span style={{ fontSize: "13px", fontWeight: "600", color: "#0f172a" }}>{m.first_name} {m.last_name || ""}</span>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <span style={{ fontSize: "12px", color: "var(--vd-muted)" }}>No players registered in this team.</span>
+                                <span style={{ fontSize: "12px", color: "#64748b" }}>No players registered in this team.</span>
                             )}
                         </div>
 
                         {/* Team B Roster */}
                         <div>
-                            <h3 style={{ fontSize: "14px", fontWeight: "700", color: teamB.color || "var(--vd-cyan)", borderBottom: "1px solid var(--vd-border)", paddingBottom: "8px", marginBottom: "12px" }}>
+                            <h3 style={{ fontSize: "14px", fontWeight: "700", color: "#0284c7", borderBottom: "1px solid #e2e8f0", paddingBottom: "8px", marginBottom: "12px" }}>
                                 {teamB?.team_name} Squad
                             </h3>
                             {teamBMembers.length > 0 ? (
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                     {teamBMembers.map((m) => (
-                                        <div key={m.id} style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(255, 255, 255, 0.02)", padding: "8px 12px", borderRadius: "8px" }}>
-                                            <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: teamB.color || "var(--vd-cyan)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "800" }}>
+                                        <div key={m.id} style={{ display: "flex", alignItems: "center", gap: "10px", background: "#f8fafc", border: "1px solid #e2e8f0", padding: "8px 12px", borderRadius: "8px" }}>
+                                            <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: "#0284c7", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "800" }}>
                                                 {m.first_name[0].toUpperCase()}
                                             </div>
-                                            <span style={{ fontSize: "13px", fontWeight: "500", color: "#e2e8f0" }}>{m.first_name} {m.last_name || ""}</span>
+                                            <span style={{ fontSize: "13px", fontWeight: "600", color: "#0f172a" }}>{m.first_name} {m.last_name || ""}</span>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <span style={{ fontSize: "12px", color: "var(--vd-muted)" }}>
+                                <span style={{ fontSize: "12px", color: "#64748b" }}>
                                     {teamB?.club_name ? "Squad list unavailable (Guest Team)" : "No players registered in this team."}
                                 </span>
                             )}

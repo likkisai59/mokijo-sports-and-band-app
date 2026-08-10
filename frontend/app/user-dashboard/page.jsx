@@ -589,8 +589,8 @@ export default function UserDashboard() {
                         onClick={() => setActiveTab("home")}
                         style={{
                             ...styles.headerTabBtn,
-                            color: activeTab === "home" ? "#c6ff3d" : "rgba(244, 244, 245, 0.6)",
-                            borderBottomColor: activeTab === "home" ? "#c6ff3d" : "transparent",
+                            color: activeTab === "home" ? "#10b981" : "#64748b",
+                            borderBottomColor: activeTab === "home" ? "#10b981" : "transparent",
                         }}
                     >
                         <HomeIcon size={16} />
@@ -601,8 +601,8 @@ export default function UserDashboard() {
                         onClick={() => setActiveTab("game")}
                         style={{
                             ...styles.headerTabBtn,
-                            color: activeTab === "game" ? "#c6ff3d" : "rgba(244, 244, 245, 0.6)",
-                            borderBottomColor: activeTab === "game" ? "#c6ff3d" : "transparent",
+                            color: activeTab === "game" ? "#10b981" : "#64748b",
+                            borderBottomColor: activeTab === "game" ? "#10b981" : "transparent",
                         }}
                     >
                         <Trophy size={16} />
@@ -613,8 +613,8 @@ export default function UserDashboard() {
                         onClick={() => setActiveTab("booking")}
                         style={{
                             ...styles.headerTabBtn,
-                            color: activeTab === "booking" ? "#c6ff3d" : "rgba(244, 244, 245, 0.6)",
-                            borderBottomColor: activeTab === "booking" ? "#c6ff3d" : "transparent",
+                            color: activeTab === "booking" ? "#10b981" : "#64748b",
+                            borderBottomColor: activeTab === "booking" ? "#10b981" : "transparent",
                         }}
                     >
                         <Calendar size={16} />
@@ -625,8 +625,8 @@ export default function UserDashboard() {
                         onClick={() => setActiveTab("my-trainings")}
                         style={{
                             ...styles.headerTabBtn,
-                            color: activeTab === "my-trainings" ? "#c6ff3d" : "rgba(244, 244, 245, 0.6)",
-                            borderBottomColor: activeTab === "my-trainings" ? "#c6ff3d" : "transparent",
+                            color: activeTab === "my-trainings" ? "#10b981" : "#64748b",
+                            borderBottomColor: activeTab === "my-trainings" ? "#10b981" : "transparent",
                         }}
                     >
                         <Award size={16} />
@@ -637,8 +637,8 @@ export default function UserDashboard() {
                         onClick={() => setActiveTab("my-bookings")}
                         style={{
                             ...styles.headerTabBtn,
-                            color: activeTab === "my-bookings" ? "#c6ff3d" : "rgba(244, 244, 245, 0.6)",
-                            borderBottomColor: activeTab === "my-bookings" ? "#c6ff3d" : "transparent",
+                            color: activeTab === "my-bookings" ? "#10b981" : "#64748b",
+                            borderBottomColor: activeTab === "my-bookings" ? "#10b981" : "transparent",
                         }}
                     >
                         <CalendarCheck size={16} />
@@ -649,8 +649,8 @@ export default function UserDashboard() {
                         onClick={() => setActiveTab("training")}
                         style={{
                             ...styles.headerTabBtn,
-                            color: activeTab === "training" ? "#c6ff3d" : "rgba(244, 244, 245, 0.6)",
-                            borderBottomColor: activeTab === "training" ? "#c6ff3d" : "transparent",
+                            color: activeTab === "training" ? "#10b981" : "#64748b",
+                            borderBottomColor: activeTab === "training" ? "#10b981" : "transparent",
                         }}
                     >
                         <Compass size={16} />
@@ -680,12 +680,12 @@ export default function UserDashboard() {
                                 position: "absolute",
                                 top: "120%",
                                 right: 0,
-                                backgroundColor: "#0f0f1a",
-                                border: "1px solid rgba(255, 255, 255, 0.08)",
+                                backgroundColor: "#ffffff",
+                                border: "1px solid #e2e8f0",
                                 borderRadius: "8px",
                                 padding: "6px",
                                 minWidth: "140px",
-                                boxShadow: "0 10px 25px rgba(0, 0, 0, 0.5)",
+                                boxShadow: "0 10px 25px rgba(15, 23, 42, 0.1)",
                                 zIndex: 1000,
                             }}
                         >
@@ -698,12 +698,13 @@ export default function UserDashboard() {
                                     alignItems: "center",
                                     gap: "8px",
                                     padding: "8px 12px",
-                                    border: "none",
-                                    background: "transparent",
-                                    color: "#ffffff",
+                                    border: "1px solid #fecaca",
+                                    background: "#fef2f2",
+                                    color: "#dc2626",
                                     cursor: "pointer",
                                     fontSize: "14px",
-                                    borderRadius: "4px",
+                                    borderRadius: "6px",
+                                    fontWeight: "700",
                                     transition: "background 0.2s",
                                 }}
                             >
@@ -790,7 +791,7 @@ export default function UserDashboard() {
                             {/* Host or Join a Game Box */}
                             <div style={styles.boxCard}>
                                 <div style={styles.boxHeader}>
-                                    <Users size={20} style={{ color: "#c6ff3d" }} />
+                                    <Users size={20} style={{ color: "#10b981" }} />
                                     <h3 style={styles.boxTitle}>Host or Join a Game</h3>
                                 </div>
                                 <div style={{ padding: "8px 4px 4px", color: "rgba(148,163,184,0.6)", fontSize: 13 }}>
@@ -929,7 +930,7 @@ export default function UserDashboard() {
                         {/* Venue Cards Grid */}
                         {loadingVenues ? (
                             <div style={styles.loadingContainer}>
-                                <Loader2 className="animate-spin" size={32} style={{ color: "#c6ff3d" }} />
+                                <Loader2 className="animate-spin" size={32} style={{ color: "#10b981" }} />
                                 <p style={{ marginTop: "16px", color: "rgba(148, 163, 184, 0.6)" }}>
                                     Searching sports arenas nearby...
                                 </p>
@@ -1016,9 +1017,9 @@ export default function UserDashboard() {
                                 onClick={() => setGameSubTab("host")}
                                 style={{
                                     ...styles.gameSubNavBtn,
-                                    backgroundColor: gameSubTab === "host" ? "rgba(198, 255, 61, 0.1)" : "transparent",
-                                    color: gameSubTab === "host" ? "#c6ff3d" : "rgba(244, 244, 245, 0.7)",
-                                    borderColor: gameSubTab === "host" ? "#c6ff3d" : "rgba(255, 255, 255, 0.1)",
+                                    backgroundColor: gameSubTab === "host" ? "#ecfdf5" : "transparent",
+                                    color: gameSubTab === "host" ? "#047857" : "#475569",
+                                    borderColor: gameSubTab === "host" ? "#a7f3d0" : "#cbd5e1",
                                 }}
                             >
                                 <PlusCircle size={14} />
@@ -1029,9 +1030,9 @@ export default function UserDashboard() {
                                 onClick={() => setGameSubTab("joined")}
                                 style={{
                                     ...styles.gameSubNavBtn,
-                                    backgroundColor: gameSubTab === "joined" ? "rgba(198, 255, 61, 0.1)" : "transparent",
-                                    color: gameSubTab === "joined" ? "#c6ff3d" : "rgba(244, 244, 245, 0.7)",
-                                    borderColor: gameSubTab === "joined" ? "#c6ff3d" : "rgba(255, 255, 255, 0.1)",
+                                    backgroundColor: gameSubTab === "joined" ? "#ecfdf5" : "transparent",
+                                    color: gameSubTab === "joined" ? "#047857" : "#475569",
+                                    borderColor: gameSubTab === "joined" ? "#a7f3d0" : "#cbd5e1",
                                 }}
                             >
                                 <Users size={14} />
@@ -1043,9 +1044,9 @@ export default function UserDashboard() {
                                 style={{
                                     ...styles.gameSubNavBtn,
                                     backgroundColor:
-                                        gameSubTab === "explore" ? "rgba(198, 255, 61, 0.1)" : "transparent",
-                                    color: gameSubTab === "explore" ? "#c6ff3d" : "rgba(244, 244, 245, 0.7)",
-                                    borderColor: gameSubTab === "explore" ? "#c6ff3d" : "rgba(255, 255, 255, 0.1)",
+                                        gameSubTab === "explore" ? "#ecfdf5" : "transparent",
+                                    color: gameSubTab === "explore" ? "#047857" : "#475569",
+                                    borderColor: gameSubTab === "explore" ? "#a7f3d0" : "#cbd5e1",
                                 }}
                             >
                                 <Compass size={14} />
@@ -1057,7 +1058,7 @@ export default function UserDashboard() {
                             /* Host a Game Form (Create Game Match) */
                             <div style={styles.boxCard}>
                                 <div style={styles.boxHeader}>
-                                    <PlusCircle size={20} style={{ color: "#c6ff3d" }} />
+                                    <PlusCircle size={20} style={{ color: "#10b981" }} />
                                     <h3 style={styles.boxTitle}>Host a Sports Match</h3>
                                 </div>
 
@@ -1069,14 +1070,14 @@ export default function UserDashboard() {
                                                 height: "50px",
                                                 borderRadius: "50%",
                                                 background: "rgba(198, 255, 61, 0.1)",
-                                                color: "#c6ff3d",
+                                                color: "#10b981",
                                                 fontSize: "20px",
                                                 fontWeight: "bold",
                                                 display: "flex",
                                                 alignItems: "center",
                                                 justifyContent: "center",
                                                 margin: "0 auto 16px auto",
-                                                border: "1px solid #c6ff3d",
+                                                border: "1px solid #10b981",
                                             }}
                                         >
                                             ✓
@@ -1188,7 +1189,7 @@ export default function UserDashboard() {
                                                         style={{
                                                             ...styles.toggleTabBtn,
                                                             backgroundColor:
-                                                                gamePrivacy === "public" ? "#c6ff3d" : "transparent",
+                                                                gamePrivacy === "public" ? "#10b981" : "transparent",
                                                             color:
                                                                 gamePrivacy === "public"
                                                                     ? "#08080f"
@@ -1203,7 +1204,7 @@ export default function UserDashboard() {
                                                         style={{
                                                             ...styles.toggleTabBtn,
                                                             backgroundColor:
-                                                                gamePrivacy === "private" ? "#c6ff3d" : "transparent",
+                                                                gamePrivacy === "private" ? "#10b981" : "transparent",
                                                             color:
                                                                 gamePrivacy === "private"
                                                                     ? "#08080f"
@@ -1240,7 +1241,7 @@ export default function UserDashboard() {
                                 <h2 style={styles.sectionTitle}>My Hosted & Joined Matches</h2>
                                 {loadingHostedGames ? (
                                     <div style={styles.loadingContainer}>
-                                        <Loader2 className="animate-spin" size={32} style={{ color: "#c6ff3d" }} />
+                                        <Loader2 className="animate-spin" size={32} style={{ color: "#10b981" }} />
                                         <p style={{ marginTop: "16px" }}>Fetching hosted matches...</p>
                                     </div>
                                 ) : hostedGames.length === 0 ? (
@@ -1391,7 +1392,7 @@ export default function UserDashboard() {
                                 <h2 style={styles.sectionTitle}>Explore Open Game Lobbies</h2>
                                 {loadingPublicGames ? (
                                     <div style={styles.loadingContainer}>
-                                        <Loader2 className="animate-spin" size={32} style={{ color: "#c6ff3d" }} />
+                                        <Loader2 className="animate-spin" size={32} style={{ color: "#10b981" }} />
                                         <p style={{ marginTop: "16px" }}>Searching for matches near you...</p>
                                     </div>
                                 ) : publicGames.length === 0 ? (
@@ -1455,7 +1456,7 @@ export default function UserDashboard() {
                                                                     : isFull
                                                                     ? "rgba(239, 68, 68, 0.1)"
                                                                     : "rgba(198, 255, 61, 0.1)",
-                                                                color: isHost ? "#60a5fa" : isFull ? "#f87171" : "#c6ff3d",
+                                                                color: isHost ? "#60a5fa" : isFull ? "#f87171" : "#10b981",
                                                                 borderColor: isHost
                                                                     ? "rgba(59, 130, 246, 0.2)"
                                                                     : isFull
@@ -1484,7 +1485,7 @@ export default function UserDashboard() {
                                                             />
                                                             <span>
                                                                 Split Cost:{" "}
-                                                                <strong style={{ color: "#c6ff3d" }}>
+                                                                <strong style={{ color: "#10b981" }}>
                                                                     ₹{game.price_per_player}
                                                                 </strong>{" "}
                                                                 per player
@@ -1518,7 +1519,7 @@ export default function UserDashboard() {
                                                                 style={{
                                                                     width: `${(game.current_players / game.total_spots) * 100}%`,
                                                                     height: "100%",
-                                                                    backgroundColor: isFull ? "#f87171" : "#c6ff3d",
+                                                                    backgroundColor: isFull ? "#f87171" : "#10b981",
                                                                     transition: "width 0.4s ease",
                                                                 }}
                                                             />
@@ -1581,7 +1582,7 @@ export default function UserDashboard() {
                                                                 disabled={joiningGameId === game.id}
                                                                 style={{
                                                                     ...styles.cancelBtn,
-                                                                    backgroundColor: "#c6ff3d",
+                                                                    backgroundColor: "#10b981",
                                                                     color: "#0f172a",
                                                                     fontWeight: "bold",
                                                                     borderColor: "transparent",
@@ -1621,7 +1622,7 @@ export default function UserDashboard() {
                             <div style={styles.emptyContainer}>
                                 <Loader2
                                     size={32}
-                                    style={{ color: "#c6ff3d", marginBottom: "12px", animation: "spin 1s linear infinite" }}
+                                    style={{ color: "#10b981", marginBottom: "12px", animation: "spin 1s linear infinite" }}
                                 />
                                 <p style={{ color: "rgba(148, 163, 184, 0.5)", fontSize: "14px" }}>
                                     Loading your trainings...
@@ -1658,7 +1659,7 @@ export default function UserDashboard() {
                                         <div key={training.id} style={styles.bookingCard}>
                                             <div style={styles.cardHeader}>
                                                 <div style={styles.sportHeader}>
-                                                    <Award size={22} style={{ color: "#c6ff3d" }} />
+                                                    <Award size={22} style={{ color: "#10b981" }} />
                                                     <div>
                                                         <span style={styles.sportLabel}>{training.title}</span>
                                                         {training.category && (
@@ -1738,7 +1739,7 @@ export default function UserDashboard() {
                                                 <div style={styles.metaInfo}>
                                                     <span>
                                                         Fee:{" "}
-                                                        <strong style={{ color: "#c6ff3d", fontSize: "14px" }}>
+                                                        <strong style={{ color: "#10b981", fontSize: "14px" }}>
                                                             {feeFormatted}
                                                         </strong>
                                                     </span>
@@ -1774,7 +1775,7 @@ export default function UserDashboard() {
                         <h2 style={styles.sectionTitle}>My Bookings</h2>
                         {loadingBookings ? (
                             <div style={styles.loadingContainer}>
-                                <Loader2 className="animate-spin" size={32} style={{ color: "#c6ff3d" }} />
+                                <Loader2 className="animate-spin" size={32} style={{ color: "#10b981" }} />
                                 <p style={{ marginTop: "16px" }}>Fetching your venue bookings...</p>
                             </div>
                         ) : bookings.length === 0 ? (
@@ -1933,7 +1934,7 @@ export default function UserDashboard() {
                             <div style={styles.emptyContainer}>
                                 <Loader2
                                     size={32}
-                                    style={{ color: "#c6ff3d", marginBottom: "12px", animation: "spin 1s linear infinite" }}
+                                    style={{ color: "#10b981", marginBottom: "12px", animation: "spin 1s linear infinite" }}
                                 />
                                 <p style={{ color: "rgba(148, 163, 184, 0.5)", fontSize: "14px" }}>Loading trainings...</p>
                             </div>
@@ -2042,8 +2043,8 @@ export default function UserDashboard() {
 const styles = {
     dashboardContainer: {
         minHeight: "100vh",
-        backgroundColor: "#08080f",
-        color: "#f4f4f5",
+        backgroundColor: "#f8fafc",
+        color: "#0f172a",
         fontFamily: "'Outfit', sans-serif",
     },
     topbar: {
@@ -2056,8 +2057,9 @@ const styles = {
         alignItems: "center",
         justifyContent: "space-between",
         padding: "0 48px",
-        background: "#000000",
-        borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+        background: "#ffffff",
+        borderBottom: "1px solid #e2e8f0",
+        boxShadow: "0 4px 20px -2px rgba(15, 23, 42, 0.05)",
         zIndex: 1000,
         boxSizing: "border-box",
     },
@@ -2071,7 +2073,7 @@ const styles = {
         fontStyle: "italic",
         textTransform: "uppercase",
         letterSpacing: "-0.5px",
-        color: "#ffffff",
+        color: "#0f172a",
     },
     headerTabs: {
         display: "flex",
@@ -2112,8 +2114,8 @@ const styles = {
         width: "36px",
         height: "36px",
         borderRadius: "50%",
-        background: "linear-gradient(135deg, #c6ff3d, #d9ff6e)",
-        color: "#08080f",
+        background: "linear-gradient(135deg, #10b981, #059669)",
+        color: "#ffffff",
         fontWeight: "700",
         display: "flex",
         alignItems: "center",
@@ -2127,11 +2129,11 @@ const styles = {
     userName: {
         fontSize: "14px",
         fontWeight: "600",
-        color: "#f4f4f5",
+        color: "#0f172a",
     },
     userEmail: {
         fontSize: "11px",
-        color: "rgba(148, 163, 184, 0.5)",
+        color: "#64748b",
     },
     mainContent: {
         maxWidth: "1280px",
@@ -2158,35 +2160,35 @@ const styles = {
         left: "16px",
         top: "50%",
         transform: "translateY(-50%)",
-        color: "rgba(148, 163, 184, 0.5)",
+        color: "#64748b",
     },
     homeSearchInput: {
         width: "100%",
         padding: "14px 16px 14px 48px",
-        background: "rgba(255, 255, 255, 0.04)",
-        border: "1.5px solid rgba(255, 255, 255, 0.08)",
+        background: "#ffffff",
+        border: "1.5px solid #cbd5e1",
         borderRadius: "12px",
         fontSize: "15px",
-        color: "#f4f4f5",
+        color: "#0f172a",
         outline: "none",
         transition: "all 0.25s ease",
         fontFamily: "'Outfit', sans-serif",
     },
     sportsCardContainer: {
-        background: "rgba(20, 20, 31, 0.6)",
-        border: "1px solid rgba(255, 255, 255, 0.05)",
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
         borderRadius: "16px",
         padding: "30px",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
     },
     homeTitle: {
         fontSize: "18px",
         fontWeight: "700",
-        color: "#f4f4f5",
+        color: "#0f172a",
         marginBottom: "24px",
         textTransform: "uppercase",
         letterSpacing: "0.05em",
-        borderLeft: "3px solid #c6ff3d",
+        borderLeft: "3px solid #10b981",
         paddingLeft: "10px",
     },
     sportsGrid20: {
@@ -2206,7 +2208,7 @@ const styles = {
     sportItemName: {
         fontSize: "15px",
         fontWeight: "500",
-        color: "rgba(244, 244, 245, 0.9)",
+        color: "#334155",
         textAlign: "center",
     },
     homeTwoColumns: {
@@ -2215,24 +2217,24 @@ const styles = {
         gap: "30px",
     },
     boxCard: {
-        background: "rgba(20, 20, 31, 0.6)",
-        border: "1px solid rgba(255, 255, 255, 0.05)",
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
         borderRadius: "16px",
         padding: "24px",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
     },
     boxHeader: {
         display: "flex",
         alignItems: "center",
         gap: "10px",
         marginBottom: "20px",
-        borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
+        borderBottom: "1px solid #f1f5f9",
         paddingBottom: "12px",
     },
     boxTitle: {
         fontSize: "16px",
         fontWeight: "700",
-        color: "#ffffff",
+        color: "#0f172a",
         textTransform: "uppercase",
         letterSpacing: "0.03em",
     },
@@ -2246,16 +2248,16 @@ const styles = {
         alignItems: "center",
         gap: "12px",
         padding: "12px",
-        background: "rgba(255, 255, 255, 0.02)",
+        background: "#f8fafc",
         borderRadius: "8px",
-        border: "1px solid rgba(255, 255, 255, 0.04)",
+        border: "1px solid #e2e8f0",
     },
     trainerAvatar: {
         width: "40px",
         height: "40px",
         borderRadius: "50%",
-        background: "rgba(217, 255, 110, 0.1)",
-        color: "#d9ff6e",
+        background: "#ecfdf5",
+        color: "#047857",
         fontWeight: "700",
         display: "flex",
         alignItems: "center",
@@ -2270,16 +2272,16 @@ const styles = {
     trainerName: {
         fontSize: "14px",
         fontWeight: "600",
-        color: "#ffffff",
+        color: "#0f172a",
     },
     trainerSport: {
         fontSize: "12px",
-        color: "rgba(148, 163, 184, 0.5)",
+        color: "#64748b",
     },
     trainerBtn: {
-        background: "rgba(217, 255, 110, 0.1)",
-        border: "1px solid rgba(217, 255, 110, 0.2)",
-        color: "#d9ff6e",
+        background: "#ecfdf5",
+        border: "1px solid #a7f3d0",
+        color: "#047857",
         padding: "6px 14px",
         borderRadius: "6px",
         fontSize: "12px",
@@ -2297,16 +2299,16 @@ const styles = {
         alignItems: "center",
         gap: "12px",
         padding: "12px",
-        background: "rgba(255, 255, 255, 0.02)",
+        background: "#f8fafc",
         borderRadius: "8px",
-        border: "1px solid rgba(255, 255, 255, 0.04)",
+        border: "1px solid #e2e8f0",
     },
     teamAvatar: {
         width: "40px",
         height: "40px",
         borderRadius: "8px",
-        background: "rgba(198, 255, 61, 0.1)",
-        color: "#c6ff3d",
+        background: "#ecfdf5",
+        color: "#047857",
         fontWeight: "700",
         display: "flex",
         alignItems: "center",
@@ -2321,16 +2323,16 @@ const styles = {
     teamName: {
         fontSize: "14px",
         fontWeight: "600",
-        color: "#ffffff",
+        color: "#0f172a",
     },
     teamSport: {
         fontSize: "12px",
-        color: "rgba(148, 163, 184, 0.5)",
+        color: "#64748b",
     },
     teamJoinBtn: {
-        background: "rgba(198, 255, 61, 0.1)",
-        border: "1px solid rgba(198, 255, 61, 0.2)",
-        color: "#c6ff3d",
+        background: "#ecfdf5",
+        border: "1px solid #a7f3d0",
+        color: "#047857",
         padding: "6px 14px",
         borderRadius: "6px",
         fontSize: "12px",
@@ -2339,15 +2341,15 @@ const styles = {
         transition: "all 0.2s ease",
     },
     filterSection: {
-        background: "linear-gradient(135deg, rgba(20, 20, 31, 0.9) 0%, rgba(20, 20, 35, 0.7) 100%)",
-        border: "1px solid rgba(255, 255, 255, 0.08)",
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
         borderRadius: "16px",
         padding: "30px",
         marginBottom: "40px",
         display: "flex",
         flexDirection: "column",
         gap: "20px",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
     },
     searchWrapper: {
         position: "relative",
@@ -2358,16 +2360,16 @@ const styles = {
         left: "16px",
         top: "50%",
         transform: "translateY(-50%)",
-        color: "rgba(148, 163, 184, 0.5)",
+        color: "#64748b",
     },
     searchInput: {
         width: "100%",
         padding: "16px 16px 16px 48px",
-        background: "rgba(255, 255, 255, 0.04)",
-        border: "1.5px solid rgba(255, 255, 255, 0.08)",
+        background: "#ffffff",
+        border: "1.5px solid #cbd5e1",
         borderRadius: "12px",
         fontSize: "15px",
-        color: "#f4f4f5",
+        color: "#0f172a",
         outline: "none",
         transition: "all 0.25s ease",
         fontFamily: "'Outfit', sans-serif",
@@ -2401,8 +2403,8 @@ const styles = {
         padding: "80px 0",
     },
     exploreLinkBtn: {
-        background: "linear-gradient(135deg, #c6ff3d, #d9ff6e)",
-        color: "#08080f",
+        background: "linear-gradient(135deg, #10b981, #059669)",
+        color: "#ffffff",
         border: "none",
         padding: "10px 24px",
         borderRadius: "8px",
@@ -2420,20 +2422,20 @@ const styles = {
         gap: "24px",
     },
     card: {
-        background: "rgba(20, 20, 31, 0.6)",
-        border: "1px solid rgba(255, 255, 255, 0.05)",
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
         borderRadius: "14px",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
         transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
     },
     cardImageWrapper: {
         position: "relative",
         height: "155px",
         overflow: "hidden",
-        backgroundColor: "#0d0d16",
+        backgroundColor: "#f1f5f9",
     },
     cardImage: {
         width: "100%",
@@ -2444,7 +2446,7 @@ const styles = {
         position: "absolute",
         top: "12px",
         right: "12px",
-        background: "rgba(20, 20, 31, 0.8)",
+        background: "rgba(255, 255, 255, 0.9)",
         backdropFilter: "blur(4px)",
         borderRadius: "8px",
         padding: "4px 8px",
@@ -2453,8 +2455,8 @@ const styles = {
         gap: "4px",
         fontSize: "12px",
         fontWeight: "700",
-        color: "#ffb800",
-        border: "1px solid rgba(255, 255, 255, 0.08)",
+        color: "#d97706",
+        border: "1px solid #e2e8f0",
     },
     cardBody: {
         padding: "16px",
@@ -2465,7 +2467,7 @@ const styles = {
     cardName: {
         fontSize: "16px",
         fontWeight: "700",
-        color: "#ffffff",
+        color: "#0f172a",
         marginBottom: "8px",
     },
     cardLoc: {
@@ -2473,7 +2475,7 @@ const styles = {
         alignItems: "center",
         gap: "6px",
         fontSize: "13px",
-        color: "rgba(148, 163, 184, 0.6)",
+        color: "#64748b",
         marginBottom: "12px",
     },
     cardSports: {
@@ -2485,11 +2487,11 @@ const styles = {
     cardSportChip: {
         fontSize: "10px",
         fontWeight: "700",
-        color: "#d9ff6e",
-        background: "rgba(217, 255, 110, 0.06)",
+        color: "#047857",
+        background: "#ecfdf5",
         padding: "3px 8px",
         borderRadius: "4px",
-        border: "1px solid rgba(217, 255, 110, 0.12)",
+        border: "1px solid #a7f3d0",
         textTransform: "uppercase",
     },
     cardFooter: {
@@ -2498,7 +2500,7 @@ const styles = {
         alignItems: "center",
         marginTop: "auto",
         paddingTop: "16px",
-        borderTop: "1px solid rgba(255, 255, 255, 0.06)",
+        borderTop: "1px solid #f1f5f9",
     },
     priceSec: {
         display: "flex",
@@ -2507,15 +2509,15 @@ const styles = {
     priceVal: {
         fontSize: "18px",
         fontWeight: "800",
-        color: "#ffffff",
+        color: "#0f172a",
     },
     priceUnit: {
         fontSize: "11px",
-        color: "rgba(148, 163, 184, 0.4)",
+        color: "#94a3b8",
     },
     bookBtn: {
-        background: "linear-gradient(135deg, #c6ff3d, #d9ff6e)",
-        color: "#08080f",
+        background: "linear-gradient(135deg, #10b981, #059669)",
+        color: "#ffffff",
         border: "none",
         padding: "8px 18px",
         borderRadius: "8px",
@@ -2527,7 +2529,7 @@ const styles = {
         cursor: "pointer",
         transition: "all 0.25s ease",
         transform: "skewX(-6deg)",
-        boxShadow: "0 4px 12px rgba(198, 255, 61, 0.25)",
+        boxShadow: "0 4px 12px rgba(16, 185, 129, 0.25)",
     },
     bookingsSection: {
         maxWidth: "800px",
@@ -2536,11 +2538,11 @@ const styles = {
     sectionTitle: {
         fontSize: "18px",
         fontWeight: "700",
-        color: "#f4f4f5",
+        color: "#0f172a",
         marginBottom: "20px",
         textTransform: "uppercase",
         letterSpacing: "0.05em",
-        borderLeft: "3px solid #c6ff3d",
+        borderLeft: "3px solid #10b981",
         paddingLeft: "10px",
     },
     list: {
@@ -2549,10 +2551,11 @@ const styles = {
         gap: "20px",
     },
     bookingCard: {
-        background: "rgba(255, 255, 255, 0.02)",
-        border: "1px solid rgba(255, 255, 255, 0.05)",
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
         borderRadius: "14px",
         padding: "24px",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
     },
     miniGameGrid: {
         display: "grid",
@@ -2560,13 +2563,14 @@ const styles = {
         gap: "16px",
     },
     miniGameCard: {
-        background: "rgba(255, 255, 255, 0.02)",
-        border: "1px solid rgba(255, 255, 255, 0.05)",
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
         borderRadius: "12px",
         padding: "16px",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
     },
     cardHeaderMini: {
         display: "flex",
@@ -2574,7 +2578,7 @@ const styles = {
         alignItems: "center",
         marginBottom: "12px",
         paddingBottom: "8px",
-        borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
+        borderBottom: "1px solid #f1f5f9",
     },
     cardDetailsMini: {
         display: "flex",
@@ -2588,7 +2592,7 @@ const styles = {
         alignItems: "center",
         marginTop: "8px",
         paddingTop: "8px",
-        borderTop: "1px solid rgba(255, 255, 255, 0.06)",
+        borderTop: "1px solid #f1f5f9",
     },
     cardHeader: {
         display: "flex",
@@ -2596,7 +2600,7 @@ const styles = {
         alignItems: "center",
         marginBottom: "18px",
         paddingBottom: "12px",
-        borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
+        borderBottom: "1px solid #f1f5f9",
     },
     sportHeader: {
         display: "flex",
@@ -2606,7 +2610,7 @@ const styles = {
     sportLabel: {
         fontSize: "14px",
         fontWeight: "800",
-        color: "#ffffff",
+        color: "#0f172a",
         letterSpacing: "0.03em",
     },
     badge: {
@@ -2628,16 +2632,16 @@ const styles = {
         alignItems: "center",
         gap: "10px",
         fontSize: "14px",
-        color: "rgba(244, 244, 245, 0.8)",
+        color: "#475569",
     },
     metaInfo: {
         fontSize: "12px",
-        color: "rgba(148, 163, 184, 0.4)",
+        color: "#94a3b8",
     },
     cancelBtn: {
-        background: "rgba(239, 68, 68, 0.08)",
-        border: "1px solid rgba(239, 68, 68, 0.25)",
-        color: "#f87171",
+        background: "#fef2f2",
+        border: "1px solid #fecaca",
+        color: "#dc2626",
         padding: "8px 16px",
         borderRadius: "8px",
         fontSize: "12px",
@@ -2648,7 +2652,7 @@ const styles = {
     },
     cancellationText: {
         fontSize: "12px",
-        color: "#f87171",
+        color: "#dc2626",
         fontStyle: "italic",
     },
 
@@ -2657,7 +2661,7 @@ const styles = {
         display: "flex",
         gap: "16px",
         marginBottom: "32px",
-        borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+        borderBottom: "1px solid #e2e8f0",
         paddingBottom: "16px",
     },
     gameSubNavBtn: {
@@ -2696,28 +2700,28 @@ const styles = {
     formLabel: {
         fontSize: "13px",
         fontWeight: "700",
-        color: "rgba(244, 244, 245, 0.7)",
+        color: "#475569",
         textTransform: "uppercase",
         letterSpacing: "0.03em",
     },
     formInput: {
-        background: "rgba(255, 255, 255, 0.04)",
-        border: "1.5px solid rgba(255, 255, 255, 0.08)",
+        background: "#ffffff",
+        border: "1.5px solid #cbd5e1",
         borderRadius: "8px",
         padding: "12px 14px",
         fontSize: "14px",
-        color: "#ffffff",
+        color: "#0f172a",
         outline: "none",
         transition: "all 0.2s ease",
         fontFamily: "'Outfit', sans-serif",
     },
     formSelect: {
-        background: "rgba(20, 20, 31, 0.9)",
-        border: "1.5px solid rgba(255, 255, 255, 0.08)",
+        background: "#ffffff",
+        border: "1.5px solid #cbd5e1",
         borderRadius: "8px",
         padding: "12px 14px",
         fontSize: "14px",
-        color: "#ffffff",
+        color: "#0f172a",
         outline: "none",
         cursor: "pointer",
         transition: "all 0.2s ease",
@@ -2725,8 +2729,8 @@ const styles = {
     },
     tabToggleContainer: {
         display: "flex",
-        background: "rgba(255, 255, 255, 0.04)",
-        border: "1px solid rgba(255, 255, 255, 0.08)",
+        background: "#f1f5f9",
+        border: "1px solid #cbd5e1",
         borderRadius: "8px",
         padding: "4px",
         width: "fit-content",
@@ -2743,12 +2747,12 @@ const styles = {
         transition: "all 0.2s ease",
     },
     formTextarea: {
-        background: "rgba(255, 255, 255, 0.04)",
-        border: "1.5px solid rgba(255, 255, 255, 0.08)",
+        background: "#ffffff",
+        border: "1.5px solid #cbd5e1",
         borderRadius: "8px",
         padding: "12px 14px",
         fontSize: "14px",
-        color: "#ffffff",
+        color: "#0f172a",
         outline: "none",
         minHeight: "100px",
         resize: "vertical",
@@ -2756,8 +2760,8 @@ const styles = {
         fontFamily: "'Outfit', sans-serif",
     },
     formSubmitBtn: {
-        background: "linear-gradient(135deg, #c6ff3d, #d9ff6e)",
-        color: "#08080f",
+        background: "linear-gradient(135deg, #10b981, #059669)",
+        color: "#ffffff",
         border: "none",
         padding: "14px 20px",
         borderRadius: "8px",
@@ -2768,7 +2772,7 @@ const styles = {
         cursor: "pointer",
         transition: "all 0.25s ease",
         transform: "skewX(-6deg)",
-        boxShadow: "0 4px 16px rgba(198, 255, 61, 0.25)",
+        boxShadow: "0 4px 16px rgba(16, 185, 129, 0.25)",
         marginTop: "10px",
         width: "fit-content",
         alignSelf: "flex-start",
@@ -2777,7 +2781,7 @@ const styles = {
         position: "absolute",
         top: "12px",
         left: "12px",
-        background: "rgba(20, 20, 31, 0.8)",
+        background: "rgba(255, 255, 255, 0.9)",
         backdropFilter: "blur(4px)",
         borderRadius: "8px",
         padding: "4px 8px",
@@ -2786,15 +2790,15 @@ const styles = {
         gap: "4px",
         fontSize: "12px",
         fontWeight: "700",
-        color: "#d9ff6e",
-        border: "1px solid rgba(255, 255, 255, 0.08)",
+        color: "#047857",
+        border: "1px solid #a7f3d0",
     },
     filtersGrid: {
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
         gap: "20px",
         marginTop: "10px",
-        borderTop: "1px solid rgba(255, 255, 255, 0.06)",
+        borderTop: "1px solid #e2e8f0",
         paddingTop: "20px",
     },
     filterControl: {
@@ -2805,18 +2809,18 @@ const styles = {
     filterLabel: {
         fontSize: "12px",
         fontWeight: "700",
-        color: "rgba(244, 244, 245, 0.5)",
+        color: "#64748b",
         textTransform: "uppercase",
         letterSpacing: "0.05em",
     },
     filterSelect: {
         width: "100%",
         padding: "10px 14px",
-        background: "rgba(255, 255, 255, 0.04)",
-        border: "1px solid rgba(255, 255, 255, 0.08)",
+        background: "#ffffff",
+        border: "1px solid #cbd5e1",
         borderRadius: "8px",
         fontSize: "13px",
-        color: "#f4f4f5",
+        color: "#0f172a",
         outline: "none",
         cursor: "pointer",
         transition: "all 0.2s ease",
@@ -2834,10 +2838,10 @@ const styles = {
         justifyContent: "center",
         gap: "8px",
         padding: "10px 14px",
-        background: "rgba(217, 255, 110, 0.06)",
-        border: "1px solid rgba(217, 255, 110, 0.15)",
+        background: "#ecfdf5",
+        border: "1px solid #a7f3d0",
         borderRadius: "8px",
-        color: "#d9ff6e",
+        color: "#047857",
         fontSize: "13px",
         fontWeight: "700",
         cursor: "pointer",
@@ -2846,10 +2850,10 @@ const styles = {
     },
     locationClearBtn: {
         padding: "10px 14px",
-        background: "rgba(239, 68, 68, 0.06)",
-        border: "1px solid rgba(239, 68, 68, 0.15)",
+        background: "#fef2f2",
+        border: "1px solid #fecaca",
         borderRadius: "8px",
-        color: "#fca5a5",
+        color: "#dc2626",
         fontSize: "13px",
         fontWeight: "700",
         cursor: "pointer",
@@ -2874,14 +2878,14 @@ const styles = {
     filterDateInput: {
         width: "100%",
         padding: "10px 14px",
-        background: "rgba(255, 255, 255, 0.04)",
-        border: "1px solid rgba(255, 255, 255, 0.08)",
+        background: "#ffffff",
+        border: "1px solid #cbd5e1",
         borderRadius: "8px",
         fontSize: "13px",
-        color: "#f4f4f5",
+        color: "#0f172a",
         outline: "none",
         fontFamily: "'Outfit', sans-serif",
-        colorScheme: "dark",
+        colorScheme: "light",
     },
     toggleLabel: {
         display: "flex",
@@ -2889,14 +2893,14 @@ const styles = {
         gap: "8px",
         fontSize: "12px",
         fontWeight: "700",
-        color: "rgba(244, 244, 245, 0.8)",
+        color: "#334155",
         cursor: "pointer",
         userSelect: "none",
     },
     toggleCheckbox: {
         width: "16px",
         height: "16px",
-        accentColor: "#c6ff3d",
+        accentColor: "#10b981",
         cursor: "pointer",
     },
 };

@@ -68,6 +68,39 @@ class MemberProfileUpdate(BaseModel):
     group_name: Optional[str] = None
     club_name: Optional[str] = None
 
+class ClubAdminProfileResponse(BaseModel):
+    id: int
+    club_id: Optional[str] = None
+    club_name: Optional[str] = None
+    country: Optional[str] = None
+    state: Optional[str] = None
+    member_count: Optional[str] = None
+    sport: Optional[str] = None
+    club_logo: Optional[str] = None
+    first_name: str
+    last_name: Optional[str] = None
+    email: str
+    phone: Optional[str] = None
+    aadhar_number: Optional[str] = None
+    hear_about: Optional[str] = None
+    approval_status: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class ClubAdminProfileUpdate(BaseModel):
+    club_name: Optional[str] = None
+    country: Optional[str] = None
+    state: Optional[str] = None
+    member_count: Optional[str] = None
+    sport: Optional[str] = None
+    club_logo: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    hear_about: Optional[str] = None
+    password: Optional[str] = None
+
 class SuperAdminLoginRequest(BaseModel):
     username: str
     password: str
@@ -223,6 +256,7 @@ class GroupResponse(BaseModel):
 
 class UserCreate(BaseModel):
     clubName: str
+    clubLogo: Optional[str] = None
     clubId: Optional[str] = None
     country: str
     state: Optional[str] = None

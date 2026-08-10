@@ -32,9 +32,8 @@ export default function AuthNavLinks({
                 ) : null}
                 {showWrongPortal ? (
                     <p
-                        className={`text-center text-[12px] text-[rgba(244,244,245,0.35)] mb-0 ${
-                            footerPrompt && footerHref && footerLabel ? "mt-3" : "mt-[22px]"
-                        }`}
+                        className={`text-center text-[12px] text-[rgba(244,244,245,0.35)] mb-0 ${footerPrompt && footerHref && footerLabel ? "mt-3" : "mt-[22px]"
+                            }`}
                     >
                         Wrong portal?{" "}
                         <Link href="/" className="text-[#d9ff6e] font-semibold no-underline hover:underline">

@@ -152,14 +152,15 @@ export default function VenueOverviewPage() {
                             <div className="vd-empty-text">No data yet</div>
                         </div>
                     ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                             {allPeaks.slice(0, 5).map((p, i) => (
                                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
                                     <span
                                         style={{
                                             fontSize: 13,
-                                            color: "rgba(255,255,255,0.6)",
-                                            width: 80,
+                                            color: "#475569",
+                                            fontWeight: 600,
+                                            width: 140,
                                             flexShrink: 0,
                                         }}
                                     >
@@ -168,9 +169,10 @@ export default function VenueOverviewPage() {
                                     <div
                                         style={{
                                             flex: 1,
-                                            background: "rgba(255,255,255,0.06)",
-                                            borderRadius: 4,
-                                            height: 8,
+                                            background: "#f1f5f9",
+                                            border: "1px solid #e2e8f0",
+                                            borderRadius: 6,
+                                            height: 10,
                                             overflow: "hidden",
                                         }}
                                     >
@@ -178,12 +180,12 @@ export default function VenueOverviewPage() {
                                             style={{
                                                 height: "100%",
                                                 width: `${p.percentage}%`,
-                                                background: "linear-gradient(90deg,#c6ff3d,#d9ff6e)",
-                                                borderRadius: 4,
+                                                background: "linear-gradient(90deg, #10b981, #059669)",
+                                                borderRadius: 6,
                                             }}
                                         />
                                     </div>
-                                    <span style={{ fontSize: 12, color: "#c6ff3d", width: 36, textAlign: "right" }}>
+                                    <span style={{ fontSize: 13, color: "#059669", fontWeight: 700, width: 44, textAlign: "right" }}>
                                         {p.percentage}%
                                     </span>
                                 </div>

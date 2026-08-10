@@ -397,15 +397,21 @@ export default function OverviewPage() {
                                         height: 140,
                                         overflow: "hidden",
                                         borderRadius: "12px 12px 0 0",
-                                        background: "rgba(255,255,255,0.04)",
+                                        background: "#f1f5f9",
+                                        position: "relative"
                                     }}
                                 >
                                     <img
                                         src={
-                                            training.cover_image ||
-                                            "https://images.unsplash.com/photo-1517649763962-0c6238842e77?q=80&w=600&auto=format&fit=crop"
+                                            training.cover_image && (training.cover_image.startsWith("http") || training.cover_image.startsWith("data:"))
+                                                ? training.cover_image
+                                                : "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=600&auto=format&fit=crop"
                                         }
                                         alt={training.title}
+                                        onError={(e) => {
+                                            e.target.onerror = null;
+                                            e.target.src = "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=600&auto=format&fit=crop";
+                                        }}
                                         style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                                     />
                                 </div>
@@ -416,15 +422,15 @@ export default function OverviewPage() {
                                             {training.status || "open"}
                                         </span>
                                     </div>
-                                    <p style={{ margin: "0 0 10px", fontSize: 13, color: "rgba(148, 163, 184, 0.85)" }}>
+                                    <p style={{ margin: "0 0 8px", fontSize: 13, color: "#475569", fontWeight: 600 }}>
                                         {training.trainer_name
                                             ? `Trainer · ${training.trainer_name}`
                                             : training.instructor || "Trainer session"}
                                     </p>
-                                    <p style={{ margin: "0 0 12px", fontSize: 13, color: "rgba(226, 232, 240, 0.8)" }}>
+                                    <p style={{ margin: "0 0 12px", fontSize: 13, color: "#64748b" }}>
                                         {training.description || "No description added."}
                                     </p>
-                                    <div style={{ display: "grid", gap: 6, fontSize: 12, color: "rgba(148, 163, 184, 0.9)" }}>
+                                    <div style={{ display: "grid", gap: 6, fontSize: 12, color: "#64748b" }}>
                                         <span>
                                             Dates: {dateText(training.start_date)}
                                             {training.end_date ? ` → ${dateText(training.end_date)}` : ""}

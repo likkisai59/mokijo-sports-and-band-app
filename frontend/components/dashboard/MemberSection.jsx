@@ -364,7 +364,7 @@ export default function MemberSection() {
                                     margin: "0 0 12px 0",
                                     fontSize: "18px",
                                     fontWeight: 700,
-                                    color: "#f4f4f5",
+                                    color: "#000000",
                                     letterSpacing: "0.01em",
                                 }}
                             >

@@ -32,6 +32,22 @@ export default function Step1({ formData, onChange, onNext }) {
         }
     }, []);
 
+    function handleLogoUpload(e) {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) {
+                setFieldErrors((prev) => ({ ...prev, clubLogo: "Image size should be under 2MB" }));
+                return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                onChange("clubLogo", reader.result);
+                setFieldErrors((prev) => ({ ...prev, clubLogo: null }));
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
     function handleCountryChange(value) {
         onChange("country", value);
         onChange("state", "");
@@ -97,6 +113,30 @@ export default function Step1({ formData, onChange, onNext }) {
                     onChange={(e) => handleClubNameChange(e.target.value)}
                 />
                 {fieldErrors.clubName ? <p style={fieldErrorStyle}>{fieldErrors.clubName}</p> : null}
+            </div>
+
+            <div className="flex flex-col gap-2 w-full max-w-[380px] mx-auto text-left">
+                <label className={c.label}>Upload Club Logo / Profile Pic <span className="text-xs text-gray-500 font-normal">(Optional)</span></label>
+                <div className="flex items-center gap-3">
+                    {formData.clubLogo ? (
+                        <img
+                            src={formData.clubLogo}
+                            alt="Logo Preview"
+                            className="w-12 h-12 rounded-full object-cover border-2 border-emerald-500 shadow-sm"
+                        />
+                    ) : (
+                        <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-800 font-black flex items-center justify-center text-base border border-emerald-300">
+                            {formData.clubName ? formData.clubName.charAt(0).toUpperCase() : "📷"}
+                        </div>
+                    )}
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                        className="text-xs text-gray-600 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-black file:text-white hover:file:bg-gray-800 cursor-pointer"
+                    />
+                </div>
+                {fieldErrors.clubLogo ? <p style={fieldErrorStyle}>{fieldErrors.clubLogo}</p> : null}
             </div>
 
             <div className="flex flex-col gap-2 w-full max-w-[380px] mx-auto text-left">

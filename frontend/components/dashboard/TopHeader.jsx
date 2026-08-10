@@ -48,7 +48,7 @@ export default function TopHeader({ isMobileMenuOpen = false, onMenuToggle }) {
                 >
                     {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
                 </button>
-                <span className="auth-brand text-[24px] md:text-[28px] font-black uppercase tracking-wider text-white">MUKIJO</span>
+                <span className="mkt-brand text-[24px] md:text-[28px] font-black uppercase tracking-wider text-black">MUKIJO</span>
             </div>
 
             <div className="user-box" style={{ position: "relative" }}>
@@ -72,19 +72,19 @@ export default function TopHeader({ isMobileMenuOpen = false, onMenuToggle }) {
                             position: "absolute",
                             top: "120%",
                             right: 0,
-                            backgroundColor: "#0f0f1a",
-                            border: "1px solid rgba(255, 255, 255, 0.08)",
-                            borderRadius: "8px",
+                            backgroundColor: "#ffffff",
+                            border: "1px solid #e2e8f0",
+                            borderRadius: "10px",
                             padding: "6px",
-                            minWidth: "150px",
-                            boxShadow: "0 10px 25px rgba(0, 0, 0, 0.5)",
+                            minWidth: "160px",
+                            boxShadow: "0 10px 25px rgba(15, 23, 42, 0.12)",
                             zIndex: 1000,
                             display: "flex",
                             flexDirection: "column",
                             gap: "4px",
                         }}
                     >
-                        {isMember && (
+                        {isMember ? (
                             <Link
                                 href="/dashboard/profile"
                                 onClick={() => setDropdownOpen(false)}
@@ -96,16 +96,39 @@ export default function TopHeader({ isMobileMenuOpen = false, onMenuToggle }) {
                                     padding: "8px 12px",
                                     border: "none",
                                     background: "transparent",
-                                    color: "#ffffff",
+                                    color: "#0f172a",
                                     cursor: "pointer",
                                     fontSize: "14px",
-                                    borderRadius: "4px",
+                                    borderRadius: "6px",
                                     transition: "background 0.2s",
                                     textDecoration: "none",
                                 }}
                             >
                                 <User size={16} />
                                 <span>Edit Profile</span>
+                            </Link>
+                        ) : (
+                            <Link
+                                href="/dashboard/club-profile"
+                                onClick={() => setDropdownOpen(false)}
+                                style={{
+                                    width: "100%",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "8px",
+                                    padding: "8px 12px",
+                                    border: "none",
+                                    background: "transparent",
+                                    color: "#0f172a",
+                                    cursor: "pointer",
+                                    fontSize: "14px",
+                                    borderRadius: "6px",
+                                    transition: "background 0.2s",
+                                    textDecoration: "none",
+                                }}
+                            >
+                                <User size={16} />
+                                <span>View Profile</span>
                             </Link>
                         )}
                         <button
@@ -119,10 +142,10 @@ export default function TopHeader({ isMobileMenuOpen = false, onMenuToggle }) {
                                 padding: "8px 12px",
                                 border: "none",
                                 background: "transparent",
-                                color: "#ffffff",
+                                color: "#ef4444",
                                 cursor: "pointer",
                                 fontSize: "14px",
-                                borderRadius: "4px",
+                                borderRadius: "6px",
                                 transition: "background 0.2s",
                             }}
                         >

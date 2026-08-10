@@ -40,6 +40,7 @@ async def register_user(request: Request, db: Session, user: schemas.UserCreate,
             insert_data = {
                 "club_id": assigned_club_id,
                 "club_name": user.clubName,
+                "club_logo": user.clubLogo,
                 "country": user.country,
                 "state": user.state,
                 "member_count": user.memberCount,
@@ -127,6 +128,7 @@ async def login_user(request: Request, db: Session, user_data: schemas.UserLogin
                 "userId": user.id,
                 "clubId": user.club_id or f"MKJ-{user.id:03d}",
                 "clubName": user.club_name,
+                "clubLogo": getattr(user, "club_logo", None),
                 "accessToken": access_token
             }
     except HTTPException as he:
@@ -416,3 +418,75 @@ async def update_member_profile(request: Request, db: Session, member_id: int, p
     except Exception as e:
         await logger.log_error(request=request, message=f"Failed to update member profile: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+async def get_club_admin_profile(request: Request, db: Session, user_id: int):
+    try:
+        with logger.time_operation("GET_CLUB_ADMIN_PROFILE", request=request):
+            user = crud.get_user_by_id(db, user_id)
+            if not user:
+                raise HTTPException(status_code=404, detail="Club Admin profile not found.")
+            
+            return {
+                "id": user.id,
+                "club_id": user.club_id or f"MKJ-{user.id:03d}",
+                "club_name": user.club_name or "",
+                "club_logo": getattr(user, "club_logo", None) or "",
+                "country": user.country or "",
+                "state": user.state or "",
+                "member_count": user.member_count or "",
+                "sport": user.sport or "",
+                "first_name": user.first_name or "",
+                "last_name": user.last_name or "",
+                "email": user.email or "",
+                "phone": user.phone or "",
+                "aadhar_number": user.aadhar_number or "",
+                "hear_about": user.hear_about or "",
+                "approval_status": user.approval_status or "APPROVED"
+            }
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        await logger.log_error(request=request, message=f"Failed to get club admin profile: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+async def update_club_admin_profile(request: Request, db: Session, user_id: int, payload: schemas.ClubAdminProfileUpdate):
+    try:
+        with logger.time_operation("UPDATE_CLUB_ADMIN_PROFILE", request=request):
+            user = crud.get_user_by_id(db, user_id)
+            if not user:
+                raise HTTPException(status_code=404, detail="Club Admin profile not found.")
+
+            update_data = {}
+            if payload.club_name is not None and payload.club_name.strip():
+                update_data["club_name"] = payload.club_name.strip()
+            if payload.club_logo is not None:
+                update_data["club_logo"] = payload.club_logo
+            if payload.country is not None:
+                update_data["country"] = payload.country.strip()
+            if payload.state is not None:
+                update_data["state"] = payload.state.strip()
+            if payload.member_count is not None:
+                update_data["member_count"] = payload.member_count.strip()
+            if payload.sport is not None:
+                update_data["sport"] = payload.sport.strip()
+            if payload.first_name is not None and payload.first_name.strip():
+                update_data["first_name"] = payload.first_name.strip()
+            if payload.last_name is not None and payload.last_name.strip():
+                update_data["last_name"] = payload.last_name.strip()
+            if payload.phone is not None and payload.phone.strip():
+                update_data["phone"] = payload.phone.strip()
+            if payload.hear_about is not None:
+                update_data["hear_about"] = payload.hear_about.strip()
+            if payload.password is not None and payload.password.strip():
+                update_data["password"] = hash_password(payload.password.strip())
+
+            if update_data:
+                crud.update_user_profile(db, user_id, update_data)
+
+            return await get_club_admin_profile(request, db, user_id)
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        await logger.log_error(request=request, message=f"Failed to update club admin profile: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+

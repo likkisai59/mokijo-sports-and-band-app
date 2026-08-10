@@ -35,7 +35,7 @@ export default function VenueTopHeader() {
 
     return (
         <header className="vd-header">
-            <span className="vd-header-logo">Mukijo</span>
+            <span className="vd-header-logo">MUKIJO</span>
             <span className="vd-header-title">Venue Partner Dashboard</span>
             <div className="vd-header-right" style={{ position: "relative", display: "flex", alignItems: "center", gap: "12px" }}>
                 <NotificationBell mode="venue_owner" />
@@ -58,12 +58,12 @@ export default function VenueTopHeader() {
                             position: "absolute",
                             top: "120%",
                             right: 0,
-                            backgroundColor: "#161624",
-                            border: "1px solid rgba(255, 255, 255, 0.08)",
-                            borderRadius: "8px",
+                            backgroundColor: "#ffffff",
+                            border: "1px solid #e2e8f0",
+                            borderRadius: "10px",
                             padding: "6px",
-                            minWidth: "140px",
-                            boxShadow: "0 10px 25px rgba(0, 0, 0, 0.5)",
+                            minWidth: "150px",
+                            boxShadow: "0 10px 25px rgba(15, 23, 42, 0.12)",
                             zIndex: 1000,
                         }}
                     >
@@ -76,12 +76,13 @@ export default function VenueTopHeader() {
                                 alignItems: "center",
                                 gap: "8px",
                                 padding: "8px 12px",
-                                border: "none",
-                                background: "transparent",
-                                color: "#ffffff",
+                                border: "1px solid #fecaca",
+                                background: "#fef2f2",
+                                color: "#dc2626",
                                 cursor: "pointer",
                                 fontSize: "14px",
-                                borderRadius: "4px",
+                                borderRadius: "6px",
+                                fontWeight: "700",
                                 transition: "background 0.2s",
                             }}
                         >

@@ -11,7 +11,7 @@ import {
     AuthErrorBanner,
     getAuthClasses,
 } from "@/components/auth";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 
 const c = getAuthClasses("light");
 
@@ -23,6 +23,7 @@ export default function SignupPage() {
 
     const [formData, setFormData] = useState({
         clubName: "",
+        clubLogo: "",
         country: "",
         state: "",
         memberCount: "",
@@ -70,6 +71,9 @@ export default function SignupPage() {
             if (response.ok) {
                 try {
                     localStorage.setItem("userName", formData.firstName || "Admin");
+                    if (formData.clubLogo) {
+                        localStorage.setItem("clubLogo", formData.clubLogo);
+                    }
                 } catch {
                     /* ignore */
                 }
@@ -97,7 +101,7 @@ export default function SignupPage() {
         <AuthShell variant="light">
             <AuthCard size="register" variant="light">
                 {!submitted ? (
-                    <Link href="/" className={c.backLink}>
+                    <Link to="/" className={c.backLink}>
                         ← Back to Home
                     </Link>
                 ) : null}

@@ -132,3 +132,13 @@ def has_pending_submission_for_email(db: Session, email_clean: str, owner_id: in
         except Exception:
             continue
     return False
+
+def update_user_profile(db: Session, user_id: int, update_data: dict):
+    if not update_data:
+        return
+    user = get_user_by_id(db, user_id)
+    if user:
+        for k, v in update_data.items():
+            setattr(user, k, v)
+        db.commit()
+

@@ -6,6 +6,7 @@ export const STRONG_PASSWORD_MESSAGE =
 export const EMAIL_MESSAGE = "Please enter a valid email address (e.g., name@gmail.com).";
 
 export const PERSON_NAME_MESSAGE = "Numbers and special characters are not allowed.";
+export const NAME_MESSAGE = PERSON_NAME_MESSAGE;
 
 export const CLUB_NAME_MESSAGE = "Numbers and special characters are not allowed.";
 
@@ -95,6 +96,12 @@ export function applyClubNameInput(rawValue) {
     };
 }
 
+export function isValidClubName(value) {
+    const v = String(value || "").trim();
+    if (!v || /\d/.test(v)) return false;
+    return CLUB_NAME_RE.test(v);
+}
+
 /** Strip digits/specials for city/location; keep letters, spaces, hyphen, apostrophe, period. */
 export function sanitizeCityOrState(value) {
     return String(value || "").replace(/[^A-Za-z\s.'-]/g, "");
@@ -137,12 +144,6 @@ export function isValidCityOrState(value) {
 export function isValidPostalCode(value) {
     const d = digitsOnly(value);
     return d.length >= 4 && d.length <= 10;
-}
-
-export function isValidClubName(value) {
-    const v = String(value || "").trim();
-    if (!v || /\d/.test(v)) return false;
-    return CLUB_NAME_RE.test(v);
 }
 
 export function isStrongPassword(value) {
