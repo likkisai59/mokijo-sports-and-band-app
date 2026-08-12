@@ -9,9 +9,7 @@ import {
     AuthShell,
     AuthCard,
     AuthBrand,
-    AuthField,
     AuthErrorBanner,
-    AuthNavLinks,
     getAuthClasses,
 } from "@/components/auth";
 import {
@@ -42,31 +40,7 @@ import {
 } from "@/lib/validation";
 
 const c = getAuthClasses("light");
-
-const pageBtnSecondary =
-    "inline-flex items-center justify-center gap-2 h-10 px-5 rounded-[10px] text-[13px] font-semibold border-2 border-gray-300 bg-white text-gray-700 cursor-pointer transition-all hover:bg-gray-50 hover:border-gray-400";
-const pageBtnPrimary =
-    "inline-flex items-center justify-center gap-2 h-10 px-5 rounded-[10px] text-[13px] font-semibold bg-black text-white cursor-pointer shadow-sm transition-all hover:bg-gray-800 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none";
-const pageActions =
-    "flex flex-row items-center justify-between gap-3 w-full mt-10 pt-8 border-t border-gray-200 pb-4";
-
-
-const chipBase =
-    "min-w-[110px] h-10 px-3 rounded-[10px] text-[13px] font-medium border transition-all cursor-pointer inline-flex items-center justify-center text-center";
-const chipIdle = "border-gray-300 text-gray-500 bg-white hover:border-gray-400";
-const chipSelected = "border-black text-black bg-gray-100 font-semibold";
-
-const dayChipBase =
-    "w-[42px] h-[42px] rounded-lg text-xs font-bold border transition-all cursor-pointer flex items-center justify-center";
-
-const uploadZone =
-    "relative min-h-[140px] h-[140px] border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer transition-all hover:border-gray-500 hover:bg-gray-50 bg-gray-50 flex flex-col items-center justify-center overflow-hidden";
-
-const photoCard =
-    "relative w-[100px] h-[100px] rounded-lg overflow-hidden border border-gray-200 shrink-0";
-
-const sectionTitle =
-    "text-[13px] font-semibold text-gray-500 mt-8 mb-4 pb-2.5 border-b border-gray-200";
+const fieldErrorStyle = { color: "#ef4444", fontSize: "12px", marginTop: "6px", marginBottom: 0 };
 
 const SPORTS = [
     "Cricket",
@@ -125,27 +99,6 @@ function fileToBase64(file) {
     });
 }
 
-function Stepper({ step }) {
-    const circle = (n, active, done) => (
-        <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${active || done
-                    ? "bg-[#c6ff3d] text-[#08080f]"
-                    : "bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.1)] text-[rgba(244,244,245,0.5)]"
-                }`}
-        >
-            {done ? "✓" : n}
-        </div>
-    );
-
-    return (
-        <div className="flex items-center justify-center gap-4 mb-2">
-            {circle(1, step === 1, step > 1)}
-            <div className="flex-1 h-px bg-[rgba(255,255,255,0.1)] max-w-[60px]" />
-            {circle(2, step === 2, step > 2)}
-        </div>
-    );
-}
-
 function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
     const update = (field, val) => onChange(index, { ...venue, [field]: val });
 
@@ -156,34 +109,27 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
         update("coverImage", b64);
     };
 
-    const handlePhotos = async (e) => {
-        const files = Array.from(e.target.files);
-        const b64s = await Promise.all(files.map(fileToBase64));
-        update("photos", [...venue.photos, ...b64s]);
-    };
-
     return (
-        <div className="mb-8 pb-8 border-b border-[rgba(255,255,255,0.08)]">
-            <div className="flex items-center justify-between mb-5">
-                <span className="text-[13px] font-bold uppercase tracking-wide text-[#f4f4f5]">
-                    Venue {index + 1}
-                </span>
-                {showRemove ? (
+        <div className="flex flex-col gap-6 w-full items-center">
+            {showRemove ? (
+                <div className="flex justify-between items-center w-full max-w-[380px] mx-auto">
+                    <span className="text-sm font-black text-black">Venue #{index + 1}</span>
                     <button
                         type="button"
                         onClick={() => onRemove(index)}
-                        className="text-xs font-semibold px-3 py-1 rounded-md bg-[rgba(239,68,68,0.12)] border border-[rgba(239,68,68,0.3)] text-[#fca5a5] cursor-pointer"
+                        className="text-xs font-bold text-red-600 hover:underline cursor-pointer"
                     >
-                        Remove
+                        Remove Venue
                     </button>
-                ) : null}
-            </div>
+                </div>
+            ) : null}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <AuthField variant="dark" label="Venue / Court Name" required>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-[380px] mx-auto text-left">
+                <div className="flex flex-col gap-2 text-left">
+                    <label className={c.label}>Venue / Court Name *</label>
                     <input
+                        type="text"
                         className={c.input}
-                        required
                         placeholder="e.g. Green Field Arena"
                         value={venue.name}
                         onChange={(e) => {
@@ -191,11 +137,12 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
                             update("name", sanitized);
                         }}
                     />
-                </AuthField>
-                <AuthField variant="dark" label="Location / City" required>
+                </div>
+                <div className="flex flex-col gap-2 text-left">
+                    <label className={c.label}>Location / City *</label>
                     <input
+                        type="text"
                         className={c.input}
-                        required
                         placeholder="e.g. Bengaluru"
                         value={venue.location}
                         onChange={(e) => {
@@ -203,186 +150,175 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
                             update("location", sanitized);
                         }}
                     />
-                </AuthField>
+                </div>
             </div>
 
-            <div className="mt-5">
-                <AuthField variant="dark" label="Landmark">
-                    <input
-                        className={c.input}
-                        placeholder="e.g. Near City Mall, Opposite Metro Station"
-                        value={venue.landmark}
-                        onChange={(e) => update("landmark", e.target.value)}
-                    />
-                </AuthField>
+            <div className="flex flex-col gap-2 w-full max-w-[380px] mx-auto text-left">
+                <label className={c.label}>Landmark</label>
+                <input
+                    type="text"
+                    className={c.input}
+                    placeholder="e.g. Near City Mall, Opposite Metro Station"
+                    value={venue.landmark}
+                    onChange={(e) => update("landmark", e.target.value)}
+                />
             </div>
 
-            <div className={sectionTitle}>Sports Offered</div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-                {SPORTS.map((s) => (
-                    <button
-                        key={s}
-                        type="button"
-                        className={`${chipBase} w-full min-w-0 ${venue.sports.includes(s) ? chipSelected : chipIdle}`}
-                        onClick={() => {
-                            const nextSports = toggle(venue.sports, s);
-                            const nextPrices = { ...(venue.sportPrices || {}) };
-                            if (nextSports.includes(s)) {
-                                if (nextPrices[s] === undefined) nextPrices[s] = "";
-                            } else {
-                                delete nextPrices[s];
-                            }
-                            onChange(index, { ...venue, sports: nextSports, sportPrices: nextPrices });
-                        }}
-                    >
-                        <span className="truncate">{s}</span>
-                    </button>
-                ))}
-            </div>
-
-            <div className={sectionTitle}>Cover Photo &amp; Gallery</div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <AuthField variant="dark" label="Cover Photo (shown in venue card)">
-                    <div className={uploadZone}>
-                        <input type="file" accept="image/*" onChange={handleCoverImage} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
-                        {venue.coverImage ? (
-                            <img
-                                src={venue.coverImage}
-                                alt="cover"
-                                className="absolute inset-0 w-full h-full object-cover rounded-[10px]"
-                            />
-                        ) : (
-                            <>
-                                <div className="text-[rgba(244,244,245,0.5)] text-[13px] mb-1 relative z-[1]">Click to upload cover photo</div>
-                                <div className="text-[11px] text-[rgba(244,244,245,0.35)] relative z-[1]">JPG, PNG — will appear in venue cards</div>
-                            </>
-                        )}
-                    </div>
-                </AuthField>
-                <AuthField variant="dark" label="Additional Photos">
-                    <div className={uploadZone}>
-                        <input
-                            type="file"
-                            accept="image/jpeg,image/jpg,image/png"
-                            multiple
-                            onChange={handlePhotos}
-                            className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                        />
-                        <div className="text-[rgba(244,244,245,0.5)] text-[13px] mb-1 relative z-[1]">Click to add photos (.jpg)</div>
-                        <div className="text-[11px] text-[rgba(244,244,245,0.35)] relative z-[1]">Multiple files allowed</div>
-                    </div>
-                    {venue.photos.length > 0 ? (
-                        <div className="flex flex-wrap gap-2.5 mt-3">
-                            {venue.photos.map((p, i) => (
-                                <div key={i} className={photoCard}>
-                                    <img src={p} alt="" className="w-full h-full object-cover" />
-                                    <button
-                                        type="button"
-                                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-white text-[11px] border-0 cursor-pointer flex items-center justify-center"
-                                        onClick={() =>
-                                            update(
-                                                "photos",
-                                                venue.photos.filter((_, j) => j !== i)
-                                            )
+            <div className="flex flex-col gap-2 w-full max-w-[380px] mx-auto text-left">
+                <label className={c.label}>Sports Offered * (Select all that apply)</label>
+                <div className="max-h-[180px] overflow-y-auto border-2 border-gray-300 rounded-xl p-3 bg-gray-50 flex flex-col gap-2 w-full max-w-[380px] mx-auto">
+                    {SPORTS.map((s) => {
+                        const isChecked = venue.sports.includes(s);
+                        return (
+                            <label
+                                key={s}
+                                className="flex items-center gap-2.5 cursor-pointer text-sm text-black font-bold"
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => {
+                                        const nextSports = toggle(venue.sports, s);
+                                        const nextPrices = { ...(venue.sportPrices || {}) };
+                                        if (nextSports.includes(s)) {
+                                            if (nextPrices[s] === undefined) nextPrices[s] = "";
+                                        } else {
+                                            delete nextPrices[s];
                                         }
-                                    >
-                                        ×
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    ) : null}
-                </AuthField>
+                                        onChange(index, { ...venue, sports: nextSports, sportPrices: nextPrices });
+                                    }}
+                                    className="w-4 h-4 accent-black cursor-pointer"
+                                />
+                                <span>{s}</span>
+                            </label>
+                        );
+                    })}
+                </div>
             </div>
 
-            <div className={sectionTitle}>Opening Hours &amp; Slots</div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <AuthField variant="dark" label="Opening Time">
+            <div className="flex flex-col gap-2 w-full max-w-[380px] mx-auto text-left">
+                <label className={c.label}>
+                    Upload Cover Photo <span className="text-xs text-gray-500 font-normal">(Optional)</span>
+                </label>
+                <div className="flex items-center gap-3">
+                    {venue.coverImage ? (
+                        <img
+                            src={venue.coverImage}
+                            alt="Cover Preview"
+                            className="w-12 h-12 rounded-full object-cover border-2 border-emerald-500 shadow-sm"
+                        />
+                    ) : (
+                        <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-800 font-black flex items-center justify-center text-base border border-emerald-300">
+                            📷
+                        </div>
+                    )}
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverImage}
+                        className="text-xs text-gray-600 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-black file:text-white hover:file:bg-gray-800 cursor-pointer"
+                    />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-[380px] mx-auto text-left">
+                <div className="flex flex-col gap-2 text-left">
+                    <label className={c.label}>Opening Time</label>
                     <input
                         type="time"
                         className={c.input}
                         value={venue.openingTime}
                         onChange={(e) => update("openingTime", e.target.value)}
-                        style={{ colorScheme: "dark" }}
                     />
-                </AuthField>
-                <AuthField variant="dark" label="Closing Time">
+                </div>
+                <div className="flex flex-col gap-2 text-left">
+                    <label className={c.label}>Closing Time</label>
                     <input
                         type="time"
                         className={c.input}
                         value={venue.closingTime}
                         onChange={(e) => update("closingTime", e.target.value)}
-                        style={{ colorScheme: "dark" }}
                     />
-                </AuthField>
-                <AuthField variant="dark" label="Slot Duration">
+                </div>
+                <div className="flex flex-col gap-2 text-left">
+                    <label className={c.label}>Slot Duration</label>
                     <select
                         className={c.select}
                         value={venue.slotDuration}
                         onChange={(e) => update("slotDuration", Number(e.target.value))}
                     >
-                        <option value={30}>30 minutes</option>
+                        <option value={30}>30 mins</option>
                         <option value={60}>1 hour</option>
                     </select>
-                </AuthField>
+                </div>
             </div>
 
             {venue.sports.length > 0 ? (
-                <>
-                    <div className={sectionTitle}>Sport prices (per hour)</div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {venue.sports.map((sport) => (
-                            <AuthField key={sport} variant="dark" label={`${sport} — Price / hour (INR)`} required>
-                                <input
-                                    type="number"
-                                    className={c.input}
-                                    min={1}
-                                    placeholder="e.g. 800"
-                                    value={venue.sportPrices?.[sport] ?? ""}
-                                    onChange={(e) =>
-                                        update("sportPrices", {
-                                            ...(venue.sportPrices || {}),
-                                            [sport]: e.target.value,
-                                        })
-                                    }
-                                    required
-                                />
-                            </AuthField>
-                        ))}
-                    </div>
-                </>
+                <div className="flex flex-col gap-4 w-full max-w-[380px] mx-auto text-left">
+                    {venue.sports.map((sport) => (
+                        <div key={sport} className="flex flex-col gap-2 text-left">
+                            <label className={c.label}>{sport} Price / hour (₹) *</label>
+                            <input
+                                type="number"
+                                className={c.input}
+                                min={1}
+                                placeholder="e.g. 800"
+                                value={venue.sportPrices?.[sport] ?? ""}
+                                onChange={(e) =>
+                                    update("sportPrices", {
+                                        ...(venue.sportPrices || {}),
+                                        [sport]: e.target.value,
+                                    })
+                                }
+                                required
+                            />
+                        </div>
+                    ))}
+                </div>
             ) : null}
 
-            <div className={sectionTitle}>Days Open</div>
-            <div className="flex flex-wrap gap-2 mt-1">
-                {DAYS.map((d) => (
-                    <button
-                        key={d}
-                        type="button"
-                        className={`${dayChipBase} ${venue.daysOpen.includes(d) ? chipSelected : chipIdle
-                            }`}
-                        onClick={() => update("daysOpen", toggle(venue.daysOpen, d))}
-                    >
-                        {d}
-                    </button>
-                ))}
+            <div className="flex flex-col gap-2 w-full max-w-[380px] mx-auto text-left">
+                <label className={c.label}>Days Open</label>
+                <div className="flex flex-wrap gap-2 pt-1">
+                    {DAYS.map((d) => {
+                        const isChecked = venue.daysOpen.includes(d);
+                        return (
+                            <button
+                                key={d}
+                                type="button"
+                                onClick={() => update("daysOpen", toggle(venue.daysOpen, d))}
+                                className={`h-9 px-3 rounded-xl text-xs font-bold border-2 transition-all cursor-pointer ${
+                                    isChecked ? "bg-black text-white border-black" : "bg-white text-black border-gray-300 hover:border-black"
+                                }`}
+                            >
+                                {d}
+                            </button>
+                        );
+                    })}
+                </div>
             </div>
 
-            <div className={sectionTitle}>Amenities</div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                {AMENITIES.map((a) => {
-                    const checked = venue.amenities.includes(a);
-                    return (
-                        <button
-                            key={a}
-                            type="button"
-                            onClick={() => update("amenities", toggle(venue.amenities, a))}
-                            className={`${chipBase} w-full min-w-0 ${checked ? chipSelected : chipIdle}`}
-                        >
-                            <span className="truncate">{a}</span>
-                        </button>
-                    );
-                })}
+            <div className="flex flex-col gap-2 w-full max-w-[380px] mx-auto text-left">
+                <label className={c.label}>Amenities</label>
+                <div className="max-h-[160px] overflow-y-auto border-2 border-gray-300 rounded-xl p-3 bg-gray-50 flex flex-col gap-2 w-full max-w-[380px] mx-auto">
+                    {AMENITIES.map((a) => {
+                        const checked = venue.amenities.includes(a);
+                        return (
+                            <label
+                                key={a}
+                                className="flex items-center gap-2.5 cursor-pointer text-sm text-black font-bold"
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    onChange={() => update("amenities", toggle(venue.amenities, a))}
+                                    className="w-4 h-4 accent-black cursor-pointer"
+                                />
+                                <span>{a}</span>
+                            </label>
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );
@@ -552,13 +488,6 @@ export default function RegisterVenuePage() {
         }
     };
 
-    const subtitle =
-        step === 3
-            ? undefined
-            : step === 1
-                ? "Step 1 of 2 — Tell us about your venue"
-                : "Step 2 of 2 — Owner account details";
-
     return (
         <AuthShell variant="light">
             <AuthCard size="register" variant="light">
@@ -572,20 +501,22 @@ export default function RegisterVenuePage() {
                     variant="light"
                     align="center"
                     title="Venue Owner Sign Up"
-                    subtitle={subtitle}
+                    subtitle={step === 3 ? undefined : `Step ${step} of 2`}
                 />
-
-                {step !== 3 ? <Stepper step={step} /> : null}
 
                 {step === 3 ? (
                     <SuccessScreen role="venue" />
                 ) : step === 1 ? (
-                    <>
-                        <div className="text-center mb-6">
-                            <h2 className={c.heading}>Tell us about your venue</h2>
-                            <p className={`${c.subtext} mt-1`}>
-                                You can add multiple venues at once. All venues will be listed under your account.
-                            </p>
+                    <div className="flex flex-col gap-6 w-full items-center">
+                        <div className="flex items-center justify-center gap-3 mb-2">
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-black text-white">1</div>
+                            <div className="flex-1 h-px bg-gray-200 max-w-[60px]"></div>
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-gray-100 border border-gray-300 text-gray-500">2</div>
+                        </div>
+
+                        <div className="text-center mb-4">
+                            <h2 className="text-2xl font-black text-black tracking-tight">Venue Information</h2>
+                            <p className="text-sm font-medium text-gray-600 mt-1">Tell us about your venue or sports facility</p>
                         </div>
 
                         {venues.map((v, i) => (
@@ -599,173 +530,182 @@ export default function RegisterVenuePage() {
                             />
                         ))}
 
-                        <AuthErrorBanner variant="dark">{error}</AuthErrorBanner>
+                        {error ? <AuthErrorBanner variant="light">{error}</AuthErrorBanner> : null}
 
-                        <AuthNavLinks
-                            variant="dark"
-                            showBackHome={false}
-                            showWrongPortal={false}
-                            footerPrompt="Already have an account?"
-                            footerHref="/login-venue"
-                            footerLabel="Sign in"
-                        />
-
-                        <div className={pageActions}>
-                            <button type="button" onClick={addVenue} className={pageBtnSecondary}>
-                                + Add Another Venue
+                        <div className="flex justify-between items-center mt-6 gap-3 w-full max-w-[380px] mx-auto">
+                            <button
+                                type="button"
+                                onClick={addVenue}
+                                className="h-10 px-5 bg-white border-2 border-gray-300 text-black font-bold text-sm rounded-xl transition-all duration-200 hover:border-black hover:bg-gray-50 flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                                + Add Venue
                             </button>
                             <button
                                 type="button"
+                                className="h-10 px-6 bg-black text-white font-bold text-sm rounded-xl transition-all duration-200 hover:bg-gray-800 shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
                                 onClick={() => {
                                     if (validateStep1()) setStep(2);
                                 }}
-                                className={pageBtnPrimary}
                             >
-                                Next: Owner Details →
+                                Next Step →
                             </button>
                         </div>
-                    </>
+                    </div>
                 ) : (
-                    <form onSubmit={handleSubmit}>
-                        <div className="text-center mb-6">
-                            <h2 className={c.heading}>Venue Owner Details</h2>
-                            <p className={`${c.subtext} mt-1`}>
-                                These details will be used to create your Mukijo venue owner account.
-                            </p>
+                    <form className="flex flex-col gap-6 w-full items-center" onSubmit={handleSubmit}>
+                        <div className="flex items-center justify-center gap-3 mb-2">
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-gray-100 border border-gray-300 text-gray-500">1</div>
+                            <div className="flex-1 h-px bg-gray-200 max-w-[60px]"></div>
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-black text-white">2</div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-1">
-                            <AuthField variant="dark" label="Full Name" required error={fieldErrors.fullName}>
-                                <input
-                                    className={c.input}
-                                    required
-                                    placeholder="e.g. Rahul Sharma"
-                                    value={owner.fullName}
-                                    onChange={(e) => {
-                                        const { sanitized, error: nameErr } = applyNameInput(e.target.value);
-                                        setOwnerField({ fullName: sanitized }, { fullName: nameErr });
-                                    }}
-                                />
-                            </AuthField>
-                            <AuthField variant="dark" label="Date of Birth" error={fieldErrors.dob}>
-                                <input
-                                    type="date"
-                                    className={c.input}
-                                    min="1900-01-01"
-                                    max={new Date().toISOString().slice(0, 10)}
-                                    value={dobToIso(owner.dob)}
-                                    onChange={(e) => setOwnerField({ dob: isoToDob(e.target.value) }, { dob: "" })}
-                                    style={{ colorScheme: "dark" }}
-                                />
-                            </AuthField>
-                            <AuthField variant="dark" label="Email Address" required error={fieldErrors.email}>
-                                <input
-                                    type="email"
-                                    className={c.input}
-                                    required
-                                    placeholder="owner@example.com"
-                                    value={owner.email}
-                                    onChange={(e) => {
-                                        const { value, error: emailErr } = applyEmailInput(e.target.value);
-                                        setOwnerField({ email: value }, { email: emailErr });
-                                    }}
-                                />
-                            </AuthField>
-                            <AuthField variant="dark" label="Phone Number" required error={fieldErrors.phone}>
-                                <PhoneInput
-                                    id="venue-owner-phone"
-                                    className={c.input}
-                                    selectClassName={c.select}
-                                    countryCode={phoneCode}
-                                    digits={phoneDigits}
-                                    onCountryCodeChange={(code) => syncOwnerPhone(code, phoneDigits)}
-                                    onDigitsChange={(digits) => syncOwnerPhone(phoneCode, digits)}
-                                />
-                            </AuthField>
-                            <AuthField variant="dark" label="Aadhar Number" error={fieldErrors.aadhar}>
-                                <input
-                                    className={c.input}
-                                    inputMode="numeric"
-                                    maxLength={12}
-                                    placeholder="12-digit Aadhar"
-                                    value={owner.aadhar}
-                                    onChange={(e) => {
-                                        const aadhar = digitsOnly(e.target.value).slice(0, 12);
-                                        setOwnerField(
-                                            { aadhar },
-                                            {
-                                                aadhar: aadhar && aadhar.length !== 12 ? AADHAAR_MESSAGE : "",
-                                            }
-                                        );
-                                    }}
-                                />
-                            </AuthField>
-                            <AuthField variant="dark" label="Password" required error={fieldErrors.password}>
-                                <PasswordField
-                                    tone="dark"
-                                    className={c.input}
-                                    required
-                                    placeholder="Min 8 characters"
-                                    value={owner.password}
-                                    onChange={(e) =>
-                                        setOwnerField(
-                                            { password: e.target.value },
-                                            {
-                                                password:
-                                                    e.target.value && !isStrongPassword(e.target.value)
-                                                        ? STRONG_PASSWORD_MESSAGE
-                                                        : "",
-                                            }
-                                        )
-                                    }
-                                />
-                            </AuthField>
-                            <AuthField
-                                variant="dark"
-                                label="Confirm Password"
-                                required
-                                error={fieldErrors.confirmPassword}
-                            >
-                                <PasswordField
-                                    tone="dark"
-                                    className={c.input}
-                                    required
-                                    placeholder="Re-enter password"
-                                    value={owner.confirmPassword}
-                                    onChange={(e) =>
-                                        setOwnerField(
-                                            { confirmPassword: e.target.value },
-                                            { confirmPassword: "" }
-                                        )
-                                    }
-                                />
-                            </AuthField>
+                        <div className="text-center mb-4">
+                            <h2 className="text-2xl font-black text-black tracking-tight">Owner Details</h2>
+                            <p className="text-sm font-medium text-gray-600 mt-1">Tell us about the venue owner</p>
                         </div>
 
-                        <AuthErrorBanner variant="dark">{error}</AuthErrorBanner>
+                        <div className="flex flex-col gap-2 w-full max-w-[380px] mx-auto text-left">
+                            <label className={c.label}>Full Name *</label>
+                            <input
+                                type="text"
+                                className={c.input}
+                                placeholder="e.g. Rahul Sharma"
+                                value={owner.fullName}
+                                onChange={(e) => {
+                                    const { sanitized, error: nameErr } = applyNameInput(e.target.value);
+                                    setOwnerField({ fullName: sanitized }, { fullName: nameErr });
+                                }}
+                                disabled={loading}
+                            />
+                            {fieldErrors.fullName ? <p style={fieldErrorStyle}>{fieldErrors.fullName}</p> : null}
+                        </div>
 
-                        <AuthNavLinks
-                            variant="dark"
-                            showBackHome={false}
-                            showWrongPortal={false}
-                            footerPrompt="Already have an account?"
-                            footerHref="/login-venue"
-                            footerLabel="Sign in"
-                        />
+                        <div className="flex flex-col gap-2 w-full max-w-[380px] mx-auto text-left">
+                            <label className={c.label}>Date of Birth</label>
+                            <input
+                                type="date"
+                                className={c.input}
+                                min="1900-01-01"
+                                max={new Date().toISOString().slice(0, 10)}
+                                value={dobToIso(owner.dob)}
+                                onChange={(e) => setOwnerField({ dob: isoToDob(e.target.value) }, { dob: "" })}
+                                disabled={loading}
+                            />
+                            {fieldErrors.dob ? <p style={fieldErrorStyle}>{fieldErrors.dob}</p> : null}
+                        </div>
 
-                        <div className={pageActions}>
+                        <div className="flex flex-col gap-2 w-full max-w-[380px] mx-auto text-left">
+                            <label className={c.label}>Venue Owner Email *</label>
+                            <input
+                                type="email"
+                                className={c.input}
+                                placeholder="owner@example.com"
+                                value={owner.email}
+                                onChange={(e) => {
+                                    const { value, error: emailErr } = applyEmailInput(e.target.value);
+                                    setOwnerField({ email: value }, { email: emailErr });
+                                }}
+                                disabled={loading}
+                            />
+                            {fieldErrors.email ? <p style={fieldErrorStyle}>{fieldErrors.email}</p> : null}
+                        </div>
+
+                        <div className="flex flex-col gap-2 w-full max-[#380px] mx-auto text-left">
+                            <label className={c.label}>Venue Owner Phone Number *</label>
+                            <PhoneInput
+                                id="venue-owner-phone"
+                                className={c.input}
+                                selectClassName={c.select}
+                                countryCode={phoneCode}
+                                digits={phoneDigits}
+                                onCountryCodeChange={(code) => syncOwnerPhone(code, phoneDigits)}
+                                onDigitsChange={(digits) => syncOwnerPhone(phoneCode, digits)}
+                                disabled={loading}
+                            />
+                            {fieldErrors.phone ? <p style={fieldErrorStyle}>{fieldErrors.phone}</p> : null}
+                        </div>
+
+                        <div className="flex flex-col gap-2 w-full max-w-[380px] mx-auto text-left">
+                            <label className={c.label}>Venue Owner Aadhar Number</label>
+                            <input
+                                type="text"
+                                className={c.input}
+                                inputMode="numeric"
+                                maxLength={12}
+                                placeholder="12-digit Aadhar Number"
+                                value={owner.aadhar}
+                                onChange={(e) => {
+                                    const aadhar = digitsOnly(e.target.value).slice(0, 12);
+                                    setOwnerField(
+                                        { aadhar },
+                                        {
+                                            aadhar: aadhar && aadhar.length !== 12 ? AADHAAR_MESSAGE : "",
+                                        }
+                                    );
+                                }}
+                                disabled={loading}
+                            />
+                            {fieldErrors.aadhar ? <p style={fieldErrorStyle}>{fieldErrors.aadhar}</p> : null}
+                        </div>
+
+                        <div className="flex flex-col gap-2 w-full max-w-[380px] mx-auto text-left">
+                            <label className={c.label}>Password *</label>
+                            <PasswordField
+                                tone="light"
+                                className={c.input}
+                                placeholder="Create a strong password"
+                                value={owner.password}
+                                onChange={(e) =>
+                                    setOwnerField(
+                                        { password: e.target.value },
+                                        {
+                                            password:
+                                                e.target.value && !isStrongPassword(e.target.value)
+                                                    ? STRONG_PASSWORD_MESSAGE
+                                                    : "",
+                                        }
+                                    )
+                                }
+                                disabled={loading}
+                            />
+                            {fieldErrors.password ? <p style={fieldErrorStyle}>{fieldErrors.password}</p> : null}
+                        </div>
+
+                        <div className="flex flex-col gap-2 w-full max-w-[380px] mx-auto text-left">
+                            <label className={c.label}>Confirm Password *</label>
+                            <PasswordField
+                                tone="light"
+                                className={c.input}
+                                placeholder="Re-enter password"
+                                value={owner.confirmPassword}
+                                onChange={(e) =>
+                                    setOwnerField(
+                                        { confirmPassword: e.target.value },
+                                        { confirmPassword: "" }
+                                    )
+                                }
+                                disabled={loading}
+                            />
+                            {fieldErrors.confirmPassword ? <p style={fieldErrorStyle}>{fieldErrors.confirmPassword}</p> : null}
+                        </div>
+
+                        {error ? <AuthErrorBanner variant="light">{error}</AuthErrorBanner> : null}
+
+                        <div className="flex justify-between items-center mt-6 gap-3 w-full max-w-[380px] mx-auto">
                             <button
                                 type="button"
-                                onClick={() => {
-                                    setError("");
-                                    setStep(1);
-                                }}
-                                className={pageBtnSecondary}
+                                className="h-10 px-5 bg-white border-2 border-gray-300 text-black font-bold text-sm rounded-xl transition-all duration-200 hover:border-black hover:bg-gray-50 disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer"
+                                onClick={() => setStep(1)}
+                                disabled={loading}
                             >
-                                ← Back
+                                ← Previous
                             </button>
-                            <button type="submit" disabled={loading} className={pageBtnPrimary}>
-                                {loading ? "Registering…" : "Register Venue"}
+                            <button
+                                type="submit"
+                                className="h-10 px-6 bg-black text-white font-bold text-sm rounded-xl transition-all duration-200 hover:bg-gray-800 shadow-md hover:shadow-lg disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                                disabled={loading}
+                            >
+                                {loading ? "Registering..." : "Sign Up ✓"}
                             </button>
                         </div>
                     </form>
@@ -774,3 +714,5 @@ export default function RegisterVenuePage() {
         </AuthShell>
     );
 }
+
+

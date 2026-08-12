@@ -45,7 +45,7 @@ export default function AuthField({
     }
 
     return (
-        <div className="flex flex-col gap-1.5 w-full max-w-[380px] mx-auto text-left">
+        <div className="flex flex-col gap-2 w-full max-w-[380px] mx-auto text-left">
             {(label || labelRight) && (
                 <div className="flex justify-between items-center gap-2 w-full text-left">
                     {label ? (

@@ -191,30 +191,32 @@ export default function RegisterTrainerPage() {
                     <SuccessScreen role="trainer" />
                 ) : (
                     <>
-                        <AuthErrorBanner variant="dark">{submitError}</AuthErrorBanner>
+                        <AuthErrorBanner variant="light">{submitError}</AuthErrorBanner>
 
-                        <form className="block" onSubmit={handleSubmit}>
-                            <AuthField variant="dark" label="First Name" required error={errors.first_name}>
-                                <input
-                                    type="text"
-                                    className={c.input}
-                                    placeholder="Enter first name"
-                                    value={formData.first_name}
-                                    onChange={(e) => handleFieldChange("first_name", e.target.value)}
-                                />
-                            </AuthField>
+                        <form className="flex flex-col gap-6 w-full items-center" onSubmit={handleSubmit}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-[380px] mx-auto text-left">
+                                <AuthField variant="light" label="First Name" required error={errors.first_name}>
+                                    <input
+                                        type="text"
+                                        className={c.input}
+                                        placeholder="Enter first name"
+                                        value={formData.first_name}
+                                        onChange={(e) => handleFieldChange("first_name", e.target.value)}
+                                    />
+                                </AuthField>
 
-                            <AuthField variant="dark" label="Last Name" required error={errors.last_name}>
-                                <input
-                                    type="text"
-                                    className={c.input}
-                                    placeholder="Enter last name"
-                                    value={formData.last_name}
-                                    onChange={(e) => handleFieldChange("last_name", e.target.value)}
-                                />
-                            </AuthField>
+                                <AuthField variant="light" label="Last Name" required error={errors.last_name}>
+                                    <input
+                                        type="text"
+                                        className={c.input}
+                                        placeholder="Enter last name"
+                                        value={formData.last_name}
+                                        onChange={(e) => handleFieldChange("last_name", e.target.value)}
+                                    />
+                                </AuthField>
+                            </div>
 
-                            <AuthField variant="dark" label="Email Address" required error={errors.email}>
+                            <AuthField variant="light" label="Email Address" required error={errors.email}>
                                 <input
                                     type="email"
                                     className={c.input}
@@ -225,14 +227,14 @@ export default function RegisterTrainerPage() {
                             </AuthField>
 
                             <AuthField
-                                variant="dark"
+                                variant="light"
                                 label="Create Password"
                                 required
                                 error={errors.password}
                                 hint="Min 8 chars with upper, lower, number, and special character."
                             >
                                 <PasswordField
-                                    tone="dark"
+                                    tone="light"
                                     className={c.input}
                                     placeholder="Choose a password"
                                     value={formData.password}
@@ -240,9 +242,9 @@ export default function RegisterTrainerPage() {
                                 />
                             </AuthField>
 
-                            <AuthField variant="dark" label="Confirm Password" required error={errors.confirmPassword}>
+                            <AuthField variant="light" label="Confirm Password" required error={errors.confirmPassword}>
                                 <PasswordField
-                                    tone="dark"
+                                    tone="light"
                                     className={c.input}
                                     placeholder="Re-enter password"
                                     value={confirmPassword}
@@ -259,7 +261,7 @@ export default function RegisterTrainerPage() {
                                 />
                             </AuthField>
 
-                            <AuthField variant="dark" label="Phone Number" required error={errors.phone}>
+                            <AuthField variant="light" label="Phone Number" required error={errors.phone}>
                                 <PhoneInput
                                     id="trainer-register-phone"
                                     className={c.input}
@@ -271,7 +273,7 @@ export default function RegisterTrainerPage() {
                                 />
                             </AuthField>
 
-                            <AuthField variant="dark" label="Specialization / Sport" required error={errors.specialization}>
+                            <AuthField variant="light" label="Specialization / Sport" required error={errors.specialization}>
                                 <input
                                     type="text"
                                     className={c.input}
@@ -281,7 +283,7 @@ export default function RegisterTrainerPage() {
                                 />
                             </AuthField>
 
-                            <AuthField variant="dark" label="Coaching Experience (Years)">
+                            <AuthField variant="light" label="Coaching Experience (Years)">
                                 <input
                                     type="number"
                                     className={c.input}
@@ -291,7 +293,7 @@ export default function RegisterTrainerPage() {
                                 />
                             </AuthField>
 
-                            <AuthField variant="dark" label="Aadhaar Number" error={errors.aadhar}>
+                            <AuthField variant="light" label="Aadhaar Number" error={errors.aadhar}>
                                 <input
                                     type="text"
                                     inputMode="numeric"
@@ -303,15 +305,15 @@ export default function RegisterTrainerPage() {
                                 />
                             </AuthField>
 
-                            <AuthField variant="dark" label="Interested Sports" required error={errors.sports}>
-                                <div className={c.checkList}>
+                            <AuthField variant="light" label="Interested Sports" required error={errors.sports}>
+                                <div className="max-h-[180px] overflow-y-auto border-2 border-gray-300 rounded-xl p-3 bg-gray-50 flex flex-col gap-2 w-full max-w-[380px] mx-auto">
                                     {SPORTS.map((sport) => {
                                         const selectedSports = formData.sports || [];
                                         const isChecked = selectedSports.includes(sport);
                                         return (
                                             <label
                                                 key={sport}
-                                                className="flex items-center gap-2 cursor-pointer text-sm text-[#f4f4f5]"
+                                                className="flex items-center gap-2.5 cursor-pointer text-sm text-black font-bold"
                                             >
                                                 <input
                                                     type="checkbox"
@@ -322,7 +324,7 @@ export default function RegisterTrainerPage() {
                                                             : selectedSports.filter((s) => s !== sport);
                                                         handleFieldChange("sports", updated);
                                                     }}
-                                                    className="cursor-pointer w-4 h-4 accent-[#c6ff3d]"
+                                                    className="w-4 h-4 accent-black cursor-pointer"
                                                 />
                                                 <span>{sport}</span>
                                             </label>
@@ -331,18 +333,22 @@ export default function RegisterTrainerPage() {
                                 </div>
                             </AuthField>
 
-                            <button type="submit" className={c.primaryBtn} disabled={loading}>
-                                {loading ? "Creating Account..." : "Create Trainer Account"}
-                            </button>
+                            <div className="w-full max-w-[380px] mx-auto mt-2">
+                                <button type="submit" className={c.primaryBtn} disabled={loading}>
+                                    {loading ? "Creating Account..." : "Create Trainer Account"}
+                                </button>
+                            </div>
                         </form>
 
-                        <AuthNavLinks
-                            variant="dark"
-                            showBackHome={false}
-                            footerPrompt="Already have an account?"
-                            footerHref="/login-trainer"
-                            footerLabel="Sign in"
-                        />
+                        <div className="mt-4 flex flex-col gap-4 w-full max-w-[380px] mx-auto">
+                            <AuthNavLinks
+                                variant="light"
+                                showBackHome={false}
+                                footerPrompt="Already have an account?"
+                                footerHref="/login-trainer"
+                                footerLabel="Sign in"
+                            />
+                        </div>
                     </>
                 )}
             </AuthCard>

@@ -92,6 +92,7 @@ export default function UserDashboard() {
     const [hostedGames, setHostedGames] = useState([]);
     const [loadingHostedGames, setLoadingHostedGames] = useState(false);
     const [gameSubTab, setGameSubTab] = useState("host"); // Default to Host a Game in Game tab
+    const [joinedGamesFilter, setJoinedGamesFilter] = useState("all"); // "all" | "joined" | "hosted"
     const [publicGames, setPublicGames] = useState([]);
     const [loadingPublicGames, setLoadingPublicGames] = useState(false);
     const [joiningGameId, setJoiningGameId] = useState(null);
@@ -329,9 +330,13 @@ export default function UserDashboard() {
                 } else if (data.status === "pending_approval") {
                     alert("Join request submitted to host! Waiting for approval.");
                     fetchPublicGames();
+                    fetchHostedGames();
+                    setGameSubTab("joined");
                 } else {
-                    alert("Match joined successfully! ⚽");
+                    alert("Match joined successfully! ⚽ View your match in Joined Games.");
                     fetchPublicGames();
+                    fetchHostedGames();
+                    setGameSubTab("joined");
                 }
             } else {
                 const errData = await res.json().catch(() => ({}));
@@ -1036,7 +1041,7 @@ export default function UserDashboard() {
                                 }}
                             >
                                 <Users size={14} />
-                                <span>Hosted Matches</span>
+                                <span>Joined Games</span>
                             </button>
 
                             <button
@@ -1090,7 +1095,7 @@ export default function UserDashboard() {
                                                 marginTop: "8px",
                                             }}
                                         >
-                                            Hosting lobby created. Redirecting to your hosted matches...
+                                            Hosting lobby created. Redirecting to your joined games...
                                         </p>
                                     </div>
                                 ) : (
@@ -1236,13 +1241,53 @@ export default function UserDashboard() {
                         )}
 
                         {gameSubTab === "joined" && (
-                            /* List of Hosted & Joined game activities */
+                            /* List of Joined & Hosted game activities */
                             <div>
-                                <h2 style={styles.sectionTitle}>My Hosted & Joined Matches</h2>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "12px" }}>
+                                    <h2 style={styles.sectionTitle}>Joined &amp; Hosted Matches</h2>
+
+                                    {/* Filter pills: All | Joined as Player | Hosted by Me */}
+                                    <div style={styles.tabToggleContainer}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setJoinedGamesFilter("all")}
+                                            style={{
+                                                ...styles.toggleTabBtn,
+                                                backgroundColor: joinedGamesFilter === "all" ? "#10b981" : "transparent",
+                                                color: joinedGamesFilter === "all" ? "#08080f" : "rgba(244, 244, 245, 0.6)",
+                                            }}
+                                        >
+                                            All ({hostedGames.length})
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setJoinedGamesFilter("joined")}
+                                            style={{
+                                                ...styles.toggleTabBtn,
+                                                backgroundColor: joinedGamesFilter === "joined" ? "#10b981" : "transparent",
+                                                color: joinedGamesFilter === "joined" ? "#08080f" : "rgba(244, 244, 245, 0.6)",
+                                            }}
+                                        >
+                                            ⚽ Joined ({hostedGames.filter((g) => g.owner_id !== Number(userId)).length})
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setJoinedGamesFilter("hosted")}
+                                            style={{
+                                                ...styles.toggleTabBtn,
+                                                backgroundColor: joinedGamesFilter === "hosted" ? "#10b981" : "transparent",
+                                                color: joinedGamesFilter === "hosted" ? "#08080f" : "rgba(244, 244, 245, 0.6)",
+                                            }}
+                                        >
+                                            🏆 Hosted ({hostedGames.filter((g) => g.owner_id === Number(userId)).length})
+                                        </button>
+                                    </div>
+                                </div>
+
                                 {loadingHostedGames ? (
                                     <div style={styles.loadingContainer}>
                                         <Loader2 className="animate-spin" size={32} style={{ color: "#10b981" }} />
-                                        <p style={{ marginTop: "16px" }}>Fetching hosted matches...</p>
+                                        <p style={{ marginTop: "16px" }}>Fetching your joined matches...</p>
                                     </div>
                                 ) : hostedGames.length === 0 ? (
                                     <div style={styles.emptyContainer}>
@@ -1250,7 +1295,7 @@ export default function UserDashboard() {
                                             size={48}
                                             style={{ color: "rgba(148, 163, 184, 0.15)", marginBottom: "16px" }}
                                         />
-                                        <h3>No active matches</h3>
+                                        <h3>No joined matches yet</h3>
                                         <p
                                             style={{
                                                 color: "rgba(148, 163, 184, 0.4)",
@@ -1258,129 +1303,163 @@ export default function UserDashboard() {
                                                 marginTop: "8px",
                                             }}
                                         >
-                                            You are not hosting or participating in any match lobbies.
+                                            You have not joined or hosted any game matches. Discover open lobbies to join!
                                         </p>
-                                        <button onClick={() => setGameSubTab("host")} style={styles.exploreLinkBtn}>
-                                            Host a new match now
+                                        <button onClick={() => setGameSubTab("explore")} style={styles.exploreLinkBtn}>
+                                            Explore &amp; Join Games
                                         </button>
                                     </div>
                                 ) : (
                                     <div style={styles.miniGameGrid}>
-                                        {hostedGames.map((act) => {
-                                            const isOwner = act.owner_id === Number(userId);
-                                            return (
-                                                <div key={act.id} style={styles.miniGameCard}>
-                                                    <div style={styles.cardHeaderMini}>
-                                                        <div style={styles.sportHeader}>
-                                                            <span style={{ fontSize: "20px" }}>
-                                                                {getSportEmoji(act.sport)}
-                                                            </span>
-                                                            <span style={{ ...styles.sportLabel, marginLeft: "8px" }}>
-                                                                {act.sport.toUpperCase()} MATCH
-                                                            </span>
-                                                            {isOwner && (
-                                                                <span
+                                        {hostedGames
+                                            .filter((act) => {
+                                                const isOwner = act.owner_id === Number(userId);
+                                                if (joinedGamesFilter === "joined") return !isOwner;
+                                                if (joinedGamesFilter === "hosted") return isOwner;
+                                                return true;
+                                            })
+                                            .map((act) => {
+                                                const isOwner = act.owner_id === Number(userId);
+                                                return (
+                                                    <div key={act.id} style={styles.miniGameCard}>
+                                                        <div style={styles.cardHeaderMini}>
+                                                            <div style={styles.sportHeader}>
+                                                                <span style={{ fontSize: "20px" }}>
+                                                                    {getSportEmoji(act.sport)}
+                                                                </span>
+                                                                <span style={{ ...styles.sportLabel, marginLeft: "8px" }}>
+                                                                    {act.sport.toUpperCase()} MATCH
+                                                                </span>
+                                                                {isOwner ? (
+                                                                    <span
+                                                                        style={{
+                                                                            ...styles.badge,
+                                                                            backgroundColor: "rgba(217, 255, 110, 0.1)",
+                                                                            color: "#d9ff6e",
+                                                                            borderColor: "rgba(217, 255, 110, 0.2)",
+                                                                            marginLeft: "10px",
+                                                                        }}
+                                                                    >
+                                                                        HOST
+                                                                    </span>
+                                                                ) : (
+                                                                    <span
+                                                                        style={{
+                                                                            ...styles.badge,
+                                                                            backgroundColor: "rgba(16, 185, 129, 0.1)",
+                                                                            color: "#10b981",
+                                                                            borderColor: "rgba(16, 185, 129, 0.2)",
+                                                                            marginLeft: "10px",
+                                                                        }}
+                                                                    >
+                                                                        PLAYER
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div
+                                                                style={{
+                                                                    ...styles.badge,
+                                                                    backgroundColor:
+                                                                        act.status === "cancelled"
+                                                                            ? "rgba(239, 68, 68, 0.1)"
+                                                                            : "rgba(16, 185, 129, 0.1)",
+                                                                    color:
+                                                                        act.status === "cancelled" ? "#f87171" : "#34d399",
+                                                                    borderColor:
+                                                                        act.status === "cancelled"
+                                                                            ? "rgba(239, 68, 68, 0.2)"
+                                                                            : "rgba(16, 185, 129, 0.2)",
+                                                                }}
+                                                            >
+                                                                {act.status.toUpperCase()}
+                                                            </div>
+                                                        </div>
+
+                                                        <div style={styles.cardDetailsMini}>
+                                                            <div style={styles.detailItem}>
+                                                                <Calendar
+                                                                    size={14}
+                                                                    style={{ color: "rgba(148, 163, 184, 0.6)" }}
+                                                                />
+                                                                <span>
+                                                                    {act.date} • {act.time}
+                                                                </span>
+                                                            </div>
+                                                            <div style={styles.detailItem}>
+                                                                <MapPin
+                                                                    size={14}
+                                                                    style={{ color: "rgba(148, 163, 184, 0.6)" }}
+                                                                />
+                                                                <span>{act.location}</span>
+                                                            </div>
+                                                            <div style={styles.detailItem}>
+                                                                <Users
+                                                                    size={14}
+                                                                    style={{ color: "rgba(148, 163, 184, 0.6)" }}
+                                                                />
+                                                                <span>
+                                                                    Players:{" "}
+                                                                    <strong>
+                                                                        {act.rsvps ? act.rsvps.length : 1} /{" "}
+                                                                        {act.max_players}
+                                                                    </strong>{" "}
+                                                                    ({act.skill_level} Level •{" "}
+                                                                    {act.privacy_type === "private"
+                                                                        ? "Invite-Only 🔒"
+                                                                        : "Public 🌍"}
+                                                                    )
+                                                                </span>
+                                                            </div>
+                                                            {act.description && (
+                                                                <p
                                                                     style={{
-                                                                        ...styles.badge,
-                                                                        backgroundColor: "rgba(217, 255, 110, 0.1)",
-                                                                        color: "#d9ff6e",
-                                                                        borderColor: "rgba(217, 255, 110, 0.2)",
-                                                                        marginLeft: "10px",
+                                                                        fontSize: "13px",
+                                                                        color: "rgba(244, 244, 245, 0.6)",
+                                                                        fontStyle: "italic",
+                                                                        marginTop: "6px",
                                                                     }}
                                                                 >
-                                                                    HOST
+                                                                    Notes: &quot;{act.description}&quot;
+                                                                </p>
+                                                            )}
+                                                        </div>
+
+                                                        <div style={styles.cardFooterMini}>
+                                                            {isOwner && act.status !== "cancelled" ? (
+                                                                <>
+                                                                    <span
+                                                                        style={{
+                                                                            fontSize: "11px",
+                                                                            color: "rgba(148, 163, 184, 0.4)",
+                                                                        }}
+                                                                    >
+                                                                        Host Controls
+                                                                    </span>
+                                                                    <button
+                                                                        onClick={() => handleCancelHostedGame(act.id)}
+                                                                        style={styles.cancelBtn}
+                                                                    >
+                                                                        Cancel Game Match
+                                                                    </button>
+                                                                </>
+                                                            ) : (
+                                                                <span
+                                                                    style={{
+                                                                        fontSize: "12px",
+                                                                        color: "#10b981",
+                                                                        fontWeight: "600",
+                                                                        display: "flex",
+                                                                        alignItems: "center",
+                                                                        gap: "4px",
+                                                                    }}
+                                                                >
+                                                                    ✓ Joined Match Player
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <div
-                                                            style={{
-                                                                ...styles.badge,
-                                                                backgroundColor:
-                                                                    act.status === "cancelled"
-                                                                        ? "rgba(239, 68, 68, 0.1)"
-                                                                        : "rgba(16, 185, 129, 0.1)",
-                                                                color:
-                                                                    act.status === "cancelled" ? "#f87171" : "#34d399",
-                                                                borderColor:
-                                                                    act.status === "cancelled"
-                                                                        ? "rgba(239, 68, 68, 0.2)"
-                                                                        : "rgba(16, 185, 129, 0.2)",
-                                                            }}
-                                                        >
-                                                            {act.status.toUpperCase()}
-                                                        </div>
                                                     </div>
-
-                                                    <div style={styles.cardDetailsMini}>
-                                                        <div style={styles.detailItem}>
-                                                            <Calendar
-                                                                size={14}
-                                                                style={{ color: "rgba(148, 163, 184, 0.6)" }}
-                                                            />
-                                                            <span>
-                                                                {act.date} • {act.time}
-                                                            </span>
-                                                        </div>
-                                                        <div style={styles.detailItem}>
-                                                            <MapPin
-                                                                size={14}
-                                                                style={{ color: "rgba(148, 163, 184, 0.6)" }}
-                                                            />
-                                                            <span>{act.location}</span>
-                                                        </div>
-                                                        <div style={styles.detailItem}>
-                                                            <Users
-                                                                size={14}
-                                                                style={{ color: "rgba(148, 163, 184, 0.6)" }}
-                                                            />
-                                                            <span>
-                                                                Players:{" "}
-                                                                <strong>
-                                                                    {act.rsvps ? act.rsvps.length : 1} /{" "}
-                                                                    {act.max_players}
-                                                                </strong>{" "}
-                                                                ({act.skill_level} Level •{" "}
-                                                                {act.privacy_type === "private"
-                                                                    ? "Invite-Only 🔒"
-                                                                    : "Public 🌍"}
-                                                                )
-                                                            </span>
-                                                        </div>
-                                                        {act.description && (
-                                                            <p
-                                                                style={{
-                                                                    fontSize: "13px",
-                                                                    color: "rgba(244, 244, 245, 0.6)",
-                                                                    fontStyle: "italic",
-                                                                    marginTop: "6px",
-                                                                }}
-                                                            >
-                                                                Notes: &quot;{act.description}&quot;
-                                                            </p>
-                                                        )}
-                                                    </div>
-
-                                                    {isOwner && act.status !== "cancelled" && (
-                                                        <div style={styles.cardFooterMini}>
-                                                            <span
-                                                                style={{
-                                                                    fontSize: "11px",
-                                                                    color: "rgba(148, 163, 184, 0.4)",
-                                                                }}
-                                                            >
-                                                                Host Controls
-                                                            </span>
-                                                            <button
-                                                                onClick={() => handleCancelHostedGame(act.id)}
-                                                                style={styles.cancelBtn}
-                                                            >
-                                                                Cancel Game Match
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
+                                                );
+                                            })}
                                     </div>
                                 )}
                             </div>

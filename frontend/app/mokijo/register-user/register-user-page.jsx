@@ -195,11 +195,11 @@ export default function RegisterUserPage() {
                     <SuccessScreen role="user" />
                 ) : (
                     <>
-                        <AuthErrorBanner variant="dark">{error}</AuthErrorBanner>
+                        <AuthErrorBanner variant="light">{error}</AuthErrorBanner>
 
-                        <form className="block" onSubmit={handleSubmit}>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <AuthField variant="dark" label="First Name" required error={fieldErrors.firstName}>
+                        <form className="flex flex-col gap-6 w-full items-center" onSubmit={handleSubmit}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-[380px] mx-auto text-left">
+                                <AuthField variant="light" label="First Name" required error={fieldErrors.firstName}>
                                     <input
                                         type="text"
                                         name="firstName"
@@ -209,7 +209,7 @@ export default function RegisterUserPage() {
                                         className={c.input}
                                     />
                                 </AuthField>
-                                <AuthField variant="dark" label="Last Name" required error={fieldErrors.lastName}>
+                                <AuthField variant="light" label="Last Name" required error={fieldErrors.lastName}>
                                     <input
                                         type="text"
                                         name="lastName"
@@ -221,7 +221,7 @@ export default function RegisterUserPage() {
                                 </AuthField>
                             </div>
 
-                            <AuthField variant="dark" label="Date of Birth" required error={fieldErrors.dob}>
+                            <AuthField variant="light" label="Date of Birth" required error={fieldErrors.dob}>
                                 <input
                                     type="date"
                                     name="dob"
@@ -238,11 +238,11 @@ export default function RegisterUserPage() {
                                     }}
                                     min="1900-01-01"
                                     max={new Date().toISOString().slice(0, 10)}
-                                    style={{ colorScheme: "dark" }}
+                                    style={{ colorScheme: "light" }}
                                 />
                             </AuthField>
 
-                            <AuthField variant="dark" label="Email address" required error={fieldErrors.email}>
+                            <AuthField variant="light" label="Email address" required error={fieldErrors.email}>
                                 <input
                                     type="email"
                                     name="email"
@@ -253,7 +253,7 @@ export default function RegisterUserPage() {
                                 />
                             </AuthField>
 
-                            <AuthField variant="dark" label="Phone Number" required error={fieldErrors.phone}>
+                            <AuthField variant="light" label="Phone Number" required error={fieldErrors.phone}>
                                 <PhoneInput
                                     id="user-register-phone"
                                     className={c.input}
@@ -266,14 +266,14 @@ export default function RegisterUserPage() {
                             </AuthField>
 
                             <AuthField
-                                variant="dark"
+                                variant="light"
                                 label="Password"
                                 required
                                 error={fieldErrors.password}
                                 hint="Min 8 chars with upper, lower, number, and special character."
                             >
                                 <PasswordField
-                                    tone="dark"
+                                    tone="light"
                                     name="password"
                                     value={formData.password}
                                     onChange={handleChange}
@@ -282,9 +282,9 @@ export default function RegisterUserPage() {
                                 />
                             </AuthField>
 
-                            <AuthField variant="dark" label="Confirm Password" required error={fieldErrors.confirmPassword}>
+                            <AuthField variant="light" label="Confirm Password" required error={fieldErrors.confirmPassword}>
                                 <PasswordField
-                                    tone="dark"
+                                    tone="light"
                                     name="confirmPassword"
                                     value={confirmPassword}
                                     onChange={(e) => {
@@ -303,7 +303,7 @@ export default function RegisterUserPage() {
                                 />
                             </AuthField>
 
-                            <AuthField variant="dark" label="Aadhaar Number" required error={fieldErrors.aadharNumber}>
+                            <AuthField variant="light" label="Aadhaar Number" required error={fieldErrors.aadharNumber}>
                                 <input
                                     type="text"
                                     name="aadharNumber"
@@ -316,18 +316,22 @@ export default function RegisterUserPage() {
                                 />
                             </AuthField>
 
-                            <button type="submit" className={c.primaryBtn} disabled={loading}>
-                                {loading ? "Registering User..." : "Register"}
-                            </button>
+                            <div className="w-full max-w-[380px] mx-auto mt-2">
+                                <button type="submit" className={c.primaryBtn} disabled={loading}>
+                                    {loading ? "Registering User..." : "Register"}
+                                </button>
+                            </div>
                         </form>
 
-                        <AuthNavLinks
-                            variant="dark"
-                            showBackHome={false}
-                            footerPrompt="Already have an account?"
-                            footerHref="/login-user"
-                            footerLabel="Sign In"
-                        />
+                        <div className="mt-4 flex flex-col gap-4 w-full max-w-[380px] mx-auto">
+                            <AuthNavLinks
+                                variant="light"
+                                showBackHome={false}
+                                footerPrompt="Already have an account?"
+                                footerHref="/login-user"
+                                footerLabel="Sign In"
+                            />
+                        </div>
                     </>
                 )}
             </AuthCard>
