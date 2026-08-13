@@ -27,7 +27,7 @@ const registerSchema = z.object({
         .regex(/[A-Z]/, "Must contain an uppercase letter")
         .regex(/[0-9]/, "Must contain a number")
         .regex(/[@$!%*?&]/, "Must contain a special character (@$!%*?&)"),
-    phone: z.string().optional(),
+    phone: z.string().regex(/^\+?[0-9\s\-()]{7,15}$/, "Invalid phone number format").optional().or(z.literal("")),
     
     // Artist fields
     display_name: z.string().optional(),

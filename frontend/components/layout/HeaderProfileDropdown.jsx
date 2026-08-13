@@ -10,12 +10,12 @@ import toast from "react-hot-toast";
 function getRoleProfileRoutes(role) {
   switch (role) {
     case "artist":
-      return { profile: "/artist/profile", settings: "/artist/settings" };
+      return { profile: "/band/artist/profile", settings: "/band/artist/settings" };
     case "venue_owner":
-      return { profile: "/venue/profile", settings: "/venue/settings" };
+      return { profile: "/band/venue/profile", settings: "/band/venue/settings" };
     case "client":
     default:
-      return { profile: "/client/settings", settings: "/client/settings" };
+      return { profile: "/band/client/settings", settings: "/band/client/settings" };
   }
 }
 

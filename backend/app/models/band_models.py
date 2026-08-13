@@ -461,3 +461,38 @@ class BandPaymentOrder(Base):
     verified_at = Column(DateTime, nullable=True)
 
     booking = relationship("BandBooking")
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Favorites (Isolated from Mokijo)
+# ──────────────────────────────────────────────────────────────────────────────
+
+class BandFavoriteArtist(Base):
+    """Client's favorite artists."""
+    __tablename__ = "band_favorite_artists"
+
+    id = Column(Integer, primary_key=True, index=True)
+    client_id = Column(Integer, ForeignKey("band_accounts.id", ondelete="CASCADE"), nullable=False, index=True)
+    artist_profile_id = Column(Integer, ForeignKey("band_artist_profiles.id", ondelete="CASCADE"), nullable=False, index=True)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Composite unique constraint to prevent duplicate favorites
+    __table_args__ = (
+        Index("ix_band_fav_artist_unique", "client_id", "artist_profile_id", unique=True),
+    )
+
+
+class BandFavoriteVenue(Base):
+    """Client's favorite venues."""
+    __tablename__ = "band_favorite_venues"
+
+    id = Column(Integer, primary_key=True, index=True)
+    client_id = Column(Integer, ForeignKey("band_accounts.id", ondelete="CASCADE"), nullable=False, index=True)
+    venue_id = Column(Integer, ForeignKey("band_venues.id", ondelete="CASCADE"), nullable=False, index=True)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        Index("ix_band_fav_venue_unique", "client_id", "venue_id", unique=True),
+    )

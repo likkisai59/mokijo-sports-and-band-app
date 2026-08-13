@@ -249,11 +249,11 @@ export function Header({ onMenuClick }) {
         <nav className="hidden md:flex items-center gap-6">
           {!isAdmin && (
             <>
-              <Link href="/artists" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
-                Find Artist
+              <Link href="/band/artists" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
+                Artists
               </Link>
-              <Link href="/venues" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
-                Find Venues
+              <Link href="/band/venues" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
+                Venues
               </Link>
             </>
           )}
@@ -263,11 +263,11 @@ export function Header({ onMenuClick }) {
 
     return (
       <nav className="hidden md:flex items-center gap-6">
-        <Link href="/artists" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
-          Find Artist
+        <Link href="/band/artists" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
+          Artists
         </Link>
-        <Link href="/venues" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
-          Find Venues
+        <Link href="/band/venues" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
+          Venues
         </Link>
         <Link href="/about" className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">
           About

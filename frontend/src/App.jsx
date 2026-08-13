@@ -33,6 +33,8 @@ const BandArtists = React.lazy(() => import('@/app/band/artists/page'));
 const BandArtistDetail = React.lazy(() => import('@/app/band/artists/[id]/page'));
 const BandVenues = React.lazy(() => import('@/app/band/venues/page'));
 const BandVenueDetail = React.lazy(() => import('@/app/band/venues/[id]/page'));
+const BandAbout = React.lazy(() => import('@/app/band/about/page.jsx'));
+const BandContact = React.lazy(() => import('@/app/band/contact/page.jsx'));
 const Developer = React.lazy(() => import('@/app/developer/page'));
 const Messages = React.lazy(() => import('@/app/messages/page'));
 const Notifications = React.lazy(() => import('@/app/notifications/page'));
@@ -186,6 +188,8 @@ export default function App() {
                       <Route path="artists/:id" element={<PageWrapper Component={BandArtistDetail} />} />
                       <Route path="venues" element={<BandVenues />} />
                       <Route path="venues/:id" element={<PageWrapper Component={BandVenueDetail} />} />
+                      <Route path="about" element={<BandAbout />} />
+                      <Route path="contact" element={<BandContact />} />
                     </Route>
 
                     {/* Standalone Band Discovery Routes */}

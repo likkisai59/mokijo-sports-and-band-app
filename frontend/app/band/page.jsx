@@ -103,7 +103,7 @@ export default function BandLandingPage() {
                                     fontWeight: 800,
                                 }}
                             >
-                                <span style={{ opacity: 0.4 }}>0{i + 1}</span>
+                                <span style={{ opacity: 0.4, whiteSpace: "nowrap" }}>0{i + 1}</span>
                                 {s.icon}
                             </div>
                             <h3 className="band-card__title">{s.title}</h3>

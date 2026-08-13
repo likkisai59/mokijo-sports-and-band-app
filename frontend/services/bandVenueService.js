@@ -92,43 +92,28 @@ export const bandVenueService = {
     return response.data;
   },
 
-  // Mocked Favorite methods for Sprint 10 until backend APIs are ready
+  // Favorites using live backend APIs
   addFavoriteVenue: async (id) => {
-    const key = `favorites_venues_${typeof window !== 'undefined' ? localStorage.getItem("bandconnect_user_id") || "guest" : "guest"}`;
-    const favorites = JSON.parse(localStorage.getItem(key) || "[]");
-    if (!favorites.includes(id)) {
-      favorites.push(id);
-      localStorage.setItem(key, JSON.stringify(favorites));
-    }
-    return Promise.resolve({ success: true });
+    const response = await bandApi.post(`/favorites/venues/${id}`);
+    return response.data;
   },
 
   removeFavoriteVenue: async (id) => {
-    const key = `favorites_venues_${typeof window !== 'undefined' ? localStorage.getItem("bandconnect_user_id") || "guest" : "guest"}`;
-    let favorites = JSON.parse(localStorage.getItem(key) || "[]");
-    favorites = favorites.filter(favId => favId !== id);
-    localStorage.setItem(key, JSON.stringify(favorites));
-    return Promise.resolve({ success: true });
+    const response = await bandApi.delete(`/favorites/venues/${id}`);
+    return response.data;
   },
 
   isFavoriteVenue: async (id) => {
-    const key = `favorites_venues_${typeof window !== 'undefined' ? localStorage.getItem("bandconnect_user_id") || "guest" : "guest"}`;
-    const favorites = JSON.parse(localStorage.getItem(key) || "[]");
-    return Promise.resolve(favorites.includes(id));
+    try {
+      const response = await bandApi.get(`/favorites/venues/check/${id}`);
+      return response.data.is_favorite;
+    } catch (e) {
+      return false;
+    }
   },
 
   getFavoriteVenues: async () => {
-    const key = `favorites_venues_${typeof window !== 'undefined' ? localStorage.getItem("bandconnect_user_id") || "guest" : "guest"}`;
-    const favorites = JSON.parse(localStorage.getItem(key) || "[]");
-    if (favorites.length === 0) return Promise.resolve([]);
-    if (isPreviewActive()) return Promise.resolve([]);
-    
-    try {
-      const promises = favorites.map(id => bandApi.get(`/venues/${id}`).then(res => res.data).catch(() => null));
-      const results = await Promise.all(promises);
-      return results.filter(r => r !== null);
-    } catch (e) {
-      return Promise.resolve([]);
-    }
+    const response = await bandApi.get("/favorites/venues");
+    return response.data;
   }
 };

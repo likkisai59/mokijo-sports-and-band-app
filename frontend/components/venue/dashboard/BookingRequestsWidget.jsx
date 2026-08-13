@@ -43,12 +43,12 @@ export function BookingRequestsWidget({ requests = [] }) {
             </div>
 
             <div className="flex gap-2 pt-2 border-t border-border/40">
-              <Link href="/artist/bookings" className="w-1/2">
+              <Link href="/band/venue/bookings" className="w-1/2">
                 <Button variant="outline" size="sm" className="w-full text-[10px] h-8">
                   Decline
                 </Button>
               </Link>
-              <Link href="/artist/bookings" className="w-1/2">
+              <Link href="/band/venue/bookings" className="w-1/2">
                 <Button size="sm" className="w-full text-[10px] h-8 bg-primary hover:bg-primary/90 text-white">
                   Accept Gig
                 </Button>

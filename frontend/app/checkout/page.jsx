@@ -278,7 +278,7 @@ function CheckoutContent() {
         return (
             <div style={styles.errorWrapper}>
                 <div style={styles.errorContainer}>{error}</div>
-                <Link href="/venues" style={styles.backLink}>
+                <Link href="/band/venues" style={styles.backLink}>
                     Return to Arenas
                 </Link>
             </div>
@@ -288,7 +288,7 @@ function CheckoutContent() {
     return (
         <div style={styles.container}>
             <header style={styles.header}>
-                <Link href="/venues" style={styles.backBtn}>
+                <Link href="/band/venues" style={styles.backBtn}>
                     <ArrowLeft size={16} />
                     <span>Cancel Checkout</span>
                 </Link>

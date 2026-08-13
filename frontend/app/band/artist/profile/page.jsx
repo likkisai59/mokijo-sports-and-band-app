@@ -32,7 +32,7 @@ export default function ArtistProfilePage() {
 
   const handleTabChange = (val) => {
     setActiveTab(val);
-    router.push(`/artist/profile?tab=${val}`, { scroll: false });
+    router.push(`/band/artist/profile?tab=${val}`, { scroll: false });
   };
 
   const fetchProfile = React.useCallback(async () => {

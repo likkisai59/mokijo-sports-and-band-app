@@ -279,7 +279,7 @@ export default function PublicVenuesListPage() {
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between gap-2">
                           <h3 className="text-base font-extrabold text-text-primary group-hover:text-primary transition-colors truncate">
-                            {venue.name || venue.user?.name || "Anonymous Band"}
+                            {venue.name || venue.user?.name || "Anonymous Venue"}
                           </h3>
                           <div className="flex items-center gap-1 text-xs text-amber-400 shrink-0 font-bold">
                             <Star className="h-3.5 w-3.5 fill-current" />

@@ -29,14 +29,14 @@ export function MobileNav({ open, onOpenChange, role }) {
     switch (role) {
       case "client":
         return [
-          { name: "Home",       href: "/client/dashboard",  icon: Home },
-          { name: "Profile",    href: "/client/profile",    icon: User },
-          { name: "Bookings",   href: "/client/bookings",   icon: Calendar },
-          { name: "Reviews",    href: "/client/reviews",    icon: MessageSquare },
-          { name: "Favorites",  href: "/client/favorites",  icon: Heart },
-          { name: "Inbox",      href: "/client/messages",   icon: Inbox },
-          { name: "Payments",   href: "/client/payments",   icon: IndianRupee },
-          { name: "Settings",   href: "/client/settings",   icon: Settings },
+          { name: "Home",       href: "/band/client/dashboard",  icon: Home },
+          { name: "Profile",    href: "/band/client/profile",    icon: User },
+          { name: "Bookings",   href: "/band/client/bookings",   icon: Calendar },
+          { name: "Reviews",    href: "/band/client/reviews",    icon: MessageSquare },
+          { name: "Favorites",  href: "/band/client/favorites",  icon: Heart },
+          { name: "Inbox",      href: "/band/client/messages",   icon: Inbox },
+          { name: "Payments",   href: "/band/client/payments",   icon: IndianRupee },
+          { name: "Settings",   href: "/band/client/settings",   icon: Settings },
         ];
 
       case "artist":
@@ -52,13 +52,13 @@ export function MobileNav({ open, onOpenChange, role }) {
 
       case "venue_owner":
         return [
-          { name: "Home",       href: "/venue/dashboard",   icon: Home },
-          { name: "Profile",    href: "/venue/profile",     icon: Building2 },
-          { name: "Bookings",   href: "/venue/bookings",    icon: Calendar },
-          { name: "Reviews",    href: "/venue/reviews",     icon: MessageSquare },
-          { name: "Inbox",      href: "/venue/messages",    icon: Inbox },
-          { name: "Payments",   href: "/venue/earnings",    icon: IndianRupee },
-          { name: "Settings",   href: "/venue/settings",    icon: Settings },
+          { name: "Home",       href: "/band/venue/dashboard",   icon: Home },
+          { name: "Profile",    href: "/band/venue/profile",     icon: Building2 },
+          { name: "Bookings",   href: "/band/venue/bookings",    icon: Calendar },
+          { name: "Reviews",    href: "/band/venue/reviews",     icon: MessageSquare },
+          { name: "Inbox",      href: "/band/venue/messages",    icon: Inbox },
+          { name: "Payments",   href: "/band/venue/earnings",    icon: IndianRupee },
+          { name: "Settings",   href: "/band/venue/settings",    icon: Settings },
         ];
 
       case "admin":

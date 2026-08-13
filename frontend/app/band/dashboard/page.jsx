@@ -91,7 +91,7 @@ export default function BandDashboardPage() {
                 <div className="band-dash__role">{BAND_ROLE_LABELS[user.role] || user.role}</div>
                 <h1 className="band-dash__greet">Hey {user.name || "there"} 👋</h1>
                 <p style={{ color: "rgba(244, 244, 245,0.5)", fontSize: 14, marginTop: 4 }}>
-                    Welcome to your band dashboard.
+                    Welcome to your dashboard.
                 </p>
             </div>
 
@@ -112,17 +112,29 @@ export default function BandDashboardPage() {
                         </div>
                     )}
 
-                    <div className="band-section__head">
-                        <h2 className="band-section__title">Recent bookings</h2>
-                        <Link href="/band/bookings" className="band-navbar__link band-navbar__link--accent">
+                    <div className="band-section__head" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                        <h2 className="band-section__title" style={{ margin: 0 }}>Recent bookings</h2>
+                        <Link href="/band/bookings" className="band-navbar__link band-navbar__link--accent" style={{ marginLeft: "auto" }}>
                             View all
                         </Link>
                     </div>
 
                     {bookings.length === 0 ? (
                         <div className="band-empty">
-                            No bookings yet.{" "}
-                            {user.role === "client" ? "Start by exploring artists and venues." : "New requests will appear here."}
+                            <div style={{ marginBottom: 16 }}>
+                                No bookings yet.{" "}
+                                {user.role === "client" ? "Start by exploring artists and venues." : "New requests will appear here."}
+                            </div>
+                            {user.role === "client" && (
+                                <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+                                    <Link href="/band/artists" className="band-btn band-btn--primary">
+                                        Explore Artists
+                                    </Link>
+                                    <Link href="/band/venues" className="band-btn band-btn--ghost">
+                                        Explore Venues
+                                    </Link>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <div className="band-grid" style={{ gridTemplateColumns: "1fr" }}>

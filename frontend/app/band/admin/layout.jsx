@@ -4,7 +4,7 @@ import * as React from "react";
 import AdminSidebar from "@/components/admin-dashboard/AdminSidebar";
 import AdminTopHeader from "@/components/admin-dashboard/AdminTopHeader";
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
-import "../../styles/admin-dashboard.css";
+import "../../../styles/admin-dashboard.css";
 
 export default function AdminRouteLayout({ children }) {
   return (

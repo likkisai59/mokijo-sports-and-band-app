@@ -1,0 +1,1 @@
+import{r as s,j as r}from"./index-C_I4lZeI.js";import{a}from"./next-navigation-B-xmw7C5.js";function n(){const e=a();return s.useEffect(()=>{e.replace("/venue-dashboard/overview")},[e]),r.jsx("div",{className:"vd-loading",children:r.jsx("div",{className:"vd-spinner"})})}export{n as default};

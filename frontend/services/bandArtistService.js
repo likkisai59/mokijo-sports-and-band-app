@@ -113,45 +113,28 @@ export const bandArtistService = {
     return response.data;
   },
 
-  // Mocked Favorite methods for Sprint 10 until backend APIs are ready
+  // Favorites using live backend APIs
   addFavoriteArtist: async (id) => {
-    const key = `favorites_artists_${typeof window !== 'undefined' ? localStorage.getItem("bandconnect_user_id") || "guest" : "guest"}`;
-    const favorites = JSON.parse(localStorage.getItem(key) || "[]");
-    if (!favorites.includes(id)) {
-      favorites.push(id);
-      localStorage.setItem(key, JSON.stringify(favorites));
-    }
-    return Promise.resolve({ success: true });
+    const response = await bandApi.post(`/favorites/artists/${id}`);
+    return response.data;
   },
 
   removeFavoriteArtist: async (id) => {
-    const key = `favorites_artists_${typeof window !== 'undefined' ? localStorage.getItem("bandconnect_user_id") || "guest" : "guest"}`;
-    let favorites = JSON.parse(localStorage.getItem(key) || "[]");
-    favorites = favorites.filter(favId => favId !== id);
-    localStorage.setItem(key, JSON.stringify(favorites));
-    return Promise.resolve({ success: true });
+    const response = await bandApi.delete(`/favorites/artists/${id}`);
+    return response.data;
   },
 
   isFavoriteArtist: async (id) => {
-    const key = `favorites_artists_${typeof window !== 'undefined' ? localStorage.getItem("bandconnect_user_id") || "guest" : "guest"}`;
-    const favorites = JSON.parse(localStorage.getItem(key) || "[]");
-    return Promise.resolve(favorites.includes(id));
+    try {
+      const response = await bandApi.get(`/favorites/artists/check/${id}`);
+      return response.data.is_favorite;
+    } catch (e) {
+      return false;
+    }
   },
 
   getFavoriteArtists: async () => {
-    const key = `favorites_artists_${typeof window !== 'undefined' ? localStorage.getItem("bandconnect_user_id") || "guest" : "guest"}`;
-    const favorites = JSON.parse(localStorage.getItem(key) || "[]");
-    // Ideally we would fetch the details of these artists, but since we are mocking,
-    // we'll fetch them individually or return mock data.
-    if (favorites.length === 0) return Promise.resolve([]);
-    if (isPreviewActive()) return Promise.resolve([mockArtistProfile]);
-    
-    try {
-      const promises = favorites.map(id => bandApi.get(`/artists/${id}`).then(res => res.data).catch(() => null));
-      const results = await Promise.all(promises);
-      return results.filter(r => r !== null);
-    } catch (e) {
-      return Promise.resolve([]);
-    }
+    const response = await bandApi.get("/favorites/artists");
+    return response.data;
   }
 };

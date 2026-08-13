@@ -28,6 +28,7 @@ import {
   TopRatedProfilesWidget
 } from "@/components/reviews";
 import { useAdminReviewAnalytics } from "@/hooks/use-review-analytics";
+import { bandAdminService } from "@/services/bandAdminService";
 import toast from "react-hot-toast";
 
 function CustomAreaChart() {
@@ -90,20 +91,40 @@ function CustomBarChart() {
 export default function AdminDashboardPage() {
   const { analytics: adminAnalytics } = useAdminReviewAnalytics();
 
-  const [approvals, setApprovals] = React.useState([
-    { id: "1", name: "The Metal Core", type: "Band", email: "metal@core.in", time: "10 min ago" },
-    { id: "2", name: "Royal Plaza Turf", type: "Venue", email: "plaza@royal.com", time: "1 hour ago" },
-    { id: "3", name: "Jazz Elements Trio", type: "Band", email: "elements@jazz.org", time: "2 hours ago" },
+  const [approvals, setApprovals] = React.useState([]);
+  const [users, setUsers] = React.useState([
+    { name: "Sarah Connor", role: "client", initials: "SC" },
+    { name: "Iron & Wine", role: "artist", initials: "IW" },
+    { name: "Grand Arena Owner", role: "venue_owner", initials: "GA" },
+    { name: "Dev Administrator", role: "admin", initials: "DA" }
   ]);
 
-  const handleApprove = (id, name) => {
-    setApprovals((prev) => prev.filter((item) => item.id !== id));
-    toast.success(`Successfully approved profile: ${name}`);
+  React.useEffect(() => {
+    async function fetchApprovals() {
+      const data = await bandAdminService.getPendingVerifications();
+      setApprovals(data);
+    }
+    fetchApprovals();
+  }, []);
+
+  const handleApprove = async (id, type, name) => {
+    try {
+      await bandAdminService.approveProfile(id, type);
+      setApprovals((prev) => prev.filter((item) => item.id !== id));
+      toast.success(`Successfully approved profile: ${name}`);
+    } catch (e) {
+      toast.error(`Failed to approve profile: ${name}`);
+    }
   };
 
-  const handleDecline = (id, name) => {
-    setApprovals((prev) => prev.filter((item) => item.id !== id));
-    toast.error(`Declined profile verification for: ${name}`);
+  const handleDecline = async (id, type, name) => {
+    try {
+      await bandAdminService.rejectProfile(id, type);
+      setApprovals((prev) => prev.filter((item) => item.id !== id));
+      toast.error(`Declined profile verification for: ${name}`);
+    } catch (e) {
+      toast.error(`Failed to decline profile: ${name}`);
+    }
   };
 
   const handleQuickAction = (actionName) => {
@@ -173,7 +194,7 @@ export default function AdminDashboardPage() {
         />
         <AdminStatCard
           title="Pending Approvals"
-          value={approvals.length + 25}
+          value={approvals.length}
           trend={{ value: "-4.5%", isPositive: true }}
           description="Awaiting admin reviews"
           icon={ShieldCheck}
@@ -268,7 +289,7 @@ export default function AdminDashboardPage() {
                     </div>
                     <div className="flex gap-2 w-full sm:w-auto justify-end">
                       <Button
-                        onClick={() => handleApprove(app.id, app.name)}
+                        onClick={() => handleApprove(app.id, app.type, app.name)}
                         size="sm"
                         className="flex items-center gap-1 font-bold h-8 text-[11px]"
                       >
@@ -276,7 +297,7 @@ export default function AdminDashboardPage() {
                         <span>Approve</span>
                       </Button>
                       <Button
-                        onClick={() => handleDecline(app.id, app.name)}
+                        onClick={() => handleDecline(app.id, app.type, app.name)}
                         variant="destructive"
                         size="sm"
                         className="flex items-center gap-1 font-bold h-8 text-[11px]"
@@ -301,12 +322,7 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y divide-border/30">
-              {[
-                { name: "Sarah Connor", role: "client", initials: "SC" },
-                { name: "Iron & Wine", role: "artist", initials: "IW" },
-                { name: "Grand Arena Owner", role: "venue_owner", initials: "GA" },
-                { name: "Dev Administrator", role: "admin", initials: "DA" }
-              ].map((usr, idx) => (
+              {users.map((usr, idx) => (
                 <div key={idx} className="flex items-center gap-3 p-3.5 text-xs">
                   <Avatar className="h-7 w-7">
                     <AvatarFallback className="text-[10px] font-bold">{usr.initials}</AvatarFallback>

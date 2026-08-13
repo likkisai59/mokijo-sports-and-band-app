@@ -30,6 +30,7 @@ from app.api.band.earnings.router import router as band_earnings_router
 from app.api.band.settings.router import router as band_settings_router
 from app.api.band.notifications.router import router as band_notifications_router
 from app.api.band.payments.router import router as band_payments_router
+from app.api.band.favorites.router import router as band_favorites_router
 
 api_router = APIRouter()
 
@@ -64,3 +65,4 @@ api_router.include_router(band_earnings_router)
 api_router.include_router(band_settings_router)
 api_router.include_router(band_notifications_router, prefix="/band/notifications", tags=["Band Notifications"])
 api_router.include_router(band_payments_router, prefix="/band/payments", tags=["Band Payments"])
+api_router.include_router(band_favorites_router)

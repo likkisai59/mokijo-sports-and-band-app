@@ -1,0 +1,1 @@
+import{c as r,d as s,e as t,f as n}from"./index-C_I4lZeI.js";function c(){const a=r();return{push:e=>a(e),replace:e=>a(e,{replace:!0}),back:()=>a(-1),forward:()=>a(1),prefetch:()=>{},refresh:()=>window.location.reload()}}function u(){return s().pathname}function i(){const[a]=n();return a}function f(){return t()}export{c as a,u as b,f as c,i as u};

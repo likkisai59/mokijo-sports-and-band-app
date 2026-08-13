@@ -107,7 +107,7 @@ export default function ClientDashboardPage() {
           </div>
 
           <div className="mt-4">
-            <Link href="/client/bookings">
+            <Link href="/band/client/bookings">
               <Button variant="outline" size="sm" className="text-xs w-full font-bold h-9">
                 View All Bookings
                 <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
@@ -122,7 +122,7 @@ export default function ClientDashboardPage() {
         <h2 className="text-sm font-bold text-text-primary mb-3 uppercase tracking-wider">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 rounded-2xl shadow-xl group hover:border-primary/50 transition-colors">
-            <Link href="/client/bookings">
+            <Link href="/band/client/bookings">
               <CardContent className="p-5 flex items-center gap-4">
                 <div className="p-3 bg-primary/10 rounded-xl group-hover:bg-primary/20 transition-colors">
                   <CalendarRange className="h-6 w-6 text-primary" />
@@ -139,7 +139,7 @@ export default function ClientDashboardPage() {
           </Card>
 
           <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 rounded-2xl shadow-xl group hover:border-primary/50 transition-colors">
-            <Link href="/artists">
+            <Link href="/band/artists">
               <CardContent className="p-5 flex items-center gap-4">
                 <div className="p-3 bg-secondary/10 rounded-xl group-hover:bg-secondary/20 transition-colors">
                   <Music className="h-6 w-6 text-secondary" />
@@ -156,7 +156,7 @@ export default function ClientDashboardPage() {
           </Card>
 
           <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 rounded-2xl shadow-xl group hover:border-primary/50 transition-colors">
-            <Link href="/venues">
+            <Link href="/band/venues">
               <CardContent className="p-5 flex items-center gap-4">
                 <div className="p-3 bg-emerald-500/10 rounded-xl group-hover:bg-emerald-500/20 transition-colors">
                   <Building2 className="h-6 w-6 text-emerald-400" />
@@ -173,7 +173,7 @@ export default function ClientDashboardPage() {
           </Card>
 
           <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 rounded-2xl shadow-xl group hover:border-primary/50 transition-colors">
-            <Link href="/client/favorites">
+            <Link href="/band/client/favorites">
               <CardContent className="p-5 flex items-center gap-4">
                 <div className="p-3 bg-pink-500/10 rounded-xl group-hover:bg-pink-500/20 transition-colors">
                   <Heart className="h-6 w-6 text-pink-400" />
@@ -220,7 +220,7 @@ export default function ClientDashboardPage() {
               </span>
             </div>
             <div className="pt-2">
-              <Link href="/client/settings">
+              <Link href="/band/client/settings">
                 <Button
                   variant="outline"
                   size="sm"
@@ -245,22 +245,22 @@ export default function ClientDashboardPage() {
               {
                 step: "1",
                 label: "Browse artists in the marketplace",
-                href: "/artists",
+                href: "/band/artists",
               },
               {
                 step: "2",
                 label: "Find a venue for your event",
-                href: "/venues",
+                href: "/band/venues",
               },
               {
                 step: "3",
                 label: "Create a booking request",
-                href: "/client/bookings",
+                href: "/band/client/bookings",
               },
               {
                 step: "4",
                 label: "Complete your profile",
-                href: "/client/settings",
+                href: "/band/client/settings",
               },
             ].map((item) => {
               return (
