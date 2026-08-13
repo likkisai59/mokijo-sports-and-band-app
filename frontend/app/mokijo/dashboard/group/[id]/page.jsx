@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useParams } from "next/navigation";
 import * as XLSX from "xlsx";
+import { Sparkles, Camera, Trash2, UserPlus, FileSpreadsheet } from "lucide-react";
 import "@/app/styles/groupprofile.css";
 
 export default function GroupProfilePage() {
@@ -236,8 +237,20 @@ export default function GroupProfilePage() {
         }
     };
 
-    if (loading) return <div className="group-state-card">Loading profile...</div>;
-    if (!group) return <div className="group-state-card error">{error || "Group not found"}</div>;
+    if (loading) {
+        return (
+            <div className="group-profile">
+                <div className="group-state-card" style={{ padding: "48px 24px" }}>
+                    <div
+                        className="vd-spinner"
+                        style={{ width: "36px", height: "36px", borderWidth: "3px", margin: "0 auto 14px" }}
+                    />
+                    <p style={{ color: "#64748b", fontSize: "14px", fontWeight: "600" }}>Loading squad profile feed…</p>
+                </div>
+            </div>
+        );
+    }
+    if (!group) return <div className="group-state-card error">{error || "Group profile unavailable"}</div>;
 
     return (
         <div className="group-profile">
@@ -246,7 +259,7 @@ export default function GroupProfilePage() {
                 style={
                     coverPhoto
                         ? {
-                              backgroundImage: `linear-gradient(to top, rgba(8,8,15,0.85) 0%, rgba(8,8,15,0.35) 50%, rgba(8,8,15,0.2) 100%), url(${coverPhoto})`,
+                              backgroundImage: `linear-gradient(to top, rgba(15,23,42,0.85) 0%, rgba(15,23,42,0.35) 50%, rgba(15,23,42,0.15) 100%), url(${coverPhoto})`,
                               backgroundSize: "cover",
                               backgroundPosition: "center",
                           }
@@ -254,7 +267,11 @@ export default function GroupProfilePage() {
                 }
             >
                 <div>
-                    <p className="profile-kicker">{group.activity || "Group"}</p>
+                    <div className="brand-pill-badge" style={{ marginBottom: "10px" }}>
+                        <Sparkles size={13} />
+                        <span>MUKIJO • SQUAD GROUP PROFILE</span>
+                    </div>
+                    <div className="profile-kicker">{group.activity || "Group"}</div>
                     <h1>{group.group_name}</h1>
                     {group.description && <p className="profile-description">{group.description}</p>}
                 </div>
@@ -271,14 +288,12 @@ export default function GroupProfilePage() {
                         className="add-profile-photo-btn"
                         onClick={() => coverInputRef.current?.click()}
                     >
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="2">
-                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                            <circle cx="12" cy="13" r="4" />
-                        </svg>
-                        {coverPhoto ? "Change cover photo" : "Add cover photo"}
+                        <Camera size={15} />
+                        <span>{coverPhoto ? "Change Cover Photo" : "Add Cover Photo"}</span>
                     </button>
                     <button className="delete-group-btn" onClick={handleDeleteGroup}>
-                        Delete Group
+                        <Trash2 size={15} />
+                        <span>Delete Group</span>
                     </button>
                 </div>
             </header>
@@ -286,42 +301,46 @@ export default function GroupProfilePage() {
             <div className="profile-content profile-content--full">
                 <div className="main-feed">
                     <div className="group-overview-grid">
+                        {/* Group Specifications Card */}
                         <div className="members-list-card">
                             <div className="members-header">
-                                <h3>Group Details</h3>
+                                <h3>Squad Specifications</h3>
                             </div>
                             <div className="group-detail-list">
-                                <div>
-                                    <span>Activity</span>
+                                <div className="group-detail-item">
+                                    <span>Sport / Activity</span>
                                     <strong>{group.activity || "Not set"}</strong>
                                 </div>
-                                <div>
-                                    <span>Age Group</span>
+                                <div className="group-detail-item">
+                                    <span>Age Bracket</span>
                                     <strong>{group.age_group || "Not set"}</strong>
                                 </div>
-                                <div>
-                                    <span>Sub Group</span>
+                                <div className="group-detail-item">
+                                    <span>Sub Group Division</span>
                                     <strong>{group.sub_group || "None"}</strong>
                                 </div>
-                                <div>
-                                    <span>Description</span>
-                                    <strong>{group.description || "No description added yet."}</strong>
+                                <div className="group-detail-item" style={{ flexDirection: "column", alignItems: "flex-start", gap: "6px" }}>
+                                    <span>About & Guidelines</span>
+                                    <strong style={{ fontWeight: "500", fontSize: "13.5px" }}>{group.description || "No description added yet."}</strong>
                                 </div>
                             </div>
                         </div>
 
+                        {/* Members Roster Card */}
                         <div className="members-list-card">
                             <div className="members-header">
-                                <h3>Members ({members.length})</h3>
-                                <div style={{ display: "flex", gap: "10px" }}>
-                                    <button className="add-member-inline-btn" onClick={() => setShowImportModal(true)}>
-                                        Import
+                                <h3>Squad Members ({members.length})</h3>
+                                <div style={{ display: "flex", gap: "8px" }}>
+                                    <button className="import-member-inline-btn" onClick={() => setShowImportModal(true)}>
+                                        <FileSpreadsheet size={14} />
+                                        <span>Import Excel</span>
                                     </button>
                                     <button
                                         className="add-member-inline-btn"
                                         onClick={() => setShowAddMemberModal(true)}
                                     >
-                                        Add Member
+                                        <UserPlus size={14} />
+                                        <span>Add Member</span>
                                     </button>
                                 </div>
                             </div>

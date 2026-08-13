@@ -202,7 +202,7 @@ export default function PublicScoreboardPage() {
                 {/* Scoreboard Widget */}
                 <div className="pub-card">
                     {/* Status badge */}
-                    <div style={{ display: "flex", justifyContent: "center", marginBottom: "8px" }}>
+                    <div style={{ display: "flex", justifyContent: "center", marginBottom: "14px" }}>
                         {match.status === "live" ? (
                             <span className="pub-live-glow">
                                 <span className="pub-live-dot" />
@@ -212,9 +212,10 @@ export default function PublicScoreboardPage() {
                             <span
                                 className="pub-live-glow"
                                 style={{
-                                    color: "var(--vd-muted)",
-                                    background: "rgba(255,255,255,0.04)",
-                                    borderColor: "rgba(255,255,255,0.15)",
+                                    color: "#475569",
+                                    background: "#f1f5f9",
+                                    borderColor: "#cbd5e1",
+                                    boxShadow: "none"
                                 }}
                             >
                                 FINAL RESULT
@@ -223,9 +224,10 @@ export default function PublicScoreboardPage() {
                             <span
                                 className="pub-live-glow"
                                 style={{
-                                    color: "var(--vd-cyan)",
-                                    background: "rgba(217, 255, 110, 0.04)",
-                                    borderColor: "rgba(217, 255, 110, 0.2)",
+                                    color: "#0369a1",
+                                    background: "#f0f9ff",
+                                    borderColor: "#bae6fd",
+                                    boxShadow: "none"
                                 }}
                             >
                                 UPCOMING MATCH
@@ -233,88 +235,62 @@ export default function PublicScoreboardPage() {
                         )}
                     </div>
 
-                    <div
-                        style={{
-                            fontSize: "13px",
-                            fontWeight: "700",
-                            textTransform: "uppercase",
-                            color: "var(--vd-brand)",
-                            letterSpacing: "1px",
-                        }}
-                    >
-                        {match.sport} Match
+                    <div className="pub-sport-chip">
+                        {match.sport} MATCH
                     </div>
 
-                    <h1
-                        style={{
-                            fontSize: "24px",
-                            fontWeight: "800",
-                            color: "#fff",
-                            marginTop: "8px",
-                            marginBottom: "28px",
-                        }}
-                    >
+                    <h1 className="pub-match-title">
                         {match.title}
                     </h1>
 
-                    {/* Scores Display */}
+                    {/* Scores Display (Stadium Grade Layout) */}
                     <div className="pub-score-display">
-                        {/* Team A */}
-                        <div className="pub-team" style={{ textAlign: "right" }}>
-                            <div className="pub-team-name" style={{ color: teamA.color || "var(--vd-brand)" }}>
-                                {teamA.team_name}
+                        {/* Team A Profile */}
+                        <div className="pub-team team-left">
+                            <div className="pub-team-avatar" style={{ background: teamA.color || "#10b981" }}>
+                                {(teamA.team_name || "A")[0].toUpperCase()}
                             </div>
-                            {teamA.club_name && <div className="pub-team-club">{teamA.club_name}</div>}
-                        </div>
-
-                        {/* Team A Score */}
-                        <div
-                            className="pub-score-num"
-                            style={{ textShadow: `0 0 30px ${teamA.color || "var(--vd-brand)"}22` }}
-                        >
-                            {teamA.score}
-                        </div>
-
-                        <div className="pub-vs">vs</div>
-
-                        {/* Team B Score */}
-                        <div
-                            className="pub-score-num"
-                            style={{ textShadow: `0 0 30px ${teamB.color || "var(--vd-cyan)"}22` }}
-                        >
-                            {teamB.score}
-                        </div>
-
-                        {/* Team B */}
-                        <div className="pub-team" style={{ textAlign: "left" }}>
-                            <div className="pub-team-name" style={{ color: teamB.color || "var(--vd-cyan)" }}>
-                                {teamB.team_name}
+                            <div className="pub-team-info">
+                                <div className="pub-team-name">{teamA.team_name}</div>
+                                {teamA.club_name && <div className="pub-team-club">{teamA.club_name}</div>}
                             </div>
-                            {teamB.club_name && <div className="pub-team-club">{teamB.club_name}</div>}
+                        </div>
+
+                        {/* Scores Box Container */}
+                        <div className="pub-score-center">
+                            <div className="pub-score-box">
+                                {teamA.score}
+                            </div>
+
+                            <div className="pub-vs-pill">VS</div>
+
+                            <div className="pub-score-box">
+                                {teamB.score}
+                            </div>
+                        </div>
+
+                        {/* Team B Profile */}
+                        <div className="pub-team team-right">
+                            <div className="pub-team-avatar" style={{ background: teamB.color || "#0284c7" }}>
+                                {(teamB.team_name || "B")[0].toUpperCase()}
+                            </div>
+                            <div className="pub-team-info">
+                                <div className="pub-team-name">{teamB.team_name}</div>
+                                {teamB.club_name && <div className="pub-team-club">{teamB.club_name}</div>}
+                            </div>
                         </div>
                     </div>
 
-                    {/* Footer Info */}
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "center",
-                            gap: "24px",
-                            fontSize: "13px",
-                            color: "var(--vd-muted)",
-                            borderTop: "1px solid rgba(255,255,255,0.06)",
-                            paddingTop: "24px",
-                            marginTop: "12px",
-                        }}
-                    >
+                    {/* Footer Info Chips */}
+                    <div className="pub-footer-row">
                         {scheduledDate && (
-                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <div className="pub-footer-chip">
                                 <Calendar size={14} />
                                 <span>{scheduledDate}</span>
                             </div>
                         )}
                         {match.venue && (
-                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <div className="pub-footer-chip">
                                 <MapPin size={14} />
                                 <span>{match.venue}</span>
                             </div>
@@ -328,7 +304,7 @@ export default function PublicScoreboardPage() {
                         style={{
                             fontSize: "16px",
                             fontWeight: "800",
-                            color: "#fff",
+                            color: "#0f172a",
                             marginBottom: "20px",
                             display: "flex",
                             justifyContent: "space-between",
@@ -340,7 +316,7 @@ export default function PublicScoreboardPage() {
                             <span
                                 style={{
                                     fontSize: "11px",
-                                    color: wsConnected ? "var(--vd-brand)" : "#ff3b30",
+                                    color: wsConnected ? "#10b981" : "#dc2626",
                                     display: "flex",
                                     alignItems: "center",
                                     gap: "6px",
@@ -348,7 +324,7 @@ export default function PublicScoreboardPage() {
                             >
                                 <span
                                     className="pub-live-dot"
-                                    style={{ backgroundColor: wsConnected ? "var(--vd-brand)" : "#ff3b30" }}
+                                    style={{ backgroundColor: wsConnected ? "#10b981" : "#dc2626" }}
                                 />
                                 {wsConnected ? "Auto-updating in real-time" : "Connecting feed..."}
                             </span>
@@ -369,7 +345,7 @@ export default function PublicScoreboardPage() {
                                 <div
                                     key={evt.id || idx}
                                     className="timeline-item"
-                                    style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+                                    style={{ borderBottom: "1px solid #f1f5f9" }}
                                 >
                                     <span className="timeline-time">
                                         {evt.minute !== null && evt.minute !== undefined ? `${evt.minute}'` : "Live"}
@@ -378,7 +354,7 @@ export default function PublicScoreboardPage() {
                                         <div className="timeline-title" style={{ fontWeight: "700" }}>
                                             {evt.event_type.replace("_", " ").toUpperCase()}
                                         </div>
-                                        <div className="timeline-desc" style={{ color: "rgba(255,255,255,0.7)" }}>
+                                        <div className="timeline-desc" style={{ color: "#475569" }}>
                                             {evt.description}
                                         </div>
                                     </div>
@@ -388,7 +364,7 @@ export default function PublicScoreboardPage() {
                         ) : (
                             <div
                                 style={{
-                                    color: "var(--vd-muted)",
+                                    color: "#64748b",
                                     fontSize: "14px",
                                     textAlign: "center",
                                     padding: "40px 0",
@@ -402,50 +378,50 @@ export default function PublicScoreboardPage() {
 
                 {/* Team Squads Panel */}
                 {(teamAMembers.length > 0 || teamBMembers.length > 0) && (
-                    <div className="pub-timeline" style={{ background: "rgba(20, 20, 31, 0.4)", border: "1px solid rgba(255, 255, 255, 0.05)" }}>
-                        <h2 style={{ fontSize: "16px", fontWeight: "800", color: "#fff", marginBottom: "20px", textAlign: "center", letterSpacing: "1px" }}>
+                    <div className="pub-timeline">
+                        <h2 style={{ fontSize: "16px", fontWeight: "800", color: "#0f172a", marginBottom: "20px", textAlign: "center", letterSpacing: "1px" }}>
                             TEAM SQUADS & PLAYER ROSTERS
                         </h2>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
                             {/* Team A Roster */}
                             <div>
-                                <h3 style={{ fontSize: "14px", fontWeight: "700", color: teamA.color || "var(--vd-brand)", borderBottom: "1px solid rgba(255, 255, 255, 0.08)", paddingBottom: "8px", marginBottom: "12px" }}>
+                                <h3 style={{ fontSize: "14px", fontWeight: "700", color: teamA.color || "#10b981", borderBottom: "1px solid #e2e8f0", paddingBottom: "8px", marginBottom: "12px" }}>
                                     {teamA.team_name} Squad
                                 </h3>
                                 {teamAMembers.length > 0 ? (
                                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                         {teamAMembers.map((m) => (
-                                            <div key={m.id} style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(255, 255, 255, 0.02)", padding: "8px 12px", borderRadius: "8px" }}>
-                                                <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: teamA.color || "var(--vd-brand)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "800" }}>
+                                            <div key={m.id} style={{ display: "flex", alignItems: "center", gap: "10px", background: "#f8fafc", border: "1px solid #e2e8f0", padding: "8px 12px", borderRadius: "8px" }}>
+                                                <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: teamA.color || "#10b981", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "800" }}>
                                                     {(m.first_name || "?")[0].toUpperCase()}
                                                 </div>
-                                                <span style={{ fontSize: "13px", fontWeight: "500", color: "#e2e8f0" }}>{m.first_name} {m.last_name || ""}</span>
+                                                <span style={{ fontSize: "13px", fontWeight: "600", color: "#0f172a" }}>{m.first_name} {m.last_name || ""}</span>
                                             </div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <span style={{ fontSize: "12px", color: "var(--vd-muted)" }}>No players registered in this team.</span>
+                                    <span style={{ fontSize: "12px", color: "#64748b" }}>No players registered in this team.</span>
                                 )}
                             </div>
 
                             {/* Team B Roster */}
                             <div>
-                                <h3 style={{ fontSize: "14px", fontWeight: "700", color: teamB.color || "var(--vd-cyan)", borderBottom: "1px solid rgba(255, 255, 255, 0.08)", paddingBottom: "8px", marginBottom: "12px" }}>
+                                <h3 style={{ fontSize: "14px", fontWeight: "700", color: teamB.color || "#0284c7", borderBottom: "1px solid #e2e8f0", paddingBottom: "8px", marginBottom: "12px" }}>
                                     {teamB.team_name} Squad
                                 </h3>
                                 {teamBMembers.length > 0 ? (
                                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                         {teamBMembers.map((m) => (
-                                            <div key={m.id} style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(255, 255, 255, 0.02)", padding: "8px 12px", borderRadius: "8px" }}>
-                                                <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: teamB.color || "var(--vd-cyan)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "800" }}>
+                                            <div key={m.id} style={{ display: "flex", alignItems: "center", gap: "10px", background: "#f8fafc", border: "1px solid #e2e8f0", padding: "8px 12px", borderRadius: "8px" }}>
+                                                <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: teamB.color || "#0284c7", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "800" }}>
                                                     {(m.first_name || "?")[0].toUpperCase()}
                                                 </div>
-                                                <span style={{ fontSize: "13px", fontWeight: "500", color: "#e2e8f0" }}>{m.first_name} {m.last_name || ""}</span>
+                                                <span style={{ fontSize: "13px", fontWeight: "600", color: "#0f172a" }}>{m.first_name} {m.last_name || ""}</span>
                                             </div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <span style={{ fontSize: "12px", color: "var(--vd-muted)" }}>
+                                    <span style={{ fontSize: "12px", color: "#64748b" }}>
                                         {teamB.club_name ? "Squad list unavailable (Guest Team)" : "No players registered in this team."}
                                     </span>
                                 )}

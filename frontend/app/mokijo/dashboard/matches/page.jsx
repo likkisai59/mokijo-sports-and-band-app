@@ -13,6 +13,7 @@ import {
     Trash2,
     Share2,
     ExternalLink,
+    Sparkles,
 } from "lucide-react";
 import "@/app/styles/matches.css";
 
@@ -129,87 +130,71 @@ export default function DashboardMatchesPage() {
     };
 
     return (
-        <div style={{ padding: "20px" }}>
-            {/* Top Page Header with New Match button on the top right */}
-            <div
-                style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    marginBottom: "24px",
-                }}
-            >
+        <div className="matches-page-wrapper">
+            {/* Top Page Header Hero Control Center Banner */}
+            <header className="matches-header">
                 <div>
-                    <h1
-                        className="vd-page-title"
-                        style={{ color: "#0f172a", fontSize: "28px", fontWeight: "800", margin: 0 }}
-                    >
-                        Live Matches & Scoreboard
-                    </h1>
-                    <p className="vd-page-sub" style={{ color: "#64748b", marginTop: "4px", marginBottom: 0 }}>
-                        Create, schedule, and score matches for teams in real time
-                    </p>
+                    <div className="brand-pill-badge">
+                        <Sparkles size={13} />
+                        <span>MUKIJO • LIVE MATCH & SCOREBOARD HUB</span>
+                    </div>
+                    <h1>Live Matches & Scoreboard</h1>
+                    <p>Schedule matches, broadcast live scores, manage real-time team stats, and share public scoreboards.</p>
                 </div>
-                {!isMember && (
-                    <Link
-                        href="/dashboard/matches/create"
-                        className="m-create-btn"
-                        style={{
-                            textDecoration: "none",
-                            backgroundColor: "#10b981",
-                            color: "#fff",
-                            boxShadow: "0 4px 14px rgba(16, 185, 129, 0.3)",
-                        }}
-                    >
-                        <Plus size={16} />
-                        New Match
-                    </Link>
-                )}
-            </div>
+                <div className="header-actions-right">
+                    <div className="header-status-chip">
+                        <span className="status-live-dot" /> Live Scorekeeper Active
+                    </div>
+                    {!isMember && (
+                        <Link
+                            href="/dashboard/matches/create"
+                            className="m-create-btn"
+                        >
+                            <Plus size={15} />
+                            <span>New Match</span>
+                        </Link>
+                    )}
+                </div>
+            </header>
 
             {/* Overview Stats */}
             <div className="m-stats-grid">
-                <div className="m-stat-card">
+                <div className="m-stat-card theme-emerald">
                     <div className="m-stat-icon">🏆</div>
                     <div className="m-stat-info">
-                        <div className="m-stat-val" style={{ color: "#0f172a" }}>{stats.total}</div>
+                        <div className="m-stat-val">{stats.total}</div>
                         <div className="m-stat-lbl">Total Matches</div>
                     </div>
                 </div>
-                <div className="m-stat-card">
-                    <div className="m-stat-icon" style={{ color: "#dc2626", borderColor: "#fca5a5", background: "#fef2f2" }}>
+                <div className="m-stat-card theme-rose">
+                    <div className="m-stat-icon">
+                        <span className="live-pulse-ring" />
                         🔴
                     </div>
                     <div className="m-stat-info">
-                        <div className="m-stat-val" style={{ color: "#dc2626" }}>
+                        <div className="m-stat-val val-rose">
                             {stats.live}
                         </div>
                         <div className="m-stat-lbl">Live Now</div>
                     </div>
                 </div>
-                <div className="m-stat-card">
-                    <div
-                        className="m-stat-icon"
-                        style={{ color: "#0284c7", borderColor: "#7dd3fc", background: "#e0f2fe" }}
-                    >
+                <div className="m-stat-card theme-sky">
+                    <div className="m-stat-icon">
                         ⏳
                     </div>
                     <div className="m-stat-info">
-                        <div className="m-stat-val" style={{ color: "#0284c7" }}>
+                        <div className="m-stat-val val-sky">
                             {stats.scheduled}
                         </div>
                         <div className="m-stat-lbl">Scheduled</div>
                     </div>
                 </div>
-                <div className="m-stat-card">
-                    <div
-                        className="m-stat-icon"
-                        style={{ color: "#64748b", borderColor: "#cbd5e1", background: "#f1f5f9" }}
-                    >
+                <div className="m-stat-card theme-slate">
+                    <div className="m-stat-icon">
                         🏁
                     </div>
                     <div className="m-stat-info">
-                        <div className="m-stat-val" style={{ color: "#334155" }}>
+                        <div className="m-stat-val val-slate">
                             {stats.completed}
                         </div>
                         <div className="m-stat-lbl">Completed</div>
@@ -217,9 +202,10 @@ export default function DashboardMatchesPage() {
                 </div>
             </div>
 
-            {/* Actions & Filters */}
-            <div className="m-header-actions">
-                <h2 style={{ fontSize: "18px", fontWeight: "700", color: "#0f172a" }}>Match Schedule</h2>
+            {/* Schedule Section Header */}
+            <div className="m-schedule-header">
+                <h2>Match Schedule ({matches.length})</h2>
+                <span className="schedule-meta-badge">Real-Time Fixtures</span>
             </div>
 
             {/* Matches List Grid */}
@@ -228,31 +214,22 @@ export default function DashboardMatchesPage() {
                     <div className="vd-spinner" /> Loading match schedule…
                 </div>
             ) : matches.length === 0 ? (
-                <div
-                    className="vd-card"
-                    style={{
-                        padding: 48,
-                        textAlign: "center",
-                        background: "var(--vd-surface)",
-                        border: "1px solid var(--vd-border)",
-                        borderRadius: "16px",
-                    }}
-                >
+                <div className="matches-empty-card">
                     <div className="vd-empty">
                         <div className="vd-empty-icon" style={{ fontSize: "40px" }}>
                             ⚔️
                         </div>
                         <div
                             className="vd-empty-text"
-                            style={{ fontSize: "18px", color: "#fff", fontWeight: "600", marginTop: "16px" }}
+                            style={{ fontSize: "18px", color: "#0f172a", fontWeight: "700", marginTop: "12px" }}
                         >
-                            No Matches Scheduled
+                            No Matches Scheduled Yet
                         </div>
                         <div
                             className="vd-empty-sub"
-                            style={{ color: "var(--vd-muted)", fontSize: "14px", marginTop: "8px" }}
+                            style={{ color: "#64748b", fontSize: "14px", marginTop: "6px" }}
                         >
-                            Create your first match to start broadcasting live scores.
+                            Create your first match to start broadcasting live scores and managing team scoreboards.
                         </div>
                     </div>
                 </div>

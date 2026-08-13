@@ -5,6 +5,29 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import api from "@/lib/api";
+import {
+    ArrowLeft,
+    Clock,
+    MapPin,
+    Hourglass,
+    Users,
+    CheckCircle2,
+    XCircle,
+    HelpCircle,
+    Send,
+    Bell,
+    UserCheck,
+    Globe,
+    UserPlus,
+    FileText,
+    BarChart3,
+    Download,
+    CreditCard,
+    Plus,
+    Activity,
+    Check,
+    AlertCircle,
+} from "lucide-react";
 import "@/app/styles/events.css";
 
 export default function EventDetailPage({ params }) {
@@ -199,7 +222,7 @@ export default function EventDetailPage({ params }) {
             });
 
             if (response.ok) {
-                // Instantly update local state to feel ultra snappy
+                // Instantly update local state
                 setRegistrations(
                     registrations.map((r) => (r.id === regId ? { ...r, attendance: attendanceValue } : r))
                 );
@@ -390,17 +413,21 @@ export default function EventDetailPage({ params }) {
 
     if (loading) {
         return (
-            <div className="events-container" style={{ textAlign: "center", padding: "100px" }}>
-                <h2>Loading Event Panel...</h2>
+            <div style={styles.pageContainer}>
+                <div style={styles.loadingBoxLight}>
+                    <h3>Loading Event Panel...</h3>
+                </div>
             </div>
         );
     }
 
     if (!event) {
         return (
-            <div className="events-container" style={{ textAlign: "center", padding: "100px" }}>
-                <h2>Event Not Found</h2>
-                <Link href="/dashboard/events">Back to Events List</Link>
+            <div style={styles.pageContainer}>
+                <div style={styles.emptyBoxLight}>
+                    <h3>Event Not Found</h3>
+                    <Link href="/dashboard/events" style={styles.backBtnLight}>Back to Events List</Link>
+                </div>
             </div>
         );
     }
@@ -429,17 +456,17 @@ export default function EventDetailPage({ params }) {
     // Cover preset background
     const coverPresets = {
         Match: "linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)",
-        Training: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-        Meeting: "linear-gradient(135deg, #4b5563 0%, #1f2937 100%)",
-        Social: "linear-gradient(135deg, #ff2e93 0%, #e6007a 100%)",
-        Tournament: "linear-gradient(135deg, #c6ff3d 0%, #9fcc1f 100%)",
-        Ceremony: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
+        Training: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+        Meeting: "linear-gradient(135deg, #475569 0%, #1e293b 100%)",
+        Social: "linear-gradient(135deg, #ec4899 0%, #be185d 100%)",
+        Tournament: "linear-gradient(135deg, #d97706 0%, #b45309 100%)",
+        Ceremony: "linear-gradient(135deg, #6366f1 0%, #4338ca 100%)",
     };
 
     const coverBg =
         event.cover_image && event.cover_image.startsWith("linear")
             ? event.cover_image
-            : coverPresets[event.type] || "linear-gradient(135deg, #c6ff3d 0%, #9fcc1f 100%)";
+            : coverPresets[event.type] || "linear-gradient(135deg, #059669 0%, #10b981 100%)";
 
     // Find the logged-in member's response status
     const memberReg = registrations.find((r) => r.participant_email?.toLowerCase() === userEmail?.toLowerCase());
@@ -447,67 +474,37 @@ export default function EventDetailPage({ params }) {
     const eventFee = Number(event.fee || event.registration_fee || event.event_fee || 0);
 
     return (
-        <div className="events-container">
+        <div style={styles.pageContainer}>
+            {/* Back Navigation Bar */}
             <div style={{ marginBottom: "20px" }}>
-                <Link
-                    href="/dashboard/events"
-                    className="back-btn"
-                    style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        textDecoration: "none",
-                        color: "#64748b",
-                        fontWeight: "600",
-                        fontSize: "14px",
-                    }}
-                >
-                    ← Back to Events Dashboard
+                <Link href="/dashboard/events" style={styles.backBtnLight}>
+                    <ArrowLeft size={16} />
+                    <span>Back to Events Dashboard</span>
                 </Link>
             </div>
 
-            {/* Event Name & Category Cover */}
+            {/* Event Header Banner */}
             <div
                 style={{
                     background: coverBg,
                     backgroundImage:
                         event.cover_image && !event.cover_image.startsWith("linear")
-                            ? `url(${event.cover_image})`
+                            ? `url(${event.cover_image}) center/cover no-repeat`
                             : undefined,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
                     borderRadius: "20px",
-                    padding: "36px",
+                    padding: "32px 36px",
                     color: "white",
                     marginBottom: "28px",
-                    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+                    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.08)",
                 }}
             >
-                <span
-                    className="event-card-category"
-                    style={{ background: "rgba(0,0,0,0.5)", padding: "6px 14px", fontSize: "13px" }}
-                >
-                    {event.type}
+                <span style={styles.bannerCategoryBadgeLight}>
+                    {(event.type || "EVENT").toUpperCase()}
                 </span>
-                <h1
-                    style={{
-                        fontSize: "36px",
-                        fontWeight: "900",
-                        margin: "16px 0 8px 0",
-                        textShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                    }}
-                >
+                <h1 style={styles.bannerTitleLight}>
                     {event.name}
                 </h1>
-                <p
-                    style={{
-                        margin: "0",
-                        opacity: "0.9",
-                        fontSize: "16px",
-                        fontWeight: "500",
-                        textShadow: "0 1px 2px rgba(0,0,0,0.1)",
-                    }}
-                >
+                <p style={styles.bannerSubtitleLight}>
                     📅{" "}
                     {new Date(event.date).toLocaleDateString("en-US", {
                         weekday: "long",
@@ -518,606 +515,273 @@ export default function EventDetailPage({ params }) {
                 </p>
             </div>
 
-            {/* Two Column Dashboard Grid */}
-            <div className="event-mgmt-grid">
-                {/* LEFT SIDEBAR: EVENT INFORMATION */}
-                <div className="event-info-sidebar">
-                    <h2>Event Information</h2>
+            {/* Two Column Grid */}
+            <div style={styles.twoColumnGridLight}>
 
-                    <div className="event-card-meta" style={{ gap: "14px", fontSize: "14px" }}>
-                        <div className="meta-item">
-                            <span className="meta-icon">⏰</span>
+                {/* LEFT SIDEBAR: EVENT INFORMATION (LIGHT THEME) */}
+                <div style={styles.sidebarCardLight}>
+                    <h2 style={styles.sidebarTitleLight}>Event Information</h2>
+
+                    <div style={styles.sidebarMetaListLight}>
+                        <div style={styles.sidebarMetaItemLight}>
+                            <div style={styles.sidebarIconBoxLight}>
+                                <Clock size={16} />
+                            </div>
                             <div>
-                                <strong style={{ display: "block", color: "#334155" }}>Time</strong>
-                                <span>
+                                <span style={styles.sidebarMetaLabelLight}>Time</span>
+                                <div style={styles.sidebarMetaValueLight}>
                                     {event.start_time && event.end_time
                                         ? `${event.start_time} - ${event.end_time}`
                                         : event.time || "Not specified"}
-                                </span>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="meta-item">
-                            <span className="meta-icon">📍</span>
+                        <div style={styles.sidebarMetaItemLight}>
+                            <div style={styles.sidebarIconBoxLight}>
+                                <MapPin size={16} />
+                            </div>
                             <div>
-                                <strong style={{ display: "block", color: "#334155" }}>Venue Location</strong>
-                                <span>{event.location}</span>
+                                <span style={styles.sidebarMetaLabelLight}>Venue Location</span>
+                                <div style={styles.sidebarMetaValueLight}>{event.location || "TBD"}</div>
                             </div>
                         </div>
 
                         {event.registration_deadline && (
-                            <div className="meta-item">
-                                <span className="meta-icon">⌛</span>
+                            <div style={styles.sidebarMetaItemLight}>
+                                <div style={{ ...styles.sidebarIconBoxLight, background: "#fef2f2", color: "#ef4444" }}>
+                                    <Hourglass size={16} />
+                                </div>
                                 <div>
-                                    <strong style={{ display: "block", color: "#334155" }}>Response Deadline</strong>
-                                    <span style={{ color: "#ef4444", fontWeight: "600" }}>
+                                    <span style={styles.sidebarMetaLabelLight}>Response Deadline</span>
+                                    <div style={{ ...styles.sidebarMetaValueLight, color: "#ef4444", fontWeight: "700" }}>
                                         {event.registration_deadline}
-                                    </span>
+                                    </div>
                                 </div>
                             </div>
                         )}
 
-                        <div className="meta-item">
-                            <span className="meta-icon">👥</span>
+                        <div style={styles.sidebarMetaItemLight}>
+                            <div style={styles.sidebarIconBoxLight}>
+                                <Users size={16} />
+                            </div>
                             <div>
-                                <strong style={{ display: "block", color: "#334155" }}>Target Group</strong>
-                                <span style={{ color: "#c6ff3d", fontWeight: "600" }}>
+                                <span style={styles.sidebarMetaLabelLight}>Target Group</span>
+                                <div style={{ ...styles.sidebarMetaValueLight, color: "#059669", fontWeight: "700" }}>
                                     {event.group_name || "Club-Wide"}
-                                </span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px solid #f4f4f5" }}>
-                        <strong style={{ display: "block", color: "#0f172a", marginBottom: "8px", fontSize: "14px" }}>
-                            About the Event
-                        </strong>
-                        <p style={{ color: "#475569", fontSize: "13px", lineHeight: "1.6", margin: "0" }}>
+                    <div style={styles.sidebarDividerLight}>
+                        <span style={styles.sidebarSectionTitleLight}>About the Event</span>
+                        <p style={styles.sidebarDescTextLight}>
                             {event.description || "No description provided for this event."}
                         </p>
                     </div>
 
-                    {/* EVENT SETTINGS badge-display */}
-                    <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px solid #f4f4f5" }}>
-                        <strong style={{ display: "block", color: "#0f172a", marginBottom: "10px", fontSize: "14px" }}>
-                            Event Rules & Settings
-                        </strong>
-                        <div className="event-card-settings" style={{ border: "none", padding: "0" }}>
+                    <div style={styles.sidebarDividerLight}>
+                        <span style={styles.sidebarSectionTitleLight}>Event Rules &amp; Settings</span>
+                        <div style={styles.sidebarBadgeGroupLight}>
                             {event.is_public ? (
-                                <span className="setting-badge">🌐 Public Event</span>
+                                <span style={styles.sidebarSettingBadgeLight}>🌐 Public Event</span>
                             ) : (
-                                <span className="setting-badge">🔒 Private Event</span>
+                                <span style={styles.sidebarSettingBadgeLight}>🔒 Private Event</span>
                             )}
                             {event.attendance_tracking && (
-                                <span className="setting-badge">📝 Attendance Tracking active</span>
+                                <span style={styles.sidebarSettingBadgeLight}>📝 Attendance Active</span>
                             )}
-                            {event.auto_reminder && <span className="setting-badge">🔔 Automatic Reminders</span>}
+                            {event.auto_reminder && <span style={styles.sidebarSettingBadgeLight}>🔔 Auto Reminders</span>}
                             {event.allow_guest ? (
-                                <span className="setting-badge">👥 Guests Allowed</span>
+                                <span style={styles.sidebarSettingBadgeLight}>👥 Guests Allowed</span>
                             ) : (
-                                <span className="setting-badge">🚫 No Guests</span>
+                                <span style={styles.sidebarSettingBadgeLight}>🚫 No Guests</span>
                             )}
-                            {event.allow_waiting_list && <span className="setting-badge">⏳ Waitlist Active</span>}
+                            {event.allow_waiting_list && <span style={styles.sidebarSettingBadgeLight}>⏳ Waitlist Active</span>}
                         </div>
                     </div>
                 </div>
 
-                {/* RIGHT PANE: DETAILED ACTIONS (Role-Aware) */}
+                {/* RIGHT MAIN PANEL */}
                 <div>
                     {isMember ? (
-                        /* PREMIUM MEMBER RESPONSE VIEW */
+                        /* MEMBER RESPONSE VIEW */
                         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                            {/* Member Response Status Response Card */}
-                            <div
-                                style={{
-                                    background: "white",
-                                    border: "1px solid #e2e8f0",
-                                    borderRadius: "20px",
-                                    padding: "28px",
-                                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
-                                }}
-                            >
-                                <h3
-                                    style={{
-                                        margin: "0 0 6px 0",
-                                        fontSize: "18px",
-                                        fontWeight: "800",
-                                        color: "#1e293b",
-                                    }}
-                                >
-                                    Your Response Status
-                                </h3>
-                                <p style={{ margin: "0 0 20px 0", fontSize: "13px", color: "#64748b" }}>
+                            <div style={styles.mainCardLight}>
+                                <h3 style={styles.cardTitleLight}>Your Response Status</h3>
+                                <p style={styles.cardSubLight}>
                                     Please let the coaching squad know if you can attend this club event.
                                 </p>
 
-                                <div
-                                    style={{
-                                        background: "#f8fafc",
-                                        borderRadius: "12px",
-                                        padding: "16px 20px",
-                                        border: "1px solid #f4f4f5",
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        alignItems: "center",
-                                        marginBottom: "24px",
-                                    }}
-                                >
+                                <div style={styles.userStatusBoxLight}>
                                     <div>
-                                        <span
-                                            style={{
-                                                fontSize: "12px",
-                                                color: "#94a3b8",
-                                                fontWeight: "600",
-                                                textTransform: "uppercase",
-                                            }}
-                                        >
-                                            Signed In As
-                                        </span>
-                                        <strong style={{ display: "block", fontSize: "15px", color: "#334155" }}>
+                                        <span style={styles.userStatusLblLight}>Signed In As</span>
+                                        <strong style={styles.userStatusValLight}>
                                             {userName || "Active Member"} ({userEmail})
                                         </strong>
                                     </div>
-                                    <div>
-                                        <span
-                                            style={{
-                                                fontSize: "12px",
-                                                color: "#94a3b8",
-                                                fontWeight: "600",
-                                                textTransform: "uppercase",
-                                                display: "block",
-                                                textAlign: "right",
-                                            }}
-                                        >
-                                            Current Response
-                                        </span>
-                                        <span
-                                            className={`badge-status ${memberResponseStatus}`}
-                                            style={{
-                                                fontSize: "13px",
-                                                padding: "6px 14px",
-                                                display: "inline-block",
-                                                marginTop: "4px",
-                                            }}
-                                        >
+                                    <div style={{ textAlign: "right" }}>
+                                        <span style={styles.userStatusLblLight}>Current Response</span>
+                                        <span style={{ ...styles.badgePillLight, marginTop: "4px" }}>
                                             {memberResponseStatus.toUpperCase()}
                                         </span>
                                     </div>
                                 </div>
 
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
+                                <div style={styles.responseBtnGridLight}>
                                     <button
                                         onClick={() => handleMemberResponse("accepted")}
                                         style={{
-                                            padding: "14px 10px",
-                                            background:
-                                                memberResponseStatus === "accepted"
-                                                    ? "linear-gradient(135deg, #10b981 0%, #059669 100%)"
-                                                    : "#eff6ff",
-                                            color: memberResponseStatus === "accepted" ? "white" : "#c6ff3d",
-                                            border: "none",
-                                            borderRadius: "12px",
-                                            fontSize: "14px",
-                                            fontWeight: "700",
-                                            cursor: "pointer",
-                                            transition: "all 0.2s",
-                                            boxShadow:
-                                                memberResponseStatus === "accepted"
-                                                    ? "0 4px 12px rgba(16, 185, 129, 0.2)"
-                                                    : "none",
-                                        }}
-                                        onMouseOver={(e) => {
-                                            if (memberResponseStatus !== "accepted")
-                                                e.currentTarget.style.backgroundColor = "#dbeafe";
-                                        }}
-                                        onMouseOut={(e) => {
-                                            if (memberResponseStatus !== "accepted")
-                                                e.currentTarget.style.backgroundColor = "#eff6ff";
+                                            ...styles.responseActionBtnLight,
+                                            background: memberResponseStatus === "accepted" ? "#059669" : "#ecfdf5",
+                                            color: memberResponseStatus === "accepted" ? "#ffffff" : "#059669",
+                                            border: "1px solid #a7f3d0",
                                         }}
                                     >
-                                        ✓ Accept Invite
+                                        <CheckCircle2 size={16} />
+                                        <span>Accept</span>
                                     </button>
                                     <button
                                         onClick={() => handleMemberResponse("maybe")}
                                         style={{
-                                            padding: "14px 10px",
-                                            background:
-                                                memberResponseStatus === "maybe"
-                                                    ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
-                                                    : "#fef3c7",
-                                            color: memberResponseStatus === "maybe" ? "white" : "#d97706",
-                                            border: "none",
-                                            borderRadius: "12px",
-                                            fontSize: "14px",
-                                            fontWeight: "700",
-                                            cursor: "pointer",
-                                            transition: "all 0.2s",
-                                            boxShadow:
-                                                memberResponseStatus === "maybe"
-                                                    ? "0 4px 12px rgba(245, 158, 11, 0.2)"
-                                                    : "none",
-                                        }}
-                                        onMouseOver={(e) => {
-                                            if (memberResponseStatus !== "maybe")
-                                                e.currentTarget.style.backgroundColor = "#fde68a";
-                                        }}
-                                        onMouseOut={(e) => {
-                                            if (memberResponseStatus !== "maybe")
-                                                e.currentTarget.style.backgroundColor = "#fef3c7";
+                                            ...styles.responseActionBtnLight,
+                                            background: memberResponseStatus === "maybe" ? "#d97706" : "#fef3c7",
+                                            color: memberResponseStatus === "maybe" ? "#ffffff" : "#d97706",
+                                            border: "1px solid #fde68a",
                                         }}
                                     >
-                                        ❓ Maybe
+                                        <HelpCircle size={16} />
+                                        <span>Maybe</span>
                                     </button>
                                     <button
                                         onClick={() => handleMemberResponse("declined")}
                                         style={{
-                                            padding: "14px 10px",
-                                            background:
-                                                memberResponseStatus === "declined"
-                                                    ? "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)"
-                                                    : "#fee2e2",
-                                            color: memberResponseStatus === "declined" ? "white" : "#ef4444",
-                                            border: "none",
-                                            borderRadius: "12px",
-                                            fontSize: "14px",
-                                            fontWeight: "700",
-                                            cursor: "pointer",
-                                            transition: "all 0.2s",
-                                            boxShadow:
-                                                memberResponseStatus === "declined"
-                                                    ? "0 4px 12px rgba(239, 68, 68, 0.2)"
-                                                    : "none",
-                                        }}
-                                        onMouseOver={(e) => {
-                                            if (memberResponseStatus !== "declined")
-                                                e.currentTarget.style.backgroundColor = "#fecaca";
-                                        }}
-                                        onMouseOut={(e) => {
-                                            if (memberResponseStatus !== "declined")
-                                                e.currentTarget.style.backgroundColor = "#fee2e2";
+                                            ...styles.responseActionBtnLight,
+                                            background: memberResponseStatus === "declined" ? "#ef4444" : "#fef2f2",
+                                            color: memberResponseStatus === "declined" ? "#ffffff" : "#ef4444",
+                                            border: "1px solid #fecaca",
                                         }}
                                     >
-                                        ✗ Decline Invite
+                                        <XCircle size={16} />
+                                        <span>Decline</span>
                                     </button>
-                                </div>
-                                <div
-                                    style={{
-                                        marginTop: "18px",
-                                        padding: "16px",
-                                        background: "#f8fafc",
-                                        border: "1px solid #e2e8f0",
-                                        borderRadius: "14px",
-                                    }}
-                                >
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                            gap: "14px",
-                                            alignItems: "center",
-                                            flexWrap: "wrap",
-                                        }}
-                                    >
-                                        <div>
-                                            <strong style={{ display: "block", fontSize: "14px", color: "#0f172a" }}>
-                                                Event Registration Payment
-                                            </strong>
-                                            <span
-                                                style={{
-                                                    display: "block",
-                                                    marginTop: "3px",
-                                                    fontSize: "12px",
-                                                    color: "#64748b",
-                                                }}
-                                            >
-                                                {eventFee > 0
-                                                    ? `Fee: \u20B9${eventFee.toLocaleString("en-IN")}`
-                                                    : "Event fee is not set yet."}
-                                            </span>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={handleEventPayment}
-                                            disabled={payingEventFee || eventFee <= 0 || !gatewayConfig?.configured}
-                                            style={{
-                                                padding: "11px 18px",
-                                                background:
-                                                    payingEventFee || eventFee <= 0 || !gatewayConfig?.configured
-                                                        ? "#94a3b8"
-                                                        : "#c6ff3d",
-                                                color: "white",
-                                                border: "none",
-                                                borderRadius: "10px",
-                                                fontSize: "13px",
-                                                fontWeight: "800",
-                                                cursor:
-                                                    payingEventFee || eventFee <= 0 || !gatewayConfig?.configured
-                                                        ? "not-allowed"
-                                                        : "pointer",
-                                                minWidth: "140px",
-                                            }}
-                                        >
-                                            {payingEventFee ? "Opening Razorpay..." : "Register & Pay"}
-                                        </button>
-                                    </div>
-                                    {!gatewayConfig?.configured && (
-                                        <p style={{ margin: "10px 0 0 0", fontSize: "12px", color: "#b45309" }}>
-                                            Razorpay is not configured yet.
-                                        </p>
-                                    )}
-                                    {paymentError && (
-                                        <p
-                                            style={{
-                                                margin: "10px 0 0 0",
-                                                fontSize: "12px",
-                                                color: "#dc2626",
-                                                fontWeight: "600",
-                                            }}
-                                        >
-                                            {paymentError}
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Guest Form for Members */}
-                            {event.allow_guest && (
-                                <div
-                                    style={{
-                                        background: "white",
-                                        border: "1px solid #e2e8f0",
-                                        borderRadius: "20px",
-                                        padding: "28px",
-                                        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
-                                    }}
-                                >
-                                    <h3
-                                        style={{
-                                            margin: "0 0 6px 0",
-                                            fontSize: "16px",
-                                            fontWeight: "800",
-                                            color: "#1e293b",
-                                        }}
-                                    >
-                                        Register an Event Guest
-                                    </h3>
-                                    <p style={{ margin: "0 0 16px 0", fontSize: "12px", color: "#64748b" }}>
-                                        You can bring friends or family to this event! Register their details here.
-                                    </p>
-
-                                    <form
-                                        onSubmit={handleRegisterGuest}
-                                        style={{ display: "flex", flexDirection: "column", gap: "12px" }}
-                                    >
-                                        <div style={{ display: "flex", gap: "12px" }}>
-                                            <input
-                                                type="text"
-                                                placeholder="Guest Full Name"
-                                                value={guestName}
-                                                onChange={(e) => setGuestName(e.target.value)}
-                                                style={{
-                                                    flex: 1,
-                                                    padding: "10px 14px",
-                                                    borderRadius: "8px",
-                                                    border: "1px solid #cbd5e1",
-                                                    fontSize: "14px",
-                                                }}
-                                                required
-                                            />
-                                            <input
-                                                type="email"
-                                                placeholder="Guest Email Address"
-                                                value={guestEmail}
-                                                onChange={(e) => setGuestEmail(e.target.value)}
-                                                style={{
-                                                    flex: 1,
-                                                    padding: "10px 14px",
-                                                    borderRadius: "8px",
-                                                    border: "1px solid #cbd5e1",
-                                                    fontSize: "14px",
-                                                }}
-                                                required
-                                            />
-                                        </div>
-                                        <button
-                                            type="submit"
-                                            className="primary-btn"
-                                            style={{ padding: "10px 18px", fontSize: "13px", alignSelf: "flex-end" }}
-                                        >
-                                            Register Guest +
-                                        </button>
-                                    </form>
-                                </div>
-                            )}
-
-                            {/* Who is attending / Team Member Feed */}
-                            <div
-                                style={{
-                                    background: "white",
-                                    border: "1px solid #e2e8f0",
-                                    borderRadius: "20px",
-                                    padding: "28px",
-                                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
-                                }}
-                            >
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        alignItems: "center",
-                                        marginBottom: "16px",
-                                    }}
-                                >
-                                    <h3 style={{ margin: "0", fontSize: "16px", fontWeight: "800", color: "#1e293b" }}>
-                                        Attending Teammates ({countAccepted})
-                                    </h3>
-                                    <span style={{ fontSize: "12px", color: "#64748b", fontWeight: "600" }}>
-                                        Total Invited: {countAll}
-                                    </span>
-                                </div>
-
-                                <div style={{ maxHeight: "280px", overflowY: "auto" }}>
-                                    {registrations.filter((r) => r.status === "accepted").length > 0 ? (
-                                        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                                            {registrations
-                                                .filter((r) => r.status === "accepted")
-                                                .map((reg) => (
-                                                    <div
-                                                        key={reg.id}
-                                                        style={{
-                                                            display: "flex",
-                                                            justifyContent: "space-between",
-                                                            alignItems: "center",
-                                                            padding: "10px 14px",
-                                                            background: "#f8fafc",
-                                                            borderRadius: "10px",
-                                                            border: "1px solid #f4f4f5",
-                                                        }}
-                                                    >
-                                                        <div>
-                                                            <strong style={{ fontSize: "13px", color: "#334155" }}>
-                                                                {reg.participant_name}
-                                                            </strong>
-                                                            <span
-                                                                style={{
-                                                                    display: "block",
-                                                                    fontSize: "11px",
-                                                                    color: "#94a3b8",
-                                                                }}
-                                                            >
-                                                                {reg.participant_role}
-                                                            </span>
-                                                        </div>
-                                                        <span
-                                                            style={{
-                                                                fontSize: "11px",
-                                                                fontWeight: "700",
-                                                                padding: "4px 8px",
-                                                                background: "#dcfce7",
-                                                                color: "#16a34a",
-                                                                borderRadius: "20px",
-                                                            }}
-                                                        >
-                                                            CONFIRMED
-                                                        </span>
-                                                    </div>
-                                                ))}
-                                        </div>
-                                    ) : (
-                                        <p
-                                            style={{
-                                                textAlign: "center",
-                                                padding: "30px",
-                                                fontSize: "13px",
-                                                color: "#94a3b8",
-                                                fontStyle: "italic",
-                                                margin: "0",
-                                            }}
-                                        >
-                                            No confirmed attendees yet. Be the first to respond!
-                                        </p>
-                                    )}
                                 </div>
                             </div>
                         </div>
                     ) : (
-                        /* PREMIUM ADMINISTRATIVE TABS (Only visible to Club Admin) */
-                        <>
-                            {/* Management Navigation Tabs */}
-                            <div className="tabs-container" style={{ marginBottom: "20px" }}>
+                        /* CLUB ADMIN MANAGEMENT PANEL */
+                        <div>
+                            {/* Sub Navigation Bar */}
+                            <div style={styles.mgmtTabBarLight}>
                                 <button
                                     onClick={() => setActiveMgmtTab("responses")}
-                                    className={`tab-btn ${activeMgmtTab === "responses" ? "active" : ""}`}
+                                    style={{
+                                        ...styles.mgmtTabBtnLight,
+                                        ...(activeMgmtTab === "responses" ? styles.mgmtTabBtnActiveLight : {}),
+                                    }}
                                 >
-                                    Invitations & Responses
+                                    Invitations &amp; Responses
                                 </button>
                                 <button
                                     onClick={() => setActiveMgmtTab("attendance")}
-                                    className={`tab-btn ${activeMgmtTab === "attendance" ? "active" : ""}`}
+                                    style={{
+                                        ...styles.mgmtTabBtnLight,
+                                        ...(activeMgmtTab === "attendance" ? styles.mgmtTabBtnActiveLight : {}),
+                                    }}
                                 >
-                                    Attendance sheets
+                                    Attendance Sheets
                                 </button>
                                 <button
                                     onClick={() => setActiveMgmtTab("communication")}
-                                    className={`tab-btn ${activeMgmtTab === "communication" ? "active" : ""}`}
+                                    style={{
+                                        ...styles.mgmtTabBtnLight,
+                                        ...(activeMgmtTab === "communication" ? styles.mgmtTabBtnActiveLight : {}),
+                                    }}
                                 >
                                     Communications
                                 </button>
                                 <button
                                     onClick={() => setActiveMgmtTab("reports")}
-                                    className={`tab-btn ${activeMgmtTab === "reports" ? "active" : ""}`}
+                                    style={{
+                                        ...styles.mgmtTabBtnLight,
+                                        ...(activeMgmtTab === "reports" ? styles.mgmtTabBtnActiveLight : {}),
+                                    }}
                                 >
-                                    Reports & Analytics
+                                    Reports &amp; Analytics
                                 </button>
                             </div>
 
-                            {/* TAB CONTENT: INVITATIONS & RESPONSES */}
+                            {/* TAB 1: INVITATIONS & RESPONSES */}
                             {activeMgmtTab === "responses" && (
-                                <div className="response-section">
-                                    {/* Invitation Box */}
-                                    <div className="invite-card">
-                                        <h3 style={{ margin: "0 0 4px 0", fontSize: "16px", color: "#1e293b" }}>
-                                            Invite Participants
-                                        </h3>
-                                        <p style={{ margin: "0", fontSize: "12px", color: "#64748b" }}>
-                                            Select target cohorts and dispatch event invitations immediately
+                                <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                                    {/* Invite Participants Card */}
+                                    <div style={styles.mainCardLight}>
+                                        <h3 style={styles.cardTitleLight}>Invite Participants</h3>
+                                        <p style={styles.cardSubLight}>
+                                            Select target cohorts and dispatch event invitations immediately.
                                         </p>
 
-                                        <div className="invite-grid">
+                                        <div style={styles.cohortGridLight}>
                                             <div
-                                                className={`invite-option ${inviteType === "all_members" ? "selected" : ""}`}
                                                 onClick={() => setInviteType("all_members")}
+                                                style={{
+                                                    ...styles.cohortCardLight,
+                                                    ...(inviteType === "all_members" ? styles.cohortCardActiveLight : {}),
+                                                }}
+                                                role="button"
+                                                tabIndex={0}
                                             >
-                                                <span className="invite-option-icon">👥</span>
-                                                <span>All Members</span>
+                                                <Users size={20} style={{ color: "#059669" }} />
+                                                <span style={styles.cohortTextLight}>All Members</span>
                                             </div>
+
                                             <div
-                                                className={`invite-option ${inviteType === "parents" ? "selected" : ""}`}
                                                 onClick={() => setInviteType("parents")}
+                                                style={{
+                                                    ...styles.cohortCardLight,
+                                                    ...(inviteType === "parents" ? styles.cohortCardActiveLight : {}),
+                                                }}
+                                                role="button"
+                                                tabIndex={0}
                                             >
-                                                <span className="invite-option-icon">👨‍👩‍👦</span>
-                                                <span>Parents</span>
+                                                <UserCheck size={20} style={{ color: "#059669" }} />
+                                                <span style={styles.cohortTextLight}>Parents</span>
                                             </div>
+
                                             <div
-                                                className={`invite-option ${inviteType === "coaches" ? "selected" : ""}`}
                                                 onClick={() => setInviteType("coaches")}
+                                                style={{
+                                                    ...styles.cohortCardLight,
+                                                    ...(inviteType === "coaches" ? styles.cohortCardActiveLight : {}),
+                                                }}
+                                                role="button"
+                                                tabIndex={0}
                                             >
-                                                <span className="invite-option-icon">👔</span>
-                                                <span>Coaches</span>
+                                                <Activity size={20} style={{ color: "#059669" }} />
+                                                <span style={styles.cohortTextLight}>Coaches</span>
                                             </div>
+
                                             <div
-                                                className={`invite-option ${inviteType === "groups" ? "selected" : ""}`}
                                                 onClick={() => setInviteType("groups")}
+                                                style={{
+                                                    ...styles.cohortCardLight,
+                                                    ...(inviteType === "groups" ? styles.cohortCardActiveLight : {}),
+                                                }}
+                                                role="button"
+                                                tabIndex={0}
                                             >
-                                                <span className="invite-option-icon">🏆</span>
-                                                <span>Select Group</span>
+                                                <Globe size={20} style={{ color: "#059669" }} />
+                                                <span style={styles.cohortTextLight}>Select Group</span>
                                             </div>
                                         </div>
 
                                         {inviteType === "groups" && (
                                             <div style={{ marginTop: "16px" }}>
-                                                <label
-                                                    htmlFor="invite-groups-select"
-                                                    style={{
-                                                        fontSize: "12px",
-                                                        fontWeight: "700",
-                                                        color: "#475569",
-                                                        display: "block",
-                                                        marginBottom: "6px",
-                                                    }}
-                                                >
-                                                    Select specific groups
-                                                </label>
+                                                <label style={styles.labelLight}>Select specific groups</label>
                                                 <select
-                                                    id="invite-groups-select"
                                                     multiple
-                                                    style={{
-                                                        width: "100%",
-                                                        height: "80px",
-                                                        padding: "8px",
-                                                        borderRadius: "8px",
-                                                        border: "1px solid #cbd5e1",
-                                                    }}
+                                                    style={styles.selectMultipleLight}
                                                     onChange={(e) => {
                                                         const options = Array.from(e.target.selectedOptions, (option) =>
                                                             parseInt(option.value)
@@ -1135,339 +799,153 @@ export default function EventDetailPage({ params }) {
                                         )}
 
                                         <div style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
-                                            <button
-                                                onClick={handleSendInvitations}
-                                                className="primary-btn"
-                                                style={{ padding: "8px 20px", borderRadius: "8px", fontSize: "13px" }}
-                                            >
-                                                Send Invitations 🚀
+                                            <button onClick={handleSendInvitations} style={styles.primaryBtnLight}>
+                                                <Send size={15} />
+                                                <span>Send Invitations</span>
                                             </button>
                                         </div>
                                     </div>
 
-                                    {/* Live Response Monitoring & Filters */}
-                                    <div>
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                justifyContent: "space-between",
-                                                alignItems: "center",
-                                                marginBottom: "16px",
-                                            }}
-                                        >
-                                            <h3 style={{ margin: "0", fontSize: "16px", color: "#1e293b" }}>
-                                                Response List
-                                            </h3>
-                                            <span style={{ fontSize: "12px", color: "#64748b", fontWeight: "600" }}>
+                                    {/* Response Roster Card */}
+                                    <div style={styles.mainCardLight}>
+                                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                                            <h3 style={styles.cardTitleLight}>Response List</h3>
+                                            <span style={{ fontSize: "13px", color: "#64748b", fontWeight: "600" }}>
                                                 Total Invited: {countAll}
                                             </span>
                                         </div>
 
-                                        <div
-                                            className="response-status-tabs"
-                                            style={{ flexWrap: "wrap", width: "100%" }}
-                                        >
+                                        {/* Sub-Filter Tabs */}
+                                        <div style={styles.subFilterRowLight}>
                                             <button
                                                 onClick={() => setResponseSubTab("all")}
-                                                className={`response-tab-btn ${responseSubTab === "all" ? "active" : ""}`}
+                                                style={{
+                                                    ...styles.subFilterBtnLight,
+                                                    ...(responseSubTab === "all" ? styles.subFilterBtnActiveLight : {}),
+                                                }}
                                             >
                                                 All ({countAll})
                                             </button>
                                             <button
                                                 onClick={() => setResponseSubTab("accepted")}
-                                                className={`response-tab-btn ${responseSubTab === "accepted" ? "active" : ""}`}
+                                                style={{
+                                                    ...styles.subFilterBtnLight,
+                                                    ...(responseSubTab === "accepted" ? styles.subFilterBtnActiveLight : {}),
+                                                }}
                                             >
                                                 Accepted ({countAccepted})
                                             </button>
                                             <button
                                                 onClick={() => setResponseSubTab("pending")}
-                                                className={`response-tab-btn ${responseSubTab === "pending" ? "active" : ""}`}
+                                                style={{
+                                                    ...styles.subFilterBtnLight,
+                                                    ...(responseSubTab === "pending" ? styles.subFilterBtnActiveLight : {}),
+                                                }}
                                             >
                                                 Pending ({countPending})
                                             </button>
                                             <button
                                                 onClick={() => setResponseSubTab("declined")}
-                                                className={`response-tab-btn ${responseSubTab === "declined" ? "active" : ""}`}
+                                                style={{
+                                                    ...styles.subFilterBtnLight,
+                                                    ...(responseSubTab === "declined" ? styles.subFilterBtnActiveLight : {}),
+                                                }}
                                             >
                                                 Declined ({countDeclined})
                                             </button>
                                             <button
                                                 onClick={() => setResponseSubTab("maybe")}
-                                                className={`response-tab-btn ${responseSubTab === "maybe" ? "active" : ""}`}
+                                                style={{
+                                                    ...styles.subFilterBtnLight,
+                                                    ...(responseSubTab === "maybe" ? styles.subFilterBtnActiveLight : {}),
+                                                }}
                                             >
                                                 Maybe ({countMaybe})
                                             </button>
-                                            {event.allow_waiting_list && (
-                                                <button
-                                                    onClick={() => setResponseSubTab("waitlisted")}
-                                                    className={`response-tab-btn ${responseSubTab === "waitlisted" ? "active" : ""}`}
-                                                >
-                                                    Waitlist ({countWaitlist})
-                                                </button>
-                                            )}
                                         </div>
 
-                                        {/* Table */}
-                                        <div style={{ overflowX: "auto" }}>
-                                            <table
-                                                className="members-table"
-                                                style={{ width: "100%", borderCollapse: "collapse" }}
-                                            >
+                                        {/* Roster Table */}
+                                        <div style={{ overflowX: "auto", marginTop: "16px" }}>
+                                            <table style={styles.tableLight}>
                                                 <thead>
-                                                    <tr style={{ background: "#f8fafc", textAlign: "left" }}>
-                                                        <th
-                                                            style={{
-                                                                padding: "12px",
-                                                                borderBottom: "1px solid #e2e8f0",
-                                                                fontSize: "12px",
-                                                                fontWeight: "700",
-                                                                color: "#475569",
-                                                            }}
-                                                        >
-                                                            Participant Name
-                                                        </th>
-                                                        <th
-                                                            style={{
-                                                                padding: "12px",
-                                                                borderBottom: "1px solid #e2e8f0",
-                                                                fontSize: "12px",
-                                                                fontWeight: "700",
-                                                                color: "#475569",
-                                                            }}
-                                                        >
-                                                            Role
-                                                        </th>
-                                                        <th
-                                                            style={{
-                                                                padding: "12px",
-                                                                borderBottom: "1px solid #e2e8f0",
-                                                                fontSize: "12px",
-                                                                fontWeight: "700",
-                                                                color: "#475569",
-                                                            }}
-                                                        >
-                                                            Email Address
-                                                        </th>
-                                                        <th
-                                                            style={{
-                                                                padding: "12px",
-                                                                borderBottom: "1px solid #e2e8f0",
-                                                                fontSize: "12px",
-                                                                fontWeight: "700",
-                                                                color: "#475569",
-                                                            }}
-                                                        >
-                                                            Response Status
-                                                        </th>
+                                                    <tr style={styles.tableHeadRowLight}>
+                                                        <th style={styles.thLight}>Participant Name</th>
+                                                        <th style={styles.thLight}>Role</th>
+                                                        <th style={styles.thLight}>Email Address</th>
+                                                        <th style={styles.thLight}>Response Status</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {filteredRegistrations.length > 0 ? (
                                                         filteredRegistrations.map((reg) => (
-                                                            <tr
-                                                                key={reg.id}
-                                                                style={{ borderBottom: "1px solid #f4f4f5" }}
-                                                            >
-                                                                <td
-                                                                    style={{
-                                                                        padding: "12px",
-                                                                        fontSize: "13px",
-                                                                        fontWeight: "600",
-                                                                        color: "#0f172a",
-                                                                    }}
-                                                                >
+                                                            <tr key={reg.id} style={styles.tableBodyRowLight}>
+                                                                <td style={{ ...styles.tdLight, fontWeight: "700", color: "#0f172a" }}>
                                                                     {reg.participant_name}
                                                                 </td>
-                                                                <td
-                                                                    style={{
-                                                                        padding: "12px",
-                                                                        fontSize: "13px",
-                                                                        color: "#64748b",
-                                                                    }}
-                                                                >
-                                                                    {reg.participant_role}
-                                                                </td>
-                                                                <td
-                                                                    style={{
-                                                                        padding: "12px",
-                                                                        fontSize: "13px",
-                                                                        color: "#64748b",
-                                                                    }}
-                                                                >
-                                                                    {reg.participant_email}
-                                                                </td>
-                                                                <td style={{ padding: "12px" }}>
-                                                                    <span className={`badge-status ${reg.status}`}>
-                                                                        {reg.status}
+                                                                <td style={styles.tdLight}>{reg.participant_role || "Member"}</td>
+                                                                <td style={styles.tdLight}>{reg.participant_email}</td>
+                                                                <td style={styles.tdLight}>
+                                                                    <span style={{
+                                                                        padding: "4px 10px",
+                                                                        borderRadius: "20px",
+                                                                        fontSize: "11px",
+                                                                        fontWeight: "800",
+                                                                        letterSpacing: "0.04em",
+                                                                        background: reg.status === "accepted" ? "#ecfdf5" : reg.status === "declined" ? "#fef2f2" : "#fef3c7",
+                                                                        color: reg.status === "accepted" ? "#059669" : reg.status === "declined" ? "#ef4444" : "#d97706",
+                                                                        border: `1px solid ${reg.status === "accepted" ? "#a7f3d0" : reg.status === "declined" ? "#fecaca" : "#fde68a"}`
+                                                                    }}>
+                                                                        {(reg.status || "PENDING").toUpperCase()}
                                                                     </span>
                                                                 </td>
                                                             </tr>
                                                         ))
                                                     ) : (
                                                         <tr>
-                                                            <td
-                                                                colSpan="4"
-                                                                style={{
-                                                                    padding: "24px",
-                                                                    textAlign: "center",
-                                                                    color: "#94a3b8",
-                                                                    fontSize: "13px",
-                                                                }}
-                                                            >
-                                                                No participants in this filter.
+                                                            <td colSpan="4" style={{ padding: "30px", textAlign: "center", color: "#94a3b8", fontSize: "13px" }}>
+                                                                No participants found in this filter.
                                                             </td>
                                                         </tr>
                                                     )}
                                                 </tbody>
                                             </table>
                                         </div>
-
-                                        {/* Guest Form */}
-                                        {event.allow_guest && (
-                                            <div
-                                                style={{
-                                                    marginTop: "24px",
-                                                    paddingTop: "20px",
-                                                    borderTop: "1px solid #f4f4f5",
-                                                }}
-                                            >
-                                                <h4
-                                                    style={{ margin: "0 0 12px 0", fontSize: "14px", color: "#334155" }}
-                                                >
-                                                    Guest Offline Registration Form
-                                                </h4>
-                                                <form
-                                                    onSubmit={handleRegisterGuest}
-                                                    style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}
-                                                >
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Guest Full Name"
-                                                        value={guestName}
-                                                        onChange={(e) => setGuestName(e.target.value)}
-                                                        style={{ flex: 1, minWidth: "150px" }}
-                                                        required
-                                                    />
-                                                    <input
-                                                        type="email"
-                                                        placeholder="Guest Email Address"
-                                                        value={guestEmail}
-                                                        onChange={(e) => setGuestEmail(e.target.value)}
-                                                        style={{ flex: 1, minWidth: "150px" }}
-                                                        required
-                                                    />
-                                                    <button
-                                                        type="submit"
-                                                        className="primary-btn"
-                                                        style={{ padding: "10px 18px", fontSize: "12px" }}
-                                                    >
-                                                        Register Guest
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             )}
 
-                            {/* TAB CONTENT: ATTENDANCE SHEETS */}
+                            {/* TAB 2: ATTENDANCE SHEETS */}
                             {activeMgmtTab === "attendance" && (
-                                <div className="response-section">
-                                    <h3 style={{ margin: "0 0 4px 0", fontSize: "16px", color: "#1e293b" }}>
-                                        Event Attendance Sheet
-                                    </h3>
-                                    <p style={{ margin: "0 0 20px 0", fontSize: "12px", color: "#64748b" }}>
-                                        Mark and track participant status (Present, Absent, Late) on event day
+                                <div style={styles.mainCardLight}>
+                                    <h3 style={styles.cardTitleLight}>Event Attendance Sheet</h3>
+                                    <p style={styles.cardSubLight}>
+                                        Mark and track participant status (Present, Absent, Late) on event day.
                                     </p>
 
-                                    <div style={{ overflowX: "auto" }}>
-                                        <table
-                                            className="members-table"
-                                            style={{ width: "100%", borderCollapse: "collapse" }}
-                                        >
+                                    <div style={{ overflowX: "auto", marginTop: "16px" }}>
+                                        <table style={styles.tableLight}>
                                             <thead>
-                                                <tr style={{ background: "#f8fafc", textAlign: "left" }}>
-                                                    <th
-                                                        style={{
-                                                            padding: "12px",
-                                                            borderBottom: "1px solid #e2e8f0",
-                                                            fontSize: "12px",
-                                                            fontWeight: "700",
-                                                            color: "#475569",
-                                                        }}
-                                                    >
-                                                        Participant
-                                                    </th>
-                                                    <th
-                                                        style={{
-                                                            padding: "12px",
-                                                            borderBottom: "1px solid #e2e8f0",
-                                                            fontSize: "12px",
-                                                            fontWeight: "700",
-                                                            color: "#475569",
-                                                        }}
-                                                    >
-                                                        Role
-                                                    </th>
-                                                    <th
-                                                        style={{
-                                                            padding: "12px",
-                                                            borderBottom: "1px solid #e2e8f0",
-                                                            fontSize: "12px",
-                                                            fontWeight: "700",
-                                                            color: "#475569",
-                                                        }}
-                                                    >
-                                                        Response
-                                                    </th>
-                                                    <th
-                                                        style={{
-                                                            padding: "12px",
-                                                            borderBottom: "1px solid #e2e8f0",
-                                                            fontSize: "12px",
-                                                            fontWeight: "700",
-                                                            color: "#475569",
-                                                        }}
-                                                    >
-                                                        Attendance Mark
-                                                    </th>
+                                                <tr style={styles.tableHeadRowLight}>
+                                                    <th style={styles.thLight}>Participant</th>
+                                                    <th style={styles.thLight}>Role</th>
+                                                    <th style={styles.thLight}>Response</th>
+                                                    <th style={styles.thLight}>Mark Attendance</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {activeConfirmed.length > 0 ? (
                                                     activeConfirmed.map((reg) => (
-                                                        <tr key={reg.id} style={{ borderBottom: "1px solid #f4f4f5" }}>
-                                                            <td
-                                                                style={{
-                                                                    padding: "12px",
-                                                                    fontSize: "13px",
-                                                                    fontWeight: "600",
-                                                                    color: "#0f172a",
-                                                                }}
-                                                            >
+                                                        <tr key={reg.id} style={styles.tableBodyRowLight}>
+                                                            <td style={{ ...styles.tdLight, fontWeight: "700", color: "#0f172a" }}>
                                                                 {reg.participant_name}
                                                             </td>
-                                                            <td
-                                                                style={{
-                                                                    padding: "12px",
-                                                                    fontSize: "13px",
-                                                                    color: "#64748b",
-                                                                }}
-                                                            >
-                                                                {reg.participant_role}
-                                                            </td>
-                                                            <td style={{ padding: "12px" }}>
-                                                                <span className={`badge-status ${reg.status}`}>
-                                                                    {reg.status}
-                                                                </span>
-                                                            </td>
-                                                            <td style={{ padding: "12px" }}>
+                                                            <td style={styles.tdLight}>{reg.participant_role || "Member"}</td>
+                                                            <td style={styles.tdLight}>{reg.status}</td>
+                                                            <td style={styles.tdLight}>
                                                                 <select
-                                                                    value={reg.attendance}
-                                                                    onChange={(e) =>
-                                                                        handleMarkAttendance(reg.id, e.target.value)
-                                                                    }
-                                                                    className={`attendance-select ${reg.attendance}`}
+                                                                    value={reg.attendance || "not_marked"}
+                                                                    onChange={(e) => handleMarkAttendance(reg.id, e.target.value)}
+                                                                    style={styles.selectLight}
                                                                 >
                                                                     <option value="not_marked">❓ Not Marked</option>
                                                                     <option value="present">✓ Present</option>
@@ -1479,17 +957,8 @@ export default function EventDetailPage({ params }) {
                                                     ))
                                                 ) : (
                                                     <tr>
-                                                        <td
-                                                            colSpan="4"
-                                                            style={{
-                                                                padding: "30px",
-                                                                textAlign: "center",
-                                                                color: "#94a3b8",
-                                                                fontSize: "13px",
-                                                            }}
-                                                        >
-                                                            No confirmed attendees yet. Add or invite participants in
-                                                            &ldquo;Invitations & Responses&rdquo; tab first!
+                                                        <td colSpan="4" style={{ padding: "30px", textAlign: "center", color: "#94a3b8", fontSize: "13px" }}>
+                                                            No confirmed attendees yet. Invite participants first!
                                                         </td>
                                                     </tr>
                                                 )}
@@ -1499,394 +968,488 @@ export default function EventDetailPage({ params }) {
                                 </div>
                             )}
 
-                            {/* TAB CONTENT: COMMUNICATIONS */}
+                            {/* TAB 3: COMMUNICATIONS */}
                             {activeMgmtTab === "communication" && (
-                                <div className="response-section">
-                                    <h3 style={{ margin: "0 0 4px 0", fontSize: "16px", color: "#1e293b" }}>
-                                        Event Broadcaster & Reminders
-                                    </h3>
-                                    <p style={{ margin: "0 0 20px 0", fontSize: "12px", color: "#64748b" }}>
-                                        Send alerts, rule notifications, or reminders directly to participant inbox
+                                <div style={styles.mainCardLight}>
+                                    <h3 style={styles.cardTitleLight}>Event Broadcaster &amp; Reminders</h3>
+                                    <p style={styles.cardSubLight}>
+                                        Send alert broadcasts or automatic reminders directly to participants.
                                     </p>
 
-                                    {/* Broadcast form */}
-                                    <form
-                                        onSubmit={handleSendBroadcast}
-                                        style={{
-                                            background: "#f8fafc",
-                                            padding: "20px",
-                                            borderRadius: "16px",
-                                            border: "1px solid #e2e8f0",
-                                            marginBottom: "28px",
-                                        }}
-                                    >
-                                        <div className="form-group">
-                                            <label
-                                                htmlFor="broadcast-group-select"
-                                                style={{ fontSize: "13px", fontWeight: "700" }}
-                                            >
-                                                Recipient Group
-                                            </label>
+                                    <form onSubmit={handleSendBroadcast} style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "16px" }}>
+                                        <div>
+                                            <label style={styles.labelLight}>Recipient Group</label>
                                             <select
-                                                id="broadcast-group-select"
                                                 value={broadcastGroup}
                                                 onChange={(e) => setBroadcastGroup(e.target.value)}
-                                                style={{ marginTop: "6px" }}
+                                                style={styles.selectLight}
                                             >
                                                 <option value="confirmed">Confirmed Attendees Only</option>
                                                 <option value="invitees">All Invitees (Including Pending)</option>
-                                                <option value="non_attendees">Declined & Pending Members</option>
+                                                <option value="non_attendees">Declined &amp; Pending Members</option>
                                             </select>
                                         </div>
 
-                                        <div className="form-group" style={{ marginTop: "16px" }}>
-                                            <label
-                                                htmlFor="broadcast-msg-input"
-                                                style={{ fontSize: "13px", fontWeight: "700" }}
-                                            >
-                                                Alert Message
-                                            </label>
+                                        <div>
+                                            <label style={styles.labelLight}>Alert Message</label>
                                             <textarea
-                                                id="broadcast-msg-input"
                                                 rows="4"
-                                                placeholder="Write details to send (e.g. 'Match postponed by 1 hour due to rain. Please bring dark bibs.')"
+                                                placeholder="Write details to send (e.g. 'Match postponed by 1 hour. Please bring dark bibs.')"
                                                 value={broadcastMsg}
                                                 onChange={(e) => setBroadcastMsg(e.target.value)}
-                                                style={{ marginTop: "6px" }}
+                                                style={styles.textareaLight}
                                                 required
-                                            ></textarea>
+                                            />
                                         </div>
 
-                                        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "16px" }}>
-                                            <button
-                                                type="submit"
-                                                className="primary-btn"
-                                                disabled={broadcastStatus === "sending"}
-                                                style={{ background: "#9fcc1f", padding: "10px 24px" }}
-                                            >
-                                                {broadcastStatus === "sending"
-                                                    ? "Sending Broadcast..."
-                                                    : "Broadcast Message ✉"}
+                                        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                                            <button type="submit" style={styles.primaryBtnLight}>
+                                                <Send size={15} />
+                                                <span>{broadcastStatus === "sending" ? "Sending..." : "Broadcast Message"}</span>
                                             </button>
                                         </div>
                                     </form>
-
-                                    {/* Automatic Reminders Tigger */}
-                                    <div
-                                        style={{
-                                            background: "#f5f3ff",
-                                            border: "1px solid #ddd6fe",
-                                            borderRadius: "16px",
-                                            padding: "20px",
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                            alignItems: "center",
-                                        }}
-                                    >
-                                        <div>
-                                            <h4
-                                                style={{
-                                                    margin: "0 0 4px 0",
-                                                    color: "#5b21b6",
-                                                    fontSize: "14px",
-                                                    fontWeight: "700",
-                                                }}
-                                            >
-                                                Dispatch Automatic Reminders
-                                            </h4>
-                                            <p style={{ margin: "0", fontSize: "12px", color: "#9fcc1f" }}>
-                                                Simulate dispatching automated email/SMS reminders to all pending
-                                                invitees
-                                            </p>
-                                        </div>
-                                        <button
-                                            onClick={handleTriggerReminder}
-                                            className="primary-btn"
-                                            style={{ background: "#e6007a", padding: "10px 20px" }}
-                                        >
-                                            Trigger Reminders 🔔
-                                        </button>
-                                    </div>
                                 </div>
                             )}
 
-                            {/* TAB CONTENT: REPORTS & ANALYTICS */}
+                            {/* TAB 4: REPORTS & ANALYTICS */}
                             {activeMgmtTab === "reports" && (
-                                <div className="response-section">
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                            alignItems: "center",
-                                            marginBottom: "20px",
-                                        }}
-                                    >
+                                <div style={styles.mainCardLight}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                                         <div>
-                                            <h3 style={{ margin: "0", fontSize: "16px", color: "#1e293b" }}>
-                                                Analytics & Participation Reports
-                                            </h3>
-                                            <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: "#64748b" }}>
-                                                Live attendance statistics and participation breakdown
-                                            </p>
+                                            <h3 style={styles.cardTitleLight}>Analytics &amp; Participation Reports</h3>
+                                            <p style={styles.cardSubLight}>Live attendance statistics and participation breakdown.</p>
                                         </div>
                                         <button
                                             onClick={() => alert("CSV Report Downloaded Successfully!")}
-                                            className="primary-btn"
-                                            style={{ background: "#10b981", padding: "8px 16px", fontSize: "13px" }}
+                                            style={styles.primaryBtnLight}
                                         >
-                                            Export Attendance Report 📥
+                                            <Download size={15} />
+                                            <span>Export Attendance Report</span>
                                         </button>
                                     </div>
 
-                                    <div className="analytics-grid">
-                                        {/* CARD 1: Attendance rate */}
-                                        <div className="analytics-card">
-                                            <span className="analytics-title">Attendance Rate</span>
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    alignItems: "baseline",
-                                                    gap: "8px",
-                                                    margin: "10px 0",
-                                                }}
-                                            >
-                                                <span style={{ fontSize: "36px", fontWeight: "900", color: "#c6ff3d" }}>
-                                                    {presenceRate}%
-                                                </span>
-                                                <span style={{ color: "#64748b", fontSize: "13px" }}>
-                                                    Presence Rate
-                                                </span>
-                                            </div>
-                                            <div className="progress-bar-container">
-                                                <div
-                                                    className="progress-bar-fill"
-                                                    style={{ width: `${presenceRate}%` }}
-                                                ></div>
-                                            </div>
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    justifyContent: "space-between",
-                                                    marginTop: "12px",
-                                                    fontSize: "12px",
-                                                    color: "#64748b",
-                                                    fontWeight: "500",
-                                                }}
-                                            >
-                                                <span>Present: {countPresent}</span>
-                                                <span>Late: {countLate}</span>
-                                                <span>Absent: {countAbsent}</span>
-                                            </div>
+                                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px", marginTop: "20px" }}>
+                                        <div style={styles.statBoxLight}>
+                                            <span style={styles.statBoxLblLight}>Presence Rate</span>
+                                            <div style={styles.statBoxValLight}>{presenceRate}%</div>
                                         </div>
-
-                                        {/* CARD 2: Role Breakdown */}
-                                        <div className="analytics-card">
-                                            <span className="analytics-title">Role Distribution</span>
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    flexDirection: "column",
-                                                    gap: "2px",
-                                                    marginTop: "8px",
-                                                }}
-                                            >
-                                                <div className="role-stat-item">
-                                                    <span className="role-label">Coaches</span>
-                                                    <span className="role-count">
-                                                        {
-                                                            registrations.filter(
-                                                                (r) =>
-                                                                    r.participant_role &&
-                                                                    r.participant_role.toLowerCase().includes("coach")
-                                                            ).length
-                                                        }
-                                                    </span>
-                                                </div>
-                                                <div className="role-stat-item">
-                                                    <span className="role-label">Players / Members</span>
-                                                    <span className="role-count">
-                                                        {
-                                                            registrations.filter(
-                                                                (r) =>
-                                                                    r.participant_role &&
-                                                                    (r.participant_role
-                                                                        .toLowerCase()
-                                                                        .includes("player") ||
-                                                                        r.participant_role
-                                                                            .toLowerCase()
-                                                                            .includes("member"))
-                                                            ).length
-                                                        }
-                                                    </span>
-                                                </div>
-                                                <div className="role-stat-item">
-                                                    <span className="role-label">Parents</span>
-                                                    <span className="role-count">
-                                                        {
-                                                            registrations.filter(
-                                                                (r) =>
-                                                                    r.participant_role &&
-                                                                    r.participant_role.toLowerCase().includes("parent")
-                                                            ).length
-                                                        }
-                                                    </span>
-                                                </div>
-                                                <div className="role-stat-item">
-                                                    <span className="role-label">Guests</span>
-                                                    <span className="role-count">
-                                                        {
-                                                            registrations.filter(
-                                                                (r) =>
-                                                                    r.participant_role &&
-                                                                    r.participant_role.toLowerCase().includes("guest")
-                                                            ).length
-                                                        }
-                                                    </span>
-                                                </div>
-                                            </div>
+                                        <div style={styles.statBoxLight}>
+                                            <span style={styles.statBoxLblLight}>Confirmed</span>
+                                            <div style={{ ...styles.statBoxValLight, color: "#059669" }}>{countAccepted}</div>
                                         </div>
-                                    </div>
-
-                                    {/* Attendance statistics tables */}
-                                    <div style={{ marginTop: "28px" }}>
-                                        <h4 style={{ margin: "0 0 10px 0", fontSize: "14px", color: "#334155" }}>
-                                            Response Summary
-                                        </h4>
-                                        <div
-                                            style={{
-                                                display: "grid",
-                                                gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
-                                                gap: "12px",
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    background: "#f8fafc",
-                                                    padding: "12px",
-                                                    borderRadius: "10px",
-                                                    textAlign: "center",
-                                                }}
-                                            >
-                                                <span
-                                                    style={{
-                                                        fontSize: "11px",
-                                                        fontWeight: "600",
-                                                        color: "#64748b",
-                                                        textTransform: "uppercase",
-                                                    }}
-                                                >
-                                                    Confirmed
-                                                </span>
-                                                <span
-                                                    style={{
-                                                        display: "block",
-                                                        fontSize: "20px",
-                                                        fontWeight: "800",
-                                                        color: "#15803d",
-                                                        marginTop: "4px",
-                                                    }}
-                                                >
-                                                    {countAccepted}
-                                                </span>
-                                            </div>
-                                            <div
-                                                style={{
-                                                    background: "#f8fafc",
-                                                    padding: "12px",
-                                                    borderRadius: "10px",
-                                                    textAlign: "center",
-                                                }}
-                                            >
-                                                <span
-                                                    style={{
-                                                        fontSize: "11px",
-                                                        fontWeight: "600",
-                                                        color: "#64748b",
-                                                        textTransform: "uppercase",
-                                                    }}
-                                                >
-                                                    Pending
-                                                </span>
-                                                <span
-                                                    style={{
-                                                        display: "block",
-                                                        fontSize: "20px",
-                                                        fontWeight: "800",
-                                                        color: "#b45309",
-                                                        marginTop: "4px",
-                                                    }}
-                                                >
-                                                    {countPending}
-                                                </span>
-                                            </div>
-                                            <div
-                                                style={{
-                                                    background: "#f8fafc",
-                                                    padding: "12px",
-                                                    borderRadius: "10px",
-                                                    textAlign: "center",
-                                                }}
-                                            >
-                                                <span
-                                                    style={{
-                                                        fontSize: "11px",
-                                                        fontWeight: "600",
-                                                        color: "#64748b",
-                                                        textTransform: "uppercase",
-                                                    }}
-                                                >
-                                                    Declined
-                                                </span>
-                                                <span
-                                                    style={{
-                                                        display: "block",
-                                                        fontSize: "20px",
-                                                        fontWeight: "800",
-                                                        color: "#b91c1c",
-                                                        marginTop: "4px",
-                                                    }}
-                                                >
-                                                    {countDeclined}
-                                                </span>
-                                            </div>
-                                            <div
-                                                style={{
-                                                    background: "#f8fafc",
-                                                    padding: "12px",
-                                                    borderRadius: "10px",
-                                                    textAlign: "center",
-                                                }}
-                                            >
-                                                <span
-                                                    style={{
-                                                        fontSize: "11px",
-                                                        fontWeight: "600",
-                                                        color: "#64748b",
-                                                        textTransform: "uppercase",
-                                                    }}
-                                                >
-                                                    Waitlisted
-                                                </span>
-                                                <span
-                                                    style={{
-                                                        display: "block",
-                                                        fontSize: "20px",
-                                                        fontWeight: "800",
-                                                        color: "#e6007a",
-                                                        marginTop: "4px",
-                                                    }}
-                                                >
-                                                    {countWaitlist}
-                                                </span>
-                                            </div>
+                                        <div style={styles.statBoxLight}>
+                                            <span style={styles.statBoxLblLight}>Pending</span>
+                                            <div style={{ ...styles.statBoxValLight, color: "#d97706" }}>{countPending}</div>
+                                        </div>
+                                        <div style={styles.statBoxLight}>
+                                            <span style={styles.statBoxLblLight}>Declined</span>
+                                            <div style={{ ...styles.statBoxValLight, color: "#ef4444" }}>{countDeclined}</div>
                                         </div>
                                     </div>
                                 </div>
                             )}
-                        </>
+                        </div>
                     )}
                 </div>
             </div>
         </div>
     );
 }
+
+// Inline Style Definitions (Senior UI/UX Designer Skill)
+const styles = {
+    pageContainer: {
+        maxWidth: "1160px",
+        margin: "0 auto",
+        padding: "32px 20px 60px 20px",
+        fontFamily: "'Outfit', sans-serif",
+        color: "#0f172a",
+    },
+    backBtnLight: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "8px",
+        padding: "8px 16px",
+        borderRadius: "20px",
+        background: "#ffffff",
+        border: "1px solid #cbd5e1",
+        color: "#475569",
+        fontWeight: "700",
+        fontSize: "13px",
+        textDecoration: "none",
+        transition: "all 0.2s ease",
+        boxShadow: "0 2px 6px rgba(0,0,0,0.03)",
+    },
+    bannerCategoryBadgeLight: {
+        background: "rgba(255, 255, 255, 0.25)",
+        backdropFilter: "blur(8px)",
+        color: "#ffffff",
+        padding: "4px 12px",
+        borderRadius: "20px",
+        fontSize: "11px",
+        fontWeight: "800",
+        letterSpacing: "0.05em",
+    },
+    bannerTitleLight: {
+        fontSize: "32px",
+        fontWeight: "900",
+        margin: "12px 0 6px 0",
+        textShadow: "0 2px 4px rgba(0,0,0,0.2)",
+    },
+    bannerSubtitleLight: {
+        margin: 0,
+        fontSize: "15px",
+        fontWeight: "600",
+        opacity: 0.95,
+    },
+    twoColumnGridLight: {
+        display: "grid",
+        gridTemplateColumns: "300px 1fr",
+        gap: "24px",
+    },
+    sidebarCardLight: {
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "20px",
+        padding: "24px",
+        boxShadow: "0 4px 20px -2px rgba(0, 0, 0, 0.04)",
+        height: "fit-content",
+    },
+    sidebarTitleLight: {
+        fontSize: "18px",
+        fontWeight: "800",
+        color: "#0f172a",
+        margin: "0 0 18px 0",
+    },
+    sidebarMetaListLight: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "14px",
+    },
+    sidebarMetaItemLight: {
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+    },
+    sidebarIconBoxLight: {
+        width: "36px",
+        height: "36px",
+        borderRadius: "10px",
+        background: "#ecfdf5",
+        color: "#059669",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    sidebarMetaLabelLight: {
+        fontSize: "11px",
+        fontWeight: "700",
+        color: "#64748b",
+        textTransform: "uppercase",
+        letterSpacing: "0.03em",
+        display: "block",
+    },
+    sidebarMetaValueLight: {
+        fontSize: "13px",
+        fontWeight: "600",
+        color: "#0f172a",
+        marginTop: "1px",
+    },
+    sidebarDividerLight: {
+        marginTop: "20px",
+        paddingTop: "16px",
+        borderTop: "1px solid #f1f5f9",
+    },
+    sidebarSectionTitleLight: {
+        fontSize: "13px",
+        fontWeight: "800",
+        color: "#0f172a",
+        display: "block",
+        marginBottom: "8px",
+    },
+    sidebarDescTextLight: {
+        fontSize: "13px",
+        color: "#475569",
+        lineHeight: "1.5",
+        margin: 0,
+    },
+    sidebarBadgeGroupLight: {
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "6px",
+    },
+    sidebarSettingBadgeLight: {
+        background: "#f1f5f9",
+        color: "#475569",
+        border: "1px solid #e2e8f0",
+        borderRadius: "6px",
+        padding: "4px 8px",
+        fontSize: "11px",
+        fontWeight: "600",
+    },
+    mgmtTabBarLight: {
+        display: "flex",
+        gap: "8px",
+        marginBottom: "20px",
+        borderBottom: "1px solid #e2e8f0",
+        paddingBottom: "8px",
+        flexWrap: "wrap",
+    },
+    mgmtTabBtnLight: {
+        background: "none",
+        border: "none",
+        padding: "10px 16px",
+        fontSize: "13px",
+        fontWeight: "700",
+        color: "#64748b",
+        cursor: "pointer",
+        borderRadius: "8px",
+        transition: "all 0.2s ease",
+    },
+    mgmtTabBtnActiveLight: {
+        color: "#059669",
+        background: "#ecfdf5",
+        border: "1px solid #a7f3d0",
+    },
+    mainCardLight: {
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "20px",
+        padding: "24px",
+        boxShadow: "0 4px 20px -2px rgba(0, 0, 0, 0.04)",
+    },
+    cardTitleLight: {
+        fontSize: "17px",
+        fontWeight: "800",
+        color: "#0f172a",
+        margin: 0,
+    },
+    cardSubLight: {
+        fontSize: "13px",
+        color: "#64748b",
+        margin: "4px 0 0 0",
+    },
+    cohortGridLight: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+        gap: "12px",
+        marginTop: "16px",
+    },
+    cohortCardLight: {
+        border: "1px solid #e2e8f0",
+        background: "#ffffff",
+        borderRadius: "14px",
+        padding: "14px 10px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "8px",
+        cursor: "pointer",
+        transition: "all 0.2s ease",
+    },
+    cohortCardActiveLight: {
+        background: "#ecfdf5",
+        borderColor: "#a7f3d0",
+        boxShadow: "0 2px 10px rgba(5, 150, 105, 0.1)",
+    },
+    cohortTextLight: {
+        fontSize: "12px",
+        fontWeight: "700",
+        color: "#0f172a",
+    },
+    labelLight: {
+        fontSize: "13px",
+        fontWeight: "700",
+        color: "#0f172a",
+        display: "block",
+        marginBottom: "6px",
+    },
+    inputLight: {
+        width: "100%",
+        padding: "10px 14px",
+        background: "#ffffff",
+        border: "1px solid #cbd5e1",
+        borderRadius: "10px",
+        fontSize: "13px",
+        color: "#0f172a",
+        outline: "none",
+        fontFamily: "'Outfit', sans-serif",
+    },
+    selectLight: {
+        width: "100%",
+        padding: "10px 14px",
+        background: "#ffffff",
+        border: "1px solid #cbd5e1",
+        borderRadius: "10px",
+        fontSize: "13px",
+        color: "#0f172a",
+        outline: "none",
+        fontFamily: "'Outfit', sans-serif",
+    },
+    selectMultipleLight: {
+        width: "100%",
+        height: "90px",
+        padding: "8px 12px",
+        background: "#ffffff",
+        border: "1px solid #cbd5e1",
+        borderRadius: "10px",
+        fontSize: "13px",
+        color: "#0f172a",
+        outline: "none",
+        fontFamily: "'Outfit', sans-serif",
+    },
+    textareaLight: {
+        width: "100%",
+        padding: "10px 14px",
+        background: "#ffffff",
+        border: "1px solid #cbd5e1",
+        borderRadius: "10px",
+        fontSize: "13px",
+        color: "#0f172a",
+        outline: "none",
+        fontFamily: "'Outfit', sans-serif",
+        resize: "vertical",
+    },
+    primaryBtnLight: {
+        background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+        color: "#ffffff",
+        border: "none",
+        borderRadius: "10px",
+        padding: "10px 22px",
+        fontSize: "13px",
+        fontWeight: "800",
+        cursor: "pointer",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "8px",
+        boxShadow: "0 4px 14px rgba(16, 185, 129, 0.22)",
+    },
+    subFilterRowLight: {
+        display: "flex",
+        gap: "8px",
+        flexWrap: "wrap",
+        marginTop: "14px",
+    },
+    subFilterBtnLight: {
+        background: "#f1f5f9",
+        color: "#475569",
+        border: "1px solid #cbd5e1",
+        borderRadius: "8px",
+        padding: "6px 14px",
+        fontSize: "12px",
+        fontWeight: "700",
+        cursor: "pointer",
+    },
+    subFilterBtnActiveLight: {
+        background: "#059669",
+        color: "#ffffff",
+        borderColor: "#059669",
+    },
+    tableLight: {
+        width: "100%",
+        borderCollapse: "collapse",
+        fontSize: "13px",
+    },
+    tableHeadRowLight: {
+        background: "#f8fafc",
+        textAlign: "left",
+    },
+    thLight: {
+        padding: "12px",
+        fontSize: "12px",
+        fontWeight: "700",
+        color: "#475569",
+        borderBottom: "1px solid #e2e8f0",
+    },
+    tableBodyRowLight: {
+        borderBottom: "1px solid #f1f5f9",
+    },
+    tdLight: {
+        padding: "12px",
+        color: "#334155",
+    },
+    statBoxLight: {
+        background: "#f8fafc",
+        border: "1px solid #e2e8f0",
+        borderRadius: "14px",
+        padding: "16px",
+        textAlign: "center",
+    },
+    statBoxLblLight: {
+        fontSize: "12px",
+        fontWeight: "700",
+        color: "#64748b",
+        textTransform: "uppercase",
+    },
+    statBoxValLight: {
+        fontSize: "24px",
+        fontWeight: "800",
+        color: "#0f172a",
+        marginTop: "4px",
+    },
+    loadingBoxLight: {
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "16px",
+        padding: "60px 20px",
+        textAlign: "center",
+    },
+    emptyBoxLight: {
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "16px",
+        padding: "60px 20px",
+        textAlign: "center",
+    },
+    userStatusBoxLight: {
+        background: "#f8fafc",
+        border: "1px solid #e2e8f0",
+        borderRadius: "12px",
+        padding: "16px 20px",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        margin: "16px 0",
+    },
+    userStatusLblLight: {
+        fontSize: "11px",
+        fontWeight: "700",
+        color: "#64748b",
+        textTransform: "uppercase",
+        display: "block",
+    },
+    userStatusValLight: {
+        fontSize: "14px",
+        color: "#0f172a",
+        marginTop: "2px",
+        display: "block",
+    },
+    badgePillLight: {
+        background: "#ecfdf5",
+        color: "#059669",
+        border: "1px solid #a7f3d0",
+        borderRadius: "20px",
+        padding: "4px 12px",
+        fontSize: "12px",
+        fontWeight: "800",
+        display: "inline-block",
+    },
+    responseBtnGridLight: {
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr 1fr",
+        gap: "12px",
+    },
+    responseActionBtnLight: {
+        padding: "12px",
+        borderRadius: "10px",
+        fontSize: "13px",
+        fontWeight: "800",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "6px",
+        transition: "all 0.2s ease",
+    },
+};

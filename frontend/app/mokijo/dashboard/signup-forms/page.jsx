@@ -2,7 +2,7 @@
 import { API_BASE_URL } from "@/lib/api";
 
 import { useCallback, useEffect, useState } from "react";
-import { FileText, Users, ArrowLeft, Plus, Trash2, Eye, Check, X, ShieldAlert, Sparkles } from "lucide-react";
+import { FileText, Users, ArrowLeft, Plus, Trash2, Eye, Check, X, ShieldAlert, Sparkles, User, Heart, Shield, Award } from "lucide-react";
 import "@/app/styles/signup-forms.css";
 
 export default function SignupFormsDashboard() {
@@ -247,7 +247,7 @@ export default function SignupFormsDashboard() {
                             <span
                                 style={{
                                     fontSize: "12px",
-                                    color: "#c6ff3d",
+                                    color: "#047857",
                                     fontWeight: 700,
                                     textTransform: "uppercase",
                                 }}
@@ -404,10 +404,10 @@ export default function SignupFormsDashboard() {
     }
 
     const DEFAULT_ROLES = [
-        { role: "Player", title: "Players Form", description: "Player Registration & Field Customization" },
-        { role: "Parent", title: "Parents Form", description: "Parent / Guardian Registration Form" },
-        { role: "Coach", title: "Coaches Form", description: "Coach Onboarding & Profile Customization" },
-        { role: "Referee", title: "Referees Form", description: "Match Referee Signup & Qualification Details" },
+        { role: "Player", title: "Players Form", description: "Player squad registration & field customization", icon: User, theme: "emerald" },
+        { role: "Parent", title: "Parents Form", description: "Parent & guardian onboarding registration form", icon: Heart, theme: "amber" },
+        { role: "Coach", title: "Coaches Form", description: "Coach onboarding & profile qualification details", icon: Award, theme: "rose" },
+        { role: "Referee", title: "Referees Form", description: "Match referee signup & licensing qualifications", icon: Shield, theme: "cyan" },
     ];
 
     function renderFormsBuilder() {
@@ -416,13 +416,15 @@ export default function SignupFormsDashboard() {
                 (f) => f.role?.toLowerCase() === defaultRole.role.toLowerCase()
             );
             if (existingForm) {
-                return existingForm;
+                return { ...existingForm, icon: defaultRole.icon, theme: defaultRole.theme };
             }
             return {
                 id: null,
                 role: defaultRole.role,
                 title: defaultRole.title,
                 description: defaultRole.description,
+                icon: defaultRole.icon,
+                theme: defaultRole.theme,
                 is_customized: false,
                 fields: [
                     { name: "first_name", label: "First Name", type: "text", required: true, placeholder: "John" },
@@ -440,14 +442,25 @@ export default function SignupFormsDashboard() {
                         const roleName = form.role || "Role";
                         const displayTitle = form.title || `${roleName}s Form`;
                         const displaySubtitle = form.description || `${roleName} Registration`;
+                        const IconComponent = form.icon || FileText;
+                        const fieldCount = Array.isArray(form.fields)
+                            ? form.fields.length
+                            : typeof form.fields === "string"
+                            ? (JSON.parse(form.fields || "[]")).length
+                            : 4;
 
                         return (
-                            <div key={idx} className="form-role-card" onClick={() => handleStartEdit(form)}>
-                                <div className="card-icon-wrapper">
-                                    <FileText size={20} />
+                            <div key={idx} className={`form-role-card role-theme-${form.theme || "emerald"}`} onClick={() => handleStartEdit(form)}>
+                                <div className="card-top-row">
+                                    <div className={`card-icon-wrapper theme-${form.theme || "emerald"}`}>
+                                        <IconComponent size={22} />
+                                    </div>
+                                    <span className="field-count-chip">{fieldCount} Fields</span>
                                 </div>
+
                                 <h3>{displayTitle}</h3>
                                 <p>{displaySubtitle}</p>
+
                                 <div className="card-meta">
                                     <span
                                         className={`badge ${form.is_customized ? "badge-customized" : "badge-default"}`}
@@ -526,7 +539,7 @@ export default function SignupFormsDashboard() {
 
                                     return (
                                         <tr key={sub.id}>
-                                            <td style={{ fontWeight: 600, color: "var(--text-primary, #f4f4f5)" }}>{name}</td>
+                                            <td style={{ fontWeight: 600, color: "#0f172a" }}>{name}</td>
                                             <td>
                                                 <span className={`app-role-badge ${roleClass}`}>{sub.role}</span>
                                             </td>
@@ -538,8 +551,9 @@ export default function SignupFormsDashboard() {
                                                         alignItems: "center",
                                                         padding: "4px 10px",
                                                         borderRadius: "6px",
-                                                        background: "rgba(234, 179, 8, 0.15)",
-                                                        color: "#facc15",
+                                                        background: "#fffbeb",
+                                                        border: "1px solid #fde68a",
+                                                        color: "#b45309",
                                                         fontSize: "12px",
                                                         fontWeight: 700,
                                                     }}
@@ -620,7 +634,7 @@ export default function SignupFormsDashboard() {
                     <div className="applicant-details-grid">
                         <div className="details-row">
                             <span className="details-label">Applicant Role</span>
-                            <span className="details-value" style={{ fontWeight: 700, color: "#c6ff3d" }}>
+                            <span className="details-value" style={{ fontWeight: 700, color: "#047857" }}>
                                 {selectedSubmission.role}
                             </span>
                         </div>
@@ -705,8 +719,8 @@ export default function SignupFormsDashboard() {
                         </button>
                     </div>
 
-                    <p style={{ fontSize: "14px", color: "#64748b", margin: "0 0 20px 0", lineHeight: 1.5 }}>
-                        Accept <strong style={{ color: "var(--text-primary, #f4f4f5)" }}>{name}</strong> ({approvingSubmission.role}) into
+                    <p style={{ fontSize: "14px", color: "#475569", margin: "0 0 20px 0", lineHeight: 1.5 }}>
+                        Accept <strong style={{ color: "#0f172a" }}>{name}</strong> ({approvingSubmission.role}) into
                         the club. After you accept, they can log in with the email and password used during
                         registration.
                     </p>
@@ -840,13 +854,18 @@ export default function SignupFormsDashboard() {
                         <div>
                             <div className="brand-pill-badge">
                                 <Sparkles size={13} />
-                                <span>CUSTOM FORM BUILDER</span>
+                                <span>MUKIJO • ONBOARDING CONTROL CENTER</span>
                             </div>
                             <h1>Club Signups & Onboarding Forms</h1>
                             <p>
                                 Configure customized onboarding forms for player squads, parent lists, coaches, and match
                                 referees.
                             </p>
+                        </div>
+                        <div className="header-meta-right">
+                            <div className="header-status-chip">
+                                <span className="status-live-dot" /> Live Form Engine Active
+                            </div>
                         </div>
                     </div>
 

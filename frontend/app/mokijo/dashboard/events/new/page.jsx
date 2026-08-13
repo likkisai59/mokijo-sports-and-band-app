@@ -4,6 +4,25 @@ import { API_BASE_URL } from "@/lib/api";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import {
+    ArrowLeft,
+    Calendar,
+    Clock,
+    MapPin,
+    Users,
+    CheckCircle2,
+    Sparkles,
+    Shield,
+    Bell,
+    UserCheck,
+    Globe,
+    UserPlus,
+    Hourglass,
+    DollarSign,
+    PlusCircle,
+    Image as ImageIcon,
+    Activity,
+} from "lucide-react";
 import "@/app/styles/events.css";
 
 export default function NewEventPage() {
@@ -37,11 +56,11 @@ export default function NewEventPage() {
     // Gradients mapping
     const coverPresets = {
         Match: "linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)",
-        Training: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-        Meeting: "linear-gradient(135deg, #4b5563 0%, #1f2937 100%)",
-        Social: "linear-gradient(135deg, #ff2e93 0%, #e6007a 100%)",
-        Tournament: "linear-gradient(135deg, #c6ff3d 0%, #9fcc1f 100%)",
-        Ceremony: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
+        Training: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+        Meeting: "linear-gradient(135deg, #475569 0%, #1e293b 100%)",
+        Social: "linear-gradient(135deg, #ec4899 0%, #be185d 100%)",
+        Tournament: "linear-gradient(135deg, #d97706 0%, #b45309 100%)",
+        Ceremony: "linear-gradient(135deg, #6366f1 0%, #4338ca 100%)",
     };
 
     useEffect(() => {
@@ -133,352 +152,403 @@ export default function NewEventPage() {
         }
     };
 
+    const currentBannerBackground = customCoverUrl
+        ? `url(${customCoverUrl}) center/cover no-repeat`
+        : coverPresets[selectedCover] || coverPresets["Match"];
+
     return (
-        <div className="events-container">
-            <div style={{ marginBottom: "20px" }}>
-                <Link
-                    href="/dashboard/events"
-                    className="back-btn"
-                    style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        textDecoration: "none",
-                        color: "#64748b",
-                        fontWeight: "600",
-                        fontSize: "14px",
-                    }}
-                >
-                    ← Back to Events List
+        <div style={styles.pageContainer}>
+            {/* Back Navigation Bar */}
+            <div style={{ marginBottom: "24px" }}>
+                <Link href="/dashboard/events" style={styles.backBtnLight}>
+                    <ArrowLeft size={16} />
+                    <span>Back to Events List</span>
                 </Link>
             </div>
 
-            <div className="form-card">
-                <div style={{ marginBottom: "30px" }}>
-                    <h1 style={{ fontSize: "28px", fontWeight: "800", color: "#0f172a", margin: "0" }}>
-                        Schedule New Club Event
-                    </h1>
-                    <p style={{ color: "#64748b", margin: "6px 0 0 0" }}>
-                        Fill out event information and customize registration settings
-                    </p>
+            {/* Main Form Container Card */}
+            <div style={styles.mainCardLight}>
+                {/* Header Title Section */}
+                <div style={styles.headerBoxLight}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <div style={styles.headerIconBoxLight}>
+                            <PlusCircle size={24} />
+                        </div>
+                        <div>
+                            <h1 style={styles.pageTitleLight}>Schedule New Club Event</h1>
+                            <p style={styles.pageSubtitleLight}>
+                                Fill out event details, choose a banner theme, and configure registration settings.
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
-                <form onSubmit={handleSubmit}>
-                    {/* SECTION 1: EVENT DETAILS */}
-                    <div className="form-section-title">
-                        <span>📝</span> Event Details & Location
-                    </div>
+                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
 
-                    <div className="form-grid">
-                        <div className="form-group">
-                            <label htmlFor="name">Event Title / Name *</label>
-                            <input
-                                type="text"
-                                id="name"
-                                placeholder="e.g. Annual Club Championship / Training Camp"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                required
-                            />
+                    {/* SECTION 1: EVENT DETAILS & LOCATION */}
+                    <div>
+                        <div style={styles.sectionHeaderLight}>
+                            <Activity size={16} style={{ color: "#059669" }} />
+                            <span>1. Basic Event Details &amp; Location</span>
                         </div>
 
-                        <div className="form-group">
-                            <label htmlFor="groupId">Target Club Group *</label>
-                            <select id="groupId" value={groupId} onChange={(e) => setGroupId(e.target.value)} required>
-                                {groups.map((g) => (
-                                    <option key={g.id} value={g.id}>
-                                        {g.group_name} ({g.activity})
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
+                        <div style={styles.formRowLight}>
+                            <div style={styles.formGroupLight}>
+                                <label style={styles.labelLight}>Event Title / Name *</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. Annual Club Championship / Training Camp"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    style={styles.inputLight}
+                                    required
+                                />
+                            </div>
 
-                    <div className="form-grid-3">
-                        <div className="form-group">
-                            <label htmlFor="type">Event Category *</label>
-                            <select
-                                id="type"
-                                value={type}
-                                onChange={(e) => {
-                                    setType(e.target.value);
-                                    setSelectedCover(e.target.value);
-                                }}
-                                required
-                            >
-                                <option value="Match">Match / Fixture</option>
-                                <option value="Training">Training Session</option>
-                                <option value="Meeting">Meeting</option>
-                                <option value="Social">Social Gathering</option>
-                                <option value="Tournament">Tournament</option>
-                                <option value="Ceremony">Ceremony / Presentation</option>
-                            </select>
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="date">Date *</label>
-                            <input
-                                type="date"
-                                id="date"
-                                value={date}
-                                onChange={(e) => setDate(e.target.value)}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="location">Venue / Location *</label>
-                            <input
-                                type="text"
-                                id="location"
-                                placeholder="e.g. Main Turf Court A / Stadium"
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <div className="form-grid">
-                        <div className="form-group">
-                            <label htmlFor="startTime">Start Time *</label>
-                            <input
-                                type="time"
-                                id="startTime"
-                                value={startTime}
-                                onChange={(e) => setStartTime(e.target.value)}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="endTime">End Time *</label>
-                            <input
-                                type="time"
-                                id="endTime"
-                                value={endTime}
-                                onChange={(e) => setEndTime(e.target.value)}
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <div className="form-group">
-                        <label htmlFor="description">Event Description & Information</label>
-                        <textarea
-                            id="description"
-                            rows="4"
-                            placeholder="Provide details about the matches, what to bring, and expectations..."
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                        ></textarea>
-                    </div>
-
-                    {/* COVER DESIGN SYSTEM */}
-                    <div className="form-group" style={{ marginTop: "20px" }}>
-                        <label>Select Cover Background Design</label>
-                        <p style={{ fontSize: "12px", color: "#64748b", margin: "2px 0 10px 0" }}>
-                            Choose a stylized gradient matched to category or paste a custom image URL below.
-                        </p>
-
-                        <div className="cover-presets-grid">
-                            {Object.entries(coverPresets).map(([key, gradient]) => (
-                                <div
-                                    key={key}
-                                    className={`cover-preset-option ${selectedCover === key ? "selected" : ""}`}
-                                    style={{ background: gradient }}
-                                    onClick={() => {
-                                        setSelectedCover(key);
-                                        setCustomCoverUrl("");
-                                    }}
+                            <div style={styles.formGroupLight}>
+                                <label style={styles.labelLight}>Target Club Group *</label>
+                                <select
+                                    value={groupId}
+                                    onChange={(e) => setGroupId(e.target.value)}
+                                    style={styles.selectLight}
+                                    required
                                 >
-                                    <span className="cover-preset-label">{key}</span>
-                                </div>
-                            ))}
+                                    {groups.map((g) => (
+                                        <option key={g.id} value={g.id}>
+                                            {g.group_name} ({g.activity})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
 
-                        <div style={{ marginTop: "16px" }}>
-                            <label htmlFor="coverUrl" style={{ fontSize: "13px", fontWeight: "600", color: "#475569" }}>
-                                Or paste custom cover image URL
-                            </label>
+                        <div style={{ ...styles.formRowLight, marginTop: "18px" }}>
+                            <div style={styles.formGroupLight}>
+                                <label style={styles.labelLight}>Event Category *</label>
+                                <select
+                                    value={type}
+                                    onChange={(e) => {
+                                        setType(e.target.value);
+                                        setSelectedCover(e.target.value);
+                                    }}
+                                    style={styles.selectLight}
+                                    required
+                                >
+                                    <option value="Match">🏆 Match / Fixture</option>
+                                    <option value="Training">🏋️ Training Session</option>
+                                    <option value="Meeting">👥 Meeting</option>
+                                    <option value="Social">🎉 Social Gathering</option>
+                                    <option value="Tournament">🥇 Tournament</option>
+                                    <option value="Ceremony">🎖️ Ceremony / Presentation</option>
+                                </select>
+                            </div>
+
+                            <div style={styles.formGroupLight}>
+                                <label style={styles.labelLight}>Event Date *</label>
+                                <input
+                                    type="date"
+                                    value={date}
+                                    onChange={(e) => setDate(e.target.value)}
+                                    style={styles.inputLight}
+                                    required
+                                />
+                            </div>
+
+                            <div style={styles.formGroupLight}>
+                                <label style={styles.labelLight}>Venue / Ground Location *</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. Main Turf Court A / Stadium"
+                                    value={location}
+                                    onChange={(e) => setLocation(e.target.value)}
+                                    style={styles.inputLight}
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div style={{ ...styles.formRowLight, marginTop: "18px" }}>
+                            <div style={styles.formGroupLight}>
+                                <label style={styles.labelLight}>Start Time *</label>
+                                <input
+                                    type="time"
+                                    value={startTime}
+                                    onChange={(e) => setStartTime(e.target.value)}
+                                    style={styles.inputLight}
+                                    required
+                                />
+                            </div>
+
+                            <div style={styles.formGroupLight}>
+                                <label style={styles.labelLight}>End Time *</label>
+                                <input
+                                    type="time"
+                                    value={endTime}
+                                    onChange={(e) => setEndTime(e.target.value)}
+                                    style={styles.inputLight}
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div style={{ ...styles.formGroupLight, marginTop: "18px" }}>
+                            <label style={styles.labelLight}>Event Description &amp; Information</label>
+                            <textarea
+                                rows="4"
+                                placeholder="Provide details about the matches, rules, equipment requirements, and expectations..."
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                style={styles.textareaLight}
+                            />
+                        </div>
+                    </div>
+
+                    {/* SECTION 2: COVER DESIGN & LIVE PREVIEW */}
+                    <div>
+                        <div style={styles.sectionHeaderLight}>
+                            <ImageIcon size={16} style={{ color: "#059669" }} />
+                            <span>2. Event Cover Banner Theme</span>
+                        </div>
+
+                        {/* Live Banner Preview Box */}
+                        <div style={{ ...styles.livePreviewCardLight, background: currentBannerBackground }}>
+                            <div style={styles.livePreviewContentLight}>
+                                <span style={styles.liveBadgeLight}>{type.toUpperCase()}</span>
+                                <h3 style={styles.liveTitleLight}>{name || "Event Title Preview"}</h3>
+                                <div style={styles.liveMetaLight}>
+                                    <span>📅 {date || "YYYY-MM-DD"} • {startTime || "00:00"}</span>
+                                    <span>📍 {location || "Venue Location"}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <label style={{ ...styles.labelLight, marginTop: "16px", display: "block" }}>
+                            Select Preset Theme Cover
+                        </label>
+                        <div style={styles.coverGridLight}>
+                            {Object.entries(coverPresets).map(([key, gradient]) => {
+                                const isSelected = selectedCover === key && !customCoverUrl;
+                                return (
+                                    <div
+                                        key={key}
+                                        onClick={() => {
+                                            setSelectedCover(key);
+                                            setCustomCoverUrl("");
+                                        }}
+                                        style={{
+                                            ...styles.coverPresetCardLight,
+                                            background: gradient,
+                                            border: isSelected ? "2px solid #059669" : "2px solid transparent",
+                                            boxShadow: isSelected ? "0 4px 14px rgba(5, 150, 105, 0.3)" : "none",
+                                        }}
+                                        role="button"
+                                        tabIndex={0}
+                                    >
+                                        <span style={styles.coverPresetTextLight}>{key}</span>
+                                        {isSelected && (
+                                            <div style={styles.coverCheckBadgeLight}>
+                                                <CheckCircle2 size={14} />
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <div style={{ ...styles.formGroupLight, marginTop: "16px" }}>
+                            <label style={styles.labelLight}>Or Paste Custom Cover Image URL</label>
                             <input
                                 type="url"
-                                id="coverUrl"
                                 placeholder="https://images.unsplash.com/photo-..."
                                 value={customCoverUrl}
                                 onChange={(e) => {
                                     setCustomCoverUrl(e.target.value);
                                     setSelectedCover("");
                                 }}
-                                style={{ marginTop: "6px" }}
+                                style={styles.inputLight}
                             />
                         </div>
                     </div>
 
-                    {/* SECTION 2: CHOOSE SETTINGS */}
-                    <div className="form-section-title">
-                        <span>⚙️</span> Choose Event Settings & Capacity
-                    </div>
-
-                    <div className="form-grid">
-                        <div className="form-group">
-                            <label htmlFor="deadline">Registration Deadline</label>
-                            <input
-                                type="date"
-                                id="deadline"
-                                value={registrationDeadline}
-                                onChange={(e) => setRegistrationDeadline(e.target.value)}
-                            />
+                    {/* SECTION 3: CAPACITY, PRICING & SETTINGS */}
+                    <div>
+                        <div style={styles.sectionHeaderLight}>
+                            <Shield size={16} style={{ color: "#059669" }} />
+                            <span>3. Capacity, Pricing &amp; Registration Rules</span>
                         </div>
 
-                        <div className="form-group">
-                            <label htmlFor="max">Maximum Participants</label>
-                            <input
-                                type="number"
-                                id="max"
-                                placeholder="No limit (leave empty)"
-                                value={maxParticipants}
-                                onChange={(e) => setMaxParticipants(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="eventFee">Event Fee (₹)</label>
-                            <input
-                                type="number"
-                                id="eventFee"
-                                min="0"
-                                placeholder="0 for free event"
-                                value={eventFee}
-                                onChange={(e) => setEventFee(e.target.value)}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Toggles */}
-                    <div
-                        style={{
-                            display: "grid",
-                            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                            gap: "20px",
-                            marginTop: "16px",
-                        }}
-                    >
-                        <div className="switch-container">
-                            <div className="switch-label">
-                                <span>🔔 Automatic Reminder</span>
-                                <p>Notify members before the start</p>
+                        <div style={styles.formRowLight}>
+                            <div style={styles.formGroupLight}>
+                                <label style={styles.labelLight}>Registration Deadline</label>
+                                <input
+                                    type="date"
+                                    value={registrationDeadline}
+                                    onChange={(e) => setRegistrationDeadline(e.target.value)}
+                                    style={styles.inputLight}
+                                />
                             </div>
-                            <label className="switch">
+
+                            <div style={styles.formGroupLight}>
+                                <label style={styles.labelLight}>Maximum Participants</label>
+                                <input
+                                    type="number"
+                                    placeholder="No limit (leave blank)"
+                                    value={maxParticipants}
+                                    onChange={(e) => setMaxParticipants(e.target.value)}
+                                    style={styles.inputLight}
+                                />
+                            </div>
+
+                            <div style={styles.formGroupLight}>
+                                <label style={styles.labelLight}>Event Fee (₹)</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    placeholder="0 for free event"
+                                    value={eventFee}
+                                    onChange={(e) => setEventFee(e.target.value)}
+                                    style={styles.inputLight}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Interactive Toggle Cards */}
+                        <div style={styles.toggleGridLight}>
+                            <div
+                                style={{
+                                    ...styles.toggleCardLight,
+                                    backgroundColor: autoReminder ? "#ecfdf5" : "#ffffff",
+                                    borderColor: autoReminder ? "#a7f3d0" : "#e2e8f0",
+                                }}
+                                onClick={() => setAutoReminder(!autoReminder)}
+                                role="button"
+                                tabIndex={0}
+                            >
+                                <div style={styles.toggleTextGroupLight}>
+                                    <div style={styles.toggleTitleLight}>
+                                        <Bell size={16} style={{ color: "#059669" }} />
+                                        <span>Automatic Reminder</span>
+                                    </div>
+                                    <p style={styles.toggleSubLight}>Notify members before start time</p>
+                                </div>
                                 <input
                                     type="checkbox"
                                     checked={autoReminder}
                                     onChange={(e) => setAutoReminder(e.target.checked)}
+                                    style={styles.checkboxLight}
                                 />
-                                <span className="slider"></span>
-                            </label>
-                        </div>
-
-                        <div className="switch-container">
-                            <div className="switch-label">
-                                <span>📝 Attendance Tracking</span>
-                                <p>Enable event-day check-in panel</p>
                             </div>
-                            <label className="switch">
+
+                            <div
+                                style={{
+                                    ...styles.toggleCardLight,
+                                    backgroundColor: attendanceTracking ? "#ecfdf5" : "#ffffff",
+                                    borderColor: attendanceTracking ? "#a7f3d0" : "#e2e8f0",
+                                }}
+                                onClick={() => setAttendanceTracking(!attendanceTracking)}
+                                role="button"
+                                tabIndex={0}
+                            >
+                                <div style={styles.toggleTextGroupLight}>
+                                    <div style={styles.toggleTitleLight}>
+                                        <UserCheck size={16} style={{ color: "#059669" }} />
+                                        <span>Attendance Tracking</span>
+                                    </div>
+                                    <p style={styles.toggleSubLight}>Enable event-day check-in panel</p>
+                                </div>
                                 <input
                                     type="checkbox"
                                     checked={attendanceTracking}
                                     onChange={(e) => setAttendanceTracking(e.target.checked)}
+                                    style={styles.checkboxLight}
                                 />
-                                <span className="slider"></span>
-                            </label>
-                        </div>
-
-                        <div className="switch-container">
-                            <div className="switch-label">
-                                <span>🌐 Public Event</span>
-                                <p>Make visible outside club members</p>
                             </div>
-                            <label className="switch">
+
+                            <div
+                                style={{
+                                    ...styles.toggleCardLight,
+                                    backgroundColor: isPublic ? "#ecfdf5" : "#ffffff",
+                                    borderColor: isPublic ? "#a7f3d0" : "#e2e8f0",
+                                }}
+                                onClick={() => setIsPublic(!isPublic)}
+                                role="button"
+                                tabIndex={0}
+                            >
+                                <div style={styles.toggleTextGroupLight}>
+                                    <div style={styles.toggleTitleLight}>
+                                        <Globe size={16} style={{ color: "#059669" }} />
+                                        <span>Public Visibility</span>
+                                    </div>
+                                    <p style={styles.toggleSubLight}>Make visible outside club members</p>
+                                </div>
                                 <input
                                     type="checkbox"
                                     checked={isPublic}
                                     onChange={(e) => setIsPublic(e.target.checked)}
+                                    style={styles.checkboxLight}
                                 />
-                                <span className="slider"></span>
-                            </label>
-                        </div>
-
-                        <div className="switch-container">
-                            <div className="switch-label">
-                                <span>👤 Allow Guest Registration</span>
-                                <p>Allow non-members to sign up</p>
                             </div>
-                            <label className="switch">
+
+                            <div
+                                style={{
+                                    ...styles.toggleCardLight,
+                                    backgroundColor: allowGuest ? "#ecfdf5" : "#ffffff",
+                                    borderColor: allowGuest ? "#a7f3d0" : "#e2e8f0",
+                                }}
+                                onClick={() => setAllowGuest(!allowGuest)}
+                                role="button"
+                                tabIndex={0}
+                            >
+                                <div style={styles.toggleTextGroupLight}>
+                                    <div style={styles.toggleTitleLight}>
+                                        <UserPlus size={16} style={{ color: "#059669" }} />
+                                        <span>Allow Guest Registration</span>
+                                    </div>
+                                    <p style={styles.toggleSubLight}>Allow non-members to sign up</p>
+                                </div>
                                 <input
                                     type="checkbox"
                                     checked={allowGuest}
                                     onChange={(e) => setAllowGuest(e.target.checked)}
+                                    style={styles.checkboxLight}
                                 />
-                                <span className="slider"></span>
-                            </label>
-                        </div>
-
-                        <div className="switch-container">
-                            <div className="switch-label">
-                                <span>⏳ Allow Waiting List</span>
-                                <p>Queue members if event is full</p>
                             </div>
-                            <label className="switch">
+
+                            <div
+                                style={{
+                                    ...styles.toggleCardLight,
+                                    backgroundColor: allowWaitingList ? "#ecfdf5" : "#ffffff",
+                                    borderColor: allowWaitingList ? "#a7f3d0" : "#e2e8f0",
+                                }}
+                                onClick={() => setAllowWaitingList(!allowWaitingList)}
+                                role="button"
+                                tabIndex={0}
+                            >
+                                <div style={styles.toggleTextGroupLight}>
+                                    <div style={styles.toggleTitleLight}>
+                                        <Hourglass size={16} style={{ color: "#059669" }} />
+                                        <span>Allow Waiting List</span>
+                                    </div>
+                                    <p style={styles.toggleSubLight}>Queue members if event is full</p>
+                                </div>
                                 <input
                                     type="checkbox"
                                     checked={allowWaitingList}
                                     onChange={(e) => setAllowWaitingList(e.target.checked)}
+                                    style={styles.checkboxLight}
                                 />
-                                <span className="slider"></span>
-                            </label>
+                            </div>
                         </div>
                     </div>
 
-                    <div
-                        style={{
-                            marginTop: "40px",
-                            borderTop: "1px solid #f4f4f5",
-                            paddingTop: "24px",
-                            display: "flex",
-                            justifyContent: "flex-end",
-                            gap: "16px",
-                        }}
-                    >
-                        <Link
-                            href="/dashboard/events"
-                            className="secondary-btn"
-                            style={{
-                                padding: "12px 24px",
-                                borderRadius: "12px",
-                                border: "1px solid #cbd5e1",
-                                background: "none",
-                                color: "#475569",
-                                fontWeight: "600",
-                                textDecoration: "none",
-                            }}
-                        >
+                    {/* Bottom Action Footer Bar */}
+                    <div style={styles.actionFooterLight}>
+                        <Link href="/dashboard/events" style={styles.cancelBtnLight}>
                             Cancel
                         </Link>
-                        <button
-                            type="submit"
-                            className="primary-btn"
-                            style={{
-                                padding: "12px 28px",
-                                borderRadius: "12px",
-                                border: "none",
-                                background: "#c6ff3d",
-                                color: "white",
-                                fontWeight: "700",
-                                cursor: "pointer",
-                            }}
-                        >
-                            Save & Publish Event
+                        <button type="submit" style={styles.submitBtnLight}>
+                            <PlusCircle size={18} />
+                            <span>Save &amp; Publish Event</span>
                         </button>
                     </div>
                 </form>
@@ -486,3 +556,267 @@ export default function NewEventPage() {
         </div>
     );
 }
+
+// Inline Style Definitions (Senior UI/UX Designer Skill)
+const styles = {
+    pageContainer: {
+        maxWidth: "960px",
+        margin: "0 auto",
+        padding: "32px 20px 60px 20px",
+        fontFamily: "'Outfit', sans-serif",
+        color: "#0f172a",
+    },
+    backBtnLight: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "8px",
+        padding: "8px 16px",
+        borderRadius: "20px",
+        background: "#ffffff",
+        border: "1px solid #cbd5e1",
+        color: "#475569",
+        fontWeight: "700",
+        fontSize: "13px",
+        textDecoration: "none",
+        transition: "all 0.2s ease",
+        boxShadow: "0 2px 6px rgba(0,0,0,0.03)",
+    },
+    mainCardLight: {
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "20px",
+        padding: "32px",
+        boxShadow: "0 8px 30px rgba(0, 0, 0, 0.04)",
+    },
+    headerBoxLight: {
+        marginBottom: "28px",
+        paddingBottom: "20px",
+        borderBottom: "1px solid #f1f5f9",
+    },
+    headerIconBoxLight: {
+        width: "48px",
+        height: "48px",
+        borderRadius: "14px",
+        background: "#ecfdf5",
+        color: "#059669",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        border: "1px solid #a7f3d0",
+    },
+    pageTitleLight: {
+        fontSize: "24px",
+        fontWeight: "800",
+        color: "#0f172a",
+        margin: 0,
+        letterSpacing: "-0.01em",
+    },
+    pageSubtitleLight: {
+        fontSize: "13px",
+        color: "#64748b",
+        margin: "4px 0 0 0",
+    },
+    sectionHeaderLight: {
+        fontSize: "13px",
+        fontWeight: "800",
+        color: "#059669",
+        letterSpacing: "0.04em",
+        textTransform: "uppercase",
+        marginBottom: "16px",
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+    },
+    formRowLight: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+        gap: "20px",
+    },
+    formGroupLight: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+        flex: 1,
+    },
+    labelLight: {
+        fontSize: "13px",
+        fontWeight: "700",
+        color: "#0f172a",
+    },
+    inputLight: {
+        width: "100%",
+        padding: "11px 14px",
+        background: "#ffffff",
+        border: "1px solid #cbd5e1",
+        borderRadius: "10px",
+        fontSize: "13px",
+        color: "#0f172a",
+        outline: "none",
+        fontFamily: "'Outfit', sans-serif",
+    },
+    selectLight: {
+        width: "100%",
+        padding: "11px 14px",
+        background: "#ffffff",
+        border: "1px solid #cbd5e1",
+        borderRadius: "10px",
+        fontSize: "13px",
+        color: "#0f172a",
+        outline: "none",
+        fontFamily: "'Outfit', sans-serif",
+    },
+    textareaLight: {
+        width: "100%",
+        padding: "12px 14px",
+        background: "#ffffff",
+        border: "1px solid #cbd5e1",
+        borderRadius: "10px",
+        fontSize: "13px",
+        color: "#0f172a",
+        minHeight: "100px",
+        outline: "none",
+        fontFamily: "'Outfit', sans-serif",
+        resize: "vertical",
+    },
+    livePreviewCardLight: {
+        width: "100%",
+        minHeight: "140px",
+        borderRadius: "16px",
+        padding: "24px",
+        marginBottom: "20px",
+        color: "#ffffff",
+        boxShadow: "0 4px 18px rgba(0,0,0,0.1)",
+        display: "flex",
+        alignItems: "flex-end",
+    },
+    livePreviewContentLight: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "6px",
+    },
+    liveBadgeLight: {
+        fontSize: "10px",
+        fontWeight: "800",
+        letterSpacing: "0.05em",
+        background: "rgba(255, 255, 255, 0.25)",
+        backdropFilter: "blur(6px)",
+        padding: "2px 8px",
+        borderRadius: "12px",
+        width: "fit-content",
+    },
+    liveTitleLight: {
+        fontSize: "20px",
+        fontWeight: "800",
+        margin: 0,
+        textShadow: "0 2px 4px rgba(0,0,0,0.3)",
+    },
+    liveMetaLight: {
+        display: "flex",
+        gap: "14px",
+        fontSize: "12px",
+        opacity: 0.9,
+    },
+    coverGridLight: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+        gap: "12px",
+    },
+    coverPresetCardLight: {
+        height: "56px",
+        borderRadius: "12px",
+        padding: "10px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        cursor: "pointer",
+        transition: "all 0.2s ease",
+        position: "relative",
+    },
+    coverPresetTextLight: {
+        color: "#ffffff",
+        fontWeight: "800",
+        fontSize: "12px",
+        textShadow: "0 1px 3px rgba(0,0,0,0.4)",
+    },
+    coverCheckBadgeLight: {
+        color: "#ffffff",
+        display: "flex",
+        alignItems: "center",
+    },
+    toggleGridLight: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+        gap: "14px",
+        marginTop: "16px",
+    },
+    toggleCardLight: {
+        border: "1px solid",
+        borderRadius: "12px",
+        padding: "14px 16px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        cursor: "pointer",
+        transition: "all 0.2s ease",
+    },
+    toggleTextGroupLight: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px",
+    },
+    toggleTitleLight: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        fontSize: "13px",
+        fontWeight: "700",
+        color: "#0f172a",
+    },
+    toggleSubLight: {
+        fontSize: "11px",
+        color: "#64748b",
+        margin: 0,
+    },
+    checkboxLight: {
+        width: "18px",
+        height: "18px",
+        accentColor: "#059669",
+        cursor: "pointer",
+    },
+    actionFooterLight: {
+        marginTop: "12px",
+        paddingTop: "24px",
+        borderTop: "1px solid #f1f5f9",
+        display: "flex",
+        justifyContent: "flex-end",
+        alignItems: "center",
+        gap: "14px",
+    },
+    cancelBtnLight: {
+        padding: "11px 22px",
+        borderRadius: "10px",
+        border: "1px solid #cbd5e1",
+        background: "#ffffff",
+        color: "#475569",
+        fontWeight: "700",
+        fontSize: "13px",
+        textDecoration: "none",
+        cursor: "pointer",
+    },
+    submitBtnLight: {
+        padding: "12px 26px",
+        borderRadius: "10px",
+        border: "none",
+        background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+        color: "#ffffff",
+        fontWeight: "800",
+        fontSize: "13px",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        boxShadow: "0 4px 14px rgba(16, 185, 129, 0.25)",
+        transition: "all 0.2s ease",
+    },
+};
+

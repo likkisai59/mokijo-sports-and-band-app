@@ -4,6 +4,7 @@ import { openVenueBookingRazorpay } from "@/lib/venueRazorpay";
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Sparkles } from "lucide-react";
 import "@/app/styles/venues.css";
 
 function parseJsonList(value) {
@@ -173,8 +174,17 @@ function VenuesPageContent() {
         <div className="venues-container">
             <header className="venues-header">
                 <div>
-                    <h1>Venues & Arenas</h1>
-                    <p>Browse venues registered by venue owners and book available slots.</p>
+                    <div className="brand-pill-badge">
+                        <Sparkles size={13} />
+                        <span>MUKIJO • VENUES & ARENAS CONTROL</span>
+                    </div>
+                    <h1>Venues & Sports Arenas</h1>
+                    <p>Browse registered sports venues, inspect facility amenities, and reserve instant Razorpay time slots.</p>
+                </div>
+                <div className="header-meta-right">
+                    <div className="header-status-chip">
+                        <span className="status-live-dot" /> Live Arena Directory ({venues.length} Active)
+                    </div>
                 </div>
             </header>
 
@@ -195,10 +205,25 @@ function VenuesPageContent() {
                             </svg>
                             <input
                                 type="text"
-                                placeholder="Search by location..."
+                                placeholder="Search venues by city, sport, or location..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
+                            {searchQuery && (
+                                <button
+                                    onClick={() => setSearchQuery("")}
+                                    style={{
+                                        background: "transparent",
+                                        border: "none",
+                                        color: "#64748b",
+                                        cursor: "pointer",
+                                        fontSize: "12px",
+                                        fontWeight: 700
+                                    }}
+                                >
+                                    Clear
+                                </button>
+                            )}
                         </div>
                     </div>
 
@@ -426,28 +451,20 @@ function VenuesPageContent() {
 
             {bookingStatus && bookingStatus !== "loading" && (
                 <div className="modal-overlay" onClick={() => setBookingStatus(null)}>
-                    <div
-                        className="modal-card"
-                        onClick={(e) => e.stopPropagation()}
-                        style={{
-                            background: "var(--bg-surface)",
-                            border: "1px solid var(--border)",
-                            color: "var(--text-primary)",
-                        }}
-                    >
-                        <div className="modal-header">
-                            <h2 style={{ color: bookingStatus === "success" ? "var(--brand)" : "var(--rose)" }}>
-                                {bookingStatus === "success" ? "Booking Confirmed!" : "Booking Conflict"}
-                            </h2>
-                            <button className="close-btn" onClick={() => setBookingStatus(null)}>
-                                ×
+                        <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+                            <div className="modal-header">
+                                <h2 style={{ color: bookingStatus === "success" ? "#10b981" : "#ef4444" }}>
+                                    {bookingStatus === "success" ? "Booking Confirmed!" : "Booking Conflict"}
+                                </h2>
+                                <button className="close-btn" onClick={() => setBookingStatus(null)}>
+                                    ×
+                                </button>
+                            </div>
+                            <p style={{ color: "#475569" }}>{bookingMessage}</p>
+                            <button className="confirm-booking-btn" onClick={() => setBookingStatus(null)}>
+                                Close
                             </button>
                         </div>
-                        <p>{bookingMessage}</p>
-                        <button className="confirm-booking-btn" onClick={() => setBookingStatus(null)}>
-                            Close
-                        </button>
-                    </div>
                 </div>
             )}
         </div>

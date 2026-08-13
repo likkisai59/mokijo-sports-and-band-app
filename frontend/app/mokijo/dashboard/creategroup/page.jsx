@@ -1,9 +1,10 @@
 "use client";
-import { API_BASE_URL } from "@/lib/api";
 
+import { API_BASE_URL } from "@/lib/api";
 import { useState } from "react";
 import "@/app/styles/creategroup.css";
 import { useRouter } from "next/navigation";
+import { Sparkles, ArrowLeft, CheckCircle2, ChevronRight } from "lucide-react";
 
 export default function CreateGroupPage() {
     const router = useRouter();
@@ -82,8 +83,8 @@ export default function CreateGroupPage() {
             setShowSuccess(true);
 
             setTimeout(() => {
-                router.push("/dashboard");
-            }, 2000);
+                router.push("/dashboard/groups");
+            }, 1800);
         } catch (error) {
             console.log("Error:", error);
             alert("Backend is not running or API error");
@@ -94,6 +95,7 @@ export default function CreateGroupPage() {
     return (
         <div className="create-group-page">
             <div className="create-group-container">
+                {/* Stepper Progress Bar */}
                 <div className="progress-stepper">
                     <div className={`step-dot ${step >= 1 ? "active" : ""}`}>1</div>
                     <div className={`step-line ${step >= 2 ? "active" : ""}`}></div>
@@ -103,12 +105,17 @@ export default function CreateGroupPage() {
                 <div className="form-card">
                     {step === 1 && (
                         <div className="step-content fade-in">
-                            <div className="step-header">
-                                <h1>Select Activity</h1>
-                                <p>What kind of group are you starting?</p>
+                            <div className="brand-pill-badge">
+                                <Sparkles size={13} />
+                                <span>MUKIJO • STEP 1 OF 2</span>
                             </div>
 
-                            <div className="activity-list">
+                            <div className="step-header">
+                                <h1>Select Sport & Activity</h1>
+                                <p>Choose the core activity for your new squad group.</p>
+                            </div>
+
+                            <div className="activity-grid">
                                 {activities.map((item) => (
                                     <button
                                         key={item.name}
@@ -117,6 +124,7 @@ export default function CreateGroupPage() {
                                     >
                                         <span className="icon">{item.icon}</span>
                                         <span className="label">{item.name}</span>
+                                        <ChevronRight size={16} color="#94a3b8" style={{ marginLeft: "auto" }} />
                                     </button>
                                 ))}
                             </div>
@@ -127,19 +135,27 @@ export default function CreateGroupPage() {
                         <div className="step-content fade-in">
                             {showSuccess ? (
                                 <div className="success-message">
-                                    <div className="success-icon">✅</div>
-                                    <h1>Group Created!</h1>
-                                    <p>Your new group &quot;{groupName}&quot; is ready. Redirecting to dashboard...</p>
+                                    <div className="success-icon">
+                                        <CheckCircle2 size={56} color="#10b981" />
+                                    </div>
+                                    <h1>Group Successfully Created!</h1>
+                                    <p>Your new squad group &quot;{groupName}&quot; is active. Redirecting to squads directory...</p>
                                 </div>
                             ) : (
                                 <>
-                                    <div className="step-header">
-                                        <button className="back-btn" onClick={handleBack}>
-                                            ← Back
-                                        </button>
+                                    <button className="back-btn" onClick={handleBack}>
+                                        <ArrowLeft size={14} />
+                                        <span>Back to Sport Selection</span>
+                                    </button>
 
-                                        <h1>Group Details</h1>
-                                        <p>Give your group a name and identity.</p>
+                                    <div className="brand-pill-badge">
+                                        <Sparkles size={13} />
+                                        <span>MUKIJO • STEP 2 OF 2</span>
+                                    </div>
+
+                                    <div className="step-header">
+                                        <h1>Squad Group Details</h1>
+                                        <p>Give your {activity} group a unique name and description.</p>
                                     </div>
 
                                     <div className="input-section">
@@ -154,9 +170,9 @@ export default function CreateGroupPage() {
                                         </div>
 
                                         <div className="input-group">
-                                            <label>Description</label>
+                                            <label>Description & Member Guidelines</label>
                                             <textarea
-                                                placeholder="Tell members what this group is about..."
+                                                placeholder="Tell members what this squad group is about..."
                                                 value={description}
                                                 onChange={(e) => setDescription(e.target.value)}
                                             ></textarea>
@@ -164,7 +180,7 @@ export default function CreateGroupPage() {
                                     </div>
 
                                     <button className="submit-btn" onClick={handleCreateGroup} disabled={isSubmitting}>
-                                        {isSubmitting ? "Creating..." : "Create Group"}
+                                        {isSubmitting ? "Creating Squad Group..." : "Create Squad Group"}
                                     </button>
                                 </>
                             )}

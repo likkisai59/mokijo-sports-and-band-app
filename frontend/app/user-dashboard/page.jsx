@@ -35,6 +35,7 @@ import {
     CalendarCheck,
     Locate,
     Phone,
+    ArrowRight,
 } from "lucide-react";
 import NotificationBell from "../../components/dashboard/NotificationBell";
 
@@ -723,91 +724,300 @@ export default function UserDashboard() {
 
             <main style={styles.mainContent}>
                 {activeTab === "home" && (
-                    /* Home Tab: Medium Search, Games & Sports with 20 Sports, Trainers Box, Join Team */
+                    /* Home Tab: Light Mode Premium User Dashboard Hub (Senior UI/UX Designer Skill) */
                     <div style={styles.homeContainer}>
-                        {/* Medium Search Bar */}
-                        <div style={styles.homeSearchSection}>
-                            <div style={styles.homeSearchWrapper}>
-                                <Search style={styles.homeSearchIcon} size={18} />
-                                <input
-                                    type="text"
-                                    placeholder="Search sports, trainers, or teams..."
-                                    style={styles.homeSearchInput}
-                                />
+
+                        {/* Light Mode Hero Banner & Quick Stats */}
+                        <div style={styles.homeHeroBannerLight}>
+                            <div style={styles.heroMainTextGroup}>
+                                <div style={styles.userGreetingHeader}>
+                                    <div style={styles.userAvatarCircle}>
+                                        {userName?.charAt(0)?.toUpperCase() || "U"}
+                                    </div>
+                                    <div>
+                                        <h1 style={styles.heroTitleLight}>
+                                            Welcome back, {userName}! <span style={{ display: "inline-block" }}>👋</span>
+                                        </h1>
+                                        <p style={styles.heroSubtitleLight}>
+                                            Book top-rated sports arenas, host custom matches, or join open game lobbies.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Quick Stats Metric Pills */}
+                            <div style={styles.heroStatsGridLight}>
+                                <div style={styles.heroStatCardLight}>
+                                    <div style={{ ...styles.statIconBox, backgroundColor: "#ecfdf5", color: "#059669" }}>
+                                        <CalendarCheck size={18} />
+                                    </div>
+                                    <div>
+                                        <div style={styles.statValLight}>{bookings ? bookings.length : 0}</div>
+                                        <div style={styles.statLblLight}>Active Bookings</div>
+                                    </div>
+                                </div>
+
+                                <div style={styles.heroStatCardLight}>
+                                    <div style={{ ...styles.statIconBox, backgroundColor: "#e0e7ff", color: "#4f46e5" }}>
+                                        <Users size={18} />
+                                    </div>
+                                    <div>
+                                        <div style={styles.statValLight}>{hostedGames ? hostedGames.length : 0}</div>
+                                        <div style={styles.statLblLight}>Joined Games</div>
+                                    </div>
+                                </div>
+
+                                <div style={styles.heroStatCardLight}>
+                                    <div style={{ ...styles.statIconBox, backgroundColor: "#fef3c7", color: "#d97706" }}>
+                                        <Trophy size={18} />
+                                    </div>
+                                    <div>
+                                        <div style={styles.statValLight}>Pro Athlete</div>
+                                        <div style={styles.statLblLight}>Member Tier</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Games and Sports Card (20 sports grid) */}
-                        <div style={styles.sportsCardContainer}>
-                            <h3 style={styles.homeTitle}>Games & Sports</h3>
-                            <div style={styles.sportsGrid20}>
+                        {/* Quick Action Shortcuts Grid */}
+                        <div style={styles.quickActionGridLight}>
+                            <div
+                                style={styles.quickActionCardLight}
+                                onClick={() => setActiveTab("booking")}
+                                role="button"
+                                tabIndex={0}
+                            >
+                                <div style={{ ...styles.quickActionIconLight, backgroundColor: "#ecfdf5", color: "#059669" }}>
+                                    <MapPin size={22} />
+                                </div>
+                                <div style={styles.quickActionInfo}>
+                                    <h4 style={styles.quickActionTitleLight}>Book an Arena</h4>
+                                    <p style={styles.quickActionSubLight}>Find &amp; reserve turf, courts, fields nearby</p>
+                                </div>
+                            </div>
+
+                            <div
+                                style={styles.quickActionCardLight}
+                                onClick={() => {
+                                    setActiveTab("game");
+                                    setGameSubTab("host");
+                                }}
+                                role="button"
+                                tabIndex={0}
+                            >
+                                <div style={{ ...styles.quickActionIconLight, backgroundColor: "#e0e7ff", color: "#4f46e5" }}>
+                                    <PlusCircle size={22} />
+                                </div>
+                                <div style={styles.quickActionInfo}>
+                                    <h4 style={styles.quickActionTitleLight}>Host a Match</h4>
+                                    <p style={styles.quickActionSubLight}>Create custom match lobby &amp; split costs</p>
+                                </div>
+                            </div>
+
+                            <div
+                                style={styles.quickActionCardLight}
+                                onClick={() => {
+                                    setActiveTab("game");
+                                    setGameSubTab("explore");
+                                }}
+                                role="button"
+                                tabIndex={0}
+                            >
+                                <div style={{ ...styles.quickActionIconLight, backgroundColor: "#fef3c7", color: "#d97706" }}>
+                                    <Compass size={22} />
+                                </div>
+                                <div style={styles.quickActionInfo}>
+                                    <h4 style={styles.quickActionTitleLight}>Join Open Games</h4>
+                                    <p style={styles.quickActionSubLight}>Discover active lobbies looking for players</p>
+                                </div>
+                            </div>
+
+                            <div
+                                style={styles.quickActionCardLight}
+                                onClick={() => setActiveTab("training")}
+                                role="button"
+                                tabIndex={0}
+                            >
+                                <div style={{ ...styles.quickActionIconLight, backgroundColor: "#ffe4e6", color: "#e11d48" }}>
+                                    <Dumbbell size={22} />
+                                </div>
+                                <div style={styles.quickActionInfo}>
+                                    <h4 style={styles.quickActionTitleLight}>Find Trainers</h4>
+                                    <p style={styles.quickActionSubLight}>Book certified sports trainers &amp; sessions</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Games and Sports Showcase (20 sports light grid) */}
+                        <div style={styles.sportsCardContainerLight}>
+                            <div style={styles.sectionHeaderLight}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                    <Gamepad2 size={20} style={{ color: "#059669" }} />
+                                    <h3 style={styles.homeTitleLight}>Explore Sports &amp; Activities</h3>
+                                </div>
+                                <span style={styles.badgeLightEmerald}>20 Sports Available</span>
+                            </div>
+
+                            <div style={styles.sportsGrid20Light}>
                                 {twentySports.map((sport, index) => {
                                     return (
-                                        <div key={index} style={styles.sportItemBorderless}>
-                                            <span style={{ fontSize: "32px", marginBottom: "8px", display: "block" }}>
+                                        <div
+                                            key={index}
+                                            style={styles.sportItemLight}
+                                            onClick={() => {
+                                                setSelectedSport(sport.id);
+                                                setActiveTab("booking");
+                                            }}
+                                            role="button"
+                                            tabIndex={0}
+                                        >
+                                            <span style={{ fontSize: "32px", marginBottom: "6px", display: "block" }}>
                                                 {sport.emoji}
                                             </span>
-                                            <span style={styles.sportItemName}>{sport.name}</span>
+                                            <span style={styles.sportItemNameLight}>{sport.name}</span>
                                         </div>
                                     );
                                 })}
                             </div>
                         </div>
 
-                        {/* Featured Venues and Host/Join a Game Column Layout */}
+                        {/* Featured Venues and Live Game Lobbies (Two Column Section) */}
                         <div style={styles.homeTwoColumns}>
-                            {/* Featured Venues Box (real venues from the discovery API) */}
-                            <div style={styles.boxCard}>
-                                <div style={styles.boxHeader}>
-                                    <UserCheck size={20} style={{ color: "#d9ff6e" }} />
-                                    <h3 style={styles.boxTitle}>Featured Venues</h3>
+                            {/* Featured Venues Box */}
+                            <div style={styles.boxCardLight}>
+                                <div style={styles.boxHeaderLight}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                        <MapPin size={20} style={{ color: "#059669" }} />
+                                        <h3 style={styles.boxTitleLight}>Featured Arenas &amp; Venues</h3>
+                                    </div>
+                                    <button
+                                        style={styles.viewAllBtnLight}
+                                        onClick={() => setActiveTab("booking")}
+                                    >
+                                        View All
+                                    </button>
                                 </div>
+
                                 {loadingVenues ? (
-                                    <div style={{ padding: "16px 4px", color: "rgba(148,163,184,0.6)", fontSize: 13 }}>
-                                        Loading venues…
+                                    <div style={styles.loadingBoxLight}>
+                                        <Loader2 className="animate-spin" size={24} style={{ color: "#059669" }} />
+                                        <span>Discovering sports venues nearby...</span>
                                     </div>
                                 ) : featuredVenues.length === 0 ? (
-                                    <div style={{ padding: "16px 4px", color: "rgba(148,163,184,0.6)", fontSize: 13 }}>
-                                        No venues available yet. Check back soon!
+                                    <div style={styles.emptyBoxLight}>
+                                        <MapPin size={32} style={{ color: "#cbd5e1", marginBottom: "8px" }} />
+                                        <p>No featured venues available right now.</p>
                                     </div>
                                 ) : (
-                                    <div style={styles.trainersList}>
-                                        {featuredVenues.map((venue) => (
-                                            <div key={venue.id} style={styles.trainerItem}>
-                                                <div style={styles.trainerAvatar}>{venue.name?.charAt(0) || "V"}</div>
-                                                <div style={styles.trainerInfo}>
-                                                    <span style={styles.trainerName}>{venue.name}</span>
-                                                    <span style={styles.trainerSport}>
-                                                        {venue.location} • ⭐ {venue.rating ?? "New"}
-                                                    </span>
+                                    <div style={styles.venueListLight}>
+                                        {featuredVenues.slice(0, 4).map((venue) => (
+                                            <div key={venue.id} style={styles.venueCardItemLight}>
+                                                <div style={styles.venueAvatarLight}>
+                                                    {venue.name?.charAt(0)?.toUpperCase() || "V"}
                                                 </div>
-                                                <button
-                                                    style={styles.trainerBtn}
-                                                    onClick={() => router.push(`/venues/${venue.id}`)}
-                                                >
-                                                    Book Now
-                                                </button>
+                                                <div style={styles.venueInfoLight}>
+                                                    <div style={styles.venueNameLight}>{venue.name}</div>
+                                                    <div style={styles.venueSubLight}>
+                                                        📍 {venue.location || "City Arena"} • ⭐ {venue.rating ?? "5.0"}
+                                                    </div>
+                                                </div>
+                                                <div style={styles.venueActionLight}>
+                                                    <span style={styles.venuePriceTagLight}>
+                                                        ₹{venue.base_price_per_hour || 800}/hr
+                                                    </span>
+                                                    <button
+                                                        style={styles.venueBookBtnLight}
+                                                        onClick={() => router.push(`/venues/${venue.id}`)}
+                                                    >
+                                                        Book
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
                                 )}
                             </div>
 
-                            {/* Host or Join a Game Box */}
-                            <div style={styles.boxCard}>
-                                <div style={styles.boxHeader}>
-                                    <Users size={20} style={{ color: "#10b981" }} />
-                                    <h3 style={styles.boxTitle}>Host or Join a Game</h3>
+                            {/* Live Matches & Game Lobbies Box */}
+                            <div style={styles.boxCardLight}>
+                                <div style={styles.boxHeaderLight}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                        <Sparkles size={20} style={{ color: "#4f46e5" }} />
+                                        <h3 style={styles.boxTitleLight}>Live Game Lobbies</h3>
+                                    </div>
+                                    <button
+                                        style={styles.viewAllBtnLight}
+                                        onClick={() => {
+                                            setActiveTab("game");
+                                            setGameSubTab("explore");
+                                        }}
+                                    >
+                                        Explore Lobbies
+                                    </button>
                                 </div>
-                                <div style={{ padding: "8px 4px 4px", color: "rgba(148,163,184,0.6)", fontSize: 13 }}>
-                                    Team discovery is coming soon. Meanwhile, host your own match or join an open lobby.
-                                </div>
-                                <button
-                                    style={{ ...styles.trainerBtn, marginTop: 14 }}
-                                    onClick={() => setActiveTab("game")}
-                                >
-                                    Go to Game Tab
-                                </button>
+
+                                {loadingPublicGames ? (
+                                    <div style={styles.loadingBoxLight}>
+                                        <Loader2 className="animate-spin" size={24} style={{ color: "#4f46e5" }} />
+                                        <span>Loading open game lobbies...</span>
+                                    </div>
+                                ) : publicGames.length === 0 ? (
+                                    <div style={styles.emptyBoxLight}>
+                                        <Users size={32} style={{ color: "#cbd5e1", marginBottom: "8px" }} />
+                                        <p style={{ fontWeight: 600, color: "#334155" }}>No open lobbies active right now</p>
+                                        <p style={{ fontSize: "12px", color: "#64748b", marginTop: "4px" }}>
+                                            Host your own match and invite fellow players!
+                                        </p>
+                                        <button
+                                            style={styles.hostLobbyBtnLight}
+                                            onClick={() => {
+                                                setActiveTab("game");
+                                                setGameSubTab("host");
+                                            }}
+                                        >
+                                            <PlusCircle size={14} />
+                                            Host a Game
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div style={styles.lobbyListLight}>
+                                        {publicGames.slice(0, 3).map((game) => {
+                                            const spotsLeft = (game.max_players || 4) - (game.rsvps ? game.rsvps.length : 1);
+                                            return (
+                                                <div key={game.id} style={styles.lobbyCardItemLight}>
+                                                    <div style={styles.lobbyHeaderLight}>
+                                                        <span style={styles.lobbySportTagLight}>
+                                                            {getSportEmoji(game.sport)} {game.sport?.toUpperCase()}
+                                                        </span>
+                                                        <span style={styles.lobbyPrivacyBadgeLight}>
+                                                            {game.privacy_type === "private" ? "Invite Only 🔒" : "Public 🌍"}
+                                                        </span>
+                                                    </div>
+
+                                                    <div style={styles.lobbyMetaLight}>
+                                                        <div>📅 {game.date} at {game.time}</div>
+                                                        <div>📍 {game.location}</div>
+                                                    </div>
+
+                                                    <div style={styles.lobbyFooterLight}>
+                                                        <div style={styles.lobbySpotsLight}>
+                                                            <span>Players: <strong>{game.rsvps ? game.rsvps.length : 1} / {game.max_players || 4}</strong></span>
+                                                            <span style={{ fontSize: "11px", color: "#059669" }}>
+                                                                {spotsLeft > 0 ? `${spotsLeft} spots left` : "Lobby Full"}
+                                                            </span>
+                                                        </div>
+                                                        <button
+                                                            style={styles.lobbyJoinBtnLight}
+                                                            onClick={() => handleJoinGame(game.id)}
+                                                        >
+                                                            Join Match
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -1015,246 +1225,351 @@ export default function UserDashboard() {
                 )}
 
                 {activeTab === "game" && (
-                    /* Game Tab: sub-tabs for Hosting form and Joined Matches list */
-                    <div style={styles.bookingsSection}>
-                        <div style={styles.gameSubNav}>
+                    /* Game Tab: Light Mode Match Center & Lobby Hub (Senior UI/UX Designer Skill) */
+                    <div style={styles.homeContainer}>
+
+                        {/* Light Mode Games Hero Banner */}
+                        <div style={styles.homeHeroBannerLight}>
+                            <div style={styles.heroMainTextGroup}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "6px" }}>
+                                    <span style={{ fontSize: "28px" }}>🎮</span>
+                                    <h1 style={styles.heroTitleLight}>Game Lobbies &amp; Match Center</h1>
+                                </div>
+                                <p style={styles.heroSubtitleLight}>
+                                    Host custom sports matches, split ground costs with players, or join open game lobbies near you.
+                                </p>
+                            </div>
+
+                            {/* Games Summary Stats */}
+                            <div style={styles.heroStatsGridLight}>
+                                <div style={styles.heroStatCardLight}>
+                                    <div style={{ ...styles.statIconBox, backgroundColor: "#ecfdf5", color: "#059669" }}>
+                                        <Trophy size={18} />
+                                    </div>
+                                    <div>
+                                        <div style={styles.statValLight}>
+                                            {hostedGames.filter((g) => g.owner_id === Number(userId)).length}
+                                        </div>
+                                        <div style={styles.statLblLight}>Hosted Lobbies</div>
+                                    </div>
+                                </div>
+
+                                <div style={styles.heroStatCardLight}>
+                                    <div style={{ ...styles.statIconBox, backgroundColor: "#e0e7ff", color: "#4f46e5" }}>
+                                        <Users size={18} />
+                                    </div>
+                                    <div>
+                                        <div style={styles.statValLight}>
+                                            {hostedGames.filter((g) => g.owner_id !== Number(userId)).length}
+                                        </div>
+                                        <div style={styles.statLblLight}>Joined Matches</div>
+                                    </div>
+                                </div>
+
+                                <div style={styles.heroStatCardLight}>
+                                    <div style={{ ...styles.statIconBox, backgroundColor: "#fef3c7", color: "#d97706" }}>
+                                        <Compass size={18} />
+                                    </div>
+                                    <div>
+                                        <div style={styles.statValLight}>{publicGames ? publicGames.length : 0}</div>
+                                        <div style={styles.statLblLight}>Open Lobbies</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Sub-Navigation Pill Bar */}
+                        <div style={styles.gameSubNavLight}>
                             <button
                                 onClick={() => setGameSubTab("host")}
                                 style={{
-                                    ...styles.gameSubNavBtn,
-                                    backgroundColor: gameSubTab === "host" ? "#ecfdf5" : "transparent",
+                                    ...styles.gameSubNavBtnLight,
+                                    backgroundColor: gameSubTab === "host" ? "#ecfdf5" : "#ffffff",
                                     color: gameSubTab === "host" ? "#047857" : "#475569",
                                     borderColor: gameSubTab === "host" ? "#a7f3d0" : "#cbd5e1",
+                                    boxShadow: gameSubTab === "host" ? "0 2px 8px rgba(5, 150, 105, 0.12)" : "none",
                                 }}
                             >
-                                <PlusCircle size={14} />
+                                <PlusCircle size={15} />
                                 <span>Host a Game</span>
                             </button>
 
                             <button
                                 onClick={() => setGameSubTab("joined")}
                                 style={{
-                                    ...styles.gameSubNavBtn,
-                                    backgroundColor: gameSubTab === "joined" ? "#ecfdf5" : "transparent",
+                                    ...styles.gameSubNavBtnLight,
+                                    backgroundColor: gameSubTab === "joined" ? "#ecfdf5" : "#ffffff",
                                     color: gameSubTab === "joined" ? "#047857" : "#475569",
                                     borderColor: gameSubTab === "joined" ? "#a7f3d0" : "#cbd5e1",
+                                    boxShadow: gameSubTab === "joined" ? "0 2px 8px rgba(5, 150, 105, 0.12)" : "none",
                                 }}
                             >
-                                <Users size={14} />
-                                <span>Joined Games</span>
+                                <Users size={15} />
+                                <span>Joined Games ({hostedGames.length})</span>
                             </button>
 
                             <button
                                 onClick={() => setGameSubTab("explore")}
                                 style={{
-                                    ...styles.gameSubNavBtn,
-                                    backgroundColor:
-                                        gameSubTab === "explore" ? "#ecfdf5" : "transparent",
+                                    ...styles.gameSubNavBtnLight,
+                                    backgroundColor: gameSubTab === "explore" ? "#ecfdf5" : "#ffffff",
                                     color: gameSubTab === "explore" ? "#047857" : "#475569",
                                     borderColor: gameSubTab === "explore" ? "#a7f3d0" : "#cbd5e1",
+                                    boxShadow: gameSubTab === "explore" ? "0 2px 8px rgba(5, 150, 105, 0.12)" : "none",
                                 }}
                             >
-                                <Compass size={14} />
-                                <span>Join Games</span>
+                                <Compass size={15} />
+                                <span>Join Games ({publicGames.length})</span>
                             </button>
                         </div>
 
+                        {/* SUB-TAB 1: HOST A GAME FORM (PREMIUM LIGHT THEME) */}
                         {gameSubTab === "host" && (
-                            /* Host a Game Form (Create Game Match) */
-                            <div style={styles.boxCard}>
-                                <div style={styles.boxHeader}>
-                                    <PlusCircle size={20} style={{ color: "#10b981" }} />
-                                    <h3 style={styles.boxTitle}>Host a Sports Match</h3>
+                            <div style={styles.boxCardLight}>
+                                <div style={styles.boxHeaderLight}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                                        <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "#ecfdf5", color: "#059669", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #a7f3d0" }}>
+                                            <PlusCircle size={22} />
+                                        </div>
+                                        <div>
+                                            <h3 style={styles.boxTitleLight}>Host a Sports Match</h3>
+                                            <p style={{ fontSize: "13px", color: "#64748b", margin: "2px 0 0 0" }}>
+                                                Create a match lobby, invite fellow players, and split venue ground costs.
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {gameSuccess ? (
-                                    <div style={{ textAlign: "center", padding: "30px 0" }}>
+                                    <div style={{ textAlign: "center", padding: "40px 20px" }}>
                                         <div
                                             style={{
-                                                width: "50px",
-                                                height: "50px",
+                                                width: "60px",
+                                                height: "60px",
                                                 borderRadius: "50%",
-                                                background: "rgba(198, 255, 61, 0.1)",
-                                                color: "#10b981",
-                                                fontSize: "20px",
+                                                background: "#ecfdf5",
+                                                color: "#059669",
+                                                fontSize: "26px",
                                                 fontWeight: "bold",
                                                 display: "flex",
                                                 alignItems: "center",
                                                 justifyContent: "center",
                                                 margin: "0 auto 16px auto",
-                                                border: "1px solid #10b981",
+                                                border: "2px solid #a7f3d0",
+                                                boxShadow: "0 4px 14px rgba(16, 185, 129, 0.2)",
                                             }}
                                         >
                                             ✓
                                         </div>
-                                        <h3 style={{ color: "#ffffff" }}>Match Created Successfully!</h3>
-                                        <p
-                                            style={{
-                                                color: "rgba(148, 163, 184, 0.6)",
-                                                fontSize: "13px",
-                                                marginTop: "8px",
-                                            }}
-                                        >
-                                            Hosting lobby created. Redirecting to your joined games...
+                                        <h3 style={{ color: "#0f172a", fontSize: "22px", fontWeight: "800" }}>
+                                            Match Created Successfully!
+                                        </h3>
+                                        <p style={{ color: "#64748b", fontSize: "14px", marginTop: "8px" }}>
+                                            Hosting lobby is live. Redirecting to your joined games list...
                                         </p>
                                     </div>
                                 ) : (
-                                    <form onSubmit={handleHostGameSubmit} style={styles.gameForm}>
-                                        <div style={styles.formRow}>
-                                            <div style={styles.formGroup}>
-                                                <label style={styles.formLabel}>Select Sport</label>
-                                                <select
-                                                    value={gameSport}
-                                                    onChange={(e) => setGameSport(e.target.value)}
-                                                    style={styles.formSelect}
-                                                >
-                                                    <option value="badminton">🏸 Badminton</option>
-                                                    <option value="cricket">🏏 Cricket</option>
-                                                    <option value="football">⚽ Football</option>
-                                                    <option value="basketball">🏀 Basketball</option>
-                                                    <option value="tennis">🎾 Tennis</option>
-                                                    <option value="swimming">🏊 Swimming</option>
-                                                    <option value="volleyball">🏐 Volleyball</option>
-                                                </select>
-                                            </div>
+                                    <form onSubmit={handleHostGameSubmit} style={styles.gameFormLight}>
 
-                                            <div style={styles.formGroup}>
-                                                <label style={styles.formLabel}>Skill Level Required</label>
-                                                <select
-                                                    value={gameSkillLevel}
-                                                    onChange={(e) => setGameSkillLevel(e.target.value)}
-                                                    style={styles.formSelect}
-                                                >
-                                                    <option value="All">All Skill Levels</option>
-                                                    <option value="Beginner">Beginner</option>
-                                                    <option value="Intermediate">Intermediate</option>
-                                                    <option value="Advanced">Advanced</option>
-                                                </select>
+                                        {/* SECTION 1: MATCH ESSENTIALS */}
+                                        <div style={{ marginBottom: "8px" }}>
+                                            <div style={{ fontSize: "13px", fontWeight: "800", color: "#059669", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}>
+                                                <Activity size={15} />
+                                                <span>1. Match Essentials</span>
                                             </div>
-                                        </div>
-
-                                        <div style={styles.formRow}>
-                                            <div style={styles.formGroup}>
-                                                <label style={styles.formLabel}>Match Date</label>
-                                                <input
-                                                    type="date"
-                                                    value={gameDate}
-                                                    onChange={(e) => setGameDate(e.target.value)}
-                                                    style={styles.formInput}
-                                                    required
-                                                />
-                                            </div>
-
-                                            <div style={styles.formGroup}>
-                                                <label style={styles.formLabel}>Start Time</label>
-                                                <input
-                                                    type="time"
-                                                    value={gameTime}
-                                                    onChange={(e) => setGameTime(e.target.value)}
-                                                    style={styles.formInput}
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div style={styles.formRow}>
-                                            <div style={styles.formGroup}>
-                                                <label style={styles.formLabel}>Ground / Location / Venue Name</label>
-                                                <input
-                                                    type="text"
-                                                    value={gameLocation}
-                                                    onChange={(e) => setGameLocation(e.target.value)}
-                                                    placeholder="e.g. Mukijo Sports Arena, Gachibowli"
-                                                    style={styles.formInput}
-                                                    required
-                                                />
-                                            </div>
-
-                                            <div style={styles.formGroup}>
-                                                <label style={styles.formLabel}>Max Players Wanted</label>
-                                                <input
-                                                    type="number"
-                                                    value={gameMaxPlayers}
-                                                    onChange={(e) => setGameMaxPlayers(e.target.value)}
-                                                    min="2"
-                                                    max="50"
-                                                    style={styles.formInput}
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div style={styles.formRow}>
-                                            <div style={styles.formGroup}>
-                                                <label style={styles.formLabel}>Match Privacy Settings</label>
-                                                <div style={styles.tabToggleContainer}>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setGamePrivacy("public")}
-                                                        style={{
-                                                            ...styles.toggleTabBtn,
-                                                            backgroundColor:
-                                                                gamePrivacy === "public" ? "#10b981" : "transparent",
-                                                            color:
-                                                                gamePrivacy === "public"
-                                                                    ? "#08080f"
-                                                                    : "rgba(244, 244, 245, 0.6)",
-                                                        }}
+                                            <div style={styles.formRowLight}>
+                                                <div style={styles.formGroupLight}>
+                                                    <label style={styles.formLabelLight}>Select Sport</label>
+                                                    <select
+                                                        value={gameSport}
+                                                        onChange={(e) => setGameSport(e.target.value)}
+                                                        style={styles.formSelectLight}
                                                     >
-                                                        🌍 Public Match
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setGamePrivacy("private")}
-                                                        style={{
-                                                            ...styles.toggleTabBtn,
-                                                            backgroundColor:
-                                                                gamePrivacy === "private" ? "#10b981" : "transparent",
-                                                            color:
-                                                                gamePrivacy === "private"
-                                                                    ? "#08080f"
-                                                                    : "rgba(244, 244, 245, 0.6)",
-                                                        }}
+                                                        <option value="badminton">🏸 Badminton</option>
+                                                        <option value="cricket">🏏 Cricket</option>
+                                                        <option value="football">⚽ Football</option>
+                                                        <option value="basketball">🏀 Basketball</option>
+                                                        <option value="tennis">🎾 Tennis</option>
+                                                        <option value="swimming">🏊 Swimming</option>
+                                                        <option value="volleyball">🏐 Volleyball</option>
+                                                    </select>
+                                                </div>
+
+                                                <div style={styles.formGroupLight}>
+                                                    <label style={styles.formLabelLight}>Skill Level Required</label>
+                                                    <select
+                                                        value={gameSkillLevel}
+                                                        onChange={(e) => setGameSkillLevel(e.target.value)}
+                                                        style={styles.formSelectLight}
                                                     >
-                                                        🔒 Invite-Only
-                                                    </button>
+                                                        <option value="All">All Skill Levels</option>
+                                                        <option value="Beginner">Beginner</option>
+                                                        <option value="Intermediate">Intermediate</option>
+                                                        <option value="Advanced">Advanced</option>
+                                                    </select>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div style={styles.formGroup}>
-                                            <label style={styles.formLabel}>Additional Match Info / Rules</label>
-                                            <textarea
-                                                value={gameDescription}
-                                                onChange={(e) => setGameDescription(e.target.value)}
-                                                placeholder="e.g. Bring your own sports gear and rackets. We will split the court cost at the venue!"
-                                                style={styles.formTextarea}
-                                            />
+                                        {/* SECTION 2: SCHEDULE & LOCATION */}
+                                        <div style={{ marginBottom: "8px" }}>
+                                            <div style={{ fontSize: "13px", fontWeight: "800", color: "#059669", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}>
+                                                <Calendar size={15} />
+                                                <span>2. Schedule &amp; Venue Details</span>
+                                            </div>
+                                            <div style={styles.formRowLight}>
+                                                <div style={styles.formGroupLight}>
+                                                    <label style={styles.formLabelLight}>Match Date</label>
+                                                    <input
+                                                        type="date"
+                                                        value={gameDate}
+                                                        onChange={(e) => setGameDate(e.target.value)}
+                                                        style={styles.formInputLight}
+                                                        required
+                                                    />
+                                                </div>
+
+                                                <div style={styles.formGroupLight}>
+                                                    <label style={styles.formLabelLight}>Start Time</label>
+                                                    <input
+                                                        type="time"
+                                                        value={gameTime}
+                                                        onChange={(e) => setGameTime(e.target.value)}
+                                                        style={styles.formInputLight}
+                                                        required
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div style={{ ...styles.formRowLight, marginTop: "16px" }}>
+                                                <div style={styles.formGroupLight}>
+                                                    <label style={styles.formLabelLight}>Ground / Venue / Arena Name</label>
+                                                    <input
+                                                        type="text"
+                                                        value={gameLocation}
+                                                        onChange={(e) => setGameLocation(e.target.value)}
+                                                        placeholder="e.g. Mukijo Sports Arena, Gachibowli"
+                                                        style={styles.formInputLight}
+                                                        required
+                                                    />
+                                                </div>
+
+                                                <div style={styles.formGroupLight}>
+                                                    <label style={styles.formLabelLight}>Max Players Wanted</label>
+                                                    <input
+                                                        type="number"
+                                                        value={gameMaxPlayers}
+                                                        onChange={(e) => setGameMaxPlayers(e.target.value)}
+                                                        min="2"
+                                                        max="50"
+                                                        style={styles.formInputLight}
+                                                        required
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
 
-                                        <button type="submit" disabled={submittingGame} style={styles.formSubmitBtn}>
-                                            {submittingGame ? "Hosting Match..." : "Host Match"}
+                                        {/* SECTION 3: PRIVACY & RULES */}
+                                        <div>
+                                            <div style={{ fontSize: "13px", fontWeight: "800", color: "#059669", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}>
+                                                <Shield size={15} />
+                                                <span>3. Privacy &amp; Match Rules</span>
+                                            </div>
+                                            <div style={styles.formGroupLight}>
+                                                <label style={styles.formLabelLight}>Match Privacy Access</label>
+                                                <div style={styles.privacyToggleGroupLight}>
+                                                    <div
+                                                        onClick={() => setGamePrivacy("public")}
+                                                        style={{
+                                                            ...styles.privacyBtnLight,
+                                                            backgroundColor: gamePrivacy === "public" ? "#ecfdf5" : "#ffffff",
+                                                            color: gamePrivacy === "public" ? "#047857" : "#475569",
+                                                            borderColor: gamePrivacy === "public" ? "#059669" : "#cbd5e1",
+                                                            boxShadow: gamePrivacy === "public" ? "0 2px 8px rgba(5,150,105,0.12)" : "none",
+                                                        }}
+                                                        role="button"
+                                                        tabIndex={0}
+                                                    >
+                                                        <div style={{ fontWeight: "700", fontSize: "14px" }}>🌍 Public Match</div>
+                                                        <div style={{ fontSize: "11px", opacity: 0.8, marginTop: "2px" }}>
+                                                            Listed on open match discovery feed for anyone to join
+                                                        </div>
+                                                    </div>
+
+                                                    <div
+                                                        onClick={() => setGamePrivacy("private")}
+                                                        style={{
+                                                            ...styles.privacyBtnLight,
+                                                            backgroundColor: gamePrivacy === "private" ? "#ecfdf5" : "#ffffff",
+                                                            color: gamePrivacy === "private" ? "#047857" : "#475569",
+                                                            borderColor: gamePrivacy === "private" ? "#059669" : "#cbd5e1",
+                                                            boxShadow: gamePrivacy === "private" ? "0 2px 8px rgba(5,150,105,0.12)" : "none",
+                                                        }}
+                                                        role="button"
+                                                        tabIndex={0}
+                                                    >
+                                                        <div style={{ fontWeight: "700", fontSize: "14px" }}>🔒 Invite-Only</div>
+                                                        <div style={{ fontSize: "11px", opacity: 0.8, marginTop: "2px" }}>
+                                                            Private match. Requires host invite code or approval
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div style={{ ...styles.formGroupLight, marginTop: "16px" }}>
+                                                <label style={styles.formLabelLight}>Additional Match Rules &amp; Notes</label>
+                                                <textarea
+                                                    value={gameDescription}
+                                                    onChange={(e) => setGameDescription(e.target.value)}
+                                                    placeholder="e.g. Bring your own rackets. Court cost will be split evenly among players at venue check-in!"
+                                                    style={styles.formTextareaLight}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <button type="submit" disabled={submittingGame} style={styles.formSubmitBtnLight}>
+                                            {submittingGame ? (
+                                                <>
+                                                    <Loader2 className="animate-spin" size={18} />
+                                                    <span>Hosting Match...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <PlusCircle size={18} />
+                                                    <span>Host Match Now</span>
+                                                </>
+                                            )}
                                         </button>
                                     </form>
                                 )}
                             </div>
                         )}
 
+                        {/* SUB-TAB 2: JOINED & HOSTED GAMES LIST (PREMIUM LIGHT THEME) */}
                         {gameSubTab === "joined" && (
-                            /* List of Joined & Hosted game activities */
-                            <div>
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "12px" }}>
-                                    <h2 style={styles.sectionTitle}>Joined &amp; Hosted Matches</h2>
+                            <div style={styles.boxCardLight}>
+                                <div style={styles.sectionHeaderLight}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                        <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "#ecfdf5", color: "#059669", display: "flex", alignItems: "center", justifyCenter: "center", border: "1px solid #a7f3d0" }}>
+                                            <Users size={22} />
+                                        </div>
+                                        <div>
+                                            <h3 style={styles.boxTitleLight}>Your Joined &amp; Hosted Matches</h3>
+                                            <p style={{ fontSize: "13px", color: "#64748b", margin: "2px 0 0 0" }}>
+                                                Track upcoming matches, view player RSVPs, and manage your lobbies.
+                                            </p>
+                                        </div>
+                                    </div>
 
-                                    {/* Filter pills: All | Joined as Player | Hosted by Me */}
-                                    <div style={styles.tabToggleContainer}>
+                                    {/* Filter Pills */}
+                                    <div style={styles.filterPillGroupLight}>
                                         <button
                                             type="button"
                                             onClick={() => setJoinedGamesFilter("all")}
                                             style={{
-                                                ...styles.toggleTabBtn,
-                                                backgroundColor: joinedGamesFilter === "all" ? "#10b981" : "transparent",
-                                                color: joinedGamesFilter === "all" ? "#08080f" : "rgba(244, 244, 245, 0.6)",
+                                                ...styles.filterPillBtnLight,
+                                                backgroundColor: joinedGamesFilter === "all" ? "#059669" : "#f1f5f9",
+                                                color: joinedGamesFilter === "all" ? "#ffffff" : "#475569",
                                             }}
                                         >
                                             All ({hostedGames.length})
@@ -1263,9 +1578,9 @@ export default function UserDashboard() {
                                             type="button"
                                             onClick={() => setJoinedGamesFilter("joined")}
                                             style={{
-                                                ...styles.toggleTabBtn,
-                                                backgroundColor: joinedGamesFilter === "joined" ? "#10b981" : "transparent",
-                                                color: joinedGamesFilter === "joined" ? "#08080f" : "rgba(244, 244, 245, 0.6)",
+                                                ...styles.filterPillBtnLight,
+                                                backgroundColor: joinedGamesFilter === "joined" ? "#059669" : "#f1f5f9",
+                                                color: joinedGamesFilter === "joined" ? "#ffffff" : "#475569",
                                             }}
                                         >
                                             ⚽ Joined ({hostedGames.filter((g) => g.owner_id !== Number(userId)).length})
@@ -1274,9 +1589,9 @@ export default function UserDashboard() {
                                             type="button"
                                             onClick={() => setJoinedGamesFilter("hosted")}
                                             style={{
-                                                ...styles.toggleTabBtn,
-                                                backgroundColor: joinedGamesFilter === "hosted" ? "#10b981" : "transparent",
-                                                color: joinedGamesFilter === "hosted" ? "#08080f" : "rgba(244, 244, 245, 0.6)",
+                                                ...styles.filterPillBtnLight,
+                                                backgroundColor: joinedGamesFilter === "hosted" ? "#059669" : "#f1f5f9",
+                                                color: joinedGamesFilter === "hosted" ? "#ffffff" : "#475569",
                                             }}
                                         >
                                             🏆 Hosted ({hostedGames.filter((g) => g.owner_id === Number(userId)).length})
@@ -1285,32 +1600,29 @@ export default function UserDashboard() {
                                 </div>
 
                                 {loadingHostedGames ? (
-                                    <div style={styles.loadingContainer}>
-                                        <Loader2 className="animate-spin" size={32} style={{ color: "#10b981" }} />
-                                        <p style={{ marginTop: "16px" }}>Fetching your joined matches...</p>
+                                    <div style={styles.loadingBoxLight}>
+                                        <Loader2 className="animate-spin" size={28} style={{ color: "#059669" }} />
+                                        <span>Fetching your joined game matches...</span>
                                     </div>
                                 ) : hostedGames.length === 0 ? (
-                                    <div style={styles.emptyContainer}>
-                                        <Play
-                                            size={48}
-                                            style={{ color: "rgba(148, 163, 184, 0.15)", marginBottom: "16px" }}
-                                        />
-                                        <h3>No joined matches yet</h3>
-                                        <p
-                                            style={{
-                                                color: "rgba(148, 163, 184, 0.4)",
-                                                fontSize: "14px",
-                                                marginTop: "8px",
-                                            }}
-                                        >
-                                            You have not joined or hosted any game matches. Discover open lobbies to join!
+                                    <div style={styles.emptyBoxLight}>
+                                        <Play size={40} style={{ color: "#cbd5e1", marginBottom: "12px" }} />
+                                        <h4 style={{ color: "#0f172a", fontSize: "16px", fontWeight: "700" }}>
+                                            No matches joined yet
+                                        </h4>
+                                        <p style={{ color: "#64748b", fontSize: "13px", marginTop: "4px" }}>
+                                            You haven&apos;t joined or hosted any matches yet. Discover active lobbies!
                                         </p>
-                                        <button onClick={() => setGameSubTab("explore")} style={styles.exploreLinkBtn}>
+                                        <button
+                                            onClick={() => setGameSubTab("explore")}
+                                            style={styles.hostLobbyBtnLight}
+                                        >
+                                            <Compass size={14} />
                                             Explore &amp; Join Games
                                         </button>
                                     </div>
                                 ) : (
-                                    <div style={styles.miniGameGrid}>
+                                    <div style={styles.miniGameGridLight}>
                                         {hostedGames
                                             .filter((act) => {
                                                 const isOwner = act.owner_id === Number(userId);
@@ -1321,139 +1633,68 @@ export default function UserDashboard() {
                                             .map((act) => {
                                                 const isOwner = act.owner_id === Number(userId);
                                                 return (
-                                                    <div key={act.id} style={styles.miniGameCard}>
-                                                        <div style={styles.cardHeaderMini}>
-                                                            <div style={styles.sportHeader}>
-                                                                <span style={{ fontSize: "20px" }}>
+                                                    <div key={act.id} style={styles.joinedMatchCardLight}>
+                                                        <div style={styles.joinedCardHeaderLight}>
+                                                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                                                <span style={{ fontSize: "24px" }}>
                                                                     {getSportEmoji(act.sport)}
                                                                 </span>
-                                                                <span style={{ ...styles.sportLabel, marginLeft: "8px" }}>
-                                                                    {act.sport.toUpperCase()} MATCH
+                                                                <span style={styles.joinedSportTitleLight}>
+                                                                    {act.sport?.toUpperCase()} MATCH
                                                                 </span>
-                                                                {isOwner ? (
-                                                                    <span
-                                                                        style={{
-                                                                            ...styles.badge,
-                                                                            backgroundColor: "rgba(217, 255, 110, 0.1)",
-                                                                            color: "#d9ff6e",
-                                                                            borderColor: "rgba(217, 255, 110, 0.2)",
-                                                                            marginLeft: "10px",
-                                                                        }}
-                                                                    >
-                                                                        HOST
-                                                                    </span>
-                                                                ) : (
-                                                                    <span
-                                                                        style={{
-                                                                            ...styles.badge,
-                                                                            backgroundColor: "rgba(16, 185, 129, 0.1)",
-                                                                            color: "#10b981",
-                                                                            borderColor: "rgba(16, 185, 129, 0.2)",
-                                                                            marginLeft: "10px",
-                                                                        }}
-                                                                    >
-                                                                        PLAYER
-                                                                    </span>
-                                                                )}
                                                             </div>
-                                                            <div
-                                                                style={{
-                                                                    ...styles.badge,
-                                                                    backgroundColor:
+
+                                                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                                                {isOwner ? (
+                                                                    <span style={styles.badgeOwnerHostLight}>HOST</span>
+                                                                ) : (
+                                                                    <span style={styles.badgePlayerJoinedLight}>PLAYER</span>
+                                                                )}
+                                                                <span
+                                                                    style={
                                                                         act.status === "cancelled"
-                                                                            ? "rgba(239, 68, 68, 0.1)"
-                                                                            : "rgba(16, 185, 129, 0.1)",
-                                                                    color:
-                                                                        act.status === "cancelled" ? "#f87171" : "#34d399",
-                                                                    borderColor:
-                                                                        act.status === "cancelled"
-                                                                            ? "rgba(239, 68, 68, 0.2)"
-                                                                            : "rgba(16, 185, 129, 0.2)",
-                                                                }}
-                                                            >
-                                                                {act.status.toUpperCase()}
+                                                                            ? styles.badgeCancelledLight
+                                                                            : styles.badgeConfirmedLight
+                                                                    }
+                                                                >
+                                                                    {act.status?.toUpperCase()}
+                                                                </span>
                                                             </div>
                                                         </div>
 
-                                                        <div style={styles.cardDetailsMini}>
-                                                            <div style={styles.detailItem}>
-                                                                <Calendar
-                                                                    size={14}
-                                                                    style={{ color: "rgba(148, 163, 184, 0.6)" }}
-                                                                />
-                                                                <span>
-                                                                    {act.date} • {act.time}
-                                                                </span>
+                                                        <div style={styles.joinedCardBodyLight}>
+                                                            <div style={styles.joinedDetailRowLight}>
+                                                                <Calendar size={14} style={{ color: "#059669" }} />
+                                                                <span>{act.date} • {act.time}</span>
                                                             </div>
-                                                            <div style={styles.detailItem}>
-                                                                <MapPin
-                                                                    size={14}
-                                                                    style={{ color: "rgba(148, 163, 184, 0.6)" }}
-                                                                />
+                                                            <div style={styles.joinedDetailRowLight}>
+                                                                <MapPin size={14} style={{ color: "#059669" }} />
                                                                 <span>{act.location}</span>
                                                             </div>
-                                                            <div style={styles.detailItem}>
-                                                                <Users
-                                                                    size={14}
-                                                                    style={{ color: "rgba(148, 163, 184, 0.6)" }}
-                                                                />
+                                                            <div style={styles.joinedDetailRowLight}>
+                                                                <Users size={14} style={{ color: "#059669" }} />
                                                                 <span>
-                                                                    Players:{" "}
-                                                                    <strong>
-                                                                        {act.rsvps ? act.rsvps.length : 1} /{" "}
-                                                                        {act.max_players}
-                                                                    </strong>{" "}
-                                                                    ({act.skill_level} Level •{" "}
-                                                                    {act.privacy_type === "private"
-                                                                        ? "Invite-Only 🔒"
-                                                                        : "Public 🌍"}
-                                                                    )
+                                                                    Players: <strong>{act.rsvps ? act.rsvps.length : 1} / {act.max_players}</strong> ({act.skill_level || "All"} Level)
                                                                 </span>
                                                             </div>
                                                             {act.description && (
-                                                                <p
-                                                                    style={{
-                                                                        fontSize: "13px",
-                                                                        color: "rgba(244, 244, 245, 0.6)",
-                                                                        fontStyle: "italic",
-                                                                        marginTop: "6px",
-                                                                    }}
-                                                                >
-                                                                    Notes: &quot;{act.description}&quot;
+                                                                <p style={styles.joinedNotesLight}>
+                                                                    &quot;{act.description}&quot;
                                                                 </p>
                                                             )}
                                                         </div>
 
-                                                        <div style={styles.cardFooterMini}>
+                                                        <div style={styles.joinedCardFooterLight}>
                                                             {isOwner && act.status !== "cancelled" ? (
-                                                                <>
-                                                                    <span
-                                                                        style={{
-                                                                            fontSize: "11px",
-                                                                            color: "rgba(148, 163, 184, 0.4)",
-                                                                        }}
-                                                                    >
-                                                                        Host Controls
-                                                                    </span>
-                                                                    <button
-                                                                        onClick={() => handleCancelHostedGame(act.id)}
-                                                                        style={styles.cancelBtn}
-                                                                    >
-                                                                        Cancel Game Match
-                                                                    </button>
-                                                                </>
-                                                            ) : (
-                                                                <span
-                                                                    style={{
-                                                                        fontSize: "12px",
-                                                                        color: "#10b981",
-                                                                        fontWeight: "600",
-                                                                        display: "flex",
-                                                                        alignItems: "center",
-                                                                        gap: "4px",
-                                                                    }}
+                                                                <button
+                                                                    onClick={() => handleCancelHostedGame(act.id)}
+                                                                    style={styles.cancelGameBtnLight}
                                                                 >
-                                                                    ✓ Joined Match Player
+                                                                    Cancel Game Match
+                                                                </button>
+                                                            ) : (
+                                                                <span style={{ fontSize: "12px", color: "#059669", fontWeight: "700" }}>
+                                                                    ✓ Confirmed Player
                                                                 </span>
                                                             )}
                                                         </div>
@@ -1465,193 +1706,134 @@ export default function UserDashboard() {
                             </div>
                         )}
 
+                        {/* SUB-TAB 3: JOIN GAMES DISCOVERY FEED (PREMIUM LIGHT THEME) */}
                         {gameSubTab === "explore" && (
-                            /* Join Games Discovery feed */
-                            <div>
-                                <h2 style={styles.sectionTitle}>Explore Open Game Lobbies</h2>
+                            <div style={styles.boxCardLight}>
+                                <div style={styles.sectionHeaderLight}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                        <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "#ecfdf5", color: "#059669", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #a7f3d0" }}>
+                                            <Compass size={22} />
+                                        </div>
+                                        <div>
+                                            <h3 style={styles.boxTitleLight}>Explore Open Game Lobbies</h3>
+                                            <p style={{ fontSize: "13px", color: "#64748b", margin: "2px 0 0 0" }}>
+                                                Discover active lobbies hosted by other players and RSVP to join.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span style={styles.badgeLightEmerald}>{publicGames.length} Lobbies Available</span>
+                                </div>
+
                                 {loadingPublicGames ? (
-                                    <div style={styles.loadingContainer}>
-                                        <Loader2 className="animate-spin" size={32} style={{ color: "#10b981" }} />
-                                        <p style={{ marginTop: "16px" }}>Searching for matches near you...</p>
+                                    <div style={styles.loadingBoxLight}>
+                                        <Loader2 className="animate-spin" size={28} style={{ color: "#059669" }} />
+                                        <span>Searching open game lobbies near you...</span>
                                     </div>
                                 ) : publicGames.length === 0 ? (
-                                    <div style={styles.emptyContainer}>
-                                        <Compass
-                                            size={48}
-                                            style={{ color: "rgba(148, 163, 184, 0.15)", marginBottom: "16px" }}
-                                        />
-                                        <h3>No matches found</h3>
-                                        <p
-                                            style={{
-                                                color: "rgba(148, 163, 184, 0.4)",
-                                                fontSize: "14px",
-                                                marginTop: "8px",
-                                            }}
-                                        >
-                                            There are no public game lobbies hosted by other players right now.
+                                    <div style={styles.emptyBoxLight}>
+                                        <Compass size={40} style={{ color: "#cbd5e1", marginBottom: "12px" }} />
+                                        <h4 style={{ color: "#0f172a", fontSize: "16px", fontWeight: "700" }}>
+                                            No open lobbies right now
+                                        </h4>
+                                        <p style={{ color: "#64748b", fontSize: "13px", marginTop: "4px" }}>
+                                            Be the first to host a sports match and invite other players!
                                         </p>
-                                        <button onClick={() => setGameSubTab("host")} style={styles.exploreLinkBtn}>
-                                            Be the first to host a match
+                                        <button
+                                            onClick={() => setGameSubTab("host")}
+                                            style={styles.hostLobbyBtnLight}
+                                        >
+                                            <PlusCircle size={14} />
+                                            Host a Game Match
                                         </button>
                                     </div>
                                 ) : (
-                                    <div style={styles.miniGameGrid}>
+                                    <div style={styles.miniGameGridLight}>
                                         {publicGames.map((game) => {
-                                            const formattedDate = new Date(game.slot_start).toLocaleDateString(
+                                            const formattedDate = new Date(game.slot_start || game.date).toLocaleDateString(
                                                 undefined,
-                                                {
-                                                    weekday: "short",
-                                                    month: "short",
-                                                    day: "numeric",
-                                                }
+                                                { weekday: "short", month: "short", day: "numeric" }
                                             );
-                                            const formattedTime = new Date(game.slot_start).toLocaleTimeString(
+                                            const formattedTime = new Date(game.slot_start || `${game.date}T${game.time}`).toLocaleTimeString(
                                                 undefined,
-                                                {
-                                                    hour: "2-digit",
-                                                    minute: "2-digit",
-                                                }
+                                                { hour: "2-digit", minute: "2-digit" }
                                             );
-                                            const spotsLeft = game.total_spots - game.current_players;
+                                            const spotsLeft = (game.total_spots || game.max_players) - (game.current_players || (game.rsvps ? game.rsvps.length : 1));
                                             const isFull = spotsLeft <= 0;
-                                            const isHost = game.host_id === Number(userId);
+                                            const isHost = (game.host_id || game.owner_id) === Number(userId);
 
                                             return (
-                                                <div key={game.id} style={styles.miniGameCard}>
-                                                    <div style={styles.cardHeaderMini}>
-                                                        <div style={styles.sportHeader}>
-                                                            <span style={{ fontSize: "20px" }}>
+                                                <div key={game.id} style={styles.exploreMatchCardLight}>
+                                                    <div style={styles.joinedCardHeaderLight}>
+                                                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                                            <span style={{ fontSize: "24px" }}>
                                                                 {getSportEmoji(game.sport)}
                                                             </span>
-                                                            <span style={{ ...styles.sportLabel, marginLeft: "8px" }}>
-                                                                {game.sport.toUpperCase()}
+                                                            <span style={styles.joinedSportTitleLight}>
+                                                                {game.sport?.toUpperCase()} MATCH
                                                             </span>
                                                         </div>
                                                         <span
-                                                            style={{
-                                                                ...styles.badge,
-                                                                backgroundColor: isHost
-                                                                    ? "rgba(59, 130, 246, 0.1)"
+                                                            style={
+                                                                isHost
+                                                                    ? styles.badgeOwnerHostLight
                                                                     : isFull
-                                                                    ? "rgba(239, 68, 68, 0.1)"
-                                                                    : "rgba(198, 255, 61, 0.1)",
-                                                                color: isHost ? "#60a5fa" : isFull ? "#f87171" : "#10b981",
-                                                                borderColor: isHost
-                                                                    ? "rgba(59, 130, 246, 0.2)"
-                                                                    : isFull
-                                                                    ? "rgba(239, 68, 68, 0.2)"
-                                                                    : "rgba(198, 255, 61, 0.2)",
-                                                            }}
+                                                                    ? styles.badgeCancelledLight
+                                                                    : styles.badgeConfirmedLight
+                                                            }
                                                         >
-                                                            {isHost ? "YOUR MATCH" : isFull ? "FULL" : "JOINABLE"}
+                                                            {isHost ? "YOUR LOBBY" : isFull ? "FULL" : "JOINABLE"}
                                                         </span>
                                                     </div>
 
-                                                    <div style={styles.cardDetailsMini}>
-                                                        <div style={styles.detailItem}>
-                                                            <Calendar
-                                                                size={14}
-                                                                style={{ color: "rgba(148, 163, 184, 0.6)" }}
-                                                            />
-                                                            <span>
-                                                                {formattedDate} at {formattedTime}
-                                                            </span>
+                                                    <div style={styles.joinedCardBodyLight}>
+                                                        <div style={styles.joinedDetailRowLight}>
+                                                            <Calendar size={14} style={{ color: "#059669" }} />
+                                                            <span>{formattedDate !== "Invalid Date" ? formattedDate : game.date} at {formattedTime !== "Invalid Date" ? formattedTime : game.time}</span>
                                                         </div>
-                                                        <div style={styles.detailItem}>
-                                                            <Trophy
-                                                                size={14}
-                                                                style={{ color: "rgba(148, 163, 184, 0.6)" }}
-                                                            />
-                                                            <span>
-                                                                Split Cost:{" "}
-                                                                <strong style={{ color: "#10b981" }}>
-                                                                    ₹{game.price_per_player}
-                                                                </strong>{" "}
-                                                                per player
-                                                            </span>
+                                                        <div style={styles.joinedDetailRowLight}>
+                                                            <MapPin size={14} style={{ color: "#059669" }} />
+                                                            <span>{game.location}</span>
                                                         </div>
-                                                        <div style={styles.detailItem}>
-                                                            <Users
-                                                                size={14}
-                                                                style={{ color: "rgba(148, 163, 184, 0.6)" }}
-                                                            />
-                                                            <span>
-                                                                Spots:{" "}
-                                                                <strong>
-                                                                    {game.current_players} / {game.total_spots}
-                                                                </strong>
-                                                            </span>
+                                                        <div style={styles.joinedDetailRowLight}>
+                                                            <Trophy size={14} style={{ color: "#d97706" }} />
+                                                            <span>Split Cost: <strong style={{ color: "#059669" }}>₹{game.price_per_player || 150}</strong> / player</span>
                                                         </div>
 
-                                                        {/* Player progress-bar indicator */}
-                                                        <div
-                                                            style={{
-                                                                width: "100%",
-                                                                height: "4px",
-                                                                backgroundColor: "rgba(255,255,255,0.05)",
-                                                                borderRadius: "2px",
-                                                                overflow: "hidden",
-                                                                margin: "12px 0 6px 0",
-                                                            }}
-                                                        >
-                                                            <div
-                                                                style={{
-                                                                    width: `${(game.current_players / game.total_spots) * 100}%`,
-                                                                    height: "100%",
-                                                                    backgroundColor: isFull ? "#f87171" : "#10b981",
-                                                                    transition: "width 0.4s ease",
-                                                                }}
-                                                            />
+                                                        {/* Player Capacity Bar */}
+                                                        <div style={styles.capacityBarWrapperLight}>
+                                                            <div style={styles.capacityBarMetaLight}>
+                                                                <span>Players: <strong>{game.current_players || (game.rsvps ? game.rsvps.length : 1)} / {game.total_spots || game.max_players || 4}</strong></span>
+                                                                <span style={{ color: isFull ? "#dc2626" : "#059669", fontWeight: "700" }}>
+                                                                    {isFull ? "Lobby Full" : `${spotsLeft} spots remaining`}
+                                                                </span>
+                                                            </div>
+                                                            <div style={styles.capacityBarTrackLight}>
+                                                                <div
+                                                                    style={{
+                                                                        width: `${Math.min(100, (((game.current_players || (game.rsvps ? game.rsvps.length : 1)) / (game.total_spots || game.max_players || 4)) * 100))}%`,
+                                                                        height: "100%",
+                                                                        backgroundColor: isFull ? "#ef4444" : "#059669",
+                                                                        borderRadius: "3px",
+                                                                        transition: "width 0.3s ease",
+                                                                    }}
+                                                                />
+                                                            </div>
                                                         </div>
-                                                        <span
-                                                            style={{
-                                                                fontSize: "11px",
-                                                                color: "rgba(148, 163, 184, 0.4)",
-                                                            }}
-                                                        >
-                                                            {isHost
-                                                                ? "You created this lobby (counted as Player 1)."
-                                                                : isFull
-                                                                ? "Lobby is full. Join waitlist to get auto-promoted."
-                                                                : `Only ${spotsLeft} spots remaining.`}
-                                                        </span>
                                                     </div>
 
-                                                    <div style={styles.cardFooterMini}>
-                                                        <span
-                                                            style={{
-                                                                fontSize: "11px",
-                                                                color: "rgba(148, 163, 184, 0.4)",
-                                                            }}
-                                                        >
-                                                            {game.join_policy === "instant"
-                                                                ? "Instant Join ⚡"
-                                                                : "Requires Host Approval ⏳"}
+                                                    <div style={styles.joinedCardFooterLight}>
+                                                        <span style={{ fontSize: "11px", color: "#64748b" }}>
+                                                            {game.join_policy === "instant" ? "Instant Join ⚡" : "Public Match 🌍"}
                                                         </span>
+
                                                         {isHost ? (
-                                                            <button
-                                                                disabled
-                                                                style={{
-                                                                    ...styles.cancelBtn,
-                                                                    backgroundColor: "rgba(255, 255, 255, 0.08)",
-                                                                    color: "rgba(148, 163, 184, 0.6)",
-                                                                    fontWeight: "bold",
-                                                                    borderColor: "transparent",
-                                                                    cursor: "not-allowed",
-                                                                    padding: "6px 12px",
-                                                                    fontSize: "12px",
-                                                                }}
-                                                            >
+                                                            <span style={{ fontSize: "12px", color: "#d97706", fontWeight: "700" }}>
                                                                 Hosting (Player 1)
-                                                            </button>
+                                                            </span>
                                                         ) : isFull ? (
                                                             <button
                                                                 onClick={() => handleJoinWaitlist(game.id)}
-                                                                style={{
-                                                                    ...styles.exploreLinkBtn,
-                                                                    padding: "6px 12px",
-                                                                    fontSize: "12px",
-                                                                }}
+                                                                style={styles.waitlistBtnLight}
                                                             >
                                                                 Join Waitlist
                                                             </button>
@@ -1659,17 +1841,9 @@ export default function UserDashboard() {
                                                             <button
                                                                 onClick={() => handleJoinGame(game.id)}
                                                                 disabled={joiningGameId === game.id}
-                                                                style={{
-                                                                    ...styles.cancelBtn,
-                                                                    backgroundColor: "#10b981",
-                                                                    color: "#0f172a",
-                                                                    fontWeight: "bold",
-                                                                    borderColor: "transparent",
-                                                                }}
+                                                                style={styles.joinMatchBtnLight}
                                                             >
-                                                                {joiningGameId === game.id
-                                                                    ? "Processing..."
-                                                                    : "Join Match"}
+                                                                {joiningGameId === game.id ? "Joining..." : "Join Match"}
                                                             </button>
                                                         )}
                                                     </div>
@@ -1684,167 +1858,206 @@ export default function UserDashboard() {
                 )}
 
                 {activeTab === "my-trainings" && (
-                    <div style={{ ...styles.bookingsSection, maxWidth: "1100px" }}>
-                        <h2 style={styles.sectionTitle}>My Training</h2>
-                        <p
-                            style={{
-                                color: "rgba(148, 163, 184, 0.55)",
-                                fontSize: "14px",
-                                marginTop: "-8px",
-                                marginBottom: "20px",
-                            }}
-                        >
-                            Trainings you have registered for with platform trainers
-                        </p>
-
-                        {loadingMyTrainings ? (
-                            <div style={styles.emptyContainer}>
-                                <Loader2
-                                    size={32}
-                                    style={{ color: "#10b981", marginBottom: "12px", animation: "spin 1s linear infinite" }}
-                                />
-                                <p style={{ color: "rgba(148, 163, 184, 0.5)", fontSize: "14px" }}>
-                                    Loading your trainings...
+                    <div style={styles.homeContainer}>
+                        {/* Premium Light Hero Banner */}
+                        <div style={styles.homeHeroBannerLight}>
+                            <div style={styles.heroMainTextGroup}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "6px" }}>
+                                    <span style={{ fontSize: "28px" }}>🎖️</span>
+                                    <h1 style={styles.heroTitleLight}>My Registered Trainings</h1>
+                                </div>
+                                <p style={styles.heroSubtitleLight}>
+                                    Track your active sports coaching programs, view coach contact info, schedules, and training passes.
                                 </p>
                             </div>
-                        ) : myTrainings.length === 0 ? (
-                            <div style={styles.emptyContainer}>
-                                <Award size={48} style={{ color: "rgba(148, 163, 184, 0.15)", marginBottom: "16px" }} />
-                                <h3>No registered trainings</h3>
-                                <p style={{ color: "rgba(148, 163, 184, 0.4)", fontSize: "14px", marginTop: "8px" }}>
-                                    You have not registered for any trainer sessions yet.
-                                </p>
-                                <button onClick={() => setActiveTab("training")} style={styles.exploreLinkBtn}>
-                                    Discover Trainings
-                                </button>
-                            </div>
-                        ) : (
-                            <div style={styles.list}>
-                                {myTrainings.map((training) => {
-                                    const payment = (training.payment_status || "unpaid").toLowerCase();
-                                    const regStatus = (training.status || "registered").toLowerCase();
-                                    const isPaid = payment === "paid" || payment === "waived";
-                                    const paymentLabel =
-                                        payment === "waived" ? "FREE" : payment === "paid" ? "PAID" : "UNPAID";
-                                    const dateLabel = [training.start_date, training.end_date]
-                                        .filter(Boolean)
-                                        .join(" – ");
-                                    const feeFormatted =
-                                        Number(training.fee || 0) > 0
-                                            ? `\u20B9${Number(training.fee).toLocaleString("en-IN")}`
-                                            : "Free";
 
-                                    return (
-                                        <div key={training.id} style={styles.bookingCard}>
-                                            <div style={styles.cardHeader}>
-                                                <div style={styles.sportHeader}>
-                                                    <Award size={22} style={{ color: "#10b981" }} />
-                                                    <div>
-                                                        <span style={styles.sportLabel}>{training.title}</span>
-                                                        {training.category && (
-                                                            <span
-                                                                style={{
-                                                                    ...styles.cardSportChip,
-                                                                    marginLeft: "10px",
-                                                                    verticalAlign: "middle",
-                                                                }}
-                                                            >
-                                                                {training.category}
+                            {/* My Trainings Summary Stats */}
+                            <div style={styles.heroStatsGridLight}>
+                                <div style={styles.heroStatCardLight}>
+                                    <div style={{ ...styles.statIconBox, backgroundColor: "#ecfdf5", color: "#059669" }}>
+                                        <Award size={18} />
+                                    </div>
+                                    <div>
+                                        <div style={styles.statValLight}>{myTrainings.length}</div>
+                                        <div style={styles.statLblLight}>Enrolled Courses</div>
+                                    </div>
+                                </div>
+
+                                <div style={styles.heroStatCardLight}>
+                                    <div style={{ ...styles.statIconBox, backgroundColor: "#e0e7ff", color: "#4f46e5" }}>
+                                        <Users size={18} />
+                                    </div>
+                                    <div>
+                                        <div style={styles.statValLight}>
+                                            {myTrainings.filter((t) => (t.payment_status || "").toLowerCase() === "paid" || (t.payment_status || "").toLowerCase() === "waived").length}
+                                        </div>
+                                        <div style={styles.statLblLight}>Paid Sessions</div>
+                                    </div>
+                                </div>
+
+                                <div style={styles.heroStatCardLight}>
+                                    <div style={{ ...styles.statIconBox, backgroundColor: "#fef3c7", color: "#d97706" }}>
+                                        <Dumbbell size={18} />
+                                    </div>
+                                    <div>
+                                        <div style={styles.statValLight}>Pro Tier</div>
+                                        <div style={styles.statLblLight}>Training Status</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Main Container Card */}
+                        <div style={styles.boxCardLight}>
+                            <div style={styles.sectionHeaderLight}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                    <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "#ecfdf5", color: "#059669", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #a7f3d0" }}>
+                                        <Award size={22} />
+                                    </div>
+                                    <div>
+                                        <h3 style={styles.boxTitleLight}>Your Training Registrations</h3>
+                                        <p style={{ fontSize: "13px", color: "#64748b", margin: "2px 0 0 0" }}>
+                                            Trainings you have registered for with certified platform trainers.
+                                        </p>
+                                    </div>
+                                </div>
+                                <span style={styles.badgeLightEmerald}>{myTrainings.length} Active Courses</span>
+                            </div>
+
+                            {loadingMyTrainings ? (
+                                <div style={styles.loadingBoxLight}>
+                                    <Loader2 className="animate-spin" size={28} style={{ color: "#059669" }} />
+                                    <span>Fetching your registered training courses...</span>
+                                </div>
+                            ) : myTrainings.length === 0 ? (
+                                <div style={styles.emptyBoxLight}>
+                                    <Award size={44} style={{ color: "#cbd5e1", marginBottom: "12px" }} />
+                                    <h4 style={{ color: "#0f172a", fontSize: "16px", fontWeight: "700" }}>
+                                        No registered trainings yet
+                                    </h4>
+                                    <p style={{ color: "#64748b", fontSize: "13px", marginTop: "4px" }}>
+                                        You haven&apos;t enrolled in any trainer sessions yet. Explore available training courses!
+                                    </p>
+                                    <button onClick={() => setActiveTab("training")} style={styles.hostLobbyBtnLight}>
+                                        <Dumbbell size={15} />
+                                        <span>Discover &amp; Book Trainings</span>
+                                    </button>
+                                </div>
+                            ) : (
+                                <div>
+                                    {myTrainings.map((training) => {
+                                        const payment = (training.payment_status || "unpaid").toLowerCase();
+                                        const regStatus = (training.status || "registered").toLowerCase();
+                                        const isPaid = payment === "paid" || payment === "waived";
+                                        const paymentLabel =
+                                            payment === "waived" ? "FREE PASS" : payment === "paid" ? "PAID" : "UNPAID";
+                                        const dateLabel = [training.start_date, training.end_date]
+                                            .filter(Boolean)
+                                            .join(" – ");
+                                        const feeFormatted =
+                                            Number(training.fee || 0) > 0
+                                                ? `\u20B9${Number(training.fee).toLocaleString("en-IN")}`
+                                                : "Free";
+
+                                        return (
+                                            <div key={training.id} style={styles.myTrainingCardLight}>
+                                                {/* Header */}
+                                                <div style={styles.myTrainingCardHeaderLight}>
+                                                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                                        <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "#ecfdf5", color: "#059669", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                                            <Award size={20} />
+                                                        </div>
+                                                        <div>
+                                                            <h4 style={styles.myTrainingTitleLight}>{training.title}</h4>
+                                                            {training.category && (
+                                                                <span style={{ fontSize: "11px", fontWeight: "700", color: "#059669", background: "#ecfdf5", padding: "2px 8px", borderRadius: "12px", border: "1px solid #a7f3d0", marginTop: "4px", display: "inline-block" }}>
+                                                                    {training.category?.toUpperCase()}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    <span
+                                                        style={
+                                                            isPaid
+                                                                ? styles.badgeConfirmedLight
+                                                                : styles.badgeCancelledLight
+                                                        }
+                                                    >
+                                                        ✓ {paymentLabel}
+                                                    </span>
+                                                </div>
+
+                                                {/* Organized Detail Grid */}
+                                                <div style={styles.myTrainingGridLight}>
+                                                    <div style={styles.myTrainingDetailItemLight}>
+                                                        <Users size={15} style={{ color: "#059669" }} />
+                                                        <span>
+                                                            Coach: <strong>{training.trainer_name || "Certified Trainer"}</strong>
+                                                        </span>
+                                                    </div>
+
+                                                    {training.trainer_phone && (
+                                                        <div style={styles.myTrainingDetailItemLight}>
+                                                            <Phone size={15} style={{ color: "#059669" }} />
+                                                            <span>
+                                                                Contact: <a href={`tel:${training.trainer_phone}`} style={{ color: "#059669", fontWeight: "700", textDecoration: "none" }}>{training.trainer_phone}</a>
                                                             </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <div
-                                                    style={{
-                                                        ...styles.badge,
-                                                        backgroundColor: isPaid
-                                                            ? "rgba(16, 185, 129, 0.1)"
-                                                            : "rgba(234, 179, 8, 0.1)",
-                                                        color: isPaid ? "#34d399" : "#fbbf24",
-                                                        borderColor: isPaid
-                                                            ? "rgba(16, 185, 129, 0.25)"
-                                                            : "rgba(234, 179, 8, 0.25)",
-                                                    }}
-                                                >
-                                                    {paymentLabel}
-                                                </div>
-                                            </div>
+                                                        </div>
+                                                    )}
 
-                                            <div style={styles.cardDetails}>
-                                                <div style={styles.detailItem}>
-                                                    <Users size={14} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
-                                                    <span>
-                                                        {training.trainer_name
-                                                            ? `Trainer: ${training.trainer_name}`
-                                                            : "Trainer session"}
-                                                    </span>
-                                                </div>
+                                                    {(dateLabel || training.schedule) && (
+                                                        <div style={styles.myTrainingDetailItemLight}>
+                                                            <Calendar size={15} style={{ color: "#059669" }} />
+                                                            <span>{dateLabel || training.schedule}</span>
+                                                        </div>
+                                                    )}
 
-                                                {training.trainer_phone && (
-                                                    <div style={styles.detailItem}>
-                                                        <Phone size={14} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
-                                                        <span>
-                                                            Contact: <strong>{training.trainer_phone}</strong>
-                                                        </span>
-                                                    </div>
-                                                )}
+                                                    {training.start_time && (
+                                                        <div style={styles.myTrainingDetailItemLight}>
+                                                            <Clock size={15} style={{ color: "#059669" }} />
+                                                            <span>
+                                                                {training.start_time}{" "}
+                                                                {training.end_time ? `\u2013 ${training.end_time}` : ""}
+                                                            </span>
+                                                        </div>
+                                                    )}
 
-                                                {(dateLabel || training.schedule) && (
-                                                    <div style={styles.detailItem}>
-                                                        <Calendar size={14} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
-                                                        <span>{dateLabel || training.schedule}</span>
-                                                    </div>
-                                                )}
-
-                                                {training.start_time && (
-                                                    <div style={styles.detailItem}>
-                                                        <Clock size={14} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
-                                                        <span>
-                                                            {training.start_time}{" "}
-                                                            {training.end_time ? `\u2013 ${training.end_time}` : ""}
-                                                        </span>
-                                                    </div>
-                                                )}
-
-                                                {training.location && (
-                                                    <div style={styles.detailItem}>
-                                                        <MapPin size={14} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
-                                                        <span>{training.location}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <div style={styles.cardFooter}>
-                                                <div style={styles.metaInfo}>
-                                                    <span>
-                                                        Fee:{" "}
-                                                        <strong style={{ color: "#10b981", fontSize: "14px" }}>
-                                                            {feeFormatted}
-                                                        </strong>
-                                                    </span>
-                                                    {regStatus && (
-                                                        <span style={{ marginLeft: "16px", textTransform: "capitalize" }}>
-                                                            Status: <strong>{regStatus}</strong>
-                                                        </span>
+                                                    {training.location && (
+                                                        <div style={styles.myTrainingDetailItemLight}>
+                                                            <MapPin size={15} style={{ color: "#059669" }} />
+                                                            <span>{training.location}</span>
+                                                        </div>
                                                     )}
                                                 </div>
 
-                                                <Link
-                                                    href={`/trainings/${training.course_id}`}
-                                                    style={{
-                                                        ...styles.bookBtn,
-                                                        textDecoration: "none",
-                                                        display: "inline-block",
-                                                    }}
-                                                >
-                                                    View Training
-                                                </Link>
+                                                {/* Footer */}
+                                                <div style={styles.myTrainingFooterLight}>
+                                                    <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                                                        <span style={{ fontSize: "13px", color: "#475569" }}>
+                                                            Course Fee: <strong style={{ color: "#059669", fontSize: "15px", fontWeight: "800" }}>{feeFormatted}</strong>
+                                                        </span>
+                                                        {regStatus && (
+                                                            <span style={{ fontSize: "12px", color: "#64748b", textTransform: "capitalize" }}>
+                                                                Status: <strong style={{ color: "#0f172a" }}>{regStatus}</strong>
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    <Link
+                                                        href={`/trainings/${training.course_id}`}
+                                                        style={styles.myTrainingViewBtnLight}
+                                                    >
+                                                        <span>View Training Pass</span>
+                                                        <ArrowRight size={14} />
+                                                    </Link>
+                                                </div>
                                             </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
 
@@ -1995,123 +2208,150 @@ export default function UserDashboard() {
                 )}
 
                 {activeTab === "training" && (
-                    /* Training: coaching sessions & workshops from platform trainers */
-                    <div style={{ ...styles.bookingsSection, maxWidth: "1100px" }}>
-                        <h2 style={styles.sectionTitle}>Discover Trainings</h2>
-                        <p
-                            style={{
-                                color: "rgba(148, 163, 184, 0.55)",
-                                fontSize: "14px",
-                                marginTop: "-8px",
-                                marginBottom: "20px",
-                            }}
-                        >
-                            Independent trainings created by platform trainers
-                        </p>
-
-                        {loadingTrainings ? (
-                            <div style={styles.emptyContainer}>
-                                <Loader2
-                                    size={32}
-                                    style={{ color: "#10b981", marginBottom: "12px", animation: "spin 1s linear infinite" }}
-                                />
-                                <p style={{ color: "rgba(148, 163, 184, 0.5)", fontSize: "14px" }}>Loading trainings...</p>
-                            </div>
-                        ) : trainerTrainings.length === 0 ? (
-                            <div style={styles.emptyContainer}>
-                                <Award size={48} style={{ color: "rgba(148, 163, 184, 0.15)", marginBottom: "16px" }} />
-                                <h3>No Trainings Available</h3>
-                                <p style={{ color: "rgba(148, 163, 184, 0.4)", fontSize: "14px", marginTop: "8px" }}>
-                                    Trainers have not published any sessions yet. Check back soon.
+                    <div style={styles.homeContainer}>
+                        {/* Premium Light Hero Banner */}
+                        <div style={styles.homeHeroBannerLight}>
+                            <div style={styles.heroMainTextGroup}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "6px" }}>
+                                    <span style={{ fontSize: "28px" }}>⚡</span>
+                                    <h1 style={styles.heroTitleLight}>Discover Sports Trainings &amp; Bootcamps</h1>
+                                </div>
+                                <p style={styles.heroSubtitleLight}>
+                                    Explore certified coaching sessions, academy training bootcamps, and skill workshops published by top platform trainers.
                                 </p>
                             </div>
-                        ) : (
-                            <div style={styles.grid}>
-                                {trainerTrainings.map((training) => (
-                                    <Link
-                                        key={training.id}
-                                        href={`/trainings/${training.id}`}
-                                        style={{ ...styles.card, textDecoration: "none", color: "inherit", display: "block" }}
-                                    >
-                                        <div style={styles.cardImageWrapper}>
-                                            <img
-                                                src={
-                                                    training.cover_image ||
-                                                    "https://images.unsplash.com/photo-1517649763962-0c6238842e77?q=80&w=600&auto=format&fit=crop"
-                                                }
-                                                alt={training.title}
-                                                style={styles.cardImage}
-                                            />
-                                            <div style={styles.ratingBadge}>
-                                                <span style={{ textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                                                    {training.status || "open"}
-                                                </span>
-                                            </div>
-                                        </div>
+                        </div>
 
-                                        <div style={styles.cardBody}>
-                                            <h3 style={styles.cardName}>{training.title}</h3>
-                                            <div style={styles.cardLoc}>
-                                                <MapPin size={12} style={{ color: "rgba(148, 163, 184, 0.6)" }} />
-                                                <span>
-                                                    {training.trainer_name
-                                                        ? `Trainer · ${training.trainer_name}`
-                                                        : training.instructor || "Trainer session"}
-                                                </span>
-                                            </div>
-
-                                            <p
-                                                style={{
-                                                    margin: "0 0 12px",
-                                                    fontSize: "13px",
-                                                    color: "rgba(226, 232, 240, 0.7)",
-                                                    lineHeight: 1.45,
-                                                    display: "-webkit-box",
-                                                    WebkitLineClamp: 2,
-                                                    WebkitBoxOrient: "vertical",
-                                                    overflow: "hidden",
-                                                }}
-                                            >
-                                                {training.description || "No description added."}
-                                            </p>
-
-                                            <div style={styles.cardSports}>
-                                                {training.location && (
-                                                    <span style={styles.cardSportChip}>{training.location}</span>
-                                                )}
-                                                {training.schedule && (
-                                                    <span style={styles.cardSportChip}>{training.schedule}</span>
-                                                )}
-                                                {training.level && (
-                                                    <span style={styles.cardSportChip}>{training.level}</span>
-                                                )}
-                                            </div>
-
-                                            {training.reschedule_reason && (
-                                                <p style={{ margin: "0 0 10px", fontSize: "12px", color: "#fb923c" }}>
-                                                    Rescheduled: {training.reschedule_reason}
-                                                </p>
-                                            )}
-
-                                            <div style={styles.cardFooter}>
-                                                <div style={styles.priceSec}>
-                                                    <span style={styles.priceVal}>
-                                                        {Number(training.fee || 0) > 0
-                                                            ? `\u20B9${Number(training.fee).toLocaleString("en-IN")}`
-                                                            : "Free"}
-                                                    </span>
-                                                    <span style={styles.priceUnit}>
-                                                        {training.available_seats != null
-                                                            ? `${training.available_seats} seats left`
-                                                            : training.start_date || "Open enrollment"}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                ))}
+                        {/* Main Container Card */}
+                        <div style={styles.boxCardLight}>
+                            <div style={styles.sectionHeaderLight}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                    <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "#ecfdf5", color: "#059669", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #a7f3d0" }}>
+                                        <Dumbbell size={22} />
+                                    </div>
+                                    <div>
+                                        <h3 style={styles.boxTitleLight}>Available Training Sessions</h3>
+                                        <p style={{ fontSize: "13px", color: "#64748b", margin: "2px 0 0 0" }}>
+                                            Browse active coaching programs, check schedules, and reserve your training spot.
+                                        </p>
+                                    </div>
+                                </div>
+                                <span style={styles.badgeLightEmerald}>{trainerTrainings.length} Programs Open</span>
                             </div>
-                        )}
+
+                            {loadingTrainings ? (
+                                <div style={styles.loadingBoxLight}>
+                                    <Loader2 className="animate-spin" size={28} style={{ color: "#059669" }} />
+                                    <span>Loading sports training sessions...</span>
+                                </div>
+                            ) : trainerTrainings.length === 0 ? (
+                                <div style={styles.emptyBoxLight}>
+                                    <Award size={44} style={{ color: "#cbd5e1", marginBottom: "12px" }} />
+                                    <h4 style={{ color: "#0f172a", fontSize: "16px", fontWeight: "700" }}>
+                                        No trainings available right now
+                                    </h4>
+                                    <p style={{ color: "#64748b", fontSize: "13px", marginTop: "4px" }}>
+                                        Trainers have not published any new bootcamps yet. Check back soon!
+                                    </p>
+                                </div>
+                            ) : (
+                                <div style={styles.rectangularGridLight}>
+                                    {trainerTrainings.map((training) => {
+                                        const feeFormatted =
+                                            Number(training.fee || 0) > 0
+                                                ? `\u20B9${Number(training.fee).toLocaleString("en-IN")}`
+                                                : "Free";
+
+                                        return (
+                                            <Link
+                                                key={training.id}
+                                                href={`/trainings/${training.id}`}
+                                                style={styles.rectangularTrainingCardLight}
+                                            >
+                                                {/* Rectangular Image Banner */}
+                                                <div style={styles.rectangularImageWrapperLight}>
+                                                    <img
+                                                        src={
+                                                            training.cover_image ||
+                                                            "https://images.unsplash.com/photo-1517649763962-0c6238842e77?q=80&w=600&auto=format&fit=crop"
+                                                        }
+                                                        alt={training.title}
+                                                        style={styles.rectangularImageLight}
+                                                    />
+                                                    <div style={styles.rectangularStatusBadgeLight}>
+                                                        ⚡ {(training.status || "OPEN ENROLLMENT").toUpperCase()}
+                                                    </div>
+                                                </div>
+
+                                                {/* Rectangular Content Body */}
+                                                <div style={styles.rectangularCardBodyLight}>
+                                                    <h3 style={styles.rectangularTitleLight}>{training.title}</h3>
+
+                                                    <div style={styles.rectangularCoachRowLight}>
+                                                        <Users size={15} style={{ color: "#059669" }} />
+                                                        <span>
+                                                            Coach: <strong>{training.trainer_name || training.instructor || "Certified Platform Trainer"}</strong>
+                                                        </span>
+                                                    </div>
+
+                                                    <div style={styles.rectangularMetaRowLight}>
+                                                        {training.location && (
+                                                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                                                <MapPin size={13} style={{ color: "#059669" }} />
+                                                                <span>{training.location}</span>
+                                                            </div>
+                                                        )}
+                                                        {training.schedule && (
+                                                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                                                <Calendar size={13} style={{ color: "#059669" }} />
+                                                                <span>{training.schedule}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {training.description && (
+                                                        <p style={styles.rectangularDescLight}>
+                                                            {training.description}
+                                                        </p>
+                                                    )}
+
+                                                    {/* Category & Level Chips */}
+                                                    <div style={styles.rectangularChipGroupLight}>
+                                                        {training.level && (
+                                                            <span style={styles.rectangularChipLight}>Level: {training.level}</span>
+                                                        )}
+                                                        {training.available_seats != null && (
+                                                            <span style={{ ...styles.rectangularChipLight, background: "#ecfdf5", color: "#059669", borderColor: "#a7f3d0" }}>
+                                                                🔥 {training.available_seats} seats left
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    {training.reschedule_reason && (
+                                                        <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: "#d97706", fontWeight: "600" }}>
+                                                            ⚠️ Rescheduled: {training.reschedule_reason}
+                                                        </p>
+                                                    )}
+                                                </div>
+
+                                                {/* Rectangular Card Footer */}
+                                                <div style={styles.rectangularCardFooterLight}>
+                                                    <div>
+                                                        <div style={{ fontSize: "11px", color: "#64748b" }}>Fee per trainee</div>
+                                                        <div style={styles.rectangularPriceTagLight}>{feeFormatted}</div>
+                                                    </div>
+
+                                                    <div style={styles.rectangularEnrollBtnLight}>
+                                                        <span>View Details</span>
+                                                        <ArrowRight size={14} />
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
             </main>
@@ -2982,4 +3222,854 @@ const styles = {
         accentColor: "#10b981",
         cursor: "pointer",
     },
+
+    // --- LIGHT MODE USER DASHBOARD HOME STYLES (Senior UI/UX Designer Skill) ---
+    homeHeroBannerLight: {
+        background: "linear-gradient(135deg, #f0fdf4 0%, #ffffff 50%, #f0f9ff 100%)",
+        border: "1px solid #d1fae5",
+        borderRadius: "20px",
+        padding: "28px 32px",
+        marginBottom: "28px",
+        boxShadow: "0 10px 30px -10px rgba(16, 185, 129, 0.08)",
+        display: "flex",
+        flexDirection: "column",
+        gap: "24px",
+    },
+    userGreetingHeader: {
+        display: "flex",
+        alignItems: "center",
+        gap: "16px",
+    },
+    userAvatarCircle: {
+        width: "54px",
+        height: "54px",
+        borderRadius: "50%",
+        background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+        color: "#ffffff",
+        fontSize: "24px",
+        fontWeight: "800",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        boxShadow: "0 4px 14px rgba(16, 185, 129, 0.3)",
+        flexShrink: 0,
+    },
+    heroTitleLight: {
+        fontSize: "24px",
+        fontWeight: "800",
+        color: "#0f172a",
+        margin: 0,
+        letterSpacing: "-0.02em",
+    },
+    heroSubtitleLight: {
+        fontSize: "14px",
+        color: "#475569",
+        marginTop: "4px",
+        margin: 0,
+    },
+    heroStatsGridLight: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+        gap: "16px",
+    },
+    heroStatCardLight: {
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "14px",
+        padding: "14px 18px",
+        display: "flex",
+        alignItems: "center",
+        gap: "14px",
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.02)",
+    },
+    statIconBox: {
+        width: "42px",
+        height: "42px",
+        borderRadius: "10px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+    },
+    statValLight: {
+        fontSize: "18px",
+        fontWeight: "800",
+        color: "#0f172a",
+        lineHeight: 1.2,
+    },
+    statLblLight: {
+        fontSize: "12px",
+        color: "#64748b",
+        fontWeight: "500",
+    },
+
+    // --- QUICK ACTIONS HUB (LIGHT THEME) ---
+    quickActionGridLight: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+        gap: "16px",
+        marginBottom: "28px",
+    },
+    quickActionCardLight: {
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "16px",
+        padding: "18px 20px",
+        display: "flex",
+        alignItems: "center",
+        gap: "16px",
+        cursor: "pointer",
+        transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.03)",
+    },
+    quickActionIconLight: {
+        width: "48px",
+        height: "48px",
+        borderRadius: "14px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+    },
+    quickActionInfo: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px",
+    },
+    quickActionTitleLight: {
+        fontSize: "15px",
+        fontWeight: "700",
+        color: "#0f172a",
+        margin: 0,
+    },
+    quickActionSubLight: {
+        fontSize: "12px",
+        color: "#64748b",
+        margin: 0,
+        lineHeight: 1.3,
+    },
+
+    // --- 20 SPORTS LIGHT SHOWCASE ---
+    sportsCardContainerLight: {
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "20px",
+        padding: "24px",
+        marginBottom: "28px",
+        boxShadow: "0 4px 20px -4px rgba(0, 0, 0, 0.04)",
+    },
+    sectionHeaderLight: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: "20px",
+    },
+    homeTitleLight: {
+        fontSize: "18px",
+        fontWeight: "800",
+        color: "#0f172a",
+        margin: 0,
+    },
+    badgeLightEmerald: {
+        background: "#ecfdf5",
+        color: "#059669",
+        border: "1px solid #a7f3d0",
+        borderRadius: "20px",
+        padding: "4px 12px",
+        fontSize: "12px",
+        fontWeight: "700",
+    },
+    sportsGrid20Light: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))",
+        gap: "12px",
+    },
+    sportItemLight: {
+        background: "#f8fafc",
+        border: "1px solid #e2e8f0",
+        borderRadius: "14px",
+        padding: "16px 10px",
+        textAlign: "center",
+        cursor: "pointer",
+        transition: "all 0.2s ease",
+    },
+    sportItemNameLight: {
+        fontSize: "13px",
+        fontWeight: "700",
+        color: "#1e293b",
+        display: "block",
+    },
+
+    // --- LIGHT TWO COLUMN BOXES (VENUES & LOBBIES) ---
+    boxCardLight: {
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "20px",
+        padding: "24px",
+        boxShadow: "0 4px 20px -4px rgba(0, 0, 0, 0.04)",
+    },
+    boxHeaderLight: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: "20px",
+        paddingBottom: "12px",
+        borderBottom: "1px solid #f1f5f9",
+    },
+    boxTitleLight: {
+        fontSize: "16px",
+        fontWeight: "800",
+        color: "#0f172a",
+        margin: 0,
+    },
+    viewAllBtnLight: {
+        background: "transparent",
+        border: "none",
+        color: "#059669",
+        fontSize: "13px",
+        fontWeight: "700",
+        cursor: "pointer",
+    },
+    loadingBoxLight: {
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+        padding: "24px 0",
+        color: "#64748b",
+        fontSize: "14px",
+    },
+    emptyBoxLight: {
+        textAlign: "center",
+        padding: "28px 16px",
+        color: "#64748b",
+        fontSize: "13px",
+    },
+    venueListLight: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+    },
+    venueCardItemLight: {
+        display: "flex",
+        alignItems: "center",
+        gap: "14px",
+        padding: "12px 14px",
+        background: "#f8fafc",
+        border: "1px solid #e2e8f0",
+        borderRadius: "14px",
+        transition: "all 0.2s ease",
+    },
+    venueAvatarLight: {
+        width: "44px",
+        height: "44px",
+        borderRadius: "12px",
+        background: "#ecfdf5",
+        color: "#059669",
+        fontSize: "18px",
+        fontWeight: "800",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        border: "1px solid #a7f3d0",
+        flexShrink: 0,
+    },
+    venueInfoLight: {
+        flexGrow: 1,
+    },
+    venueNameLight: {
+        fontSize: "14px",
+        fontWeight: "700",
+        color: "#0f172a",
+    },
+    venueSubLight: {
+        fontSize: "12px",
+        color: "#64748b",
+        marginTop: "2px",
+    },
+    venueActionLight: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-end",
+        gap: "4px",
+    },
+    venuePriceTagLight: {
+        fontSize: "12px",
+        fontWeight: "700",
+        color: "#059669",
+    },
+    venueBookBtnLight: {
+        background: "#059669",
+        color: "#ffffff",
+        border: "none",
+        borderRadius: "8px",
+        padding: "6px 14px",
+        fontSize: "12px",
+        fontWeight: "700",
+        cursor: "pointer",
+        transition: "background 0.2s ease",
+    },
+    hostLobbyBtnLight: {
+        marginTop: "12px",
+        background: "#4f46e5",
+        color: "#ffffff",
+        border: "none",
+        borderRadius: "10px",
+        padding: "10px 18px",
+        fontSize: "13px",
+        fontWeight: "700",
+        cursor: "pointer",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "6px",
+    },
+    lobbyListLight: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+    },
+    lobbyCardItemLight: {
+        background: "#f8fafc",
+        border: "1px solid #e2e8f0",
+        borderRadius: "14px",
+        padding: "14px 16px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+    },
+    lobbyHeaderLight: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    lobbySportTagLight: {
+        fontSize: "13px",
+        fontWeight: "800",
+        color: "#0f172a",
+    },
+    lobbyPrivacyBadgeLight: {
+        fontSize: "11px",
+        fontWeight: "600",
+        color: "#64748b",
+        background: "#ffffff",
+        border: "1px solid #cbd5e1",
+        borderRadius: "12px",
+        padding: "2px 8px",
+    },
+    lobbyMetaLight: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px",
+        fontSize: "12px",
+        color: "#475569",
+    },
+    lobbyFooterLight: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginTop: "4px",
+        paddingTop: "8px",
+        borderTop: "1px solid #e2e8f0",
+    },
+    lobbySpotsLight: {
+        display: "flex",
+        flexDirection: "column",
+        fontSize: "12px",
+        color: "#334155",
+    },
+    lobbyJoinBtnLight: {
+        background: "#059669",
+        color: "#ffffff",
+        border: "none",
+        borderRadius: "8px",
+        padding: "6px 14px",
+        fontSize: "12px",
+        fontWeight: "700",
+        cursor: "pointer",
+    },
+
+    // --- GAMES TAB LIGHT THEME STYLES (Senior UI/UX Designer Skill) ---
+    gameSubNavLight: {
+        display: "flex",
+        gap: "12px",
+        marginBottom: "24px",
+        flexWrap: "wrap",
+    },
+    gameSubNavBtnLight: {
+        border: "1px solid",
+        padding: "10px 20px",
+        borderRadius: "12px",
+        fontSize: "13px",
+        fontWeight: "700",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        transition: "all 0.2s ease",
+        fontFamily: "'Outfit', sans-serif",
+    },
+    gameFormLight: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "20px",
+        marginTop: "16px",
+    },
+    formRowLight: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+        gap: "20px",
+    },
+    formGroupLight: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+    },
+    formLabelLight: {
+        fontSize: "13px",
+        fontWeight: "700",
+        color: "#0f172a",
+    },
+    formSelectLight: {
+        width: "100%",
+        padding: "11px 14px",
+        background: "#ffffff",
+        border: "1px solid #cbd5e1",
+        borderRadius: "10px",
+        fontSize: "13px",
+        color: "#0f172a",
+        outline: "none",
+        fontFamily: "'Outfit', sans-serif",
+    },
+    formInputLight: {
+        width: "100%",
+        padding: "11px 14px",
+        background: "#ffffff",
+        border: "1px solid #cbd5e1",
+        borderRadius: "10px",
+        fontSize: "13px",
+        color: "#0f172a",
+        outline: "none",
+        fontFamily: "'Outfit', sans-serif",
+    },
+    privacyToggleGroupLight: {
+        display: "flex",
+        gap: "10px",
+    },
+    privacyBtnLight: {
+        flex: 1,
+        padding: "10px 14px",
+        border: "1px solid",
+        borderRadius: "10px",
+        fontSize: "13px",
+        fontWeight: "700",
+        cursor: "pointer",
+        transition: "all 0.2s ease",
+    },
+    formTextareaLight: {
+        width: "100%",
+        padding: "12px 14px",
+        background: "#ffffff",
+        border: "1px solid #cbd5e1",
+        borderRadius: "10px",
+        fontSize: "13px",
+        color: "#0f172a",
+        minHeight: "90px",
+        outline: "none",
+        fontFamily: "'Outfit', sans-serif",
+        resize: "vertical",
+    },
+    formSubmitBtnLight: {
+        background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+        color: "#ffffff",
+        border: "none",
+        borderRadius: "12px",
+        padding: "14px 24px",
+        fontSize: "14px",
+        fontWeight: "800",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "8px",
+        boxShadow: "0 4px 14px rgba(16, 185, 129, 0.25)",
+        transition: "all 0.2s ease",
+    },
+    filterPillGroupLight: {
+        display: "flex",
+        gap: "8px",
+        flexWrap: "wrap",
+    },
+    filterPillBtnLight: {
+        border: "none",
+        padding: "6px 14px",
+        borderRadius: "20px",
+        fontSize: "12px",
+        fontWeight: "700",
+        cursor: "pointer",
+        transition: "all 0.2s ease",
+    },
+    miniGameGridLight: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+        gap: "16px",
+        marginTop: "16px",
+    },
+    joinedMatchCardLight: {
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "16px",
+        padding: "18px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "14px",
+        boxShadow: "0 4px 14px -2px rgba(0, 0, 0, 0.03)",
+        transition: "all 0.2s ease",
+    },
+    joinedCardHeaderLight: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    joinedSportTitleLight: {
+        fontSize: "14px",
+        fontWeight: "800",
+        color: "#0f172a",
+    },
+    badgeOwnerHostLight: {
+        background: "#fef3c7",
+        color: "#d97706",
+        border: "1px solid #fde68a",
+        borderRadius: "12px",
+        padding: "2px 8px",
+        fontSize: "11px",
+        fontWeight: "700",
+    },
+    badgePlayerJoinedLight: {
+        background: "#ecfdf5",
+        color: "#059669",
+        border: "1px solid #a7f3d0",
+        borderRadius: "12px",
+        padding: "2px 8px",
+        fontSize: "11px",
+        fontWeight: "700",
+    },
+    badgeConfirmedLight: {
+        background: "#ecfdf5",
+        color: "#059669",
+        border: "1px solid #a7f3d0",
+        borderRadius: "12px",
+        padding: "2px 8px",
+        fontSize: "11px",
+        fontWeight: "700",
+    },
+    badgeCancelledLight: {
+        background: "#fef2f2",
+        color: "#dc2626",
+        border: "1px solid #fecaca",
+        borderRadius: "12px",
+        padding: "2px 8px",
+        fontSize: "11px",
+        fontWeight: "700",
+    },
+    joinedCardBodyLight: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+    },
+    joinedDetailRowLight: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        fontSize: "13px",
+        color: "#334155",
+    },
+    joinedNotesLight: {
+        fontSize: "12px",
+        color: "#64748b",
+        fontStyle: "italic",
+        marginTop: "4px",
+        margin: 0,
+    },
+    joinedCardFooterLight: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginTop: "4px",
+        paddingTop: "12px",
+        borderTop: "1px solid #f1f5f9",
+    },
+    cancelGameBtnLight: {
+        background: "#fef2f2",
+        color: "#dc2626",
+        border: "1px solid #fecaca",
+        borderRadius: "8px",
+        padding: "6px 12px",
+        fontSize: "12px",
+        fontWeight: "700",
+        cursor: "pointer",
+    },
+    exploreMatchCardLight: {
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "16px",
+        padding: "18px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "14px",
+        boxShadow: "0 4px 14px -2px rgba(0, 0, 0, 0.03)",
+        transition: "all 0.2s ease",
+    },
+    capacityBarWrapperLight: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "6px",
+        marginTop: "6px",
+    },
+    capacityBarMetaLight: {
+        display: "flex",
+        justifyContent: "space-between",
+        fontSize: "12px",
+        color: "#334155",
+    },
+    capacityBarTrackLight: {
+        width: "100%",
+        height: "6px",
+        backgroundColor: "#e2e8f0",
+        borderRadius: "3px",
+        overflow: "hidden",
+    },
+    joinMatchBtnLight: {
+        background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+        color: "#ffffff",
+        border: "none",
+        borderRadius: "8px",
+        padding: "8px 16px",
+        fontSize: "12px",
+        fontWeight: "800",
+        cursor: "pointer",
+        boxShadow: "0 2px 8px rgba(16, 185, 129, 0.2)",
+    },
+    waitlistBtnLight: {
+        background: "#f1f5f9",
+        color: "#475569",
+        border: "1px solid #cbd5e1",
+        borderRadius: "8px",
+        padding: "8px 16px",
+        fontSize: "12px",
+        fontWeight: "700",
+        cursor: "pointer",
+    },
+
+    // --- MY TRAINING TAB LIGHT THEME STYLES (Senior UI/UX Designer Skill) ---
+    myTrainingHeroLight: {
+        background: "linear-gradient(135deg, #f0fdf4 0%, #ffffff 60%, #ecfdf5 100%)",
+        border: "1px solid #a7f3d0",
+        borderRadius: "20px",
+        padding: "24px 28px",
+        marginBottom: "24px",
+        boxShadow: "0 4px 20px -2px rgba(5, 150, 105, 0.08)",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        flexWrap: "wrap",
+        gap: "20px",
+    },
+    myTrainingCardLight: {
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "18px",
+        padding: "22px 26px",
+        marginBottom: "18px",
+        boxShadow: "0 4px 18px -2px rgba(0, 0, 0, 0.04)",
+        transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+    },
+    myTrainingCardHeaderLight: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingBottom: "14px",
+        marginBottom: "16px",
+        borderBottom: "1px solid #f1f5f9",
+    },
+    myTrainingTitleLight: {
+        fontSize: "18px",
+        fontWeight: "800",
+        color: "#0f172a",
+        fontFamily: "'Outfit', sans-serif",
+    },
+    myTrainingGridLight: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+        gap: "14px",
+        marginBottom: "16px",
+        background: "#f8fafc",
+        padding: "16px",
+        borderRadius: "14px",
+        border: "1px solid #f1f5f9",
+    },
+    myTrainingDetailItemLight: {
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+        fontSize: "13px",
+        color: "#334155",
+    },
+    myTrainingFooterLight: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingTop: "14px",
+        borderTop: "1px solid #f1f5f9",
+    },
+    myTrainingViewBtnLight: {
+        background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+        color: "#ffffff",
+        border: "none",
+        borderRadius: "10px",
+        padding: "10px 22px",
+        fontSize: "13px",
+        fontWeight: "800",
+        cursor: "pointer",
+        textDecoration: "none",
+        boxShadow: "0 4px 14px rgba(16, 185, 129, 0.22)",
+        transition: "all 0.2s ease",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "8px",
+    },
+
+    // --- DISCOVER TRAININGS TAB LIGHT THEME RECTANGULAR STYLES (Senior UI/UX Designer Skill) ---
+    rectangularGridLight: {
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+        gap: "22px",
+        marginTop: "20px",
+    },
+    rectangularTrainingCardLight: {
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "16px",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        boxShadow: "0 4px 18px -2px rgba(0, 0, 0, 0.04)",
+        transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+        cursor: "pointer",
+        textDecoration: "none",
+        color: "inherit",
+    },
+    rectangularImageWrapperLight: {
+        position: "relative",
+        width: "100%",
+        height: "190px",
+        backgroundColor: "#f1f5f9",
+        overflow: "hidden",
+    },
+    rectangularImageLight: {
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        transition: "transform 0.3s ease",
+    },
+    rectangularStatusBadgeLight: {
+        position: "absolute",
+        top: "12px",
+        left: "12px",
+        background: "rgba(255, 255, 255, 0.92)",
+        backdropFilter: "blur(8px)",
+        color: "#059669",
+        border: "1px solid #a7f3d0",
+        borderRadius: "20px",
+        padding: "4px 12px",
+        fontSize: "11px",
+        fontWeight: "800",
+        letterSpacing: "0.04em",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+    },
+    rectangularCardBodyLight: {
+        padding: "20px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+        flex: 1,
+    },
+    rectangularTitleLight: {
+        fontSize: "17px",
+        fontWeight: "800",
+        color: "#0f172a",
+        fontFamily: "'Outfit', sans-serif",
+        lineHeight: "1.3",
+        margin: 0,
+    },
+    rectangularCoachRowLight: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        fontSize: "13px",
+        color: "#334155",
+        fontWeight: "600",
+    },
+    rectangularMetaRowLight: {
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+        fontSize: "12px",
+        color: "#64748b",
+        flexWrap: "wrap",
+    },
+    rectangularDescLight: {
+        fontSize: "13px",
+        color: "#475569",
+        lineHeight: "1.5",
+        margin: "2px 0 0 0",
+        display: "-webkit-box",
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: "vertical",
+        overflow: "hidden",
+    },
+    rectangularChipGroupLight: {
+        display: "flex",
+        gap: "6px",
+        flexWrap: "wrap",
+        marginTop: "4px",
+    },
+    rectangularChipLight: {
+        background: "#f1f5f9",
+        color: "#475569",
+        border: "1px solid #e2e8f0",
+        borderRadius: "6px",
+        padding: "3px 9px",
+        fontSize: "11px",
+        fontWeight: "700",
+    },
+    rectangularCardFooterLight: {
+        padding: "16px 20px",
+        background: "#f8fafc",
+        borderTop: "1px solid #f1f5f9",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginTop: "auto",
+    },
+    rectangularPriceTagLight: {
+        fontSize: "18px",
+        fontWeight: "800",
+        color: "#059669",
+        fontFamily: "'Outfit', sans-serif",
+    },
+    rectangularEnrollBtnLight: {
+        background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+        color: "#ffffff",
+        border: "none",
+        borderRadius: "10px",
+        padding: "9px 18px",
+        fontSize: "12px",
+        fontWeight: "800",
+        boxShadow: "0 3px 10px rgba(16, 185, 129, 0.2)",
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+    },
 };
+
+
+

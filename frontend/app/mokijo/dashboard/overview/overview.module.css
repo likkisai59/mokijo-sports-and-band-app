@@ -25,6 +25,107 @@
     }
 }
 
+/* ─── Hero Banner & Control Center ───────────────── */
+.heroBanner {
+    background: linear-gradient(135deg, #0f172a 0%, #064e3b 60%, #047857 100%);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 20px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    box-shadow: 0 12px 32px -6px rgba(6, 78, 59, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.heroBanner::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.heroBannerContent {
+    position: relative;
+    z-index: 2;
+}
+
+.heroBrandRow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.heroBrandTag {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #a7f3d0;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
+.heroStatusChip {
+    font-size: 11px;
+    font-weight: 700;
+    color: #34d399;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.heroTitle {
+    font-size: 32px;
+    font-weight: 900;
+    color: #ffffff;
+    margin: 4px 0;
+    letter-spacing: -0.8px;
+    font-family: "Outfit", sans-serif;
+}
+
+.heroSubtitle {
+    font-size: 14px;
+    color: #cbd5e1;
+    margin: 0;
+    font-weight: 400;
+    max-width: 600px;
+}
+
+.heroMetaRight {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    z-index: 2;
+}
+
+.dateBadge {
+    font-size: 12px;
+    font-weight: 700;
+    color: #f8fafc;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 10px 16px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
 /* ─── Page Header ────────────────────────────────── */
 .pageHeader {
     display: flex;
@@ -49,23 +150,11 @@
     font-weight: 500;
 }
 
-.dateBadge {
-    font-size: 12px;
-    font-weight: 600;
-    color: #475569;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 8px 14px;
-    white-space: nowrap;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
-}
-
 /* ─── Action Bar ─────────────────────────────────── */
 .actionBar {
     display: flex;
-    gap: 10px;
-    margin-bottom: 28px;
+    gap: 12px;
+    margin-bottom: 32px;
     flex-wrap: wrap;
     padding-top: 0;
 }
@@ -75,30 +164,32 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    min-width: 160px;
-    min-height: 42px;
-    background: #ecfdf5;
-    color: #047857;
-    border: 1px solid #a7f3d0;
-    border-radius: 12px;
-    padding: 10px 18px;
+    min-width: 150px;
+    min-height: 44px;
+    background: #ffffff;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 10px 20px;
     font-size: 13px;
     font-weight: 700;
     font-family: "Outfit", sans-serif;
     cursor: pointer;
-    transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
     text-decoration: none;
     white-space: nowrap;
     letter-spacing: 0.01em;
+    box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.06);
 }
 
 .actionButton:hover {
     background: #10b981;
     border-color: #059669;
     color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px -4px rgba(16, 185, 129, 0.35);
 }
+
 
 .actionButton svg {
     stroke-width: 2.2;

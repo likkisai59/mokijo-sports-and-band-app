@@ -287,9 +287,8 @@ function VenueBlock({ venue, index, onChange, onRemove, showRemove }) {
                                 key={d}
                                 type="button"
                                 onClick={() => update("daysOpen", toggle(venue.daysOpen, d))}
-                                className={`h-9 px-3 rounded-xl text-xs font-bold border-2 transition-all cursor-pointer ${
-                                    isChecked ? "bg-black text-white border-black" : "bg-white text-black border-gray-300 hover:border-black"
-                                }`}
+                                className={`h-9 px-3 rounded-xl text-xs font-bold border-2 transition-all cursor-pointer ${isChecked ? "bg-black text-white border-black" : "bg-white text-black border-gray-300 hover:border-black"
+                                    }`}
                             >
                                 {d}
                             </button>

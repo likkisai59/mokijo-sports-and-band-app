@@ -412,22 +412,22 @@ export default function MyVenuesPage() {
                                         type="button"
                                         onClick={() => setEditVenue((p) => ({ ...p, sports: toggle(p.sports, s) }))}
                                         style={{
-                                            padding: "5px 13px",
+                                            padding: "6px 14px",
                                             borderRadius: 999,
                                             fontSize: 12,
-                                            fontWeight: 600,
+                                            fontWeight: 700,
                                             cursor: "pointer",
                                             border: editVenue.sports.includes(s)
-                                                ? "1px solid rgba(198, 255, 61,0.5)"
-                                                : "1px solid rgba(255,255,255,0.1)",
+                                                ? "1px solid #a7f3d0"
+                                                : "1px solid #cbd5e1",
                                             background: editVenue.sports.includes(s)
-                                                ? "rgba(198, 255, 61,0.1)"
-                                                : "transparent",
-                                            color: editVenue.sports.includes(s) ? "#c6ff3d" : "rgba(255,255,255,0.5)",
+                                                ? "#ecfdf5"
+                                                : "#ffffff",
+                                            color: editVenue.sports.includes(s) ? "#059669" : "#475569",
                                             fontFamily: "Outfit,sans-serif",
                                         }}
                                     >
-                                        {s}
+                                        {s} {editVenue.sports.includes(s) ? "✓" : ""}
                                     </button>
                                 ))}
                             </div>

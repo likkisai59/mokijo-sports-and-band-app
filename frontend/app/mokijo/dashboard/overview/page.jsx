@@ -456,7 +456,41 @@ export default function OverviewPage() {
     const renderAdminDashboard = () => {
         return (
             <div className={styles.page}>
-                {/* Quick Actions */}
+                {/* Hero Header & Control Center Banner */}
+                <div className={styles.heroBanner}>
+                    <div className={styles.heroBannerContent}>
+                        <div className={styles.heroBrandRow}>
+                            <span className={styles.heroBrandTag}>
+                                MUKIJO • CLUB CONTROL CENTER
+                            </span>
+                            <span className={styles.heroStatusChip}>
+                                <span className={styles.liveDot} /> Active Operations
+                            </span>
+                        </div>
+                        <h1 className={styles.heroTitle}>{clubName}</h1>
+                        <p className={styles.heroSubtitle}>
+                            Real-time platform overview, roster management, facilities & financial insights.
+                        </p>
+                    </div>
+                    <div className={styles.heroMetaRight}>
+                        <div className={styles.dateBadge}>
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 6 }}>
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" />
+                                <line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                            {new Date().toLocaleDateString("en-IN", {
+                                weekday: "short",
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                            })}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Quick Actions Launcher */}
                 <div className={styles.actionBar}>
                     <Link href="/dashboard/creategroup" className={styles.actionButton}>
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none">
@@ -465,7 +499,7 @@ export default function OverviewPage() {
                             <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                         </svg>
-                        Create New Group
+                        + Create New Group
                     </Link>
                     <Link href="/dashboard/importgroups" className={styles.actionButton}>
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -473,7 +507,7 @@ export default function OverviewPage() {
                             <polyline points="7 10 12 15 17 10" />
                             <line x1="12" y1="15" x2="12" y2="3" />
                         </svg>
-                        Add more members
+                        + Add Members
                     </Link>
                     <Link href="/dashboard/events/new" className={styles.actionButton}>
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none">
@@ -482,7 +516,7 @@ export default function OverviewPage() {
                             <line x1="8" y1="2" x2="8" y2="6"></line>
                             <line x1="3" y1="10" x2="21" y2="10"></line>
                         </svg>
-                        Create New Event
+                        + Create Event
                     </Link>
                     <Link href="/dashboard/fundraising/new" className={styles.actionButton}>
                         <svg
@@ -501,7 +535,7 @@ export default function OverviewPage() {
                             <path d="M6 13h3" />
                             <path d="M9 13c6.667 0 6.667-10 0-10" />
                         </svg>
-                        Create New Campaign
+                        + New Campaign
                     </Link>
                     <Link href="/dashboard/members" className={styles.actionButton}>
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none">
@@ -510,109 +544,18 @@ export default function OverviewPage() {
                             <line x1="19" y1="8" x2="19" y2="14"></line>
                             <line x1="22" y1="11" x2="16" y2="11"></line>
                         </svg>
-                        Add a New Member
+                        + Add Member
                     </Link>
                 </div>
 
-                {/* Page heading */}
-                <div className={styles.pageHeader}>
-                    <div>
-                        <div className="auth-brand text-[28px] md:text-[36px] font-black uppercase tracking-wider text-[#c6ff3d] mb-1">
-                            MUKIJO
-                        </div>
-                        <h1 className={styles.pageTitle}>Club Overview</h1>
-                        <p className={styles.pageSubtitle}>A snapshot of {clubName}&apos;s activity and performance</p>
-                    </div>
-                    <div className={styles.dateBadge}>
-                        {new Date().toLocaleDateString("en-IN", {
-                            weekday: "long",
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                        })}
-                    </div>
-                </div>
-
-                {renderTrainerTrainingsSection()}
-
-                {/* Registered Venues */}
-                <div className={styles.sectionHeader}>
-                    <h2 className={styles.sectionTitle}>Registered Venues</h2>
-                    <p className={styles.sectionSubtitle}>Venues registered by owners on the platform</p>
-                </div>
-
-                {loading ? (
-                    <div className={styles.venuesGrid}>
-                        {[1, 2, 3].map((n) => (
-                            <div key={n} className={styles.venueCard} style={{ minHeight: 260 }}>
-                                <div className={styles.skeletonRow} style={{ height: 140, borderRadius: '16px 16px 0 0' }} />
-                                <div className={styles.venueCardContent}>
-                                    <div className={styles.skeletonRow} style={{ width: "60%", height: 20 }} />
-                                    <div className={styles.skeletonRow} style={{ width: "80%", height: 15 }} />
-                                    <div className={styles.skeletonRow} style={{ width: "40%", height: 15 }} />
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : adminData?.venues && adminData.venues.length > 0 ? (
-                    <div className={styles.venuesGrid}>
-                        {adminData.venues.map((venue) => (
-                            <Link
-                                key={venue.id}
-                                href={`/dashboard/venues?venue=${venue.id}`}
-                                className={styles.venueCard}
-                                style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
-                            >
-                                {venue.cover_image ? (
-                                    <img src={venue.cover_image} alt={venue.name} className={styles.venueImage} />
-                                ) : (
-                                    <div className={styles.venuePlaceholderImage}>
-                                        <span>No Cover Image</span>
-                                    </div>
-                                )}
-                                <div className={styles.venueCardContent}>
-                                    <div className={styles.venueCardHeader}>
-                                        <h3 className={styles.venueName}>{venue.name}</h3>
-                                    </div>
-                                    <p className={styles.venueLocation}>
-                                        <strong>Location:</strong> {venue.location}
-                                    </p>
-                                    {venue.sports_supported && (
-                                        <p className={styles.venueSports}>
-                                            <strong>Sports:</strong> {(() => {
-                                                try {
-                                                    const parsed = JSON.parse(venue.sports_supported);
-                                                    if (Array.isArray(parsed)) {
-                                                        return parsed.join(", ");
-                                                    }
-                                                } catch (e) { }
-                                                return venue.sports_supported.replace(/[\[\]"]/g, "");
-                                            })()}
-                                        </p>
-                                    )}
-                                    <div className={styles.venueOwnerInfo}>
-                                        <p><strong>Owner:</strong> {venue.owner_name}</p>
-                                        {venue.contact_email && <p><strong>Email:</strong> {venue.contact_email}</p>}
-                                        {venue.contact_phone && <p><strong>Phone:</strong> {venue.contact_phone}</p>}
-                                    </div>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                ) : (
-                    <div className={styles.emptyVenues}>
-                        <p>No registered venues found.</p>
-                    </div>
-                )}
-
-                {/* Stat Cards */}
+                {/* Stat Cards Grid */}
                 <div className={styles.statsGrid}>
                     <StatCard
                         loading={loading}
                         color="blue"
                         label="Total Members"
                         value={adminData?.total_members ?? adminData?.totalMembers ?? 0}
-                        sub="Across all groups"
+                        sub="Across all registered groups"
                         href="/dashboard/members"
                         icon={
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -628,8 +571,8 @@ export default function OverviewPage() {
                         color="violet"
                         label="Total Groups"
                         value={adminData?.total_groups ?? adminData?.totalGroups ?? 0}
-                        sub="Active groups"
-                        href="/dashboard"
+                        sub="Active team rosters"
+                        href="/dashboard/groups"
                         icon={
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <polygon points="12 2 2 7 12 12 22 7 12 2" />
@@ -644,6 +587,7 @@ export default function OverviewPage() {
                         label="Pending Payments"
                         value={`\u20B9${(adminData?.pending_payments ?? adminData?.pendingPayments ?? 0).toLocaleString()}`}
                         sub="Awaiting collection"
+                        href="/dashboard/payments"
                         icon={
                             <svg
                                 viewBox="0 0 24 24"
@@ -667,7 +611,7 @@ export default function OverviewPage() {
                         label="Upcoming Events"
                         value={adminData?.upcoming_events_count ?? adminData?.upcoming_events ?? adminData?.upcomingEvents ?? 0}
                         sub="Scheduled ahead"
-                        href="/dashboard"
+                        href="/dashboard/events"
                         icon={
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -682,7 +626,8 @@ export default function OverviewPage() {
                         color="rose"
                         label="Fundraising"
                         value={`\u20B9${(adminData?.fundraising_total ?? adminData?.fundraising ?? adminData?.fundraisingTotal ?? 0).toLocaleString()}`}
-                        sub="Total raised"
+                        sub="Total raised across campaigns"
+                        href="/dashboard/fundraising"
                         icon={
                             <svg
                                 viewBox="0 0 24 24"
@@ -713,11 +658,106 @@ export default function OverviewPage() {
                     />
                 </div>
 
+                {renderTrainerTrainingsSection()}
+
+                {/* Registered Venues */}
+                <div className={styles.sectionHeader}>
+                    <div>
+                        <h2 className={styles.sectionTitle}>Registered Venues & Facilities</h2>
+                        <p className={styles.sectionSubtitle}>Platform registered partner sports venues & grounds</p>
+                    </div>
+                    <Link href="/dashboard/venues" className={styles.viewAllLink}>
+                        Manage Venues →
+                    </Link>
+                </div>
+
+                {loading ? (
+                    <div className={styles.venuesGrid}>
+                        {[1, 2, 3].map((n) => (
+                            <div key={n} className={styles.venueCard} style={{ minHeight: 260 }}>
+                                <div className={styles.skeletonRow} style={{ height: 140, borderRadius: '16px 16px 0 0' }} />
+                                <div className={styles.venueCardContent}>
+                                    <div className={styles.skeletonRow} style={{ width: "60%", height: 20 }} />
+                                    <div className={styles.skeletonRow} style={{ width: "80%", height: 15 }} />
+                                    <div className={styles.skeletonRow} style={{ width: "40%", height: 15 }} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : adminData?.venues && adminData.venues.length > 0 ? (
+                    <div className={styles.venuesGrid}>
+                        {adminData.venues.map((venue) => (
+                            <Link
+                                key={venue.id}
+                                href={`/dashboard/venues?venue=${venue.id}`}
+                                className={styles.venueCard}
+                                style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}
+                            >
+                                {venue.cover_image ? (
+                                    <img src={venue.cover_image} alt={venue.name} className={styles.venueImage} />
+                                ) : (
+                                    <div className={styles.venuePlaceholderImage}>
+                                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                            <circle cx="12" cy="10" r="3"></circle>
+                                        </svg>
+                                        <span style={{ marginTop: 6 }}>No Cover Image</span>
+                                    </div>
+                                )}
+                                <div className={styles.venueCardContent}>
+                                    <div className={styles.venueCardHeader}>
+                                        <h3 className={styles.venueName}>{venue.name}</h3>
+                                        <span className={`${styles.statusBadge} ${styles.verified}`}>
+                                            {venue.status || "verified"}
+                                        </span>
+                                    </div>
+                                    <p className={styles.venueLocation}>
+                                        <strong>Location:</strong> {venue.location}
+                                    </p>
+                                    {venue.sports_supported && (
+                                        <p className={styles.venueSports}>
+                                            <strong>Sports:</strong> {(() => {
+                                                try {
+                                                    const parsed = JSON.parse(venue.sports_supported);
+                                                    if (Array.isArray(parsed)) {
+                                                        return parsed.join(", ");
+                                                    }
+                                                } catch (e) { }
+                                                return venue.sports_supported.replace(/[\[\]"]/g, "");
+                                            })()}
+                                        </p>
+                                    )}
+                                    <div className={styles.venueOwnerInfo}>
+                                        <p><strong>Owner:</strong> {venue.owner_name}</p>
+                                        {venue.contact_email && <p><strong>Email:</strong> {venue.contact_email}</p>}
+                                        {venue.contact_phone && <p><strong>Phone:</strong> {venue.contact_phone}</p>}
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                ) : (
+                    <div className={styles.emptyVenues}>
+                        <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ margin: "0 auto 10px", color: "#94a3b8" }}>
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <p style={{ fontWeight: 600, color: "#334155", margin: 0 }}>No registered venues found</p>
+                        <p style={{ fontSize: 12, color: "#64748b", margin: "4px 0 0" }}>Registered partner venues will appear here.</p>
+                    </div>
+                )}
+
+                {/* Active Team Activity Ticker */}
                 {(adminData?.active_team_activity?.length ?? 0) > 0 && (
                     <div className={styles.sectionCard} style={{ marginTop: "24px" }}>
                         <div className={styles.sectionHeader}>
-                            <h2 className={styles.sectionTitle}>Active Team Activity</h2>
-                            <span className={styles.liveBadge}>Live</span>
+                            <div>
+                                <h2 className={styles.sectionTitle}>Active Team Activity</h2>
+                                <p className={styles.sectionSubtitle}>Live actions & match participation across your club</p>
+                            </div>
+                            <span className={styles.liveBadge}>
+                                <span className={styles.liveDot} /> LIVE STREAM
+                            </span>
                         </div>
                         <div className={styles.activityGrid}>
                             {adminData.active_team_activity.slice(0, 6).map((activity, index) => (
@@ -737,11 +777,15 @@ export default function OverviewPage() {
                     </div>
                 )}
 
+                {/* Live Matches Feed */}
                 {(adminData?.live_matches?.length ?? 0) > 0 && (
                     <div className={styles.sectionCard} style={{ marginTop: "24px" }}>
                         <div className={styles.sectionHeader}>
-                            <h2 className={styles.sectionTitle}>Live Matches</h2>
-                            <Link href="/dashboard/matches" className={styles.viewAllLink}>View all matches</Link>
+                            <div>
+                                <h2 className={styles.sectionTitle}>Live Matches in Progress</h2>
+                                <p className={styles.sectionSubtitle}>Matches currently active on platform scoreboards</p>
+                            </div>
+                            <Link href="/dashboard/matches" className={styles.viewAllLink}>View scoreboards →</Link>
                         </div>
                         <div className={styles.eventList}>
                             {adminData.live_matches.map((match) => (
@@ -753,7 +797,10 @@ export default function OverviewPage() {
                                 >
                                     <div className={styles.eventMeta}>
                                         <span className={styles.eventTypeBadge}>{match.sport || "Match"}</span>
-                                        <span className={styles.eventDate}>{match.status || "Live"}</span>
+                                        <span className={styles.eventDate}>
+                                            <span className={styles.liveDot} style={{ width: 6, height: 6, marginRight: 4 }} />
+                                            {match.status || "Live"}
+                                        </span>
                                     </div>
                                     <div className={styles.eventTitle}>{match.title || match.summary || "Live match"}</div>
                                     <div className={styles.eventLocation}>{match.summary || match.teams?.join(" vs ") || "In progress"}</div>

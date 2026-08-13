@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mokijo Sports — Workflow Diagrams</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --ink:#e2e8f0; --muted:#94a3b8; --teal:#14b8a6; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Segoe UI, Calibri, Arial, sans-serif; background:linear-gradient(180deg,#0f172a,#134e4a 40%,#0f172a); color:var(--ink); }
+    header { padding:28px 24px 12px; text-align:center; }
+    header h1 { margin:0; font-size:28px; letter-spacing:.04em; }
+    header p { color:var(--muted); margin:8px 0 0; }
+    .hint { max-width:900px; margin:16px auto 28px; background:#042f2e; border:1px solid #14b8a6; border-radius:12px; padding:14px 18px; color:#ccfbf1; font-size:14px; line-height:1.5; }
+    .hint b { color:#5eead4; }
+    section { max-width:1100px; margin:0 auto 36px; background:#fff; color:#0f172a; border-radius:16px; padding:20px 16px 8px; box-shadow:0 12px 40px rgba(0,0,0,.35); }
+    section h2 { margin:0 0 8px; font-size:20px; color:#0f766e; padding:0 8px; }
+    section p.lead { margin:0 8px 12px; color:#475569; font-size:14px; }
+    .mermaid { display:flex; justify-content:center; overflow:auto; }
+    .legend { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:8px 0 16px; }
+    .chip { font-size:12px; font-weight:700; padding:6px 10px; border-radius:999px; color:#fff; }
+    footer { text-align:center; color:#94a3b8; padding:10px 16px 40px; font-size:13px; }
+    @media print {
+      body { background:#fff; }
+      header, .hint, footer { color:#0f172a; }
+      .hint { border-color:#0f766e; background:#ecfdf5; color:#134e4a; }
+      section { box-shadow:none; break-inside:avoid; page-break-inside:avoid; margin-bottom:24px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>MOKIJO SPORTS</h1>
+    <p>Colorful pin-to-pin workflow diagrams — open this file in Chrome, then save as PDF</p>
+  </header>
+
+  <div class="hint">
+    <b>How to download / save:</b><br>
+    1) This page is already on your computer.<br>
+    2) In Chrome press <b>Ctrl + P</b> (Print).<br>
+    3) Destination: <b>Save as PDF</b> → Save to Desktop.<br>
+    Or right-click a diagram → <b>Save image as</b> if your browser offers it.
+  </div>
+
+  <div class="legend">
+    <span class="chip" style="background:#2563eb">Player</span>
+    <span class="chip" style="background:#16a34a">Club Admin</span>
+    <span class="chip" style="background:#0891b2">Member</span>
+    <span class="chip" style="background:#ea580c">Trainer</span>
+    <span class="chip" style="background:#7c3aed">Venue Owner</span>
+    <span class="chip" style="background:#dc2626">Super Admin</span>
+    <span class="chip" style="background:#ca8a04;color:#111">Mukijo Admin</span>
+    <span class="chip" style="background:#059669">Money / Razorpay</span>
+  </div>
+
+  <section>
+    <h2>1) Who does what</h2>
+    <p class="lead">Seven roles in Mokijo Sports. Each color is one person.</p>
+    <pre class="mermaid">
+flowchart TB
+  START(["MOKIJO SPORTS"])
+  START --> R1["PLAYER / USER — book venues, games, trainings"]
+  START --> R2["CLUB ADMIN — groups, events, matches, fundraising"]
+  START --> R3["CLUB MEMBER — RSVP, fees, attendance"]
+  START --> R4["TRAINER — create trainings, see registrations"]
+  START --> R5["VENUE OWNER — slots, bookings, payouts"]
+  START --> R6["SUPER ADMIN — approve clubs and venue owners"]
+  START --> R7["MUKIJO ADMIN — verify venue docs / GPS"]
+  classDef start fill:#0f766e,stroke:#134e4a,color:#fff,font-weight:bold
+  classDef player fill:#2563eb,stroke:#1e40af,color:#fff
+  classDef club fill:#16a34a,stroke:#166534,color:#fff
+  classDef member fill:#0891b2,stroke:#155e75,color:#fff
+  classDef trainer fill:#ea580c,stroke:#9a3412,color:#fff
+  classDef venue fill:#7c3aed,stroke:#5b21b6,color:#fff
+  classDef super fill:#dc2626,stroke:#991b1b,color:#fff
+  classDef mukijo fill:#ca8a04,stroke:#854d0e,color:#111
+  class START start
+  class R1 player
+  class R2 club
+  class R3 member
+  class R4 trainer
+  class R5 venue
+  class R6 super
+  class R7 mukijo
+    </pre>
+  </section>
+
+  <section>
+    <h2>2) Register → approve → dashboard</h2>
+    <p class="lead">Everyone starts at /mokijo, picks a role, then lands on their dashboard.</p>
+    <pre class="mermaid">
+flowchart TD
+  A(["Land on /mokijo"]) --> B{"Choose role"}
+  B -->|Player| C1["Register User"] --> L1["Login User"] --> D1["User Dashboard"]
+  B -->|Club Admin| C2["Register Club"] --> W2["PENDING_APPROVAL"] --> SA["Super Admin Approve"] --> L2["Login Club"] --> D2["Club Dashboard"]
+  B -->|Member| C3["Signup form"] --> L3["Login Member"] --> D3["Member view"]
+  B -->|Trainer| C4["Register Trainer"] --> L4["Login Trainer"] --> D4["Trainer Dashboard"]
+  B -->|Venue Owner| C5["Register Venue Owner"] --> W5["PENDING_APPROVAL"] --> SA --> L5["Login Venue"] --> D5["Venue Dashboard"]
+  B -->|Mukijo Admin| L6["Login Admin"] --> D6["Venue Verification"]
+  B -->|Super Admin| L7["Super Admin Login"] --> D7["Approvals"]
+  classDef gate fill:#111827,stroke:#374151,color:#fff
+  classDef wait fill:#f59e0b,stroke:#b45309,color:#111
+  classDef blue fill:#3b82f6,stroke:#1d4ed8,color:#fff
+  classDef green fill:#22c55e,stroke:#166534,color:#fff
+  classDef purple fill:#a855f7,stroke:#6b21a8,color:#fff
+  classDef orange fill:#fb923c,stroke:#c2410c,color:#111
+  classDef red fill:#ef4444,stroke:#991b1b,color:#fff
+  classDef yellow fill:#facc15,stroke:#a16207,color:#111
+  classDef cyan fill:#22d3ee,stroke:#0e7490,color:#111
+  class A,B gate
+  class W2,W5 wait
+  class SA,D7,L7 red
+  class D1,C1,L1 blue
+  class D2,C2,L2 green
+  class D3,C3,L3 cyan
+  class D4,C4,L4 orange
+  class D5,C5,L5 purple
+  class D6,L6 yellow
+    </pre>
+  </section>
+
+  <section>
+    <h2>3) Venue booking — money flow</h2>
+    <p class="lead">Hold slot → maybe owner approval → Razorpay pay → confirmed.</p>
+    <pre class="mermaid">
+flowchart LR
+  P1["1. Open Venues"] --> P2["2. Pick venue + date"]
+  P2 --> P3["3. Select slots"]
+  P3 --> P4["4. Hold slots AVAILABLE to HELD"]
+  P4 --> P5{"Needs owner approval?"}
+  P5 -->|No| P6["5. Razorpay order"]
+  P5 -->|Yes| P7["pending_approval"]
+  P7 --> VO["Owner Approve / Reject"]
+  VO -->|Reject| X1["Slots released"]
+  VO -->|Approve| P6
+  P6 --> P8["6. Pay on Razorpay"]
+  P8 --> P9["7. Verify payment"]
+  P9 --> P10["CONFIRMED + BOOKED + PAID"]
+  P10 --> P11["Optional Cancel"]
+  P11 --> P12["Refund if paid"]
+  classDef p fill:#2563eb,stroke:#1e3a8a,color:#fff
+  classDef pay fill:#059669,stroke:#065f46,color:#fff
+  classDef warn fill:#f59e0b,stroke:#b45309,color:#111
+  classDef bad fill:#ef4444,stroke:#7f1d1d,color:#fff
+  classDef owner fill:#7c3aed,stroke:#4c1d95,color:#fff
+  class P1,P2,P3,P4,P5 p
+  class P6,P8,P9,P10 pay
+  class P7,P11 warn
+  class X1,P12 bad
+  class VO owner
+    </pre>
+  </section>
+
+  <section>
+    <h2>4) Fundraising — full example</h2>
+    <p class="lead">Create campaign → donate → pay → raised total updates. Same pattern as other money flows.</p>
+    <pre class="mermaid">
+flowchart TD
+  A(["START FUNDRAISING"]) --> B["Club Admin opens Fundraising"]
+  B --> C["Click Create Campaign"]
+  C --> D["Fill Title, Goal, Story, End date"]
+  D --> E["Publish Campaign"]
+  E --> F["Campaign LIVE / active"]
+  F --> G{"Who donates?"}
+  G --> H["Open Donate page"]
+  H --> I["Enter amount"]
+  I --> J["Create Razorpay order"]
+  J --> K["Pay on Razorpay"]
+  K --> L{"Payment result"}
+  L -->|Success| M["Verify payment"]
+  L -->|Fail| N["Donation failed — total unchanged"]
+  M --> O["Donation PAID"]
+  O --> P["Add amount to raised"]
+  P --> Q{"Goal reached?"}
+  Q -->|No| R["Show progress bar Raised / Goal"]
+  Q -->|Yes| S["Campaign COMPLETED"]
+  R --> T["Admin sees donors + total"]
+  S --> T
+  T --> U(["END"])
+  classDef start fill:#14532d,stroke:#052e16,color:#fff
+  classDef admin fill:#16a34a,stroke:#14532d,color:#fff
+  classDef donor fill:#2563eb,stroke:#1e3a8a,color:#fff
+  classDef money fill:#059669,stroke:#064e3b,color:#fff
+  classDef bad fill:#dc2626,stroke:#7f1d1d,color:#fff
+  classDef win fill:#eab308,stroke:#854d0e,color:#111
+  class A,U start
+  class B,C,D,E,F,T admin
+  class G,H,I donor
+  class J,K,M,O,P,R money
+  class L,N bad
+  class Q,S win
+    </pre>
+  </section>
+
+  <section>
+    <h2>5) Trainer enroll</h2>
+    <pre class="mermaid">
+flowchart TD
+  T1["Trainer creates training"] --> T2["Training OPEN"]
+  T2 --> U1["Player discovers training"]
+  U1 --> U2["Open training detail"]
+  U2 --> U3{"Free or Paid?"}
+  U3 -->|Free| U4["Enroll → registered"]
+  U3 -->|Paid| U5["Razorpay → pay → verify"]
+  U5 --> U6["Registered + PAID"]
+  U4 --> T3["Trainer sees Registrations"]
+  U6 --> T3
+  classDef tr fill:#ea580c,stroke:#9a3412,color:#fff
+  classDef pl fill:#2563eb,stroke:#1e40af,color:#fff
+  classDef ok fill:#16a34a,stroke:#166534,color:#fff
+  class T1,T2,T3 tr
+  class U1,U2,U3 pl
+  class U4,U5,U6 ok
+    </pre>
+  </section>
+
+  <section>
+    <h2>6) Pickup games lobby</h2>
+    <pre class="mermaid">
+flowchart TD
+  G1["Host creates Game"] --> G2["Host auto CONFIRMED"]
+  G2 --> G3["Other player joins"]
+  G3 --> G4{"Join policy"}
+  G4 -->|Instant| G5["pending_payment → Pay → CONFIRMED"]
+  G4 -->|Request approval| G6["pending_approval"]
+  G6 --> G7{"Host decision"}
+  G7 -->|Accept| G5
+  G7 -->|Reject| G8["rejected"]
+  G5 --> G9{"Lobby full?"}
+  G9 -->|No| G3
+  G9 -->|Yes| G10["FULL → WAITLIST"]
+  G10 --> G11["Seat free → promote waitlist"]
+  classDef host fill:#1d4ed8,stroke:#1e3a8a,color:#fff
+  classDef pay fill:#059669,stroke:#065f46,color:#fff
+  classDef wait fill:#f59e0b,stroke:#b45309,color:#111
+  classDef bad fill:#ef4444,stroke:#7f1d1d,color:#fff
+  class G1,G2,G3,G4 host
+  class G5,G9 pay
+  class G6,G10,G11 wait
+  class G7,G8 bad
+    </pre>
+  </section>
+
+  <section>
+    <h2>7) Club ops + live scoreboard</h2>
+    <pre class="mermaid">
+flowchart TD
+  A["Club Admin"] --> B["Create Groups / Teams"]
+  B --> C["Add / Import Members"]
+  C --> D["Events / Courses / Payment Requests"]
+  D --> E["Members RSVP / Register / Pay"]
+  A --> F["Create Match"]
+  F --> G["scheduled"]
+  G --> H["Manage scores → LIVE"]
+  H --> I["WebSocket push"]
+  I --> J["Public Scoreboard /scoreboard/id"]
+  H --> K["completed / cancelled"]
+  classDef club fill:#16a34a,stroke:#14532d,color:#fff
+  classDef live fill:#dc2626,stroke:#7f1d1d,color:#fff
+  classDef board fill:#7c3aed,stroke:#4c1d95,color:#fff
+  class A,B,C,D,E club
+  class F,G,H,K live
+  class I,J board
+    </pre>
+  </section>
+
+  <section>
+    <h2>8) Venue verification (trust loop)</h2>
+    <pre class="mermaid">
+flowchart LR
+  V1["Owner adds venue DRAFT"] --> V2["Upload docs + GPS"]
+  V2 --> V3["Submit PENDING"]
+  V3 --> V4["Mukijo Admin UNDER_REVIEW"]
+  V4 --> V5{"Decision"}
+  V5 -->|Approve| V6["VERIFIED"]
+  V5 -->|Reject| V7["REJECTED"]
+  V5 -->|Need info| V8["MORE_INFO_REQUIRED"]
+  V8 --> V2
+  V6 --> V9["Venue can take bookings"]
+  classDef v fill:#7c3aed,stroke:#5b21b6,color:#fff
+  classDef a fill:#ca8a04,stroke:#854d0e,color:#111
+  classDef ok fill:#16a34a,stroke:#166534,color:#fff
+  classDef bad fill:#dc2626,stroke:#991b1b,color:#fff
+  class V1,V2,V3,V9 v
+  class V4,V5,V8 a
+  class V6 ok
+  class V7 bad
+    </pre>
+  </section>
+
+  <footer>Mokijo Sports workflow diagrams — saved in your project docs folder</footer>
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose" });
+  </script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mokijo Sports — Each Role Pin-to-Pin (What + Why)</title>
+  <style>
+    :root { --ink:#0f172a; --muted:#475569; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Segoe UI, Calibri, Arial, sans-serif; background:#0f172a; color:#e2e8f0; }
+    header { padding:28px 20px 10px; text-align:center; }
+    header h1 { margin:0; }
+    header p { color:#94a3b8; }
+    .hint { max-width:980px; margin:12px auto 24px; background:#042f2e; border:1px solid #14b8a6; border-radius:12px; padding:12px 16px; color:#ccfbf1; font-size:14px; }
+    nav { max-width:980px; margin:0 auto 24px; display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+    nav a { color:#fff; text-decoration:none; font-weight:700; font-size:13px; padding:8px 12px; border-radius:999px; }
+    article { max-width:980px; margin:0 auto 36px; background:#fff; color:var(--ink); border-radius:16px; overflow:hidden; }
+    .banner { padding:18px 20px; color:#fff; }
+    .banner h2 { margin:0 0 6px; }
+    .banner p { margin:0; opacity:.95; }
+    .body { padding:18px 20px 24px; }
+    h3 { margin:18px 0 8px; color:#0f766e; }
+    table { width:100%; border-collapse:collapse; font-size:13.5px; margin:8px 0 16px; }
+    th { text-align:left; padding:8px; color:#fff; }
+    td { padding:8px; vertical-align:top; border-bottom:1px solid #e2e8f0; }
+    tr:nth-child(even) td { background:#f8fafc; }
+    .pin { font-weight:800; color:#fff; border-radius:8px; padding:4px 8px; display:inline-block; min-width:28px; text-align:center; }
+    .cannot { background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:10px 14px; }
+    .whybox { background:#ecfeff; border-left:4px solid #0891b2; padding:10px 12px; margin:8px 0 14px; }
+    footer { text-align:center; padding:10px 16px 40px; color:#94a3b8; font-size:13px; }
+    @media print { body { background:#fff; } header, .hint, footer { color:#0f172a; } article { break-inside:avoid; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>MOKIJO SPORTS — EVERY ROLE</h1>
+    <p>Pin-to-pin: what they do, why they do it, what happens next</p>
+  </header>
+  <div class="hint"><b>Save this:</b> Chrome → Ctrl+P → Destination: Save as PDF.</div>
+  <nav>
+    <a href="#player" style="background:#2563eb">1. Player</a>
+    <a href="#club" style="background:#16a34a">2. Club Admin</a>
+    <a href="#member" style="background:#0891b2">3. Club Member</a>
+    <a href="#trainer" style="background:#ea580c">4. Trainer</a>
+    <a href="#venue" style="background:#7c3aed">5. Venue Owner</a>
+    <a href="#super" style="background:#dc2626">6. Super Admin</a>
+    <a href="#mukijo" style="background:#ca8a04;color:#111">7. Mukijo Admin</a>
+  </nav>
+
+  <article id="player">
+    <div class="banner" style="background:#2563eb">
+      <h2>1. PLAYER / USER (independent)</h2>
+      <p>Why this role exists: book courts, join pickup games, enroll with trainers, and review venues — without joining a club.</p>
+    </div>
+    <div class="body">
+      <div class="whybox"><b>Simple story:</b> “I just want to play today.” They are a customer of the marketplace, not staff of a club.</div>
+      <h3>Pin-to-pin</h3>
+      <table>
+        <tr style="background:#1e40af"><th>Pin</th><th>What they do</th><th>Why</th><th>What happens next</th></tr>
+        <tr><td><span class="pin" style="background:#2563eb">1</span></td><td>Open Mokijo → Register as Player (name, email, phone, password)</td><td>Need an account that is not a club, so they can pay and keep bookings.</td><td>Account created. Go to Player login. No Super Admin wait.</td></tr>
+        <tr><td><span class="pin" style="background:#2563eb">2</span></td><td>Login User → User Dashboard</td><td>Prove identity so payments and bookings attach to them.</td><td>Home: featured venues, Book / Host / Join / Trainings.</td></tr>
+        <tr><td><span class="pin" style="background:#2563eb">3</span></td><td>Discover venues, pick date + slots</td><td>Find a court at the right time and price.</td><td>Ready to hold a slot before someone else takes it.</td></tr>
+        <tr><td><span class="pin" style="background:#2563eb">4</span></td><td>Hold slot (AVAILABLE → HELD)</td><td>Lock the time for a few minutes while they pay. Stops double booking.</td><td>Booking = pending_payment (or pending_approval if owner must say yes).</td></tr>
+        <tr><td><span class="pin" style="background:#2563eb">5</span></td><td>Pay on Razorpay (or wait for owner approve first)</td><td>Venue only confirms after money (or after owner trust check).</td><td>Success → CONFIRMED, slots BOOKED, payment PAID. Fail → slot released.</td></tr>
+        <tr><td><span class="pin" style="background:#2563eb">6</span></td><td>See My Bookings</td><td>Know if they can show up, or if still waiting/rejected.</td><td>Statuses: pending_approval → confirmed / rejected / cancelled.</td></tr>
+        <tr><td><span class="pin" style="background:#2563eb">7</span></td><td>Optional: cancel</td><td>Plans change; slot should go back to others.</td><td>Slots freed. If paid → refund path.</td></tr>
+        <tr><td><span class="pin" style="background:#2563eb">8</span></td><td>Review the venue</td><td>Help next players trust good facilities and avoid bad ones.</td><td>Rating on venue updates.</td></tr>
+        <tr><td><span class="pin" style="background:#2563eb">9</span></td><td>Host a pickup game (sport, spots, price, public/private)</td><td>Need more players to fill a booked slot or social match.</td><td>Game = open. Host is auto confirmed.</td></tr>
+        <tr><td><span class="pin" style="background:#2563eb">10</span></td><td>Join someone else’s game (or waitlist if full)</td><td>Play without organizing everything themselves.</td><td>Instant: pay → confirmed. Private: wait host accept → pay → confirmed.</td></tr>
+        <tr><td><span class="pin" style="background:#2563eb">11</span></td><td>Discover trainer sessions → enroll (free or pay)</td><td>Improve skills with a coach, not only book empty courts.</td><td>registered (or waitlisted). Paid trainings: unpaid → paid.</td></tr>
+        <tr><td><span class="pin" style="background:#2563eb">12</span></td><td>My Trainings</td><td>Remember when/where to go and trainer contact.</td><td>Updates if trainer reschedules (e.g. rain).</td></tr>
+      </table>
+      <div class="cannot"><b>They cannot:</b> run a club, approve members, own a venue, set slots, approve venue documents, or create fundraising campaigns. Fundraising donate is on the club dashboard, not this Player dashboard.</div>
+    </div>
+  </article>
+
+  <article id="club">
+    <div class="banner" style="background:#16a34a">
+      <h2>2. CLUB ADMIN</h2>
+      <p>Why this role exists: operate one sports club — people, calendar, money, matches — as a gated tenant on Mokijo.</p>
+    </div>
+    <div class="body">
+      <div class="whybox"><b>Simple story:</b> “I run this club. I need roster, events, fees, and live scores in one place.” Super Admin must approve the club first so fake clubs cannot collect money.</div>
+      <table>
+        <tr style="background:#166534"><th>Pin</th><th>What they do</th><th>Why</th><th>What happens next</th></tr>
+        <tr><td><span class="pin" style="background:#16a34a">1</span></td><td>Register club + admin profile</td><td>Club is a business tenant, not a casual player.</td><td>approval_status = PENDING_APPROVAL. Login blocked.</td></tr>
+        <tr><td><span class="pin" style="background:#16a34a">2</span></td><td>Wait for Super Admin</td><td>Platform must trust who can create members and take fees.</td><td>APPROVED → can login. REJECTED → stays locked with reason.</td></tr>
+        <tr><td><span class="pin" style="background:#16a34a">3</span></td><td>Login → Club Dashboard overview</td><td>Daily hub: counts and shortcuts.</td><td>Can open groups, events, fundraising, etc.</td></tr>
+        <tr><td><span class="pin" style="background:#16a34a">4</span></td><td>Create signup forms (Player / Parent / Coach / Referee)</td><td>Each role needs different fields (child name vs coach license).</td><td>Public applicants submit. Queue of pending people.</td></tr>
+        <tr><td><span class="pin" style="background:#16a34a">5</span></td><td>Approve submission + assign a group (required)</td><td>Only real members should log in; group = their team.</td><td>Member can login-member. Reject → removed.</td></tr>
+        <tr><td><span class="pin" style="background:#16a34a">6</span></td><td>Create / import groups (teams)</td><td>Events, fees, and attendance are by team, not a giant list.</td><td>Groups exist; members attached.</td></tr>
+        <tr><td><span class="pin" style="background:#16a34a">7</span></td><td>Manage roster (edit members)</td><td>Phone, group, role change over a season.</td><td>Updated member record.</td></tr>
+        <tr><td><span class="pin" style="background:#16a34a">8</span></td><td>Create event, invite all/groups/guests, optional fee</td><td>Practice, match day, meeting — people must know and RSVP.</td><td>Invitees: pending → accepted / declined / maybe / waitlisted.</td></tr>
+        <tr><td><span class="pin" style="background:#16a34a">9</span></td><td>Mark attendance (present / absent / late)</td><td>Official record for coaches and parents. Members cannot mark themselves (prevents cheating).</td><td>Attendance saved on the event.</td></tr>
+        <tr><td><span class="pin" style="background:#16a34a">10</span></td><td>Create club course / academy</td><td>Season program inside the club (different from independent Trainer).</td><td>Members enroll; seats/fees tracked.</td></tr>
+        <tr><td><span class="pin" style="background:#16a34a">11</span></td><td>Create fundraising campaign (goal ₹, story, end date)</td><td>Kits, travel, ground fees — club needs pooled money.</td><td>Campaign = active. Members/donors can pay.</td></tr>
+        <tr><td><span class="pin" style="background:#16a34a">12</span></td><td>Watch raised ₹, donors, pause/complete campaign</td><td>Know if goal is met and who contributed.</td><td>active → paused / completed. Totals only rise after verified payment.</td></tr>
+        <tr><td><span class="pin" style="background:#16a34a">13</span></td><td>See member fee / payment status</td><td>Who is unpaid so the club can follow up.</td><td>pending / paid / overdue view.</td></tr>
+        <tr><td><span class="pin" style="background:#16a34a">14</span></td><td>Book a venue as the club</td><td>Club needs a court for a fixture, not a personal hobby booking.</td><td>Same hold → pay → confirmed flow as Player.</td></tr>
+        <tr><td><span class="pin" style="background:#16a34a">15</span></td><td>Create match → go LIVE → score → share scoreboard</td><td>Parents and players want live score, not WhatsApp chaos.</td><td>scheduled → live → completed. Public /scoreboard/[id].</td></tr>
+        <tr><td><span class="pin" style="background:#16a34a">16</span></td><td>Optional club activities (pickup RSVP)</td><td>Informal extra session without full event machinery.</td><td>RSVP confirmed / waitlist; cancel promotes next.</td></tr>
+      </table>
+      <div class="cannot"><b>They cannot:</b> approve other clubs or venue-owner accounts (Super Admin); verify venue GPS/docs queue (Mukijo Admin); set venue slots or take venue payouts; use the independent Player dashboard with this login.</div>
+    </div>
+  </article>
+
+  <article id="member">
+    <div class="banner" style="background:#0891b2">
+      <h2>3. CLUB MEMBER (Player / Parent / Coach / Referee)</h2>
+      <p>Why this role exists: belong to ONE club after admin approval — RSVP, attend, pay/donate, take club programs. This is not the independent Player.</p>
+    </div>
+    <div class="body">
+      <div class="whybox"><b>Simple story:</b> “I (or my child) am on this club’s team.” Sub-roles change the home screen: athlete, parent, squad coach, or referee — same login type.</div>
+      <table>
+        <tr style="background:#155e75"><th>Pin</th><th>What they do</th><th>Why</th><th>What happens next</th></tr>
+        <tr><td><span class="pin" style="background:#0891b2">1</span></td><td>Register-member: pick approved club + role + fill that club’s form</td><td>Join the correct club with the right identity (parent vs player vs coach).</td><td>Submission pending. Cannot really use the club yet.</td></tr>
+        <tr><td><span class="pin" style="background:#0891b2">2</span></td><td>Wait until Club Admin approves AND assigns a group</td><td>Stop random people entering the roster. Group = their team.</td><td>approval = accepted. Can login-member.</td></tr>
+        <tr><td><span class="pin" style="background:#0891b2">3</span></td><td>Login → forced to club overview</td><td>Members should not see admin tools (create event, approve people).</td><td>Home depends on sub-role (see below).</td></tr>
+        <tr><td><span class="pin" style="background:#0891b2">4a</span></td><td><b>If Player:</b> see schedule, RSVP, donate CTA, trainer cards</td><td>Athlete only needs “when do I play and what do I owe.”</td><td>Can RSVP and donate.</td></tr>
+        <tr><td><span class="pin" style="background:#0891b2">4b</span></td><td><b>If Parent:</b> child/group, events, outstanding dues</td><td>Parent pays and tracks the child, not themselves as athlete.</td><td>Can open dues / fundraising and events.</td></tr>
+        <tr><td><span class="pin" style="background:#0891b2">4c</span></td><td><b>If Coach:</b> squad, events, attendance metrics, matches</td><td>Club coach runs the team day-to-day (still not independent Trainer).</td><td>Sees live matches + events. Cannot approve signup forms.</td></tr>
+        <tr><td><span class="pin" style="background:#0891b2">4d</span></td><td><b>If Referee:</b> live matches only (events/members blocked)</td><td>Referee should score, not manage parents or fees.</td><td>Match screens only on mobile nav.</td></tr>
+        <tr><td><span class="pin" style="background:#0891b2">5</span></td><td>RSVP to events: accepted / declined / maybe (+ pay event fee if set)</td><td>Admin needs a headcount and optionally money for that day.</td><td>Admin sees responses. Later admin marks attendance.</td></tr>
+        <tr><td><span class="pin" style="background:#0891b2">6</span></td><td>Do NOT self-mark attendance</td><td>Official presence must be trusted.</td><td>Admin marks present / absent / late.</td></tr>
+        <tr><td><span class="pin" style="background:#0891b2">7</span></td><td>Enroll in club courses + pay if needed</td><td>Join the club academy / season program.</td><td>registered / waitlisted; unpaid → paid.</td></tr>
+        <tr><td><span class="pin" style="background:#0891b2">8</span></td><td>Donate to fundraising / support club dues</td><td>Help the club hit a money goal (kits, travel). Members cannot create campaigns.</td><td>Razorpay success → campaign raised ₹ goes up.</td></tr>
+        <tr><td><span class="pin" style="background:#0891b2">9</span></td><td>May book venues / see my-trainings (sidebar)</td><td>Club people also need courts and extra coaching.</td><td>Same booking/enroll states as marketplace.</td></tr>
+      </table>
+      <div class="cannot"><b>They cannot:</b> create groups, approve applicants, create/delete campaigns, open admin payments page (members are redirected), run Super/Mukijo admin, own venues, or use Trainer dashboard. Club Coach ≠ independent Trainer.</div>
+    </div>
+  </article>
+
+  <article id="trainer">
+    <div class="banner" style="background:#ea580c">
+      <h2>4. TRAINER (independent coach)</h2>
+      <p>Why this role exists: sell training sessions to anyone on Mokijo (players and club people) — not as club staff.</p>
+    </div>
+    <div class="body">
+      <div class="whybox"><b>Simple story:</b> “I am a coach with my own batches.” No Super Admin wait, because they are a service provider, not a club taking memberships.</div>
+      <table>
+        <tr style="background:#9a3412"><th>Pin</th><th>What they do</th><th>Why</th><th>What happens next</th></tr>
+        <tr><td><span class="pin" style="background:#ea580c">1</span></td><td>Register Trainer</td><td>Need a coach identity separate from club Coach member.</td><td>Can login immediately (no approval queue).</td></tr>
+        <tr><td><span class="pin" style="background:#ea580c">2</span></td><td>Login → Trainer Dashboard overview</td><td>See how many trainings are live.</td><td>Open create / list / registrations.</td></tr>
+        <tr><td><span class="pin" style="background:#ea580c">3</span></td><td>Create training (title, dates, fee, capacity, location)</td><td>Publish a batch people can find and pay for.</td><td>Listed open/draft. Visible on Player Discover + club My Trainings.</td></tr>
+        <tr><td><span class="pin" style="background:#ea580c">4</span></td><td>Edit / delete / reschedule (reason required, e.g. rain)</td><td>Weather and ground issues are real; enrollees must be told why.</td><td>Players see reschedule_reason on their training list.</td></tr>
+        <tr><td><span class="pin" style="background:#ea580c">5</span></td><td>Open Registrations per course</td><td>Know who is coming and who paid (user / club_admin / member / guest).</td><td>Read-only list: paid / unpaid / waived. (This UI does not approve/reject.)</td></tr>
+      </table>
+      <div class="cannot"><b>They cannot:</b> approve club members, own venues, run Super/Mukijo admin, or use club-coach login for this dashboard. Club Coach uses member login.</div>
+    </div>
+  </article>
+
+  <article id="venue">
+    <div class="banner" style="background:#7c3aed">
+      <h2>5. VENUE OWNER</h2>
+      <p>Why this role exists: list real courts, get them verified, sell time slots, approve bookings when needed, and receive payouts.</p>
+    </div>
+    <div class="body">
+      <div class="whybox"><b>Simple story:</b> “I own the ground.” Two gates exist: Super Admin must approve the <b>account</b>; Mukijo Admin verifies each <b>venue listing</b> (GPS/docs) so players do not pay fake facilities.</div>
+      <table>
+        <tr style="background:#5b21b6"><th>Pin</th><th>What they do</th><th>Why</th><th>What happens next</th></tr>
+        <tr><td><span class="pin" style="background:#7c3aed">1</span></td><td>Register owner + venues</td><td>Need a business account that can receive booking money.</td><td>Owner = PENDING_APPROVAL. Venues = DRAFT. Login blocked.</td></tr>
+        <tr><td><span class="pin" style="background:#7c3aed">2</span></td><td>Wait Super Admin account approval</td><td>Stop fake owners listing courts and taking Razorpay.</td><td>APPROVED → can login-venue. (Approve may also mark venues VERIFIED as a shortcut.)</td></tr>
+        <tr><td><span class="pin" style="background:#7c3aed">3</span></td><td>Login → overview (bookings, revenue, occupancy)</td><td>Daily ops: is the ground filling, is money coming.</td><td>Open my-venues, slots, bookings, payouts.</td></tr>
+        <tr><td><span class="pin" style="background:#7c3aed">4</span></td><td>Edit venue profile (sports, hours, amenities)</td><td>Players book from this listing. Wrong hours = angry customers.</td><td>Listing updated. Still need verification if DRAFT.</td></tr>
+        <tr><td><span class="pin" style="background:#7c3aed">5</span></td><td>Submit verification wizard: contact → GPS → documents</td><td>Prove the place is real and reachable.</td><td>DRAFT → PENDING_VERIFICATION → Mukijo Admin queue.</td></tr>
+        <tr><td><span class="pin" style="background:#7c3aed">6</span></td><td>Track verification; resubmit if MORE_INFO_REQUIRED</td><td>Admin asked for a clearer photo/GPS — fix it to go live.</td><td>VERIFIED → bookable. REJECTED / SUSPENDED → cannot take new bookings.</td></tr>
+        <tr><td><span class="pin" style="background:#7c3aed">7</span></td><td>Create / block slots</td><td>Inventory of sellable time. Block = maintenance or private use.</td><td>available / held / booked / blocked.</td></tr>
+        <tr><td><span class="pin" style="background:#7c3aed">8</span></td><td>Approve or reject pending_approval bookings</td><td>Some venues want a human yes before a stranger arrives (trust, lighting, membership rules).</td><td>Approve → player can pay/confirm. Reject → slots released.</td></tr>
+        <tr><td><span class="pin" style="background:#7c3aed">9</span></td><td>Watch payouts (revenue, platform fee, transferred)</td><td>That is why they listed the venue — get paid after confirmed bookings.</td><td>processing → transferred.</td></tr>
+        <tr><td><span class="pin" style="background:#7c3aed">10</span></td><td>Optional: create/manage matches at the facility</td><td>Host a fixture on their ground with live score.</td><td>Same match lifecycle as club: scheduled → live → completed.</td></tr>
+      </table>
+      <div class="cannot"><b>They cannot:</b> approve their own account or other owners’ venues; run club member intake; create player pickup games as this role; publish trainer catalogs.</div>
+    </div>
+  </article>
+
+  <article id="super">
+    <div class="banner" style="background:#dc2626">
+      <h2>6. SUPER ADMIN (platform gatekeeper)</h2>
+      <p>Why this role exists: decide WHO may operate on Mokijo — club admins and venue-owner accounts. Not day-to-day coaching or scoring.</p>
+    </div>
+    <div class="body">
+      <div class="whybox"><b>Simple story:</b> “I turn the key for businesses.” If Super Admin is skipped, anyone could open a club or venue and collect money.</div>
+      <table>
+        <tr style="background:#991b1b"><th>Pin</th><th>What they do</th><th>Why</th><th>What happens next</th></tr>
+        <tr><td><span class="pin" style="background:#dc2626">1</span></td><td>Login at Super Admin (separate from club/player)</td><td>This power must not sit on a normal dashboard.</td><td>Overview: counts of clubs pending/approved/members.</td></tr>
+        <tr><td><span class="pin" style="background:#dc2626">2</span></td><td>Open Pending Approvals → Clubs</td><td>Read club profile before they can charge members.</td><td>Approve → club can login. Reject + reason → still locked.</td></tr>
+        <tr><td><span class="pin" style="background:#dc2626">3</span></td><td>Open Pending → Venue owners</td><td>Same gate for people who will take court payments.</td><td>Approve → owner can login-venue. Approve can also set their venues VERIFIED (shortcut).</td></tr>
+        <tr><td><span class="pin" style="background:#dc2626">4</span></td><td>Browse approved / all clubs (filter pending/approved/rejected)</td><td>Directory and audit: who is live, who was refused.</td><td>No change unless they act on a row.</td></tr>
+      </table>
+      <div class="cannot"><b>They cannot (as this role):</b> run the document/GPS verification queue (that is Mukijo Admin); approve club <b>members</b> (Club Admin does that); approve trainers (trainers have no this gate); book courts or score matches as Super Admin.</div>
+    </div>
+  </article>
+
+  <article id="mukijo">
+    <div class="banner" style="background:#ca8a04;color:#111">
+      <h2>7. MUKIJO ADMIN (venue quality / trust)</h2>
+      <p>Why this role exists: verify EACH venue listing (GPS, photos, documents) so players only pay for real grounds. Different from Super Admin account approval.</p>
+    </div>
+    <div class="body">
+      <div class="whybox"><b>Simple story:</b> Super Admin says “this business may exist.” Mukijo Admin says “this court is real, here, and safe to book.”</div>
+      <table>
+        <tr style="background:#854d0e"><th>Pin</th><th>What they do</th><th>Why</th><th>What happens next</th></tr>
+        <tr><td><span class="pin" style="background:#ca8a04;color:#111">1</span></td><td>Login Admin (not on the public home hub)</td><td>QA staff should not be mixed with club registration.</td><td>Land on venue-verification queue.</td></tr>
+        <tr><td><span class="pin" style="background:#ca8a04;color:#111">2</span></td><td>Filter queue: PENDING / UNDER_REVIEW / VERIFIED / MORE_INFO / SUSPENDED</td><td>Work the inbox like a checklist, not miss a new listing.</td><td>Open one venue.</td></tr>
+        <tr><td><span class="pin" style="background:#ca8a04;color:#111">3</span></td><td>Start review</td><td>Mark “someone is looking” so two admins do not clash.</td><td>PENDING_VERIFICATION → UNDER_REVIEW.</td></tr>
+        <tr><td><span class="pin" style="background:#ca8a04;color:#111">4</span></td><td>Check GPS, photos, docs, contact</td><td>Fake pin or stolen photos = players arrive at empty land.</td><td>Decision pins below.</td></tr>
+        <tr><td><span class="pin" style="background:#ca8a04;color:#111">5a</span></td><td>Approve</td><td>Listing is trustworthy.</td><td>VERIFIED → players can book. Owner notified.</td></tr>
+        <tr><td><span class="pin" style="background:#ca8a04;color:#111">5b</span></td><td>Request more info</td><td>Almost OK but photo/GPS unclear — don’t reject forever.</td><td>MORE_INFO_REQUIRED → owner resubmits.</td></tr>
+        <tr><td><span class="pin" style="background:#ca8a04;color:#111">5c</span></td><td>Reject</td><td>Not a real / allowed facility.</td><td>REJECTED. Not bookable.</td></tr>
+        <tr><td><span class="pin" style="background:#ca8a04;color:#111">5d</span></td><td>Suspend later</td><td>Complaints, safety, or expired docs after it was live.</td><td>SUSPENDED → no new bookings.</td></tr>
+      </table>
+      <div class="cannot"><b>They cannot:</b> approve club/venue-owner <b>accounts</b> (Super Admin page); submit docs as the owner. Note: Super Admin “approve owner” can skip this queue by setting venues VERIFIED immediately — that is a platform shortcut, not Mukijo Admin’s job.</div>
+    </div>
+  </article>
+
+  <article>
+    <div class="banner" style="background:#0f172a">
+      <h2>How the 7 roles fit together (why all of them)</h2>
+      <p>If any role is missing, a part of trust or money breaks.</p>
+    </div>
+    <div class="body">
+      <table>
+        <tr style="background:#0f172a"><th>If we remove…</th><th>What breaks (why they exist)</th></tr>
+        <tr><td><b>Player</b></td><td>Nobody books courts or joins games as a casual customer.</td></tr>
+        <tr><td><b>Club Admin</b></td><td>No official club roster, events, fundraising, or live club matches.</td></tr>
+        <tr><td><b>Club Member</b></td><td>Club has no athletes/parents to RSVP and pay dues.</td></tr>
+        <tr><td><b>Trainer</b></td><td>No independent coaching marketplace (only club-internal coaches).</td></tr>
+        <tr><td><b>Venue Owner</b></td><td>No real inventory of slots; nowhere to play or pay for a ground.</td></tr>
+        <tr><td><b>Super Admin</b></td><td>Anyone could open a fake club/venue and collect Razorpay.</td></tr>
+        <tr><td><b>Mukijo Admin</b></td><td>A fake GPS pin could still get booked even after the owner account is approved.</td></tr>
+      </table>
+      <p style="color:#475569;font-size:13px"><b>Two different “players”:</b> independent User Dashboard vs club Member after login-member. Do not mix them. Fundraising donate is on the club dashboard.</p>
+    </div>
+  </article>
+
+  <footer>Mokijo Sports role handbook — Ctrl+P → Save as PDF</footer>
+</body>
+</html>
