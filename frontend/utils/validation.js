@@ -135,6 +135,7 @@ export const artistRegisterSchema = z.object({
 export const artistProfileUpdateSchema = z.object({
   name: z.string().min(2, "Band / Artist Name must be at least 2 characters"),
   display_name: z.string().min(2, "Display name must be at least 2 characters"),
+  username: z.string().optional().default(""),
   bio: z.string().max(2000, "Bio cannot exceed 2000 characters").optional().default(""),
   years_of_experience: z.number().min(0, "Experience cannot be negative").default(0),
   profile_image: z.string().optional().default(""),

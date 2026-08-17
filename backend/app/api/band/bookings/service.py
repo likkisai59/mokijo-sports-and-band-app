@@ -1,262 +1,300 @@
-"""Business logic for Band bookings — status state-machine + timeline.
+"""Band Bookings Service layer — business logic for reservation lifecycle, price calculation, and conflict resolution."""
 
-Preserves the reference booking flow:
-  pending -> accepted / rejected / counter_offered / cancelled
-  accepted -> completed
-Terminal states reject further transitions.
-"""
-
+from typing import List, Optional, Tuple, Dict, Any
+from datetime import datetime
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.models.band_models import BandAccount, BandBooking, BandArtistProfile, BandVenue
+from app.models import band_schemas as schemas
 from app.api.band.bookings import crud
-from app.api.band.notifications import crud as notif_crud
-from app.api.band.messaging import crud as msg_crud
-from app.models.band_models import BandArtistProfile, BandVenue, BandBooking
-
-VALID_TRANSITIONS = {
-    "pending": {"accepted", "rejected", "counter_offered", "cancelled"},
-    "counter_offered": {"accepted", "rejected", "cancelled"},
-    "accepted": {"completed", "cancelled"}
-}
 
 
-def _artist_profile_for(db: Session, account_id: int) -> BandArtistProfile:
-    p = db.query(BandArtistProfile).filter(BandArtistProfile.account_id == account_id).first()
-    if not p:
-        raise HTTPException(status_code=404, detail="Artist profile not found")
-    return p
+def check_availability(
+    db: Session,
+    artist_profile_id: Optional[int],
+    venue_id: Optional[int],
+    event_date_str: str,
+    start_time: str,
+    end_time: str,
+) -> schemas.BandConflictCheckResponse:
+    """Check whether a requested time window has scheduling conflicts."""
+    try:
+        event_date = datetime.strptime(event_date_str, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid event date format. Use YYYY-MM-DD.",
+        )
 
-
-def _venue_for(db: Session, account_id: int) -> BandVenue:
-    v = db.query(BandVenue).filter(BandVenue.account_id == account_id).first()
-    if not v:
-        raise HTTPException(status_code=404, detail="Venue profile not found")
-    return v
-
-
-def _transition(db: Session, booking: BandBooking, new_status: str, by: str, message: str):
-    allowed = VALID_TRANSITIONS.get(booking.status, set())
-    if new_status not in allowed:
-        raise HTTPException(status_code=400, detail=f"Invalid transition from '{booking.status}' to '{new_status}'")
-    booking.status = new_status
-    crud.append_timeline(booking, new_status, by, message)
-    db.commit()
-    db.refresh(booking)
-
-
-# ── Creation (client) ─────────────────────────────────────────────────────────
-
-def create_booking(db: Session, client_id: int, data):
-    if not data.artist_profile_id and not data.venue_id:
-        raise HTTPException(status_code=400, detail="Either artist_profile_id or venue_id is required.")
-
-    artist_profile_id = None
-    venue_id = None
-
-    if data.venue_id:
-        venue = db.query(BandVenue).filter(BandVenue.id == data.venue_id).first()
-        if not venue:
-            raise HTTPException(status_code=404, detail="Venue not found")
-        venue_id = venue.id
-        # Conflict check (buffer time)
-        from app.api.band.venues.service import check_booking_conflict
-        conflict, reason = check_booking_conflict(db, venue.account_id, data.event_date, data.start_time, data.end_time)
-        if conflict:
-            raise HTTPException(status_code=400, detail=reason or "Booking conflicts with existing schedule.")
-
-    if data.artist_profile_id:
-        artist = db.query(BandArtistProfile).filter(BandArtistProfile.id == data.artist_profile_id).first()
-        if not artist:
-            raise HTTPException(status_code=404, detail="Artist not found")
-        artist_profile_id = artist.id
-        from app.api.band.artists.service import check_availability_conflict
-        conflict, reason = check_availability_conflict(db, artist.account_id, data.event_date, data.start_time, data.end_time)
-        if conflict:
-            raise HTTPException(status_code=400, detail=reason or "Artist is unavailable at the requested time.")
-
-    booking = crud.create(db, client_id, data, artist_profile_id=artist_profile_id, venue_id=venue_id)
-    
-    # Trigger isolated BandNotifications
-    notif_crud.create(
-        db, account_id=client_id, title="Booking Request Sent", 
-        message=f"Your booking request for '{data.event_name}' has been sent successfully.",
-        notification_type="booking_created", reference_type="booking", reference_id=booking.id
+    has_conflict = crud.check_conflicts(
+        db=db,
+        artist_profile_id=artist_profile_id,
+        venue_id=venue_id,
+        event_date=event_date,
+        start_time=start_time,
+        end_time=end_time,
     )
-    if data.artist_profile_id and artist:
-        notif_crud.create(
-            db, account_id=artist.account_id, title="New Booking Request Received",
-            message=f"You received a new booking request for '{data.event_name}'.",
-            notification_type="booking_created", reference_type="booking", reference_id=booking.id
-        )
-    if data.venue_id and venue:
-        notif_crud.create(
-            db, account_id=venue.account_id, title="New Venue Booking Request Received",
-            message=f"You received a new booking request for '{data.event_name}'.",
-            notification_type="booking_created", reference_type="booking", reference_id=booking.id
+
+    if has_conflict:
+        return schemas.BandConflictCheckResponse(
+            conflict=True,
+            reason="The selected performer or venue already has a confirmed or pending booking during this time slot.",
         )
 
-    return crud._serialize(booking)
+    return schemas.BandConflictCheckResponse(
+        conflict=False,
+        reason=None,
+    )
 
 
-# ── Artist-side ───────────────────────────────────────────────────────────────
-
-def artist_bookings(db: Session, account_id: int, st: str | None, search: str | None, page: int, limit: int):
-    profile = _artist_profile_for(db, account_id)
-    items, total = crud.list_for_artist(db, profile.id, st, search, limit, (page - 1) * limit)
-    return {"items": [crud._serialize(b) for b in items], "total": total}
-
-
-def artist_action(db: Session, account_id: int, booking_id: int, action: str, counter_price=None, message=None):
-    profile = _artist_profile_for(db, account_id)
-    booking = crud.get_by_id(db, booking_id)
-    if not booking or booking.artist_profile_id != profile.id:
-        raise HTTPException(status_code=404, detail="Booking not found")
-
-    if action == "accept":
-        _transition(db, booking, "accepted", "artist", message or "Booking accepted by artist")
-        
-        # Sprint 3: Automatically create conversation
-        msg_crud.initialize_conversation(db, booking)
-        
-        notif_crud.create(
-            db, account_id=booking.client_id, title="Booking Accepted",
-            message=f"Your booking request for '{booking.event_name}' was accepted by the artist. A conversation has been started.",
-            notification_type="booking_accepted", reference_type="booking", reference_id=booking.id
+def create_booking_inquiry(
+    db: Session,
+    client_account: BandAccount,
+    payload: schemas.BandBookingCreateRequest,
+) -> BandBooking:
+    """Validate and initiate a new booking inquiry."""
+    if not payload.artist_profile_id and not payload.venue_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You must specify at least an artist_profile_id or a venue_id to book.",
         )
-        notif_crud.create(
-            db, account_id=account_id, title="Conversation Started",
-            message=f"A conversation has been started for your booking '{booking.event_name}'.",
-            notification_type="conversation_started", reference_type="booking", reference_id=booking.id
-        )
-    elif action == "reject":
-        _transition(db, booking, "rejected", "artist", message or "Booking rejected by artist")
-        notif_crud.create(
-            db, account_id=booking.client_id, title="Booking Rejected",
-            message=f"Your booking request for '{booking.event_name}' was rejected by the artist.",
-            notification_type="booking_rejected", reference_type="booking", reference_id=booking.id
-        )
-    elif action == "counter":
-        if counter_price is None:
-            raise HTTPException(status_code=400, detail="counter_price is required")
-        booking.counter_price = counter_price
-        _transition(db, booking, "counter_offered", "artist", message or f"Counter offer: {counter_price}")
-        notif_crud.create(
-            db, account_id=booking.client_id, title="Counter Offer Received",
-            message=f"The artist sent a counter offer for your booking '{booking.event_name}'.",
-            notification_type="booking_countered", reference_type="booking", reference_id=booking.id
-        )
-    elif action == "cancel":
-        _transition(db, booking, "cancelled", "artist", message or "Booking cancelled by artist")
-    elif action == "complete":
-        if booking.status not in ["accepted", "confirmed"]:
-            raise HTTPException(status_code=400, detail="Only accepted or confirmed bookings can be completed.")
-        _transition(db, booking, "completed", "artist", message or "Booking marked completed")
-        
-        # Insert BandTransaction
-        from app.models.band_models import BandTransaction
-        tx = BandTransaction(
-            artist_profile_id=booking.artist_profile_id,
-            venue_id=booking.venue_id,
-            booking_id=booking.id,
-            account_id=booking.artist_profile_id, # Simplified for demo
-            amount=booking.counter_price or booking.proposed_price,
-            type="credit",
-            status="completed",
-            description=f"Earnings payout for {booking.event_name}"
-        )
-        db.add(tx)
-        db.commit()
 
-        notif_crud.create(
-            db, account_id=booking.client_id, title="Review Enabled",
-            message=f"The event '{booking.event_name}' has been marked as completed. You can now leave a review.",
-            notification_type="booking_completed", reference_type="booking", reference_id=booking.id
+    try:
+        event_date_dt = datetime.strptime(payload.event_date, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid event date format. Use YYYY-MM-DD.",
         )
+
+    if event_date_dt.date() < datetime.utcnow().date():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Event date cannot be in the past.",
+        )
+
+    # Validate artist existence if requested
+    if payload.artist_profile_id:
+        artist = db.query(BandArtistProfile).filter_by(id=payload.artist_profile_id, deleted_at=None).first()
+        if not artist:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artist profile not found.")
+
+    # Validate venue existence if requested
+    if payload.venue_id:
+        venue = db.query(BandVenue).filter_by(id=payload.venue_id, deleted_at=None).first()
+        if not venue:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Venue not found.")
+
+    # Check for scheduling overlap conflicts
+    has_conflict = crud.check_conflicts(
+        db=db,
+        artist_profile_id=payload.artist_profile_id,
+        venue_id=payload.venue_id,
+        event_date=event_date_dt,
+        start_time=payload.start_time,
+        end_time=payload.end_time,
+    )
+    if has_conflict:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="The requested date and time slot is already booked or reserved.",
+        )
+
+    return crud.create_booking(
+        db=db,
+        client_id=client_account.id,
+        payload=payload,
+        event_date_dt=event_date_dt,
+    )
+
+
+def get_user_bookings(
+    db: Session,
+    account: BandAccount,
+    status_filter: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> schemas.BandPaginatedBookingList:
+    """Retrieve bookings matching user's account role."""
+    if account.role == "artist":
+        artist = db.query(BandArtistProfile).filter_by(account_id=account.id).first()
+        if not artist:
+            return schemas.BandPaginatedBookingList(items=[], total=0)
+        items, total = crud.get_artist_bookings(db, artist.id, status=status_filter, limit=limit, offset=offset)
+    elif account.role == "venue_owner":
+        venue = db.query(BandVenue).filter_by(account_id=account.id).first()
+        if not venue:
+            return schemas.BandPaginatedBookingList(items=[], total=0)
+        items, total = crud.get_venue_bookings(db, venue.id, status=status_filter, limit=limit, offset=offset)
     else:
-        raise HTTPException(status_code=400, detail="Invalid action")
-    return crud._serialize(booking)
+        # Default client role
+        items, total = crud.get_client_bookings(db, account.id, status=status_filter, limit=limit, offset=offset)
+
+    return schemas.BandPaginatedBookingList(
+        items=[schemas.BandBookingResponse.model_validate(b) for b in items],
+        total=total,
+    )
 
 
-# ── Venue-side ────────────────────────────────────────────────────────────────
-
-def venue_bookings(db: Session, account_id: int, st: str | None, search: str | None, page: int, limit: int):
-    venue = _venue_for(db, account_id)
-    items, total = crud.list_for_venue(db, venue.id, st, search, limit, (page - 1) * limit)
-    return {"items": [crud._serialize(b) for b in items], "total": total}
-
-
-def venue_action(db: Session, account_id: int, booking_id: int, action: str, message=None):
-    venue = _venue_for(db, account_id)
-    booking = crud.get_by_id(db, booking_id)
-    if not booking or booking.venue_id != venue.id:
-        raise HTTPException(status_code=404, detail="Booking not found")
-
-    if action == "accept":
-        _transition(db, booking, "accepted", "venue", message or "Booking accepted by venue")
-    elif action == "reject":
-        _transition(db, booking, "rejected", "venue", message or "Booking rejected by venue")
-    elif action == "complete":
-        if booking.status not in ["accepted", "confirmed"]:
-            raise HTTPException(status_code=400, detail="Only accepted or confirmed bookings can be completed.")
-        _transition(db, booking, "completed", "venue", message or "Booking marked completed")
-        
-        # Insert BandTransaction
-        from app.models.band_models import BandTransaction
-        tx = BandTransaction(
-            artist_profile_id=booking.artist_profile_id,
-            venue_id=booking.venue_id,
-            booking_id=booking.id,
-            account_id=booking.venue_id, # Simplified for demo
-            amount=booking.counter_price or booking.proposed_price,
-            type="credit",
-            status="completed",
-            description=f"Earnings payout for {booking.event_name}"
-        )
-        db.add(tx)
-        db.commit()
-
-        notif_crud.create(
-            db, account_id=booking.client_id, title="Review Enabled",
-            message=f"The event '{booking.event_name}' has been marked as completed. You can now leave a review.",
-            notification_type="booking_completed", reference_type="booking", reference_id=booking.id
-        )
-    elif action == "cancel":
-        _transition(db, booking, "cancelled", "venue", message or "Booking cancelled by venue")
-    else:
-        raise HTTPException(status_code=400, detail="Invalid action")
-    return crud._serialize(booking)
-
-
-# ── Client-side ───────────────────────────────────────────────────────────────
-
-def client_bookings(db: Session, client_id: int, st: str | None, page: int, limit: int):
-    items, total = crud.list_for_client(db, client_id, st, limit, (page - 1) * limit)
-    return {"items": [crud._serialize(b) for b in items], "total": total}
-
-
-def client_cancel(db: Session, client_id: int, booking_id: int):
-    booking = crud.get_by_id(db, booking_id)
-    if not booking or booking.client_id != client_id:
-        raise HTTPException(status_code=404, detail="Booking not found")
-    _transition(db, booking, "cancelled", "client", "Booking cancelled by client")
-    return crud._serialize(booking)
-
-
-def get_details(db: Session, booking_id: int, account_id: int):
-    booking = crud.get_by_id(db, booking_id)
+def get_booking_detail(
+    db: Session,
+    account: BandAccount,
+    booking_id: int,
+) -> schemas.BandBookingResponse:
+    """Retrieve single booking ensuring user is an authorized participant."""
+    booking = crud.get_booking_by_id(db, booking_id)
     if not booking:
-        raise HTTPException(status_code=404, detail="Booking not found")
-    # Access: client, or owning artist/venue
-    allowed = booking.client_id == account_id
-    if not allowed and booking.artist_profile_id:
-        ap = db.query(BandArtistProfile).filter(BandArtistProfile.id == booking.artist_profile_id).first()
-        if ap and ap.account_id == account_id:
-            allowed = True
-    if not allowed and booking.venue_id:
-        v = db.query(BandVenue).filter(BandVenue.id == booking.venue_id).first()
-        if v and v.account_id == account_id:
-            allowed = True
-    if not allowed:
-        raise HTTPException(status_code=403, detail="Access denied to this booking")
-    return crud._serialize(booking)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found.")
+
+    # Authorization verification
+    is_client = booking.client_id == account.id
+    is_artist = False
+    is_venue = False
+
+    if booking.artist_profile_id:
+        artist = db.query(BandArtistProfile).filter_by(id=booking.artist_profile_id).first()
+        if artist and artist.account_id == account.id:
+            is_artist = True
+
+    if booking.venue_id:
+        venue = db.query(BandVenue).filter_by(id=booking.venue_id).first()
+        if venue and venue.account_id == account.id:
+            is_venue = True
+
+    if not (is_client or is_artist or is_venue or account.role == "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to view this booking.",
+        )
+
+    return schemas.BandBookingResponse.model_validate(booking)
+
+
+def accept_booking(
+    db: Session,
+    account: BandAccount,
+    booking_id: int,
+) -> schemas.BandBookingResponse:
+    """Provider accepts the booking inquiry."""
+    booking = crud.get_booking_by_id(db, booking_id)
+    if not booking:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found.")
+
+    # Validate provider authority
+    is_authorized = False
+    if booking.artist_profile_id:
+        artist = db.query(BandArtistProfile).filter_by(id=booking.artist_profile_id).first()
+        if artist and artist.account_id == account.id:
+            is_authorized = True
+    if booking.venue_id:
+        venue = db.query(BandVenue).filter_by(id=booking.venue_id).first()
+        if venue and venue.account_id == account.id:
+            is_authorized = True
+
+    if not is_authorized and account.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the booked artist or venue owner can accept this inquiry.",
+        )
+
+    if booking.status not in ["pending", "counter_offered"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot accept booking in '{booking.status}' status.",
+        )
+
+    updated = crud.update_booking_status(
+        db=db,
+        booking=booking,
+        new_status="accepted",
+        action_name="accepted_by_provider",
+        by_account_id=account.id,
+        notes="Provider accepted booking inquiry. Awaiting advance payment.",
+    )
+    return schemas.BandBookingResponse.model_validate(updated)
+
+
+def counter_offer(
+    db: Session,
+    account: BandAccount,
+    booking_id: int,
+    payload: schemas.BandCounterOfferRequest,
+) -> schemas.BandBookingResponse:
+    """Provider proposes a counter-offer price."""
+    booking = crud.get_booking_by_id(db, booking_id)
+    if not booking:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found.")
+
+    if booking.status != "pending":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Counter-offer can only be proposed on pending inquiries.",
+        )
+
+    updated = crud.update_booking_status(
+        db=db,
+        booking=booking,
+        new_status="counter_offered",
+        action_name="counter_offered",
+        by_account_id=account.id,
+        notes=payload.message or f"Counter-offer proposed: ₹{payload.counter_price}",
+        counter_price=payload.counter_price,
+    )
+    return schemas.BandBookingResponse.model_validate(updated)
+
+
+def decline_booking(
+    db: Session,
+    account: BandAccount,
+    booking_id: int,
+    reason: Optional[str] = None,
+) -> schemas.BandBookingResponse:
+    """Provider declines booking inquiry."""
+    booking = crud.get_booking_by_id(db, booking_id)
+    if not booking:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found.")
+
+    updated = crud.update_booking_status(
+        db=db,
+        booking=booking,
+        new_status="rejected",
+        action_name="declined_by_provider",
+        by_account_id=account.id,
+        notes=reason or "Provider is unable to accommodate booking request.",
+    )
+    return schemas.BandBookingResponse.model_validate(updated)
+
+
+def cancel_booking(
+    db: Session,
+    account: BandAccount,
+    booking_id: int,
+    reason: Optional[str] = None,
+) -> schemas.BandBookingResponse:
+    """Client cancels booking inquiry."""
+    booking = crud.get_booking_by_id(db, booking_id)
+    if not booking:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found.")
+
+    if booking.client_id != account.id and account.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the client who initiated this booking can cancel it.",
+        )
+
+    if booking.status in ["completed", "cancelled", "rejected"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot cancel booking in '{booking.status}' status.",
+        )
+
+    updated = crud.update_booking_status(
+        db=db,
+        booking=booking,
+        new_status="cancelled",
+        action_name="cancelled_by_client",
+        by_account_id=account.id,
+        notes=reason or "Cancelled by client.",
+    )
+    return schemas.BandBookingResponse.model_validate(updated)

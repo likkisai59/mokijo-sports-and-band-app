@@ -29,49 +29,49 @@ export function MobileNav({ open, onOpenChange, role }) {
     switch (role) {
       case "client":
         return [
-          { name: "Home",       href: "/client/dashboard",  icon: Home },
-          { name: "Profile",    href: "/client/profile",    icon: User },
-          { name: "Bookings",   href: "/client/bookings",   icon: Calendar },
-          { name: "Reviews",    href: "/client/reviews",    icon: MessageSquare },
-          { name: "Favorites",  href: "/client/favorites",  icon: Heart },
-          { name: "Inbox",      href: "/client/messages",   icon: Inbox },
-          { name: "Payments",   href: "/client/payments",   icon: IndianRupee },
-          { name: "Settings",   href: "/client/settings",   icon: Settings },
+          { name: "Home", href: "/band/client/dashboard", icon: Home },
+          { name: "Profile", href: "/band/client/profile", icon: User },
+          { name: "Bookings", href: "/band/client/bookings", icon: Calendar },
+          { name: "Reviews", href: "/band/client/reviews", icon: MessageSquare },
+          { name: "Favorites", href: "/band/client/favorites", icon: Heart },
+          { name: "Inbox", href: "/band/client/messages", icon: Inbox },
+          { name: "Payments", href: "/band/client/payments", icon: IndianRupee },
+          { name: "Settings", href: "/band/client/settings", icon: Settings },
         ];
 
       case "artist":
         return [
-          { name: "Home",       href: "/artist/dashboard",  icon: Home },
-          { name: "Profile",    href: "/artist/profile",    icon: User },
-          { name: "Bookings",   href: "/artist/bookings",   icon: Calendar },
-          { name: "Reviews",    href: "/artist/reviews",    icon: MessageSquare },
-          { name: "Inbox",      href: "/artist/messages",   icon: Inbox },
-          { name: "Payments",   href: "/artist/earnings",   icon: IndianRupee },
-          { name: "Settings",   href: "/artist/settings",   icon: Settings },
+          { name: "Home", href: "/band/artist/dashboard", icon: Home },
+          { name: "Profile", href: "/band/artist/profile", icon: User },
+          { name: "Bookings", href: "/band/artist/bookings", icon: Calendar },
+          { name: "Reviews", href: "/band/artist/reviews", icon: MessageSquare },
+          { name: "Inbox", href: "/band/artist/messages", icon: Inbox },
+          { name: "Payments", href: "/band/artist/earnings", icon: IndianRupee },
+          { name: "Settings", href: "/band/artist/settings", icon: Settings },
         ];
 
       case "venue":
         return [
-          { name: "Home",       href: "/venue/dashboard",   icon: Home },
-          { name: "Profile",    href: "/venue/profile",     icon: Building2 },
-          { name: "Bookings",   href: "/venue/bookings",    icon: Calendar },
-          { name: "Reviews",    href: "/venue/reviews",     icon: MessageSquare },
-          { name: "Inbox",      href: "/venue/messages",    icon: Inbox },
-          { name: "Payments",   href: "/venue/earnings",    icon: IndianRupee },
-          { name: "Settings",   href: "/venue/settings",    icon: Settings },
+          { name: "Home", href: "/venue/dashboard", icon: Home },
+          { name: "Profile", href: "/venue/profile", icon: Building2 },
+          { name: "Bookings", href: "/venue/bookings", icon: Calendar },
+          { name: "Reviews", href: "/venue/reviews", icon: MessageSquare },
+          { name: "Inbox", href: "/venue/messages", icon: Inbox },
+          { name: "Payments", href: "/venue/earnings", icon: IndianRupee },
+          { name: "Settings", href: "/venue/settings", icon: Settings },
         ];
 
       case "admin":
         return [
-          { name: "Home",       href: "/admin/dashboard",   icon: Home },
-          { name: "Users",      href: "/admin/users",       icon: Users },
-          { name: "Artists",    href: "/admin/artists",     icon: MusicIcon },
-          { name: "Venues",     href: "/admin/venues",      icon: Building2 },
-          { name: "Bookings",   href: "/admin/bookings",    icon: Calendar },
-          { name: "Inbox",      href: "/admin/messages",    icon: Inbox },
-          { name: "Payments",   href: "/admin/payments",    icon: IndianRupee },
-          { name: "Reports",    href: "/admin/reports",     icon: BarChart2 },
-          { name: "Settings",   href: "/admin/settings",    icon: Settings },
+          { name: "Home", href: "/admin/dashboard", icon: Home },
+          { name: "Users", href: "/admin/users", icon: Users },
+          { name: "Artists", href: "/admin/artists", icon: MusicIcon },
+          { name: "Venues", href: "/admin/venues", icon: Building2 },
+          { name: "Bookings", href: "/admin/bookings", icon: Calendar },
+          { name: "Inbox", href: "/admin/messages", icon: Inbox },
+          { name: "Payments", href: "/admin/payments", icon: IndianRupee },
+          { name: "Reports", href: "/admin/reports", icon: BarChart2 },
+          { name: "Settings", href: "/admin/settings", icon: Settings },
         ];
 
       default:

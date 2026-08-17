@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+"use client";
 
-export default function ArtistInboxRedirectPage() {
-  redirect("/artist/messages");
+export default function Page() {
+  return null;
 }

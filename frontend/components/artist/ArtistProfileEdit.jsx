@@ -11,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/shared/ImageUpload";
 import { Plus, Trash2, Save, Globe, Instagram, Facebook, Twitter } from "lucide-react";
 
+import UsernameSelector from "./UsernameSelector";
+
 const LANGUAGES = ["Tamil", "Telugu", "Malayalam", "Kannada", "Hindi", "English"];
 const GENRES = ["Melody", "Rock", "Pop", "Classical", "Folk", "Fusion", "DJ", "Others"];
 
@@ -28,6 +30,7 @@ export function ArtistProfileEdit({ profile = {}, onSuccess }) {
     defaultValues: {
       name: profile.user?.name || "",
       display_name: profile.display_name || "",
+      username: profile.username || "",
       bio: profile.bio || "",
       years_of_experience: profile.years_of_experience || 0,
       profile_image: profile.profile_image || "",
@@ -121,9 +124,18 @@ export function ArtistProfileEdit({ profile = {}, onSuccess }) {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="display_name">Display Name (Unique handle)</Label>
+            <Label htmlFor="display_name">Display Name (Stage Name)</Label>
             <Input id="display_name" {...register("display_name")} />
             {errors.display_name && <p className="text-xs text-error">{errors.display_name.message}</p>}
+          </div>
+
+          <div className="space-y-1.5">
+            <UsernameSelector
+              value={watch("username")}
+              onChange={(val) => setValue("username", val)}
+              displayName={watch("display_name")}
+              artistName={watch("name")}
+            />
           </div>
 
           <div className="space-y-1.5">

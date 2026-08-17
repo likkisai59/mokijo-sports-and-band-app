@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+"use client";
 
-export default function ArtistCalendarRedirectPage() {
-  redirect("/artist/bookings?tab=calendar");
+export default function Page() {
+  return null;
 }

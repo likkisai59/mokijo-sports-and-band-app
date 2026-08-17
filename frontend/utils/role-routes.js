@@ -14,8 +14,8 @@
  */
 
 const ROLE_DASHBOARD_MAP = {
-  client: "/client/dashboard",
-  artist: "/artist/dashboard",
+  client: "/band/client/dashboard",
+  artist: "/band/artist/dashboard",
   venue_owner: "/venue/dashboard",
   admin: "/admin/dashboard",
 };
@@ -25,6 +25,7 @@ const ROLE_DASHBOARD_MAP = {
  * backend role string.
  */
 export function getRoleDashboard(role) {
-  if (!role) return "/client/dashboard";
-  return ROLE_DASHBOARD_MAP[role] ?? "/client/dashboard";
+  if (!role) return "/band/client/dashboard";
+  const normalized = String(role).trim().toLowerCase();
+  return ROLE_DASHBOARD_MAP[normalized] ?? "/band/client/dashboard";
 }

@@ -25,8 +25,14 @@ const RegisterTrainer = React.lazy(() => import('@/app/mokijo/register-trainer/r
 const BandLayout = React.lazy(() => import('@/app/band/layout.jsx'));
 const BandLanding = React.lazy(() => import('@/app/band/page.jsx'));
 const BandDashboard = React.lazy(() => import('@/app/band/dashboard/page.jsx'));
+const BandClientDashboard = React.lazy(() => import('@/app/band/client/dashboard/page.jsx'));
+const BandArtistDashboard = React.lazy(() => import('@/app/band/artist/dashboard/page.jsx'));
 const BandClientBookings = React.lazy(() => import('@/app/band/client/bookings/page.jsx'));
+const BandClientBookingDetail = React.lazy(() => import('@/app/band/client/bookings/[id]/page.jsx'));
+const BandNewBooking = React.lazy(() => import('@/app/band/bookings/new/page.jsx'));
+const BandArtistProfile = React.lazy(() => import('@/app/band/artist/profile/page.jsx'));
 const BandArtistBookings = React.lazy(() => import('@/app/band/artist/bookings/page.jsx'));
+const BandArtistEarnings = React.lazy(() => import('@/app/band/artist/earnings/page.jsx'));
 const BandLogin = React.lazy(() => import('@/app/band/login/page.jsx'));
 const BandRegister = React.lazy(() => import('@/app/band/register/page.jsx'));
 const BandArtists = React.lazy(() => import('@/app/band/artists/page'));
@@ -117,6 +123,28 @@ const ArtistLayout = React.lazy(() => import('@/app/band/artist/layout'));
 const ArtistProfile = React.lazy(() => import('@/app/band/artist/profile/page'));
 const ArtistSettings = React.lazy(() => import('@/app/band/artist/settings/page'));
 
+// Band Venue Layout and Pages
+const BandVenueLayout = React.lazy(() => import('@/app/venue/layout.jsx'));
+const BandVenueDashboard = React.lazy(() => import('@/app/venue/dashboard/page.jsx'));
+const BandVenueBookings = React.lazy(() => import('@/app/venue/bookings/page.jsx'));
+const BandVenueReviews = React.lazy(() => import('@/app/venue/reviews/page.jsx'));
+const BandVenueSettings = React.lazy(() => import('@/app/venue/settings/page.jsx'));
+
+// Band Admin Layout and Pages
+const BandAdminLayout = React.lazy(() => import('@/app/admin/layout.jsx'));
+const BandAdminDashboard = React.lazy(() => import('@/app/admin/dashboard/page.jsx'));
+const BandAdminUsers = React.lazy(() => import('@/app/admin/users/page.jsx'));
+const BandAdminArtists = React.lazy(() => import('@/app/admin/artists/page.jsx'));
+const BandAdminVenues = React.lazy(() => import('@/app/admin/venues/page.jsx'));
+const BandAdminCategories = React.lazy(() => import('@/app/admin/categories/page.jsx'));
+const BandAdminLocations = React.lazy(() => import('@/app/admin/locations/page.jsx'));
+const BandAdminPromos = React.lazy(() => import('@/app/admin/promos/page.jsx'));
+const BandAdminReports = React.lazy(() => import('@/app/admin/reports/page.jsx'));
+
+const BandArtistMessages = React.lazy(() => import('@/app/band/artist/messages/page.jsx'));
+const BandClientMessages = React.lazy(() => import('@/app/band/client/messages/page.jsx'));
+const BandVenueMessages = React.lazy(() => import('@/app/venue/messages/page.jsx'));
+
 // Super Admin Layout and Pages
 const SuperAdminLogin = React.lazy(() => import('@/app/super-admin/login/page.jsx'));
 const SuperAdminLayout = React.lazy(() => import('@/app/super-admin/dashboard/layout.jsx'));
@@ -183,8 +211,16 @@ export default function App() {
                     <Route path="/band" element={<LayoutWrapper LayoutComponent={BandLayout} />}>
                       <Route index element={<BandLanding />} />
                       <Route path="dashboard" element={<BandDashboard />} />
+                      <Route path="client/dashboard" element={<BandClientDashboard />} />
                       <Route path="client/bookings" element={<BandClientBookings />} />
+                      <Route path="client/bookings/:id" element={<PageWrapper Component={BandClientBookingDetail} />} />
+                      <Route path="client/messages" element={<BandClientMessages />} />
+                      <Route path="bookings/new" element={<BandNewBooking />} />
+                      <Route path="artist/dashboard" element={<BandArtistDashboard />} />
+                      <Route path="artist/profile" element={<BandArtistProfile />} />
                       <Route path="artist/bookings" element={<BandArtistBookings />} />
+                      <Route path="artist/earnings" element={<BandArtistEarnings />} />
+                      <Route path="artist/messages" element={<BandArtistMessages />} />
                       <Route path="login" element={<BandLogin />} />
                       <Route path="register" element={<BandRegister />} />
                       <Route path="artists" element={<BandArtists />} />
@@ -278,8 +314,30 @@ export default function App() {
 
                     {/* Artist Routes */}
                     <Route path="/artist" element={<LayoutWrapper LayoutComponent={ArtistLayout} />}>
+                      <Route path="dashboard" element={<BandArtistDashboard />} />
                       <Route path="profile" element={<ArtistProfile />} />
                       <Route path="settings" element={<ArtistSettings />} />
+                    </Route>
+
+                    {/* Band Venue Owner Routes */}
+                    <Route path="/venue" element={<LayoutWrapper LayoutComponent={BandVenueLayout} />}>
+                      <Route path="dashboard" element={<BandVenueDashboard />} />
+                      <Route path="bookings" element={<BandVenueBookings />} />
+                      <Route path="messages" element={<BandVenueMessages />} />
+                      <Route path="reviews" element={<BandVenueReviews />} />
+                      <Route path="settings" element={<BandVenueSettings />} />
+                    </Route>
+
+                    {/* Band Admin Workspace Routes */}
+                    <Route path="/admin" element={<LayoutWrapper LayoutComponent={BandAdminLayout} />}>
+                      <Route path="dashboard" element={<BandAdminDashboard />} />
+                      <Route path="users" element={<BandAdminUsers />} />
+                      <Route path="artists" element={<BandAdminArtists />} />
+                      <Route path="venues" element={<BandAdminVenues />} />
+                      <Route path="categories" element={<BandAdminCategories />} />
+                      <Route path="locations" element={<BandAdminLocations />} />
+                      <Route path="promos" element={<BandAdminPromos />} />
+                      <Route path="reports" element={<BandAdminReports />} />
                     </Route>
 
                     {/* Super Admin Routes */}

@@ -1,108 +1,107 @@
-"""CRUD + serialization for Band venue profiles."""
-
-from typing import Optional
-
-from sqlalchemy.orm import Session
-
-from app.models.band_models import BandVenue, BandCategory
-
-
-def get_by_id(db: Session, venue_id: int) -> Optional[BandVenue]:
-    return db.query(BandVenue).filter(BandVenue.id == venue_id).filter(BandVenue.deleted_at.is_(None)).first()
+"""
+CRUD operations for Band Venues discovery and profiles.
+"""
+from typing import List, Optional, Tuple
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import or_, and_, desc, asc
+from app.models.band_models import BandVenue, BandAccount, BandCategory, BandCity
 
 
-def get_by_account(db: Session, account_id: int) -> Optional[BandVenue]:
+def get_venues(
+    db: Session,
+    query: Optional[str] = None,
+    city: Optional[str] = None,
+    venue_type: Optional[str] = None,
+    min_capacity: Optional[int] = None,
+    max_capacity: Optional[int] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    verification_status: Optional[str] = "approved",
+    sort_by: str = "recommended",
+    skip: int = 0,
+    limit: int = 50,
+) -> Tuple[List[BandVenue], int]:
+    q = db.query(BandVenue).join(BandAccount, BandVenue.account_id == BandAccount.id)
+    q = q.filter(BandAccount.is_active == True, BandVenue.deleted_at.is_(None))
+
+    if verification_status and verification_status != "all":
+        q = q.filter(BandVenue.verification_status == verification_status)
+
+    if query:
+        search_pattern = f"%{query}%"
+        q = q.filter(
+            or_(
+                BandVenue.name.ilike(search_pattern),
+                BandVenue.description.ilike(search_pattern),
+                BandVenue.address.ilike(search_pattern),
+                BandVenue.venue_type.ilike(search_pattern),
+            )
+        )
+
+    if venue_type:
+        q = q.filter(BandVenue.venue_type.ilike(venue_type))
+
+    if min_capacity is not None:
+        q = q.filter(BandVenue.capacity >= min_capacity)
+
+    if max_capacity is not None:
+        q = q.filter(BandVenue.capacity <= max_capacity)
+
+    if min_price is not None:
+        q = q.filter(BandVenue.base_price >= min_price)
+
+    if max_price is not None:
+        q = q.filter(BandVenue.base_price <= max_price)
+
+    if city:
+        q = q.join(BandCity, BandVenue.city_id == BandCity.id).filter(BandCity.name.ilike(f"%{city}%"))
+
+    total = q.count()
+
+    if sort_by == "price_asc":
+        q = q.order_by(asc(BandVenue.base_price))
+    elif sort_by == "price_desc":
+        q = q.order_by(desc(BandVenue.base_price))
+    elif sort_by == "capacity_desc":
+        q = q.order_by(desc(BandVenue.capacity))
+    else:
+        q = q.order_by(desc(BandVenue.id))
+
+    items = q.options(
+        joinedload(BandVenue.city),
+        joinedload(BandVenue.categories),
+        joinedload(BandVenue.account),
+    ).offset(skip).limit(limit).all()
+
+    return items, total
+
+
+def get_venue_by_id(db: Session, venue_id: int) -> Optional[BandVenue]:
     return (
         db.query(BandVenue)
-        .filter(BandVenue.account_id == account_id)
-        .filter(BandVenue.deleted_at.is_(None))
+        .options(
+            joinedload(BandVenue.city),
+            joinedload(BandVenue.categories),
+            joinedload(BandVenue.account),
+        )
+        .filter(BandVenue.id == venue_id, BandVenue.deleted_at.is_(None))
         .first()
     )
 
 
-def list_filtered(db: Session, search: str | None = None, verification_status: str | None = None,
-                  limit: int = 50, offset: int = 0):
-    q = db.query(BandVenue).filter(BandVenue.deleted_at.is_(None))
-    if search:
-        like = f"%{search.lower()}%"
-        q = q.filter(BandVenue.name.ilike(like) | BandVenue.address.ilike(like))
-    if verification_status:
-        q = q.filter(BandVenue.verification_status == verification_status)
-    total = q.count()
-    items = q.order_by(BandVenue.created_at.desc()).offset(offset).limit(limit).all()
-    return items, total
-
-
-def list_public_filtered(
-    db: Session,
-    search: str | None = None,
-    city: str | None = None,
-    min_capacity: int | None = None,
-    max_price: float | None = None,
-    limit: int = 50,
-    offset: int = 0
-):
-    q = db.query(BandVenue).filter(
-        BandVenue.deleted_at.is_(None),
-        BandVenue.verification_status == "approved"
-    )
-
-    if search:
-        like = f"%{search.lower()}%"
-        q = q.filter(
-            BandVenue.name.ilike(like) | BandVenue.address.ilike(like)
+def get_featured_venues(db: Session, limit: int = 6) -> List[BandVenue]:
+    return (
+        db.query(BandVenue)
+        .options(
+            joinedload(BandVenue.city),
+            joinedload(BandVenue.categories),
+            joinedload(BandVenue.account),
         )
-    
-    # We will ignore city for now, similar to artists, as geographic modeling is complex
-    
-    if min_capacity is not None:
-        q = q.filter(BandVenue.capacity >= min_capacity)
-        
-    if max_price is not None:
-        q = q.filter(BandVenue.base_price <= max_price)
-        
-    total = q.count()
-    items = q.order_by(BandVenue.created_at.desc()).offset(offset).limit(limit).all()
-    return items, total
-
-
-
-def resolve_category(db: Session, name: str) -> BandCategory:
-    cat = db.query(BandCategory).filter(BandCategory.name.ilike(name)).first()
-    if not cat:
-        cat = BandCategory(name=name, type="venue_category", is_active=True)
-        db.add(cat)
-        db.flush()
-    return cat
-
-
-def serialize(venue: BandVenue) -> dict:
-    meta = venue.metadata_fields or {}
-    return {
-        "id": venue.id,
-        "account_id": venue.account_id,
-        "name": venue.name,
-        "description": venue.description,
-        "address": venue.address,
-        "city_id": venue.city_id,
-        "base_price": float(venue.base_price or 0),
-        "capacity": venue.capacity or 0,
-        "min_capacity": venue.min_capacity or 0,
-        "venue_type": venue.venue_type,
-        "business_name": venue.business_name,
-        "contact_details": venue.contact_details,
-        "pincode": venue.pincode,
-        "state": venue.state,
-        "country": venue.country,
-        "google_map_location": venue.google_map_location,
-        "verification_status": venue.verification_status,
-        "verification_notes": venue.verification_notes,
-        "facilities": venue.facilities or [],
-        "gallery": venue.gallery or [],
-        "pricing_details": venue.pricing_details or {},
-        "availability_rules": venue.availability_rules or {},
-        "documents": venue.documents or {},
-        "metadata_fields": meta,
-        "categories": [c.name for c in (venue.categories or [])],
-        "created_at": venue.created_at,
-    }
+        .filter(
+            BandVenue.verification_status == "approved",
+            BandVenue.deleted_at.is_(None),
+        )
+        .order_by(desc(BandVenue.capacity), desc(BandVenue.id))
+        .limit(limit)
+        .all()
+    )

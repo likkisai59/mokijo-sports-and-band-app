@@ -1,1 +1,0 @@
-"""BandConnect Payments APIs"""

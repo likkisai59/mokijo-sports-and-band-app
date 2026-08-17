@@ -1,0 +1,1 @@
+const d={client:"/band/client/dashboard",artist:"/band/artist/dashboard",venue_owner:"/venue/dashboard",admin:"/admin/dashboard"};function r(a){if(!a)return"/band/client/dashboard";const n=String(a).trim().toLowerCase();return d[n]??"/band/client/dashboard"}export{r as g};

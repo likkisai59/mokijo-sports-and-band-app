@@ -30,6 +30,8 @@ from app.api.band.earnings.router import router as band_earnings_router
 from app.api.band.settings.router import router as band_settings_router
 from app.api.band.notifications.router import router as band_notifications_router
 from app.api.band.payments.router import router as band_payments_router
+from app.api.band.messaging.router import router as band_messaging_router
+from app.api.band.promos.router import router as band_promos_router
 
 api_router = APIRouter()
 
@@ -53,7 +55,7 @@ api_router.include_router(trainer_router)
 api_router.include_router(superadmin_router)
 
 # Band module routers
-api_router.include_router(band_auth_router)
+api_router.include_router(band_auth_router, prefix="/band/auth", tags=["Band Auth"])
 api_router.include_router(band_categories_router)
 api_router.include_router(band_locations_router)
 api_router.include_router(band_artists_router)
@@ -64,3 +66,6 @@ api_router.include_router(band_earnings_router)
 api_router.include_router(band_settings_router)
 api_router.include_router(band_notifications_router, prefix="/band/notifications", tags=["Band Notifications"])
 api_router.include_router(band_payments_router, prefix="/band/payments", tags=["Band Payments"])
+api_router.include_router(band_messaging_router, prefix="/band/messaging", tags=["Band Messaging"])
+api_router.include_router(band_promos_router, prefix="/band/promos", tags=["Band Promos"])
+

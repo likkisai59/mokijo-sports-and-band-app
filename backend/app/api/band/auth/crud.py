@@ -1,50 +1,54 @@
-"""CRUD + auth helpers for Band accounts.
+"""Band Auth CRUD layer — database operations for BandAccount."""
 
-Uses Mokijo's existing password hashing and JWT issuance
-(app.core.security) so authentication flows through the same
-`check_user_authorization` dependency used by the rest of Mokijo.
-"""
-
-import hashlib
-from datetime import datetime, timedelta
-from typing import Optional
-
+from typing import Optional, List, Tuple
 from sqlalchemy.orm import Session
+from datetime import datetime
 
-from app.core.security import hash_password, verify_password
 from app.models.band_models import BandAccount
-
-
-def _normalize(email: str) -> str:
-    return (email or "").strip().lower()
+from app.core.security import get_password_hash
 
 
 def get_account_by_email(db: Session, email: str) -> Optional[BandAccount]:
+    """Retrieve an active BandAccount by email address."""
     return (
         db.query(BandAccount)
-        .filter(BandAccount.email == _normalize(email))
+        .filter(BandAccount.email.ilike(email.strip()))
         .filter(BandAccount.deleted_at.is_(None))
         .first()
     )
 
 
 def get_account_by_id(db: Session, account_id: int) -> Optional[BandAccount]:
-    return db.query(BandAccount).filter(BandAccount.id == account_id).first()
+    """Retrieve an active BandAccount by ID."""
+    return (
+        db.query(BandAccount)
+        .filter(BandAccount.id == account_id)
+        .filter(BandAccount.deleted_at.is_(None))
+        .first()
+    )
 
 
-def create_account(db: Session, email: str, password: str, name: str, role: str, phone: str | None = None) -> BandAccount:
-    if get_account_by_email(db, email):
-        raise ValueError("Email already registered")
-    if role not in {"client", "artist", "venue_owner", "admin"}:
-        raise ValueError("Invalid role")
+def create_account(
+    db: Session,
+    email: str,
+    password: str,
+    name: str,
+    role: str = "client",
+    phone: Optional[str] = None,
+    is_verified: bool = True,
+) -> BandAccount:
+    """Create and persist a new BandAccount with direct password hashing."""
+    hashed_pwd = get_password_hash(password)
     account = BandAccount(
-        email=_normalize(email),
-        password_hash=hash_password(password),
-        name=name,
+        email=email.strip().lower(),
+        password_hash=hashed_pwd,
+        name=name.strip(),
         role=role,
-        phone=phone,
+        phone=phone.strip() if phone else None,
         is_active=True,
-        is_verified=False,
+        is_verified=is_verified,
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow(),
     )
     db.add(account)
     db.commit()
@@ -52,90 +56,42 @@ def create_account(db: Session, email: str, password: str, name: str, role: str,
     return account
 
 
-def authenticate(db: Session, email: str, password: str) -> Optional[BandAccount]:
-    account = get_account_by_email(db, email)
-    if not account:
-        return None
-    if not verify_password(password, account.password_hash):
-        return None
-    if not account.is_active or account.deleted_at is not None:
-        return None
-    return account
-
-
-def change_password(db: Session, account: BandAccount, current_password: str, new_password: str) -> bool:
-    if not verify_password(current_password, account.password_hash):
-        return False
-    account.password_hash = hash_password(new_password)
-    db.commit()
-    return True
-
-
-def soft_delete_account(db: Session, account: BandAccount) -> None:
-    account.deleted_at = datetime.utcnow()
-    account.is_active = False
-    db.commit()
-
-
-def set_active(db: Session, account: BandAccount, is_active: bool) -> BandAccount:
-    account.is_active = is_active
+def update_password(db: Session, account: BandAccount, new_password: str) -> BandAccount:
+    """Update password hash for a BandAccount."""
+    account.password_hash = get_password_hash(new_password)
+    account.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(account)
     return account
 
 
-# ── Password reset (sandbox: tokens are logged, no email transport) ───────────
-
-RESET_TOKEN_MINUTES = 60
-
-
-def make_reset_token(account: BandAccount) -> str:
-    """Create a short-lived JWT identifying the account for password reset."""
-    import json
-    from app.core.security import create_access_token
-
-    sub = json.dumps({"id": account.id, "role": "reset"})
-    return create_access_token(data={"sub": sub}, expires_delta=timedelta(minutes=RESET_TOKEN_MINUTES))
-
-
-def consume_reset_token(db: Session, token: str, new_password: str) -> bool:
-    import json
-    import jwt as pyjwt
-    from app.core.security import SECRET_KEY, ALGORITHM
-
-    try:
-        payload = pyjwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except Exception:
-        return False
-    sub = payload.get("sub")
-    data = sub if isinstance(sub, dict) else {}
-    if not data and isinstance(sub, str):
-        try:
-            data = json.loads(sub)
-        except Exception:
-            data = {}
-    if data.get("role") != "reset" or "id" not in data:
-        return False
-    account = get_account_by_id(db, int(data["id"]))
-    if not account:
-        return False
-    account.password_hash = hash_password(new_password)
+def soft_delete_account(db: Session, account: BandAccount) -> None:
+    """Soft-delete a BandAccount."""
+    account.deleted_at = datetime.utcnow()
+    account.is_active = False
     db.commit()
-    return True
 
 
-# ── Admin listing ─────────────────────────────────────────────────────────────
-
-def list_accounts(db: Session, search: str | None = None, role: str | None = None,
-                  is_active: bool | None = None, limit: int = 50, offset: int = 0):
-    q = db.query(BandAccount).filter(BandAccount.deleted_at.is_(None))
+def list_accounts(
+    db: Session,
+    search: Optional[str] = None,
+    role: Optional[str] = None,
+    is_active: Optional[bool] = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> Tuple[List[BandAccount], int]:
+    """List accounts for administrative governance with search and filters."""
+    query = db.query(BandAccount).filter(BandAccount.deleted_at.is_(None))
     if search:
-        like = f"%{search.lower()}%"
-        q = q.filter(BandAccount.email.ilike(like) | BandAccount.name.ilike(like))
+        term = f"%{search.strip().lower()}%"
+        query = query.filter(
+            (BandAccount.name.ilike(term)) | (BandAccount.email.ilike(term))
+        )
     if role:
-        q = q.filter(BandAccount.role == role)
+        query = query.filter(BandAccount.role == role)
     if is_active is not None:
-        q = q.filter(BandAccount.is_active == is_active)
-    total = q.count()
-    items = q.order_by(BandAccount.created_at.desc()).offset(offset).limit(limit).all()
+        query = query.filter(BandAccount.is_active == is_active)
+
+    total = query.count()
+    items = query.order_by(BandAccount.created_at.desc()).offset(offset).limit(limit).all()
     return items, total

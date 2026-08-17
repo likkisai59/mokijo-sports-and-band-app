@@ -1,143 +1,59 @@
-from datetime import datetime
-from fastapi import HTTPException
+"""Band Payments Service layer — escrow release settlements and tax invoice breakdown."""
+
+from typing import Dict, Any
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from app.api.band.payments import crud as payment_crud
-from app.api.band.bookings import crud as booking_crud
-from app.api.band.notifications import crud as notif_crud
-from app.services.razorpay import call_razorpay_api, build_razorpay_signature
-import hmac
 
-def create_payment_order(db: Session, account_id: int, booking_id: int):
-    booking = booking_crud.get_by_id(db, booking_id)
+from app.models.band_models import BandAccount, BandBooking, BandArtistProfile, BandVenue
+from app.models import band_schemas as schemas
+from app.api.band.payments import crud
+
+
+def release_escrow(
+    db: Session,
+    account: BandAccount,
+    booking_id: int,
+) -> schemas.BandBookingResponse:
+    """Release escrow balance upon show completion."""
+    booking = db.query(BandBooking).filter_by(id=booking_id, deleted_at=None).first()
     if not booking:
-        raise HTTPException(status_code=404, detail="Booking not found")
-    if booking.client_id != account_id:
-        raise HTTPException(status_code=403, detail="Not authorized")
-    if booking.status != "accepted":
-        raise HTTPException(status_code=400, detail="Booking is not in accepted state")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found.")
 
-    existing_order = payment_crud.get_order_by_booking(db, booking.id)
-    if existing_order:
-        if existing_order.status == "paid":
-            raise HTTPException(status_code=400, detail="Payment already completed")
-        return existing_order # return the existing unpaid order
-
-    amount_to_pay = booking.counter_price if booking.counter_price else booking.proposed_price
-    amount_in_paise = int(amount_to_pay * 100)
-
-    # Call Razorpay to create order
-    rz_payload = {
-        "amount": amount_in_paise,
-        "currency": "INR",
-        "receipt": f"band_rcpt_{booking.id}",
-        "notes": {
-            "booking_id": str(booking.id),
-            "client_id": str(account_id)
-        }
-    }
-
-    rz_response = call_razorpay_api("POST", "/orders", rz_payload)
-    rz_order_id = rz_response["id"]
-
-    order = payment_crud.create_payment_order(
-        db=db,
-        booking_id=booking.id,
-        client_id=account_id,
-        razorpay_order_id=rz_order_id,
-        amount=amount_to_pay
-    )
-
-    # Update timeline
-    evt = {
-        "by": "client",
-        "timestamp": datetime.utcnow().isoformat(),
-        "message": "Payment Initiated"
-    }
-    booking_timeline = list(booking.timeline)
-    booking_timeline.append(evt)
-    booking.timeline = booking_timeline
-    db.commit()
-
-    # Create Notifications
-    notif_crud.create(
-        db, account_id=booking.client_id, title="Payment Initiated",
-        message=f"You have initiated the payment for '{booking.event_name}'.",
-        notification_type="payment_initiated", reference_type="booking", reference_id=booking.id
-    )
-    if booking.artist_profile_id:
-        artist_account_id = booking.artist.account_id if booking.artist else None
-        if artist_account_id:
-            notif_crud.create(
-                db, account_id=artist_account_id, title="Client Initiated Payment",
-                message=f"The client has initiated the payment for '{booking.event_name}'.",
-                notification_type="payment_initiated", reference_type="booking", reference_id=booking.id
-            )
-
-    return order
-
-def verify_payment(db: Session, account_id: int, booking_id: int, rz_order_id: str, rz_payment_id: str, signature: str):
-    order = payment_crud.get_order_by_razorpay_id(db, rz_order_id)
-    if not order or order.booking_id != booking_id:
-        raise HTTPException(status_code=404, detail="Payment order not found")
-    if order.client_id != account_id:
-        raise HTTPException(status_code=403, detail="Not authorized")
-    if order.status == "paid":
-        return order
-
-    # Verify signature
-    expected_signature = build_razorpay_signature(rz_order_id, rz_payment_id)
-    if not hmac.compare_digest(expected_signature, signature):
-        
-        # Add failed timeline event
-        booking = booking_crud.get_by_id(db, booking_id)
-        evt = {
-            "by": "system",
-            "timestamp": datetime.utcnow().isoformat(),
-            "message": "Payment Failed Verification"
-        }
-        booking_timeline = list(booking.timeline)
-        booking_timeline.append(evt)
-        booking.timeline = booking_timeline
-        db.commit()
-        
-        notif_crud.create(
-            db, account_id=order.client_id, title="Payment Failed",
-            message=f"Payment verification failed for booking.",
-            notification_type="payment_failed", reference_type="booking", reference_id=booking.id
+    if booking.client_id != account.id and account.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the client or platform admin can release escrow funds.",
         )
 
-        raise HTTPException(status_code=400, detail="Invalid payment signature")
+    updated = crud.release_escrow_settlement(db, booking_id=booking_id, released_by_account_id=account.id)
+    return schemas.BandBookingResponse.model_validate(updated)
 
-    # Mark Paid
-    payment_crud.update_order_status(db, order, rz_payment_id, signature)
 
-    # Update Booking
-    booking = booking_crud.get_by_id(db, booking_id)
-    booking.status = "confirmed"
-    
-    evt = {
-        "by": "system",
-        "timestamp": datetime.utcnow().isoformat(),
-        "message": "Payment Successful. Booking Confirmed."
+def get_booking_invoice(
+    db: Session,
+    account: BandAccount,
+    booking_id: int,
+) -> Dict[str, Any]:
+    """Calculate transparent tax breakdown and GST invoice."""
+    booking = db.query(BandBooking).filter_by(id=booking_id, deleted_at=None).first()
+    if not booking:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found.")
+
+    base_fee = round(booking.proposed_price / 1.18, 2)
+    gst_18 = round(booking.proposed_price - base_fee, 2)
+    advance_20 = round(booking.proposed_price * 0.2, 2)
+    remaining_80 = round(booking.proposed_price - advance_20, 2)
+
+    return {
+        "invoice_number": f"INV-2026-BCB{booking.id:04d}",
+        "booking_id": booking.id,
+        "event_name": booking.event_name,
+        "event_date": booking.event_date.strftime("%Y-%m-%d"),
+        "base_performance_fee": base_fee,
+        "gst_18_percent": gst_18,
+        "total_amount": booking.proposed_price,
+        "advance_20_percent": advance_20,
+        "remaining_80_percent": remaining_80,
+        "status": booking.status,
+        "escrow_guarantee": "100% Protected by BandConnect Escrow",
     }
-    booking_timeline = list(booking.timeline)
-    booking_timeline.append(evt)
-    booking.timeline = booking_timeline
-    db.commit()
-
-    # Notifications
-    notif_crud.create(
-        db, account_id=booking.client_id, title="Payment Successful",
-        message=f"Your payment for '{booking.event_name}' was successful. Booking is now confirmed.",
-        notification_type="payment_successful", reference_type="booking", reference_id=booking.id
-    )
-    if booking.artist_profile_id:
-        artist_account_id = booking.artist.account_id if booking.artist else None
-        if artist_account_id:
-            notif_crud.create(
-                db, account_id=artist_account_id, title="Booking Confirmed",
-                message=f"The client completed the payment for '{booking.event_name}'. Booking is confirmed.",
-                notification_type="payment_successful", reference_type="booking", reference_id=booking.id
-            )
-
-    return order

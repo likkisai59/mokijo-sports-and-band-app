@@ -179,11 +179,26 @@ class BandPaginatedAreaList(BaseModel):
 # Artists
 # ──────────────────────────────────────────────────────────────────────────────
 
+class BandUsernameCheckRequest(BaseModel):
+    username: str = Field(description="Desired username without or with @ prefix")
+
+
+class BandUsernameCheckResponse(BaseModel):
+    username: str
+    available: bool
+    reason: Optional[str] = None
+
+
+class BandUsernameSuggestionsResponse(BaseModel):
+    suggestions: List[str]
+
+
 class BandArtistRegisterRequest(BaseModel):
     """Self-service artist registration (creates account + profile)."""
     email: EmailStr
     password: str = Field(min_length=8)
     name: str
+    username: Optional[str] = None
     mobile_number: Optional[str] = None
     display_name: Optional[str] = None
     band_type: str = "Solo"
@@ -197,6 +212,7 @@ class BandArtistRegisterRequest(BaseModel):
 
 class BandArtistProfileUpdate(BaseModel):
     display_name: Optional[str] = None
+    username: Optional[str] = None
     bio: Optional[str] = None
     base_rate: Optional[float] = None
     band_type: Optional[str] = None
@@ -231,6 +247,7 @@ class BandArtistProfileResponse(BandORMSchema):
     id: int
     account_id: int
     display_name: Optional[str] = None
+    username: Optional[str] = None
     bio: Optional[str] = None
     base_rate: float
     rating: float

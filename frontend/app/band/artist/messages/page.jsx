@@ -1,7 +1,8 @@
 "use client";
 
-import { MessagingView } from "@/features/messaging/components/MessagingView";
+import React from "react";
+import { BookingChatWorkspace } from "@/components/band/BookingChatWorkspace";
 
 export default function ArtistMessagesPage() {
-  return <MessagingView />;
+  return <BookingChatWorkspace currentRole="artist" />;
 }

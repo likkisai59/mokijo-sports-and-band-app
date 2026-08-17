@@ -1,349 +1,339 @@
-"use client";
-
-import * as React from "react";
-import { useParams, useRouter } from "next/navigation";
-import { artistService } from "@/services/artistService";
-import { Spinner } from "@/components/ui/spinner";
-import { ErrorState } from "@/components/ui/error-state";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/hooks/use-auth";
-import toast from "react-hot-toast";
-import { 
-  Music, 
-  MapPin, 
-  Play, 
-  Clock, 
-  Check, 
-  ArrowRight,
-  X,
-  Award,
-  Video,
-  Globe,
-  Youtube
+import React, { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import BandNavbar from "@/components/band/BandNavbar";
+import BandFooter from "@/components/band/BandFooter";
+import {
+  Star,
+  ShieldCheck,
+  CheckCircle2,
+  Share2,
+  Heart,
 } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { BookingRequestForm } from "@/components/bookings/BookingRequestForm";
-import { BookingCalendarView } from "@/components/artist/calendar/BookingCalendarView";
 
-export default function PublicArtistProfilePage() {
-  const params = useParams();
-  const router = useRouter();
-  const { user } = useAuth();
-  const artistId = params.id;
+export default function BandArtistDetailPage() {
+  const { id } = useParams();
+  const [artist, setArtist] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [selectedHours, setSelectedHours] = useState(2);
+  const [bookingDate, setBookingDate] = useState("");
+  const [guestCount, setGuestCount] = useState("100-250");
 
-  const [artist, setArtist] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(null);
-
-  // Video and Image gallery modal states
-  const [activeMediaUrl, setActiveMediaUrl] = React.useState(null);
-  const [activeMediaType, setActiveMediaType] = React.useState(null);
-  
-  // Booking modal state
-  const [isBookingModalOpen, setIsBookingModalOpen] = React.useState(false);
-  const [selectedDate, setSelectedDate] = React.useState(null);
-
-  const fetchArtistDetail = React.useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await artistService.getPublicArtistDetail(artistId);
-      setArtist(data);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load public performer details.");
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    async function fetchArtistDetail() {
+      try {
+        setLoading(true);
+        const res = await fetch(`http://localhost:8000/api/band/artists/${id}`);
+        if (!res.ok) throw new Error("Not found");
+        const data = await res.json();
+        setArtist(data);
+      } catch (err) {
+        console.error("Failed to load artist detail:", err);
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [artistId]);
-
-  React.useEffect(() => {
-    fetchArtistDetail();
-  }, [fetchArtistDetail]);
+    if (id) fetchArtistDetail();
+  }, [id]);
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[75vh] gap-3">
-        <Spinner className="h-10 w-10 text-primary" />
-        <p className="text-sm text-text-secondary animate-pulse font-medium">Retrieving performer profile details...</p>
+      <div className="min-h-screen flex flex-col">
+        <BandNavbar />
+        <div className="max-w-[1600px] mx-auto px-4 py-20 text-center flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-slate-900" />
+        </div>
+        <BandFooter />
       </div>
     );
   }
 
-  if (error || !artist) {
+  if (!artist) {
     return (
-      <div className="flex items-center justify-center min-h-[75vh] p-4">
-        <ErrorState 
-          title="Performer Profile Not Found" 
-          message={error || "This profile listing is temporarily offline or invalid."} 
-          onRetry={fetchArtistDetail} 
-        />
+      <div className="min-h-screen flex flex-col">
+        <BandNavbar />
+        <div className="max-w-[1600px] mx-auto px-4 py-20 text-center flex-1">
+          <h2 className="text-2xl font-extrabold text-[#0a0a0f] mb-2">Artist Profile Not Found</h2>
+          <p className="text-[#5c5c66] text-sm mb-6">The requested artist profile does not exist or has been removed.</p>
+          <Link to="/band/artists" className="mokijo-btn-primary">
+            Browse Artists
+          </Link>
+        </div>
+        <BandFooter />
       </div>
     );
   }
 
-  const coverImage = typeof artist.gallery?.[0] === "string"
-    ? artist.gallery[0]
-    : artist.gallery?.[0]?.url || "https://images.unsplash.com/photo-1501386761578-eac5c94b800a";
-  const youtubeLinks = artist.youtube_links || [];
-  
-  // Equipment
-  const equipment = Object.entries(artist.equipment || {})
-    .filter(([_, present]) => present)
-    .map(([key]) => key);
-
-  const handleBookArtist = (date) => {
-    if (!user) {
-      toast.success("Please log in to submit a booking request.");
-      router.push("/band/login");
-    } else if (user.role !== "client") {
-      toast.error("Only client accounts can submit booking requests.");
-    } else {
-      setSelectedDate(date);
-      setIsBookingModalOpen(true);
-    }
-  };
+  const estimatedTotal = Number(artist.base_rate) * selectedHours;
 
   return (
-    <div className="min-h-screen bg-background text-text-primary pb-16">
-      
-      {/* HERO & GALLERY */}
-      <div className="relative h-[45vh] md:h-[60vh] w-full overflow-hidden">
-        <img 
-          src={coverImage} 
-          alt={artist.display_name || "Performer"} 
-          className="absolute inset-0 h-full w-full object-cover filter brightness-75"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
-        
-        <div className="absolute bottom-6 left-0 right-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Badge className="bg-primary/20 text-primary border border-primary/25 font-bold uppercase tracking-wider text-[10px] px-2.5 py-0.5">
-                {artist.band_type || "Solo"}
-              </Badge>
-              {artist.verification_status === "approved" && (
-                <Badge className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/25 font-bold uppercase tracking-wider text-[10px] px-2.5 py-0.5">
-                  Verified Performer
-                </Badge>
+    <div className="flex flex-col min-h-screen">
+      <BandNavbar />
+
+      <main className="flex-1">
+        {/* ── 1. HERO COVER & PROFILE ── */}
+        <div className="relative">
+          <div className="h-64 sm:h-80 w-full overflow-hidden relative bg-slate-200">
+            <img src={artist.cover_image} alt={artist.display_name} className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#f7f7f8] via-transparent to-black/30" />
+          </div>
+
+          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="relative -mt-24 sm:-mt-28 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6 pb-6 border-b border-slate-200/80">
+              <div className="flex flex-col sm:flex-row items-start sm:items-end gap-5">
+                <img
+                  src={artist.profile_image}
+                  alt={artist.display_name}
+                  className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl object-cover border-4 border-white shadow-xl bg-white"
+                />
+                <div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#0a0a0f] text-white">
+                      {artist.band_type}
+                    </span>
+                    <div className="mokijo-badge-verified">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Verified Performer</span>
+                    </div>
+                  </div>
+                  <h1 className="text-2xl sm:text-4xl font-extrabold text-[#0a0a0f] tracking-tight">{artist.display_name}</h1>
+                  <p className="text-xs sm:text-sm text-[#5c5c66] font-medium">@{artist.username} • {artist.years_of_experience}+ Years Experience</p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <button className="mokijo-btn-secondary text-xs">
+                  <Share2 className="w-4 h-4" /> Share
+                </button>
+                <button className="mokijo-btn-secondary text-xs">
+                  <Heart className="w-4 h-4" /> Wishlist
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Metrics Strip */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-6 border-b border-slate-200/80 text-xs">
+              <div className="mokijo-card p-5">
+                <span className="text-[#5c5c66] block font-bold text-[11px] uppercase tracking-wider mb-1">Performance Rate</span>
+                <span className="text-lg font-extrabold text-[#0a0a0f]">
+                  ₹{Number(artist.base_rate).toLocaleString("en-IN")}{" "}
+                  <span className="text-xs text-slate-400 font-normal">/ hour</span>
+                </span>
+              </div>
+              <div className="mokijo-card p-5">
+                <span className="text-[#5c5c66] block font-bold text-[11px] uppercase tracking-wider mb-1">Artist Rating</span>
+                <div className="flex items-center gap-1.5 text-slate-900 text-lg font-extrabold">
+                  <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  <span>{artist.rating}</span>
+                  <span className="text-slate-400 text-xs font-normal">(18 Reviews)</span>
+                </div>
+              </div>
+              <div className="mokijo-card p-5">
+                <span className="text-[#5c5c66] block font-bold text-[11px] uppercase tracking-wider mb-1">Travel Radius</span>
+                <span className="text-lg font-extrabold text-[#0a0a0f]">{artist.travel_radius} KM Coverage</span>
+              </div>
+              <div className="mokijo-card p-5">
+                <span className="text-[#5c5c66] block font-bold text-[11px] uppercase tracking-wider mb-1">Squad Members</span>
+                <span className="text-lg font-extrabold text-[#0a0a0f]">{artist.total_members} On-Stage Pax</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── 2. BODY CONTENT & BOOKING WIDGET ── */}
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            {/* Left Column: Details Tabs */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* Navigation Tabs */}
+              <div className="flex items-center gap-2 border-b border-slate-200/80 pb-2">
+                <button
+                  onClick={() => setActiveTab("overview")}
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all ${
+                    activeTab === "overview" ? "bg-[#c6ff3d] text-slate-950 shadow-xs" : "text-[#5c5c66] hover:text-[#0a0a0f]"
+                  }`}
+                >
+                  Overview & Bio
+                </button>
+                <button
+                  onClick={() => setActiveTab("media")}
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all ${
+                    activeTab === "media" ? "bg-[#c6ff3d] text-slate-950 shadow-xs" : "text-[#5c5c66] hover:text-[#0a0a0f]"
+                  }`}
+                >
+                  Photo Gallery
+                </button>
+                <button
+                  onClick={() => setActiveTab("equipment")}
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all ${
+                    activeTab === "equipment" ? "bg-[#c6ff3d] text-slate-950 shadow-xs" : "text-[#5c5c66] hover:text-[#0a0a0f]"
+                  }`}
+                >
+                  Equipment & Tech
+                </button>
+              </div>
+
+              {/* Tab: Overview */}
+              {activeTab === "overview" && (
+                <div className="space-y-6">
+                  <div className="mokijo-card p-6">
+                    <h3 className="text-base font-extrabold text-[#0a0a0f] mb-2">About the Performer</h3>
+                    <p className="text-xs sm:text-sm text-[#5c5c66] leading-relaxed whitespace-pre-line">{artist.bio}</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="mokijo-card p-6">
+                      <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-3">Genres</h4>
+                      <div className="flex flex-wrap gap-1.5">
+                        {artist.genres.map((g) => (
+                          <span key={g} className="mokijo-badge-genre">
+                            {g}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="mokijo-card p-6">
+                      <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-3">Languages</h4>
+                      <div className="flex flex-wrap gap-1.5">
+                        {artist.languages.map((l) => (
+                          <span key={l} className="mokijo-badge-genre">
+                            {l}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab: Media */}
+              {activeTab === "media" && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-extrabold text-[#0a0a0f]">Performance Moments & Gallery</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {artist.gallery.map((imgUrl, idx) => (
+                      <div key={idx} className="h-56 rounded-3xl overflow-hidden border border-slate-200/80 shadow-xs group bg-slate-100">
+                        <img src={imgUrl} alt="Gallery" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tab: Equipment */}
+              {activeTab === "equipment" && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-extrabold text-[#0a0a0f]">Equipment Provided by Artist</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {artist.equipment.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-3 mokijo-card p-4 text-xs font-semibold text-[#0a0a0f]">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
-            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-text-primary font-heading">
-              {artist.display_name || artist.user?.name}
-            </h1>
-            <p className="text-sm text-text-secondary flex items-center gap-1.5 font-medium">
-              <MapPin className="h-4 w-4 text-primary shrink-0" />
-              <span>{artist.city || "Not specified"}, {artist.state || "India"}</span>
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            {artist.gallery && artist.gallery.length > 0 && (
-              <Button 
-                onClick={() => {
-                  setActiveMediaUrl(typeof artist.gallery[0] === "string" ? artist.gallery[0] : artist.gallery[0]?.url || "");
-                  setActiveMediaType("image");
-                }}
-                className="bg-white/10 hover:bg-white/20 text-white backdrop-blur-md font-bold text-xs border border-white/10 rounded-xl px-4 py-2"
-              >
-                View Gallery ({artist.gallery.length})
-              </Button>
-            )}
-            {youtubeLinks.length > 0 && (
-              <Button 
-                onClick={() => {
-                  setActiveMediaUrl(youtubeLinks[0]);
-                  setActiveMediaType("video");
-                }}
-                className="bg-primary hover:bg-primary/95 text-white font-bold text-xs rounded-xl px-4 py-2 flex items-center gap-1.5"
-              >
-                <Play className="h-3.5 w-3.5 fill-current" />
-                <span>Play Tour Video</span>
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
 
-      {/* BODY CONTENT */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Left Section */}
-        <div className="lg:col-span-2 space-y-10">
-          
-          {/* About / Biography */}
-          <div className="space-y-4">
-            <h2 className="text-xl font-extrabold text-text-primary border-b border-border/30 pb-3 flex items-center gap-2 font-heading">
-              <Music className="h-5 w-5 text-primary" />
-              About the Artist
-            </h2>
-            <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-line">
-              {artist.bio || "No biography details supplied by the performer."}
-            </p>
-          </div>
-
-          {/* Quick Specifications Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 p-4 space-y-1">
-              <Clock className="h-5 w-5 text-primary mb-1" />
-              <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider block">Experience</span>
-              <span className="text-sm font-extrabold text-text-primary block">{artist.years_of_experience || 0} Years</span>
-            </Card>
-            <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 p-4 space-y-1">
-              <Award className="h-5 w-5 text-primary mb-1" />
-              <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider block">Band Size</span>
-              <span className="text-sm font-extrabold text-text-primary block">{artist.total_members || 1} Members</span>
-            </Card>
-            <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 p-4 space-y-1">
-              <Globe className="h-5 w-5 text-primary mb-1" />
-              <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider block">Travel Radius</span>
-              <span className="text-sm font-extrabold text-text-primary block">{artist.travel_radius || 0} KM</span>
-            </Card>
-          </div>
-
-          {/* Equipment list */}
-          {equipment.length > 0 && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-extrabold text-text-primary border-b border-border/30 pb-3 flex items-center gap-2 font-heading">
-                <Check className="h-5 w-5 text-primary" />
-                Sound & Instrument Equipment
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {equipment.map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-2 p-3 bg-bg-elevated/20 border border-border/50 rounded-xl text-xs text-text-secondary">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0" />
-                    <span className="capitalize font-medium">{item.replace(/_/g, " ")}</span>
+            {/* Right Column: Sticky Booking Card */}
+            <div>
+              <div className="mokijo-card p-7 sticky top-28 space-y-6 shadow-md">
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                  <div>
+                    <span className="text-[11px] text-slate-400 block font-bold uppercase tracking-wider">Standard Rate</span>
+                    <span className="text-2xl font-extrabold text-[#0a0a0f]">
+                      ₹{Number(artist.base_rate).toLocaleString("en-IN")}{" "}
+                      <span className="text-xs text-slate-400 font-normal">/ hour</span>
+                    </span>
                   </div>
-                ))}
+                  <div className="text-right">
+                    <span className="text-[11px] text-emerald-700 font-extrabold block">20% Advance Lock</span>
+                    <span className="text-xs text-slate-400">Direct Coordination</span>
+                  </div>
+                </div>
+
+                {/* Booking Inputs */}
+                <div className="space-y-4 text-xs">
+                  <div>
+                    <label className="font-extrabold text-[#0a0a0f] block mb-1.5">Event Date</label>
+                    <input
+                      type="date"
+                      value={bookingDate}
+                      onChange={(e) => setBookingDate(e.target.value)}
+                      className="w-full bg-[#f8fafc] border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-sm text-[#0a0a0f] focus:outline-none focus:border-[#0a0a0f]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-extrabold text-[#0a0a0f] block mb-1.5">Performance Duration (Hours)</label>
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4].map((h) => (
+                        <button
+                          key={h}
+                          type="button"
+                          onClick={() => setSelectedHours(h)}
+                          className={`flex-1 py-2 rounded-xl font-extrabold text-xs transition-all ${
+                            selectedHours === h ? "bg-[#0a0a0f] text-white shadow-xs" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                          }`}
+                        >
+                          {h} {h > 1 ? "Hrs" : "Hr"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="font-extrabold text-[#0a0a0f] block mb-1.5">Expected Gathering</label>
+                    <select
+                      value={guestCount}
+                      onChange={(e) => setGuestCount(e.target.value)}
+                      className="w-full bg-[#f8fafc] border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#0a0a0f] focus:outline-none focus:border-[#0a0a0f]"
+                    >
+                      <option value="50-100">Intimate (50 - 100 Guests)</option>
+                      <option value="100-250">Medium Gala (100 - 250 Guests)</option>
+                      <option value="250-500">Concert / Wedding (250 - 500 Guests)</option>
+                      <option value="500+">Arena / Festival (500+ Guests)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Price Breakdown */}
+                <div className="pt-4 border-t border-slate-100 space-y-2 text-xs">
+                  <div className="flex justify-between text-[#5c5c66]">
+                    <span>Performance ({selectedHours} hrs × ₹{Number(artist.base_rate).toLocaleString("en-IN")})</span>
+                    <span className="text-[#0a0a0f] font-bold">₹{estimatedTotal.toLocaleString("en-IN")}</span>
+                  </div>
+                  <div className="flex justify-between text-[#5c5c66]">
+                    <span>Platform Escrow Protection</span>
+                    <span className="text-emerald-700 font-bold">FREE</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-extrabold text-[#0a0a0f] pt-2 border-t border-slate-100">
+                    <span>Estimated Total</span>
+                    <span className="text-slate-950 text-base font-extrabold">₹{estimatedTotal.toLocaleString("en-IN")}</span>
+                  </div>
+                </div>
+
+                {/* Request Booking CTA */}
+                <Link
+                  to={`/band/login?redirect=/band/artists/${artist.id}`}
+                  className="w-full mokijo-btn-primary py-3.5 text-center block text-sm"
+                >
+                  Request Booking & Check Availability
+                </Link>
+
+                <p className="text-[11px] text-slate-400 text-center leading-tight">
+                  No payment charged now. Performer reviews request within 24 hours.
+                </p>
               </div>
             </div>
-          )}
-
-          {/* Video preview / clips */}
-          {youtubeLinks.length > 0 && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-extrabold text-text-primary border-b border-border/30 pb-3 flex items-center gap-2 font-heading">
-                <Video className="h-5 w-5 text-primary" />
-                Demo Performance Clip
-              </h2>
-              <Card className="bg-bg-card/45 border border-border/80 overflow-hidden rounded-2xl">
-                <div className="relative w-full aspect-video">
-                  <iframe 
-                    src={youtubeLinks[0].replace("watch?v=", "embed/")} 
-                    title="Live Tour Walkthrough"
-                    className="absolute inset-0 w-full h-full"
-                    allowFullScreen
-                  />
-                </div>
-              </Card>
-            </div>
-          )}
-
-        </div>
-
-        {/* Right Section */}
-        <div className="space-y-6">
-          <div className="lg:sticky lg:top-24 space-y-6">
-            
-            <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 rounded-2xl shadow p-6 space-y-5">
-              <div className="border-b border-border/30 pb-4">
-                <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider block mb-1">Performance Rate</span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-extrabold text-text-primary">₹{artist.base_rate?.toLocaleString()}</span>
-                  <span className="text-xs text-text-secondary font-medium">/ hour base</span>
-                </div>
-              </div>
-
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-text-secondary">Minimum Hours Required</span>
-                  <span className="font-bold text-text-primary font-mono">{artist.min_booking_hours || 1} hrs</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-text-secondary">Travel Surcharge</span>
-                  <span className="font-bold text-text-primary font-mono">₹{(artist.travel_charges || 0).toLocaleString()}</span>
-                </div>
-              </div>
-
-              <BookingCalendarView 
-                availability={artist.availability || {}}
-                onDateSelect={handleBookArtist}
-              />
-            </Card>
-
-            {artist.social_links && Object.keys(artist.social_links).length > 0 && (
-              <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 rounded-2xl shadow p-6 space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary">
-                  Social Channels
-                </h3>
-                <div className="flex items-center gap-3">
-                  {Object.entries(artist.social_links).map(([platform, url], idx) => (
-                    <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="p-2 bg-bg-elevated/40 hover:bg-bg-elevated border border-border/80 text-text-secondary hover:text-text-primary rounded-xl transition-all">
-                      {platform === "youtube" ? <Youtube className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
-                    </a>
-                  ))}
-                </div>
-              </Card>
-            )}
-
           </div>
         </div>
+      </main>
 
-      </div>
-
-      {activeMediaUrl && activeMediaType && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-md">
-          <Button 
-            variant="outline"
-            onClick={() => {
-              setActiveMediaUrl(null);
-              setActiveMediaType(null);
-            }}
-            className="absolute top-4 right-4 p-2.5 bg-white/10 hover:bg-white/20 border-white/15 text-white rounded-full transition-all cursor-pointer"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-
-          <div className="max-w-4xl max-h-[85vh] w-full flex items-center justify-center overflow-hidden rounded-xl border border-white/10 relative aspect-video">
-            {activeMediaType === "image" ? (
-              <img 
-                src={activeMediaUrl} 
-                alt="Gallery display" 
-                className="w-full h-full object-contain"
-              />
-            ) : (
-              <div className="relative w-full aspect-video">
-                <iframe 
-                  src={activeMediaUrl.replace("watch?v=", "embed/")} 
-                  title="Tour Walkthrough Video"
-                  className="absolute inset-0 w-full h-full"
-                  allowFullScreen
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      <Dialog open={isBookingModalOpen} onOpenChange={setIsBookingModalOpen}>
-        <DialogContent className="max-w-3xl p-0 border-0 bg-transparent overflow-y-auto max-h-[90vh] shadow-none" onClose={() => setIsBookingModalOpen(false)}>
-
-          <BookingRequestForm 
-            artistProfileId={artist.id} 
-            artistName={artist.display_name || artist.user?.name}
-            proposedPrice={artist.base_rate}
-            selectedDate={selectedDate}
-            onCancel={() => setIsBookingModalOpen(false)}
-            onSuccess={() => {
-              setIsBookingModalOpen(false);
-              router.push("/band/client/bookings");
-            }}
-          />
-        </DialogContent>
-      </Dialog>
-
+      <BandFooter />
     </div>
   );
 }

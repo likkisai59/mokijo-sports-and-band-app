@@ -1,97 +1,126 @@
-import json
-from fastapi import HTTPException
+"""Band Auth Service layer — business logic for registration, direct login, and token generation."""
+
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from app.core.security import create_access_token
-from app.logger import logger
+
+from app.core.security import verify_password, create_access_token
+from app.models.band_models import BandAccount, BandArtistProfile, BandVenue
 from app.models import band_schemas as schemas
-from app.models.band_models import BandAccount
 from app.api.band.auth import crud
 
-def _issue_token(account: BandAccount) -> schemas.BandTokenResponse:
-    sub = json.dumps({
-        "id": account.id,
-        "userId": account.id,
-        "username": account.name,
-        "role": account.role,
-    })
-    access_token = create_access_token(data={"sub": sub})
+
+def register(db: Session, payload: schemas.BandRegisterRequest) -> schemas.BandTokenResponse:
+    """Register a new BandAccount and return JWT access token for direct login."""
+    existing = crud.get_account_by_email(db, payload.email)
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="An account with this email address already exists.",
+        )
+
+    # Validate allowed registration roles (cannot self-register as admin)
+    if payload.role not in ["client", "artist", "venue_owner"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid role specified for registration.",
+        )
+
+    # Create account (is_verified = True for direct email/password login workflow)
+    account = crud.create_account(
+        db=db,
+        email=payload.email,
+        password=payload.password,
+        name=payload.name,
+        role=payload.role,
+        phone=payload.phone,
+        is_verified=True,
+    )
+
+    # Provision default profile entity for Artist or Venue Owner
+    if payload.role == "artist":
+        artist_profile = BandArtistProfile(
+            account_id=account.id,
+            display_name=account.name,
+            verification_status="pending",
+            base_rate=0.0,
+            rating=5.0,
+        )
+        db.add(artist_profile)
+        db.commit()
+    elif payload.role == "venue_owner":
+        venue_profile = BandVenue(
+            account_id=account.id,
+            name=f"{account.name}'s Venue",
+            address="Address pending update",
+            verification_status="pending",
+            bcv_number=f"BCV-{str(account.id).zfill(6)}",
+            base_price=0.0,
+        )
+        db.add(venue_profile)
+        db.commit()
+
+    # Generate JWT token
+    token = create_access_token(
+        subject=str(account.id),
+        role=account.role,
+        email=account.email,
+    )
+
     return schemas.BandTokenResponse(
-        access_token=access_token,
+        access_token=token,
+        token_type="bearer",
         user=schemas.BandAccountResponse.model_validate(account),
     )
 
-# ── Public ────────────────────────────────────────────────────────────────────
 
-def register(db: Session, payload: schemas.BandRegisterRequest):
-    try:
-        account = crud.create_account(db, payload.email, payload.password, payload.name, payload.role, payload.phone)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    logger.log_message_sync(message=f"Band account registered: id={account.id} role={account.role}")
-    return _issue_token(account)
-
-def login(db: Session, payload: schemas.BandLoginRequest):
-    account = crud.authenticate(db, payload.email, payload.password)
-    if not account:
-        raise HTTPException(status_code=401, detail="Invalid email or password")
-    return _issue_token(account)
-
-def forgot_password(db: Session, payload: schemas.BandForgotPasswordRequest):
-    # Anti-enumeration: identical response whether or not the email exists.
+def login(db: Session, payload: schemas.BandLoginRequest) -> schemas.BandTokenResponse:
+    """Authenticate with direct email/password and issue JWT access token."""
     account = crud.get_account_by_email(db, payload.email)
-    if account:
-        token = crud.make_reset_token(account)
-        logger.log_message_sync(message=f"Band password reset requested for id={account.id}; token={token}")
-    return {"message": "If that email exists, a reset link has been generated."}
+    if not account:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email address or password.",
+        )
 
-def reset_password(db: Session, payload: schemas.BandResetPasswordRequest):
-    ok = crud.consume_reset_token(db, payload.token, payload.new_password)
-    if not ok:
-        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
-    return {"message": "Password updated successfully"}
+    if not verify_password(payload.password, account.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email address or password.",
+        )
 
-# ── Self (requires Band account) ──────────────────────────────────────────────
+    if not account.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your account has been deactivated. Please contact support.",
+        )
 
-def change_password(db: Session, account: BandAccount, payload: schemas.BandChangePasswordRequest):
-    ok = crud.change_password(db, account, payload.current_password, payload.new_password)
-    if not ok:
-        raise HTTPException(status_code=400, detail="Current password is incorrect")
-    return {"message": "Password updated successfully"}
+    token = create_access_token(
+        subject=str(account.id),
+        role=account.role,
+        email=account.email,
+    )
 
-def delete_me(db: Session, account: BandAccount):
+    return schemas.BandTokenResponse(
+        access_token=token,
+        token_type="bearer",
+        user=schemas.BandAccountResponse.model_validate(account),
+    )
+
+
+def change_password(
+    db: Session, account: BandAccount, payload: schemas.BandChangePasswordRequest
+) -> dict:
+    """Update password for authenticated user."""
+    if not verify_password(payload.current_password, account.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password does not match.",
+        )
+    crud.update_password(db, account, payload.new_password)
+    return {"message": "Password changed successfully."}
+
+
+def delete_me(db: Session, account: BandAccount) -> dict:
+    """Soft-delete account."""
     crud.soft_delete_account(db, account)
-    return {"message": "Account closed"}
-
-# ── Admin ─────────────────────────────────────────────────────────────────────
-
-def admin_list_users(db: Session, search: str | None, role: str | None, is_active: bool | None, limit: int, offset: int):
-    items, _ = crud.list_accounts(db, search, role, is_active, limit, offset)
-    return items
-
-def admin_get_user(db: Session, user_id: int):
-    account = crud.get_account_by_id(db, user_id)
-    if not account:
-        raise HTTPException(status_code=404, detail="User not found")
-    return account
-
-def admin_update_status(db: Session, user_id: int, payload: schemas.BandUserStatusUpdate):
-    account = crud.get_account_by_id(db, user_id)
-    if not account:
-        raise HTTPException(status_code=404, detail="User not found")
-    return crud.set_active(db, account, payload.is_active)
-
-def admin_delete_user(db: Session, user_id: int):
-    account = crud.get_account_by_id(db, user_id)
-    if not account:
-        raise HTTPException(status_code=404, detail="User not found")
-    crud.soft_delete_account(db, account)
-    return {"message": "User deleted"}
-
-def admin_bulk_status(db: Session, payload: schemas.BandBulkStatusUpdate):
-    updated = 0
-    for uid in payload.user_ids:
-        acc = crud.get_account_by_id(db, uid)
-        if acc:
-            crud.set_active(db, acc, payload.is_active)
-            updated += 1
-    return {"message": f"Updated {updated} users", "updated": updated}
+    return {"message": "Account successfully deleted."}

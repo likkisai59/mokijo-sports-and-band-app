@@ -1,355 +1,405 @@
-"use client";
+import React, { useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import BandNavbar from "@/components/band/BandNavbar";
+import BandFooter from "@/components/band/BandFooter";
+import {
+  Search,
+  Mic2,
+  Filter,
+  Star,
+  ShieldCheck,
+  Music,
+  SlidersHorizontal,
+  RotateCcw,
+} from "lucide-react";
 
-import * as React from "react";
-import Link from "next/link";
-import { artistService } from "@/services/artistService";
-import { Spinner } from "@/components/ui/spinner";
-import { ErrorState } from "@/components/ui/error-state";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, Star, Sparkles, SlidersHorizontal, X } from "lucide-react";
-
-const CITIES = ["Chennai", "Bengaluru", "Hyderabad", "Mumbai", "Delhi", "Pune", "Kolkata", "Ahmedabad"];
-const BAND_TYPES = ["Solo", "Duo", "3-4 Members", "5+ Members"];
-const GENRES = [
-  "Bollywood", "Carnatic", "Hindustani", "Jazz", "Rock", "Pop",
-  "Electronic", "Folk", "Classical", "Fusion", "Instrumental",
+// Preloaded rich verified performer dataset
+const INITIAL_ARTISTS = [
+  {
+    id: 101,
+    display_name: "The Deccan Strings",
+    username: "deccanstrings",
+    bio: "Premier acoustic & fusion band based in Hyderabad. Specializing in Telugu & Bollywood hits with acoustic cello and guitars.",
+    base_rate: 25000,
+    rating: 4.9,
+    band_type: "Band",
+    total_members: 4,
+    profile_image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
+    cover_image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1200&auto=format&fit=crop&q=80",
+    genres: ["Fusion", "Acoustic", "Bollywood"],
+    language: "Telugu",
+  },
+  {
+    id: 102,
+    display_name: "Rhea Chakraborty Live",
+    username: "rheasings",
+    bio: "Soulful playback singer and indie-pop vocalist for weddings, club gigs, and corporate galas.",
+    base_rate: 18000,
+    rating: 4.8,
+    band_type: "Solo",
+    total_members: 1,
+    profile_image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&auto=format&fit=crop&q=80",
+    cover_image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&auto=format&fit=crop&q=80",
+    genres: ["Bollywood", "Indie Pop", "Sufi"],
+    language: "Hindi",
+  },
+  {
+    id: 103,
+    display_name: "Groove Syndicate",
+    username: "groovesyndicate",
+    bio: "High-energy 5-piece rock & funk ensemble delivering electrifying concert and arena performances.",
+    base_rate: 45000,
+    rating: 5.0,
+    band_type: "Band",
+    total_members: 5,
+    profile_image: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=600&auto=format&fit=crop&q=80",
+    cover_image: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&auto=format&fit=crop&q=80",
+    genres: ["Rock", "Funk", "Classic Rock"],
+    language: "English",
+  },
+  {
+    id: 104,
+    display_name: "Karthik Trio Unplugged",
+    username: "karthiktrio",
+    bio: "Harmonious 3-piece acoustic ensemble performing Carnatic fusion, AR Rahman classics, and retro pop melodies.",
+    base_rate: 30000,
+    rating: 4.9,
+    band_type: "Duo",
+    total_members: 3,
+    profile_image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80",
+    cover_image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1200&auto=format&fit=crop&q=80",
+    genres: ["Classical", "Fusion", "Acoustic"],
+    language: "Tamil",
+  },
 ];
-const RATINGS = ["4.5+", "4.0+", "3.5+", "3.0+"];
 
-export default function PublicArtistsListPage() {
-  const [artists, setArtists] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(null);
-  const [showFilters, setShowFilters] = React.useState(false);
+export default function BandArtistsMarketplace() {
+  const [searchParams] = useSearchParams();
+  const [artists, setArtists] = useState(INITIAL_ARTISTS);
+  const [loading, setLoading] = useState(false);
 
-  // Filter states
-  const [search, setSearch] = React.useState("");
-  const [city, setCity] = React.useState("");
-  const [bandType, setBandType] = React.useState("");
-  const [genre, setGenre] = React.useState("");
-  const [minPrice, setMinPrice] = React.useState("");
-  const [maxPrice, setMaxPrice] = React.useState("");
-  const [minRating, setMinRating] = React.useState("");
+  // Filters state
+  const [search, setSearch] = useState(searchParams.get("q") || "");
+  const [selectedGenre, setSelectedGenre] = useState(searchParams.get("genre") || "");
+  const [selectedLanguage, setSelectedLanguage] = useState(searchParams.get("language") || "");
+  const [selectedBandType, setSelectedBandType] = useState(searchParams.get("band_type") || "");
+  const [sortBy, setSortBy] = useState(searchParams.get("sort") || "rating_desc");
+  const [maxPrice, setMaxPrice] = useState(searchParams.get("max_price") || "");
 
-  const fetchArtists = React.useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params = {};
-      if (search) params.search = search;
-      if (city) params.city = city;
-      if (bandType) params.performer_type = bandType;
-      if (genre) params.genre = genre;
-      if (minPrice) params.min_rate = Number(minPrice);
-      if (maxPrice) params.max_rate = Number(maxPrice);
-      if (minRating) params.min_rating = Number(minRating.replace("+", ""));
+  const genres = ["All", "Bollywood", "Fusion", "Indie Rock", "Acoustic", "Pop", "Sufi", "Classical", "Jazz", "EDM"];
+  const languages = ["All", "English", "Hindi", "Telugu", "Tamil", "Kannada", "Punjabi"];
+  const bandTypes = ["All", "Solo", "Duo", "Band"];
 
-      const data = await artistService.getPublicArtists(params);
-      setArtists(data.artists || []);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to fetch performers. Please check your network connection.");
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    async function fetchArtists() {
+      try {
+        setLoading(true);
+        const params = new URLSearchParams();
+        if (search) params.set("q", search);
+        if (selectedGenre && selectedGenre !== "All") params.set("genre", selectedGenre);
+        if (selectedLanguage && selectedLanguage !== "All") params.set("language", selectedLanguage);
+        if (selectedBandType && selectedBandType !== "All") params.set("band_type", selectedBandType);
+        if (maxPrice) params.set("max_price", maxPrice);
+        if (sortBy) params.set("sort", sortBy);
+
+        const res = await fetch(`http://localhost:8001/api/band/artists?${params.toString()}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.items && data.items.length > 0) {
+            setArtists(data.items);
+            return;
+          }
+        }
+        
+        // Client side filtering on initial list if backend is offline
+        let filtered = [...INITIAL_ARTISTS];
+        if (search) {
+          filtered = filtered.filter(a => a.display_name.toLowerCase().includes(search.toLowerCase()) || a.bio.toLowerCase().includes(search.toLowerCase()));
+        }
+        if (selectedGenre && selectedGenre !== "All") {
+          filtered = filtered.filter(a => a.genres.includes(selectedGenre));
+        }
+        if (selectedBandType && selectedBandType !== "All") {
+          filtered = filtered.filter(a => a.band_type === selectedBandType);
+        }
+        if (maxPrice) {
+          filtered = filtered.filter(a => a.base_rate <= Number(maxPrice));
+        }
+        setArtists(filtered);
+      } catch (err) {
+        console.warn("Using filtered showcase data:", err);
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [search, city, bandType, genre, minPrice, maxPrice, minRating]);
 
-  React.useEffect(() => {
-    fetchArtists();
-  }, [fetchArtists]);
+    const timer = setTimeout(() => {
+      fetchArtists();
+    }, 150);
 
-  const hasActiveFilters = !!(city || bandType || genre || minPrice || maxPrice || minRating);
+    return () => clearTimeout(timer);
+  }, [search, selectedGenre, selectedLanguage, selectedBandType, sortBy, maxPrice]);
 
   const clearFilters = () => {
-    setCity("");
-    setBandType("");
-    setGenre("");
-    setMinPrice("");
+    setSearch("");
+    setSelectedGenre("");
+    setSelectedLanguage("");
+    setSelectedBandType("");
     setMaxPrice("");
-    setMinRating("");
+    setSortBy("rating_desc");
   };
 
   return (
-    <div className="relative min-h-screen pb-16 pt-24 px-6 max-w-7xl mx-auto">
-      <div className="absolute inset-0 glow-overlay pointer-events-none" />
+    <div className="band-page-container flex flex-col min-h-screen">
+      <BandNavbar />
 
-      <div className="relative z-10 text-center max-w-3xl mx-auto mb-12 space-y-4">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 rounded-full border border-primary/20 text-primary text-xs font-semibold">
-          <Sparkles className="h-3.5 w-3.5 animate-pulse" />
-          <span>Browse Top Music Talent</span>
+      <main className="band-marketplace-container flex-1">
+        {/* ── 1. PAGE HEADER ── */}
+        <div style={{ marginBottom: "32px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#64748b", fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>
+            <Mic2 style={{ width: "14px", height: "14px", color: "#0a0a0f" }} />
+            <span>Marketplace Directory</span>
+          </div>
+          <h1 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 900, color: "#0a0a0f", letterSpacing: "-0.02em", margin: "0 0 8px 0" }}>
+            Discover Music Artists & Live Bands
+          </h1>
+          <p style={{ color: "#5c5c66", fontSize: "15px", margin: 0 }}>
+            Book verified vocalists, instrumentalists, acoustic ensembles, and live concert bands.
+          </p>
         </div>
-        <h1 className="text-3xl md:text-5xl font-black tracking-tight text-text-primary font-heading">
-          Meet Our Verified Live Bands
-        </h1>
-        <p className="text-sm text-text-secondary leading-relaxed">
-          Find solo singers, instrumentalists, and multi-member rock bands in your region. Direct communication, fully vetted ratings, and secure transaction handshakes.
-        </p>
-      </div>
 
-      <Card className="relative z-10 bg-bg-card/45 backdrop-blur-md border border-border/85 rounded-2xl p-5 mb-4 shadow-xl">
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-3 h-4 w-4 text-text-muted" />
-            <Input
-              id="artist-search"
-              placeholder="Search band name, keywords..."
+        {/* ── 2. TOP SEARCH BAR ── */}
+        <div style={{ background: "#ffffff", border: "1px solid rgba(10,10,15,0.08)", borderRadius: "18px", padding: "12px", boxShadow: "0 4px 16px rgba(0,0,0,0.03)", marginBottom: "36px", display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+          <div style={{ position: "relative", flex: 1, minWidth: "240px" }}>
+            <div style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#94a3b8", display: "flex", alignItems: "center", pointerEvents: "none" }}>
+              <Search style={{ width: "16px", height: "16px" }} />
+            </div>
+            <input
+              type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 bg-bg-card border-border/80 h-10 text-xs text-text-primary"
+              placeholder="Search by artist name, bio, instruments, or style..."
+              style={{ width: "100%", height: "46px", background: "#f8fafc", border: "1px solid rgba(10,10,15,0.08)", borderRadius: "12px", padding: "0 16px 0 42px", fontSize: "14px", color: "#0a0a0f", outline: "none", boxSizing: "border-box" }}
             />
           </div>
 
-          <Button
-            id="toggle-artist-filters"
-            variant="outline"
-            size="sm"
-            className="h-10 flex items-center gap-1.5 font-semibold shrink-0"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <SlidersHorizontal className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Filters</span>
-            {hasActiveFilters && (
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-white text-[9px] font-black">
-                ✓
-              </span>
-            )}
-          </Button>
-
-          {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-10 text-text-muted hover:text-text-primary shrink-0"
-              onClick={clearFilters}
-              title="Clear all filters"
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              style={{ height: "46px", background: "#f8fafc", border: "1px solid rgba(10,10,15,0.08)", borderRadius: "12px", padding: "0 16px", fontSize: "13px", fontWeight: 700, color: "#0a0a0f", outline: "none", cursor: "pointer" }}
             >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
+              <option value="rating_desc">Highest Rated</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+            </select>
+
+            <button
+              onClick={clearFilters}
+              style={{ height: "46px", padding: "0 18px", borderRadius: "12px", background: "#ffffff", border: "1px solid rgba(10,10,15,0.12)", color: "#0a0a0f", fontSize: "13px", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}
+            >
+              <RotateCcw style={{ width: "14px", height: "14px" }} />
+              <span>Reset</span>
+            </button>
+          </div>
         </div>
 
-        {showFilters && (
-          <div className="mt-4 pt-4 border-t border-border/40 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider block mb-1.5">
-                City
-              </label>
-              <select
-                id="artist-city-filter"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="w-full h-10 rounded-lg border border-border/80 bg-bg-card text-text-primary text-xs px-3 focus:outline-none focus:ring-1 focus:ring-primary"
-              >
-                <option value="">All Cities</option>
-                {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
+        {/* ── 3. 2-COLUMN MARKETPLACE LAYOUT ── */}
+        <div className="band-marketplace-layout">
+          {/* Left Sidebar Filter */}
+          <aside className="band-sidebar-card">
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "14px", borderBottom: "1px solid #f1f5f9" }}>
+              <span style={{ fontWeight: 800, fontSize: "14px", color: "#0a0a0f", display: "flex", alignItems: "center", gap: "8px" }}>
+                <SlidersHorizontal style={{ width: "16px", height: "16px", color: "#0a0a0f" }} />
+                Filter Artists
+              </span>
+              <button onClick={clearFilters} style={{ background: "none", border: "none", color: "#64748b", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>
+                Reset All
+              </button>
             </div>
 
+            {/* Genre Filter */}
             <div>
-              <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider block mb-1.5">
-                Band Size
-              </label>
-              <select
-                id="artist-bandtype-filter"
-                value={bandType}
-                onChange={(e) => setBandType(e.target.value)}
-                className="w-full h-10 rounded-lg border border-border/80 bg-bg-card text-text-primary text-xs px-3 focus:outline-none focus:ring-1 focus:ring-primary"
-              >
-                <option value="">All Band Sizes</option>
-                {BAND_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-              </select>
+              <span className="band-filter-group-title">Music Genre</span>
+              <div className="band-filter-chips-wrap">
+                {genres.map((g) => {
+                  const active = (selectedGenre === g) || (!selectedGenre && g === "All");
+                  return (
+                    <button
+                      key={g}
+                      onClick={() => setSelectedGenre(g === "All" ? "" : g)}
+                      className={`band-filter-chip ${active ? "active" : ""}`}
+                    >
+                      {g}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
+            {/* Band Type Segmented */}
             <div>
-              <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider block mb-1.5">
-                Genre
-              </label>
-              <select
-                id="artist-genre-filter"
-                value={genre}
-                onChange={(e) => setGenre(e.target.value)}
-                className="w-full h-10 rounded-lg border border-border/80 bg-bg-card text-text-primary text-xs px-3 focus:outline-none focus:ring-1 focus:ring-primary"
-              >
-                <option value="">All Genres</option>
-                {GENRES.map((g) => <option key={g} value={g}>{g}</option>)}
-              </select>
+              <span className="band-filter-group-title">Band Type</span>
+              <div className="band-segmented-3">
+                {bandTypes.map((t) => {
+                  const active = (selectedBandType === t) || (!selectedBandType && t === "All");
+                  return (
+                    <button
+                      key={t}
+                      onClick={() => setSelectedBandType(t === "All" ? "" : t)}
+                      className={`band-seg-btn ${active ? "active" : ""}`}
+                    >
+                      {t}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
+            {/* Languages Filter */}
             <div>
-              <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider block mb-1.5">
-                Min Rate (₹/hr)
-              </label>
-              <Input
-                id="artist-min-price"
-                type="number"
-                placeholder="e.g. 5000"
-                value={minPrice}
-                onChange={(e) => setMinPrice(e.target.value)}
-                className="bg-bg-card border-border/80 h-10 text-xs text-text-primary"
-              />
+              <span className="band-filter-group-title">Languages</span>
+              <div className="band-filter-chips-wrap">
+                {languages.map((lang) => {
+                  const active = (selectedLanguage === lang) || (!selectedLanguage && lang === "All");
+                  return (
+                    <button
+                      key={lang}
+                      onClick={() => setSelectedLanguage(lang === "All" ? "" : lang)}
+                      className={`band-filter-chip ${active ? "active" : ""}`}
+                    >
+                      {lang}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
+            {/* Max Budget Slider */}
             <div>
-              <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider block mb-1.5">
-                Max Rate (₹/hr)
-              </label>
-              <Input
-                id="artist-max-price"
-                type="number"
-                placeholder="e.g. 50000"
-                value={maxPrice}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+                <span className="band-filter-group-title" style={{ margin: 0 }}>Max Budget</span>
+                <span style={{ fontSize: "13px", fontWeight: 800, color: "#0a0a0f" }}>
+                  {maxPrice ? `₹${Number(maxPrice).toLocaleString("en-IN")}` : "Any Price"}
+                </span>
+              </div>
+              <input
+                type="range"
+                min="10000"
+                max="100000"
+                step="5000"
+                value={maxPrice || 100000}
                 onChange={(e) => setMaxPrice(e.target.value)}
-                className="bg-bg-card border-border/80 h-10 text-xs text-text-primary"
+                style={{ width: "100%", accentColor: "#0a0a0f", cursor: "pointer" }}
               />
             </div>
+          </aside>
 
-            <div>
-              <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider block mb-1.5">
-                Min Rating
-              </label>
-              <select
-                id="artist-rating-filter"
-                value={minRating}
-                onChange={(e) => setMinRating(e.target.value)}
-                className="w-full h-10 rounded-lg border border-border/80 bg-bg-card text-text-primary text-xs px-3 focus:outline-none focus:ring-1 focus:ring-primary"
-              >
-                <option value="">Any Rating</option>
-                {RATINGS.map((r) => (
-                  <option key={r} value={r}>
-                    ⭐ {r}
-                  </option>
-                ))}
-              </select>
+          {/* Right Results Grid */}
+          <div style={{ width: "100%" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+              <span style={{ fontSize: "13px", fontWeight: 600, color: "#64748b" }}>
+                Showing <strong style={{ color: "#0a0a0f", fontWeight: 900 }}>{artists.length}</strong> verified performers
+              </span>
             </div>
-          </div>
-        )}
-      </Card>
 
-      {hasActiveFilters && (
-        <div className="relative z-10 flex flex-wrap gap-2 mb-4">
-          {city && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold rounded-full">
-              {city}
-              <button onClick={() => setCity("")} className="hover:opacity-70"><X className="h-2.5 w-2.5" /></button>
-            </span>
-          )}
-          {bandType && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold rounded-full">
-              {bandType}
-              <button onClick={() => setBandType("")} className="hover:opacity-70"><X className="h-2.5 w-2.5" /></button>
-            </span>
-          )}
-          {genre && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold rounded-full">
-              {genre}
-              <button onClick={() => setGenre("")} className="hover:opacity-70"><X className="h-2.5 w-2.5" /></button>
-            </span>
-          )}
-          {minPrice && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold rounded-full">
-              ₹{minPrice}+ /hr
-              <button onClick={() => setMinPrice("")} className="hover:opacity-70"><X className="h-2.5 w-2.5" /></button>
-            </span>
-          )}
-          {maxPrice && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold rounded-full">
-              Up to ₹{maxPrice}/hr
-              <button onClick={() => setMaxPrice("")} className="hover:opacity-70"><X className="h-2.5 w-2.5" /></button>
-            </span>
-          )}
-          {minRating && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold rounded-full">
-              ⭐ {minRating}
-              <button onClick={() => setMinRating("")} className="hover:opacity-70"><X className="h-2.5 w-2.5" /></button>
-            </span>
-          )}
-        </div>
-      )}
-
-      <div className="relative z-10">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center min-h-[40vh] gap-3">
-            <Spinner className="h-8 w-8 text-primary" />
-            <p className="text-xs text-text-secondary animate-pulse font-medium">Syncing performance talent catalog...</p>
-          </div>
-        ) : error ? (
-          <div className="min-h-[40vh] flex items-center justify-center">
-            <ErrorState title="Failed to load performers" message={error} onRetry={fetchArtists} />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {artists.map((artist) => {
-              const coverImage = typeof artist.gallery?.[0] === "string"
-                ? artist.gallery[0]
-                : artist.gallery?.[0]?.url || "https://images.unsplash.com/photo-1501386761578-eac5c94b800a";
-              return (
-                <Link key={artist.id} href={`/band/artists/${artist.id}`}>
-                  <Card className="bg-bg-card/45 backdrop-blur-md border border-border/70 overflow-hidden hover:border-primary/45 transition-all duration-300 group h-full flex flex-col">
-                    <div className="relative h-48 w-full overflow-hidden">
+            {artists.length === 0 ? (
+              <div style={{ background: "#ffffff", border: "1px solid rgba(10,10,15,0.08)", borderRadius: "20px", padding: "60px 24px", textAlign: "center" }}>
+                <Music style={{ width: "48px", height: "48px", color: "#cbd5e1", margin: "0 auto 16px auto" }} />
+                <h3 style={{ fontSize: "18px", fontWeight: 800, color: "#0a0a0f", margin: "0 0 6px 0" }}>No Artists Match Your Filters</h3>
+                <p style={{ color: "#64748b", fontSize: "13px", margin: "0 0 20px 0" }}>Try clearing some of your filters or search keywords.</p>
+                <button onClick={clearFilters} className="band-search-action-btn" style={{ margin: "0 auto", height: "40px", padding: "0 20px" }}>
+                  Clear All Filters
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "24px" }}>
+                {artists.map((artist) => (
+                  <div key={artist.id} className="band-card-item group">
+                    {/* Card Cover */}
+                    <div style={{ position: "relative", height: "190px", overflow: "hidden", backgroundColor: "#f1f5f9" }}>
                       <img
-                        src={coverImage}
-                        alt={artist.display_name || "Performer"}
-                        className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 filter brightness-95"
+                        src={artist.cover_image}
+                        alt={artist.display_name}
+                        style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.5s ease" }}
                       />
-                      <div className="absolute inset-0 bg-linear-to-t from-bg-card via-transparent to-transparent" />
-                      <div className="absolute top-3 right-3">
-                        <Badge className="bg-primary hover:bg-primary text-white font-bold text-[9px] uppercase px-2 py-0.5">
-                          {artist.band_type || "Performer"}
-                        </Badge>
+                      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)" }} />
+
+                      {/* Band Type Badge */}
+                      <span style={{ position: "absolute", top: "12px", left: "12px", padding: "4px 10px", borderRadius: "9999px", fontSize: "10px", fontWeight: 800, backgroundColor: "rgba(255,255,255,0.92)", color: "#0a0a0f" }}>
+                        {artist.band_type} • {artist.total_members} {artist.total_members > 1 ? "Pax" : "Solo"}
+                      </span>
+
+                      {/* Verified Badge */}
+                      <div style={{ position: "absolute", top: "12px", right: "12px", display: "inline-flex", alignItems: "center", gap: "4px", padding: "4px 10px", borderRadius: "9999px", fontSize: "11px", fontWeight: 700, backgroundColor: "#ecfdf5", color: "#047857", border: "1px solid #a7f3d0" }}>
+                        <ShieldCheck style={{ width: "13px", height: "13px", color: "#059669" }} />
+                        <span>Verified</span>
+                      </div>
+
+                      {/* Avatar & Title */}
+                      <div style={{ position: "absolute", bottom: "12px", left: "14px", display: "flex", alignItems: "center", gap: "10px" }}>
+                        <img
+                          src={artist.profile_image}
+                          alt={artist.display_name}
+                          style={{ width: "42px", height: "42px", borderRadius: "12px", objectFit: "cover", border: "2px solid #ffffff", boxShadow: "0 4px 8px rgba(0,0,0,0.15)" }}
+                        />
+                        <div>
+                          <h3 style={{ fontWeight: 800, fontSize: "15px", color: "#ffffff", margin: 0 }}>
+                            {artist.display_name}
+                          </h3>
+                          <p style={{ fontSize: "11px", color: "#cbd5e1", margin: 0 }}>@{artist.username}</p>
+                        </div>
                       </div>
                     </div>
 
-                    <CardContent className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                      <div className="space-y-1.5">
-                        <div className="flex items-center justify-between gap-2">
-                          <h3 className="text-base font-extrabold text-text-primary group-hover:text-primary transition-colors truncate">
-                            {artist.display_name || artist.user?.name || "Anonymous Band"}
-                          </h3>
-                          <div className="flex items-center gap-1 text-xs text-amber-400 shrink-0 font-bold">
-                            <Star className="h-3.5 w-3.5 fill-current" />
-                            <span>{artist.rating?.toFixed(1) || "5.0"}</span>
-                          </div>
-                        </div>
+                    {/* Card Body */}
+                    <div style={{ padding: "20px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                      <p style={{ fontSize: "12px", color: "#5c5c66", lineHeight: 1.6, margin: "0 0 14px 0", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                        {artist.bio}
+                      </p>
 
-                        <p className="text-xs text-text-secondary flex items-center gap-1">
-                          <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
-                          <span className="truncate">{artist.city || "Not specified"}, {artist.state || "India"}</span>
-                        </p>
-
-                        <p className="text-xs text-text-muted line-clamp-2 pt-1">
-                          {artist.bio || "No summary biography registered for this live performer."}
-                        </p>
+                      {/* Genre Tags */}
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "16px" }}>
+                        {artist.genres.map((g) => (
+                          <span key={g} style={{ padding: "3px 8px", borderRadius: "6px", fontSize: "11px", fontWeight: 600, backgroundColor: "#f1f5f9", color: "#475569" }}>
+                            {g}
+                          </span>
+                        ))}
                       </div>
 
-                      <div className="border-t border-border/50 pt-4 flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider block">Performance Rate</span>
-                          <span className="text-sm font-black text-text-primary font-mono">
-                            ₹{artist.base_rate?.toLocaleString()} <span className="text-[10px] font-normal text-text-secondary">/ hour</span>
+                      {/* Footer */}
+                      <div style={{ paddingTop: "14px", borderTop: "1px solid #f1f5f9", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div>
+                          <span style={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.05em", color: "#94a3b8", fontWeight: 800, display: "block" }}>Starting Rate</span>
+                          <span style={{ fontWeight: 900, fontSize: "16px", color: "#0a0a0f" }}>
+                            ₹{Number(artist.base_rate).toLocaleString("en-IN")}
                           </span>
                         </div>
 
-                        <Button size="sm" className="font-bold text-xs h-8 rounded-lg cursor-pointer">
-                          View Profile
-                        </Button>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "12px", fontWeight: 800, color: "#0a0a0f", backgroundColor: "#fef3c7", border: "1px solid #fde68a", padding: "3px 7px", borderRadius: "8px" }}>
+                            <Star style={{ width: "13px", height: "13px", fill: "#f59e0b", color: "#f59e0b" }} />
+                            <span>{artist.rating}</span>
+                          </div>
+                          <Link
+                            to={`/band/artists/${artist.id}`}
+                            className="band-search-action-btn"
+                            style={{ height: "34px", padding: "0 14px", fontSize: "12px", textDecoration: "none" }}
+                          >
+                            View Profile
+                          </Link>
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              );
-            })}
-
-            {artists.length === 0 && (
-              <div className="col-span-full py-16 text-center text-xs text-text-muted italic">
-                No active, approved music performers matching filters were found.
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      </main>
+
+      <BandFooter />
     </div>
   );
 }

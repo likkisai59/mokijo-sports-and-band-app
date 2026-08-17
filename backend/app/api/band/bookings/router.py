@@ -1,114 +1,131 @@
-"""Band booking router — client create, artist/venue/client actions."""
+"""Band Bookings Router — booking inquiry lifecycle, provider acceptance, and availability checks."""
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from typing import Optional
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.models import band_schemas as schemas
 from app.models.band_models import BandAccount
-from app.api.band.common.deps import get_band_account, require_band_role
+from app.api.band.common.deps import get_band_account
 from app.api.band.bookings import service
 
-router = APIRouter()
+router = APIRouter(prefix="/band/bookings", tags=["Band Bookings"])
 
 
-# ── Named routes MUST come before /{booking_id} wildcard to avoid 422 ─────────
-
-@router.get("/band/bookings/client", tags=["Band Bookings"])
-def my_bookings(
-    status: str | None = None,
-    page: int = Query(1, ge=1),
-    limit: int = Query(20, ge=1, le=100),
-    account: BandAccount = Depends(require_band_role("client")),
+@router.post(
+    "/check-availability",
+    response_model=schemas.BandConflictCheckResponse,
+)
+def check_availability(
+    payload: schemas.BandConflictCheckRequest,
+    artist_profile_id: Optional[int] = Query(None),
+    venue_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
 ):
-    return service.client_bookings(db, account.id, status, page, limit)
+    """Check whether a performer or venue is free during a specific date and time window."""
+    return service.check_availability(
+        db=db,
+        artist_profile_id=artist_profile_id,
+        venue_id=venue_id,
+        event_date_str=payload.date,
+        start_time=payload.start_time,
+        end_time=payload.end_time,
+    )
 
 
-@router.get("/band/bookings/artist", tags=["Band Bookings"])
-def artist_bookings(
-    status: str | None = None,
-    search: str | None = None,
-    page: int = Query(1, ge=1),
-    limit: int = Query(20, ge=1, le=100),
-    account: BandAccount = Depends(require_band_role("artist")),
-    db: Session = Depends(get_db),
-):
-    return service.artist_bookings(db, account.id, status, search, page, limit)
-
-
-@router.get("/band/bookings/venue", tags=["Band Bookings"])
-def venue_bookings(
-    status: str | None = None,
-    search: str | None = None,
-    page: int = Query(1, ge=1),
-    limit: int = Query(20, ge=1, le=100),
-    account: BandAccount = Depends(require_band_role("venue_owner")),
-    db: Session = Depends(get_db),
-):
-    return service.venue_bookings(db, account.id, status, search, page, limit)
-
-
-# ── Venue actions ─────────────────────────────────────────────────────────────
-
-@router.put("/band/bookings/venue/{booking_id}/accept", tags=["Band Bookings"])
-def venue_accept(booking_id: int, account: BandAccount = Depends(require_band_role("venue_owner")), db: Session = Depends(get_db)):
-    return service.venue_action(db, account.id, booking_id, "accept")
-
-
-@router.put("/band/bookings/venue/{booking_id}/reject", tags=["Band Bookings"])
-def venue_reject(booking_id: int, account: BandAccount = Depends(require_band_role("venue_owner")), db: Session = Depends(get_db)):
-    return service.venue_action(db, account.id, booking_id, "reject")
-
-
-@router.put("/band/bookings/venue/{booking_id}/complete", tags=["Band Bookings"])
-def venue_complete(booking_id: int, account: BandAccount = Depends(require_band_role("venue_owner")), db: Session = Depends(get_db)):
-    return service.venue_action(db, account.id, booking_id, "complete")
-
-
-@router.put("/band/bookings/venue/{booking_id}/cancel", tags=["Band Bookings"])
-def venue_cancel(booking_id: int, account: BandAccount = Depends(require_band_role("venue_owner")), db: Session = Depends(get_db)):
-    return service.venue_action(db, account.id, booking_id, "cancel")
-
-
-# ── Create booking ─────────────────────────────────────────────────────────────
-
-@router.post("/band/bookings", status_code=status.HTTP_201_CREATED, tags=["Band Bookings"])
+@router.post(
+    "",
+    response_model=schemas.BandBookingResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 def create_booking(
     payload: schemas.BandBookingCreateRequest,
-    account: BandAccount = Depends(require_band_role("client", "admin")),
     db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
 ):
-    return service.create_booking(db, account.id, payload)
+    """Initiate a new booking inquiry with an artist or venue."""
+    return service.create_booking_inquiry(db, account, payload)
 
 
-# ── Wildcard /{booking_id} routes — MUST be declared LAST ────────────────────
-
-@router.get("/band/bookings/{booking_id}", tags=["Band Bookings"])
-def get_booking(booking_id: int, account: BandAccount = Depends(get_band_account), db: Session = Depends(get_db)):
-    return service.get_details(db, booking_id, account.id)
-
-
-@router.put("/band/bookings/{booking_id}/cancel", tags=["Band Bookings"])
-def cancel_booking(booking_id: int, account: BandAccount = Depends(get_band_account), db: Session = Depends(get_db)):
-    return service.client_cancel(db, account.id, booking_id)
-
-
-@router.put("/band/bookings/{booking_id}/accept", tags=["Band Bookings"])
-def artist_accept(booking_id: int, account: BandAccount = Depends(require_band_role("artist")), db: Session = Depends(get_db)):
-    return service.artist_action(db, account.id, booking_id, "accept")
+@router.get(
+    "/my",
+    response_model=schemas.BandPaginatedBookingList,
+)
+def get_my_bookings(
+    status: Optional[str] = Query(None, description="pending|accepted|counter_offered|confirmed|completed|cancelled|rejected"),
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    """Retrieve bookings for the currently authenticated user based on role."""
+    return service.get_user_bookings(db, account, status_filter=status, limit=limit, offset=offset)
 
 
-@router.put("/band/bookings/{booking_id}/reject", tags=["Band Bookings"])
-def artist_reject(booking_id: int, account: BandAccount = Depends(require_band_role("artist")), db: Session = Depends(get_db)):
-    return service.artist_action(db, account.id, booking_id, "reject")
+@router.get(
+    "/{booking_id}",
+    response_model=schemas.BandBookingResponse,
+)
+def get_booking_detail(
+    booking_id: int,
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    """Retrieve complete booking detail including status timeline."""
+    return service.get_booking_detail(db, account, booking_id)
 
 
-@router.put("/band/bookings/{booking_id}/counter", tags=["Band Bookings"])
-def artist_counter(
+@router.post(
+    "/{booking_id}/accept",
+    response_model=schemas.BandBookingResponse,
+)
+def accept_booking(
+    booking_id: int,
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    """Provider accepts the booking inquiry."""
+    return service.accept_booking(db, account, booking_id)
+
+
+@router.post(
+    "/{booking_id}/counter",
+    response_model=schemas.BandBookingResponse,
+)
+def counter_offer(
     booking_id: int,
     payload: schemas.BandCounterOfferRequest,
-    account: BandAccount = Depends(require_band_role("artist")),
     db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
 ):
-    return service.artist_action(db, account.id, booking_id, "counter", payload.counter_price, payload.message)
+    """Provider proposes a counter-offer price with note."""
+    return service.counter_offer(db, account, booking_id, payload)
+
+
+@router.post(
+    "/{booking_id}/decline",
+    response_model=schemas.BandBookingResponse,
+)
+def decline_booking(
+    booking_id: int,
+    reason: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    """Provider declines the booking inquiry."""
+    return service.decline_booking(db, account, booking_id, reason)
+
+
+@router.post(
+    "/{booking_id}/cancel",
+    response_model=schemas.BandBookingResponse,
+)
+def cancel_booking(
+    booking_id: int,
+    reason: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    """Client cancels the booking inquiry."""
+    return service.cancel_booking(db, account, booking_id, reason)

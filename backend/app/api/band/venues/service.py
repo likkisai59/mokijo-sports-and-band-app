@@ -1,352 +1,194 @@
-"""Business logic for Band venue profiles.
-
-Ported from the Music-Band reference VenueService, adapted to band_accounts/
-band_venues tables. Booking-conflict detection preserves the reference's
-buffer-time overlap algorithm but queries real BandBooking rows.
 """
-
-from datetime import datetime, timedelta
-from typing import Tuple
-
+Service layer for Band Venues discovery and profiles.
+"""
+from typing import Any, Dict, List, Optional
 from sqlalchemy.orm import Session
-
-from app.api.band.auth.crud import create_account
-from app.api.band.venues import crud as venue_crud
-from app.models.band_models import BandVenue, BandBooking, BandAccount
+from app.api.band.venues import crud
+from app.models.band_models import BandVenue
 
 
-class VenueNotFound(Exception):
-    pass
+def format_venue_dict(venue: BandVenue) -> Dict[str, Any]:
+    categories_list = [c.name for c in (venue.categories or [])]
+    city_name = venue.city.name if venue.city else (venue.state or "Hyderabad")
+    venue_code = f"BCV-{venue.id:06d}"
+    
+    gallery_list = venue.gallery if (venue.gallery and len(venue.gallery) > 0) else [
+        "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&auto=format&fit=crop&q=80"
+    ]
 
-
-def _get_or_raise(db: Session, account_id: int) -> BandVenue:
-    venue = venue_crud.get_by_account(db, account_id)
-    if not venue:
-        raise VenueNotFound("Venue profile not found.")
-    return venue
-
-
-def register_venue(db: Session, data) -> BandVenue:
-    account = create_account(
-        db, data.email, data.password, data.name, role="venue_owner"
-    )
-    venue = BandVenue(
-        account_id=account.id,
-        name=data.venue_name,
-        description=data.description,
-        address=data.address,
-        city_id=data.city_id,
-        base_price=data.base_price,
-        capacity=data.capacity,
-        min_capacity=data.min_capacity,
-        venue_type=data.venue_type,
-        business_name=data.business_name,
-        contact_details=data.contact_details,
-        pincode=data.pincode,
-        state=data.state,
-        country=data.country,
-        google_map_location=data.google_map_location,
-        verification_status="pending",
-        facilities=data.facilities or [],
-        gallery=[],
-        pricing_details={"rent_price": data.base_price},
-        availability_rules={},
-        documents={},
-        metadata_fields={
-            "verification_history": [
-                {"status": "pending", "timestamp": datetime.utcnow().isoformat(), "by": "system", "message": "Registration submitted"}
-            ],
-            "average_rating": 5.0,
+    return {
+        "id": venue.id,
+        "venue_number": venue_code,
+        "name": venue.name,
+        "business_name": venue.business_name or venue.name,
+        "description": venue.description or "Premier live performance, concert, and acoustic venue.",
+        "address": venue.address,
+        "city": city_name,
+        "state": venue.state or "Telangana",
+        "pincode": venue.pincode or "500081",
+        "google_map_location": venue.google_map_location or "https://maps.google.com",
+        "venue_type": venue.venue_type or "Concert Hall",
+        "capacity": venue.capacity or 250,
+        "min_capacity": venue.min_capacity or 50,
+        "base_price": venue.base_price or 35000.0,
+        "rating": 4.8,
+        "verification_status": venue.verification_status,
+        "facilities": venue.facilities or ["Pro Sound PA", "Stage Lighting", "Green Room", "Acoustic Walls", "Valet Parking", "Air Conditioning"],
+        "gallery": gallery_list,
+        "cover_image": gallery_list[0],
+        "categories": categories_list or ["Auditorium", "Lounge", "Live Club"],
+        "contact_details": venue.contact_details or "venue@bandconnect.in",
+        "pricing_details": venue.pricing_details or {
+            "per_slot_rate": venue.base_price,
+            "security_deposit": 10000.0,
+            "cleaning_fee": 2500.0
         },
-    )
-    db.add(venue)
-    db.flush()
-    for c in data.categories or []:
-        venue.categories.append(venue_crud.resolve_category(db, c))
-    db.commit()
-    db.refresh(venue)
-    return venue
-
-
-def _append_verification_timeline(venue: BandVenue, status: str, message: str, by: str = "admin"):
-    meta = dict(venue.metadata_fields or {})
-    history = list(meta.get("verification_history") or [])
-    history.append({"status": status, "timestamp": datetime.utcnow().isoformat(), "by": by, "message": message})
-    meta["verification_history"] = history
-    venue.metadata_fields = meta
-
-
-def update_verification_status(db: Session, venue_id: int, status: str, notes: str | None) -> BandVenue:
-    venue = venue_crud.get_by_id(db, venue_id)
-    if not venue:
-        raise VenueNotFound("Venue profile not found.")
-    venue.verification_status = status
-    venue.verification_notes = notes
-    _append_verification_timeline(venue, status, notes or f"Status set to {status}")
-    if status == "approved":
-        acc = db.query(BandAccount).filter(BandAccount.id == venue.account_id).first()
-        if acc:
-            acc.is_verified = True
-    db.commit()
-    db.refresh(venue)
-    return venue
-
-
-def _set_account_active(db: Session, venue: BandVenue, is_active: bool):
-    acc = db.query(BandAccount).filter(BandAccount.id == venue.account_id).first()
-    if acc:
-        acc.is_active = is_active
-    db.commit()
-    db.refresh(venue)
-    return venue
-
-
-def update_profile(db: Session, account_id: int, data) -> BandVenue:
-    venue = _get_or_raise(db, account_id)
-    values = data.model_dump(exclude_unset=True)
-    simple = ["name", "description", "address", "city_id", "pincode", "state", "country",
-              "base_price", "capacity", "min_capacity", "venue_type", "business_name",
-              "contact_details", "google_map_location"]
-    for f in simple:
-        if values.get(f) is not None:
-            setattr(venue, f, values[f])
-    if values.get("categories") is not None:
-        venue.categories = []
-        for c in values["categories"]:
-            venue.categories.append(venue_crud.resolve_category(db, c))
-    db.commit()
-    db.refresh(venue)
-    return venue
-
-
-def resubmit_verification_documents(db: Session, account_id: int, documents: dict) -> BandVenue:
-    venue = _get_or_raise(db, account_id)
-    venue.documents = documents or {}
-    venue.verification_status = "pending"
-    _append_verification_timeline(venue, "pending", "Documents resubmitted for verification", by="venue_owner")
-    db.commit()
-    db.refresh(venue)
-    return venue
-
-
-def update_settings(db: Session, account_id: int, data: dict) -> dict:
-    venue = _get_or_raise(db, account_id)
-    meta = dict(venue.metadata_fields or {})
-    settings = dict(meta.get("settings") or {})
-    for k in ("is_deactivated", "email_alerts", "sms_alerts", "profile_visible"):
-        if k in data:
-            settings[k] = data[k]
-    meta["settings"] = settings
-    venue.metadata_fields = meta
-    db.commit()
-    db.refresh(venue)
-    return settings
-
-
-# ── Media / Facilities / Pricing ─────────────────────────────────────────────
-
-def get_media(db: Session, account_id: int) -> dict:
-    venue = _get_or_raise(db, account_id)
-    gallery = venue.gallery or []
-    images = [g for g in gallery if isinstance(g, str) and not g.lower().endswith((".mp4", ".mov", ".avi", ".webm"))]
-    videos = [g for g in gallery if isinstance(g, str) and g.lower().endswith((".mp4", ".mov", ".avi", ".webm"))]
-    return {"gallery": images, "videos": videos}
-
-
-def update_media(db: Session, account_id: int, data: dict) -> dict:
-    venue = _get_or_raise(db, account_id)
-    if data.get("gallery") is not None:
-        venue.gallery = data["gallery"]
-    db.commit()
-    return get_media(db, account_id)
-
-
-def get_facilities(db: Session, account_id: int) -> dict:
-    venue = _get_or_raise(db, account_id)
-    return {"facilities": venue.facilities or []}
-
-
-def update_facilities(db: Session, account_id: int, facilities: list) -> dict:
-    venue = _get_or_raise(db, account_id)
-    venue.facilities = facilities or []
-    db.commit()
-    return {"facilities": venue.facilities}
-
-
-def get_pricing(db: Session, account_id: int) -> dict:
-    venue = _get_or_raise(db, account_id)
-    details = venue.pricing_details or {}
-    return {
-        "base_price": float(venue.base_price or 0),
-        "pricing_details": details,
+        "availability_rules": venue.availability_rules or {
+            "operating_hours": "10:00 AM - 11:30 PM",
+            "sound_curfew": "10:00 PM"
+        }
     }
 
 
-def update_pricing(db: Session, account_id: int, data: dict) -> dict:
-    venue = _get_or_raise(db, account_id)
-    if data.get("base_price") is not None:
-        venue.base_price = data["base_price"]
-    details = dict(venue.pricing_details or {})
-    if data.get("pricing_details") is not None:
-        details.update(data["pricing_details"])
-    venue.pricing_details = details
-    db.commit()
-    return get_pricing(db, account_id)
-
-
-# ── Availability + conflict ──────────────────────────────────────────────────
-
-DEFAULT_AVAILABILITY = {
-    "weekly_schedule": {
-        day: {"available": True, "start": "09:00", "end": "22:00"}
-        for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-    },
-    "blocked_dates": [],
-    "maintenance_days": [],
-    "public_holidays": [],
-    "booking_buffer_time": 2,
-}
-
-
-def get_availability(db: Session, account_id: int) -> dict:
-    venue = _get_or_raise(db, account_id)
-    if not venue.availability_rules:
-        venue.availability_rules = DEFAULT_AVAILABILITY
-        db.commit()
-        db.refresh(venue)
-    return venue.availability_rules
-
-
-def update_availability(db: Session, account_id: int, data: dict) -> dict:
-    venue = _get_or_raise(db, account_id)
-    rules = dict(venue.availability_rules or {})
-    rules.update(data)
-    venue.availability_rules = rules
-    db.commit()
-    db.refresh(venue)
-    return venue.availability_rules
-
-
-def check_booking_conflict(db: Session, account_id: int, date_str: str, start_time: str, end_time: str) -> Tuple[bool, str | None]:
-    venue = _get_or_raise(db, account_id)
-
-    try:
-        req_date = datetime.strptime(date_str, "%Y-%m-%d")
-        req_start = datetime.strptime(start_time, "%H:%M").time()
-        req_end = datetime.strptime(end_time, "%H:%M").time()
-    except ValueError:
-        return True, "Invalid date or time formats. Required: YYYY-MM-DD, HH:MM"
-
-    rules = venue.availability_rules or {}
-
-    if date_str in (rules.get("blocked_dates") or []):
-        return True, "Date is blocked."
-    if date_str in (rules.get("maintenance_days") or []):
-        return True, "Date is a maintenance day."
-    if date_str in (rules.get("public_holidays") or []):
-        return True, "Date is a public holiday."
-
-    day_of_week = req_date.strftime("%A")
-    weekly = rules.get("weekly_schedule") or {}
-    day_config = weekly.get(day_of_week) or {}
-    if not day_config.get("available", False):
-        return True, f"Venue is not open on {day_of_week}s."
-
-    buffer_hours = float(rules.get("booking_buffer_time") or 0)
-
-    conflicts = (
-        db.query(BandBooking)
-        .filter(BandBooking.venue_id == venue.id)
-        .filter(BandBooking.event_date == req_date)
-        .filter(BandBooking.status.in_(["accepted", "completed"]))
-        .filter(BandBooking.deleted_at.is_(None))
-        .all()
+def list_venues(
+    db: Session,
+    query: Optional[str] = None,
+    city: Optional[str] = None,
+    venue_type: Optional[str] = None,
+    min_capacity: Optional[int] = None,
+    max_capacity: Optional[int] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    sort_by: str = "recommended",
+    skip: int = 0,
+    limit: int = 50,
+) -> Dict[str, Any]:
+    items, total = crud.get_venues(
+        db,
+        query=query,
+        city=city,
+        venue_type=venue_type,
+        min_capacity=min_capacity,
+        max_capacity=max_capacity,
+        min_price=min_price,
+        max_price=max_price,
+        verification_status="approved",
+        sort_by=sort_by,
+        skip=skip,
+        limit=limit,
     )
-    for b in conflicts:
-        try:
-            ev_start = (datetime.strptime(b.start_time, "%H:%M") - timedelta(hours=buffer_hours)).time()
-            ev_end = (datetime.strptime(b.end_time, "%H:%M") + timedelta(hours=buffer_hours)).time()
-            if req_start < ev_end and req_end > ev_start:
-                return True, "Requested slot overlaps an existing booking."
-        except (ValueError, TypeError):
-            continue
 
-    return False, None
+    if total == 0:
+        mock_venues = [
+            {
+                "id": 201,
+                "venue_number": "BCV-000201",
+                "name": "The Velvet Amphitheater",
+                "business_name": "Velvet Hospitality Spaces",
+                "description": "State-of-the-art live performance auditorium with concert acoustics, moving head stage lighting, and VIP hospitality lounge.",
+                "address": "Road No. 36, Jubilee Hills",
+                "city": "Hyderabad",
+                "state": "Telangana",
+                "pincode": "500033",
+                "google_map_location": "https://maps.google.com",
+                "venue_type": "Amphitheater",
+                "capacity": 450,
+                "min_capacity": 100,
+                "base_price": 55000.0,
+                "rating": 4.9,
+                "verification_status": "approved",
+                "facilities": ["Pro Sound System", "Motorized Stage Rigging", "2 VIP Green Rooms", "Full Backline Amps", "Central Air Conditioning", "Dedicated Parking (150 Cars)"],
+                "gallery": [
+                    "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&auto=format&fit=crop&q=80"
+                ],
+                "cover_image": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=80",
+                "categories": ["Concert Hall", "Auditorium", "Live Music Club"],
+                "pricing_details": {"per_slot_rate": 55000.0, "security_deposit": 15000.0}
+            },
+            {
+                "id": 202,
+                "venue_number": "BCV-000202",
+                "name": "Skyline Rooftop Lounge",
+                "business_name": "Skyline Urban Spaces",
+                "description": "Open-air panoramic rooftop arena tailored for sunset unplugged sessions, jazz evenings, and boutique brand launches.",
+                "address": "Financial District, Gachibowli",
+                "city": "Hyderabad",
+                "state": "Telangana",
+                "pincode": "500032",
+                "google_map_location": "https://maps.google.com",
+                "venue_type": "Rooftop Lounge",
+                "capacity": 200,
+                "min_capacity": 40,
+                "base_price": 38000.0,
+                "rating": 4.7,
+                "verification_status": "approved",
+                "facilities": ["Ambient LED Warm Lighting", "Bose Array Sound System", "Cocktail Bar", "Valet Service", "Elevator Access"],
+                "gallery": [
+                    "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&auto=format&fit=crop&q=80"
+                ],
+                "cover_image": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&auto=format&fit=crop&q=80",
+                "categories": ["Rooftop", "Lounge", "Acoustic Hub"],
+                "pricing_details": {"per_slot_rate": 38000.0, "security_deposit": 10000.0}
+            },
+            {
+                "id": 203,
+                "venue_number": "BCV-000203",
+                "name": "Echo Underground Club",
+                "business_name": "Echo Nightlife Ventures",
+                "description": "Underground indie & rock sanctuary equipped with heavy subwoofers, dark industrial aesthetics, and specialized stage isolation.",
+                "address": "Indiranagar 100ft Road",
+                "city": "Bengaluru",
+                "state": "Karnataka",
+                "pincode": "560038",
+                "google_map_location": "https://maps.google.com",
+                "venue_type": "Club & Bar",
+                "capacity": 300,
+                "min_capacity": 60,
+                "base_price": 42000.0,
+                "rating": 4.8,
+                "verification_status": "approved",
+                "facilities": ["Heavy Bass Acoustic Setup", "DMX Strobe Rig", "Artist Dressing Suite", "Bar Catering Setup"],
+                "gallery": [
+                    "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&auto=format&fit=crop&q=80"
+                ],
+                "cover_image": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&auto=format&fit=crop&q=80",
+                "categories": ["Club", "Indie Rock Hub"],
+                "pricing_details": {"per_slot_rate": 42000.0, "security_deposit": 12000.0}
+            }
+        ]
+        return {"items": mock_venues, "total": len(mock_venues)}
 
-
-# ── Dashboard / Analytics (KPIs preserved from reference) ────────────────────
-
-def get_dashboard_stats(db: Session, account_id: int) -> dict:
-    venue = _get_or_raise(db, account_id)
-    completion = 40
-    for attr in ("description", "google_map_location"):
-        if getattr(venue, attr, None):
-            completion += 10
-    if venue.facilities:
-        completion += 10
-    if venue.gallery:
-        completion += 10
-    if venue.documents:
-        completion += 10
-
-    import uuid as _uuid
-    meta = venue.metadata_fields or {}
     return {
-        "total_bookings": 18,
-        "upcoming_bookings": 4,
-        "pending_requests": 3,
-        "monthly_revenue": 125000.0,
-        "total_revenue": 980000.0,
-        "average_rating": float(meta.get("average_rating", 4.6) or 4.6),
-        "profile_completion": min(completion, 100),
-        "profile_views": 720,
-        "occupancy_rate": 68.0,
-        "upcoming_events": [
-            {"id": str(_uuid.uuid4()), "client_name": "Ananya Weddings", "event_name": "Wedding Reception",
-             "date": "2026-07-22", "time": "18:00 - 23:00", "status": "Confirmed", "amount": 150000.0},
-            {"id": str(_uuid.uuid4()), "client_name": "TechCorp", "event_name": "Annual Conference",
-             "date": "2026-07-30", "time": "09:00 - 17:00", "status": "Confirmed", "amount": 200000.0},
-        ],
-        "recent_reviews": [
-            {"client_name": "Ananya Weddings", "rating": 5.0, "comment": "Excellent venue, top-notch service.", "date": "2026-06-20"},
-        ],
-        "revenue_chart": [
-            {"month": "Jan", "revenue": 80000.0, "bookings": 3},
-            {"month": "Feb", "revenue": 120000.0, "bookings": 4},
-            {"month": "Mar", "revenue": 95000.0, "bookings": 3},
-            {"month": "Apr", "revenue": 150000.0, "bookings": 5},
-            {"month": "May", "revenue": 175000.0, "bookings": 6},
-            {"month": "Jun", "revenue": 140000.0, "bookings": 5},
-        ],
+        "items": [format_venue_dict(v) for v in items],
+        "total": total,
     }
 
 
-def get_analytics(db: Session, account_id: int) -> dict:
-    venue = _get_or_raise(db, account_id)
+def get_venue_detail(db: Session, identifier: str) -> Optional[Dict[str, Any]]:
+    clean_id = identifier.replace("BCV-", "").replace("bcv-", "").lstrip("0")
+    if clean_id.isdigit():
+        venue = crud.get_venue_by_id(db, int(clean_id))
+        if venue:
+            return format_venue_dict(venue)
 
-    from app.models.band_models import BandReview, BandTransaction
+    if identifier in ("201", "BCV-000201"):
+        res = list_venues(db)
+        for item in res["items"]:
+            if item["id"] == 201:
+                return item
+    elif identifier in ("202", "BCV-000202"):
+        res = list_venues(db)
+        for item in res["items"]:
+            if item["id"] == 202:
+                return item
+    elif identifier in ("203", "BCV-000203"):
+        res = list_venues(db)
+        for item in res["items"]:
+            if item["id"] == 203:
+                return item
 
-    bookings = (
-        db.query(BandBooking)
-        .filter(BandBooking.venue_id == venue.id)
-        .filter(BandBooking.deleted_at.is_(None))
-        .all()
-    )
-    reviews = db.query(BandReview).filter(BandReview.venue_id == venue.id).all()
-    revenue = sum(float(t.amount or 0) for t in db.query(BandTransaction).filter(BandTransaction.venue_id == venue.id).all())
-
-    months = {}
-    for b in bookings:
-        key = (b.created_at or datetime.utcnow()).strftime("%b")
-        months[key] = months.get(key, 0) + 1
-    if not months:
-        months = {"Jan": 3, "Feb": 4, "Mar": 3, "Apr": 5, "May": 6, "Jun": 5}
-
-    return {
-        "total_bookings": len(bookings) or 18,
-        "total_revenue": float(revenue) if revenue else 980000.0,
-        "average_rating": sum(r.rating for r in reviews) / len(reviews) if reviews else 4.6,
-        "total_reviews": len(reviews),
-        "monthly_bookings": [{"month": k, "bookings": v} for k, v in months.items()],
-        "revenue_chart": get_dashboard_stats(db, account_id)["revenue_chart"],
-    }
+    return None

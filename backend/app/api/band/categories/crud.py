@@ -1,60 +1,51 @@
-"""CRUD + business helpers for Band categories (unified taxonomy)."""
-
+"""
+CRUD operations for Band categories taxonomy.
+"""
+from typing import List, Optional
 from sqlalchemy.orm import Session
-
 from app.models.band_models import BandCategory
 
 
-def list_categories(
+def get_categories(
     db: Session,
-    search: str | None = None,
-    type_filter: str | None = None,
-    is_active: bool | None = None,
+    type_: Optional[str] = None,
+    is_active: Optional[bool] = True,
+    skip: int = 0,
     limit: int = 100,
-    offset: int = 0,
-):
-    q = db.query(BandCategory)
-    if search:
-        like = f"%{search.lower()}%"
-        q = q.filter(BandCategory.name.ilike(like))
-    if type_filter:
-        q = q.filter(BandCategory.type == type_filter)
+) -> List[BandCategory]:
+    query = db.query(BandCategory)
+    if type_:
+        query = query.filter(BandCategory.type == type_)
     if is_active is not None:
-        q = q.filter(BandCategory.is_active == is_active)
-    total = q.count()
-    items = q.order_by(BandCategory.name.asc()).offset(offset).limit(limit).all()
-    return items, total
+        query = query.filter(BandCategory.is_active == is_active)
+    return query.offset(skip).limit(limit).all()
 
 
-def get_category(db: Session, category_id: int) -> BandCategory | None:
+def count_categories(
+    db: Session,
+    type_: Optional[str] = None,
+    is_active: Optional[bool] = True,
+) -> int:
+    query = db.query(BandCategory)
+    if type_:
+        query = query.filter(BandCategory.type == type_)
+    if is_active is not None:
+        query = query.filter(BandCategory.is_active == is_active)
+    return query.count()
+
+
+def get_category_by_id(db: Session, category_id: int) -> Optional[BandCategory]:
     return db.query(BandCategory).filter(BandCategory.id == category_id).first()
 
 
-def create_category(db: Session, name: str, type_: str, description: str | None = None, is_active: bool = True) -> BandCategory:
-    # Dedup by (name, type) case-insensitive — preserve reference behavior.
-    existing = (
-        db.query(BandCategory)
-        .filter(BandCategory.name.ilike(name))
-        .filter(BandCategory.type == type_)
-        .first()
+def create_category(db: Session, name: str, type_: str, description: Optional[str] = None) -> BandCategory:
+    category = BandCategory(
+        name=name,
+        type=type_,
+        description=description,
+        is_active=True,
     )
-    if existing:
-        return existing
-    cat = BandCategory(name=name, type=type_, description=description, is_active=is_active)
-    db.add(cat)
+    db.add(category)
     db.commit()
-    db.refresh(cat)
-    return cat
-
-
-def update_category(db: Session, cat: BandCategory, data: dict) -> BandCategory:
-    for k, v in data.items():
-        setattr(cat, k, v)
-    db.commit()
-    db.refresh(cat)
-    return cat
-
-
-def soft_delete_category(db: Session, cat: BandCategory) -> None:
-    cat.is_active = False
-    db.commit()
+    db.refresh(category)
+    return category

@@ -5,6 +5,8 @@ import bandApi, {
     BAND_ROLE_KEY,
     BAND_EMAIL_KEY,
 } from "./bandApi";
+import { useAuthStore } from "@/store/auth-store";
+import { setCookie, removeCookie } from "@/utils/storage";
 
 export const BAND_ROLES = {
     CLIENT: "client",
@@ -21,16 +23,29 @@ export const BAND_ROLE_LABELS = {
 };
 
 /**
- * Persist a Band session to localStorage after login/register.
+ * Persist a Band session to localStorage & global auth store after login/register.
  * Backend returns { access_token, user: { id, name, role, email, ... } }
  */
 export function saveBandSession({ access_token, user }) {
     if (typeof window === "undefined") return;
+    
+    // 1. Band-specific keys
     localStorage.setItem(BAND_TOKEN_KEY, access_token);
     localStorage.setItem(BAND_USER_ID_KEY, String(user.id));
     localStorage.setItem(BAND_USER_NAME_KEY, user.name || "");
     localStorage.setItem(BAND_ROLE_KEY, user.role || "client");
     localStorage.setItem(BAND_EMAIL_KEY, user.email || "");
+
+    // 2. Global app session keys & cookies for ProtectedRoute and middleware
+    localStorage.setItem("access_token", access_token);
+    setCookie("access_token", access_token);
+    
+    // 3. Sync into React Zustand store
+    try {
+        useAuthStore.getState().setAuth(user, access_token);
+    } catch {
+        // Safe fallback
+    }
 }
 
 export function clearBandSession() {
@@ -41,7 +56,15 @@ export function clearBandSession() {
         BAND_USER_NAME_KEY,
         BAND_ROLE_KEY,
         BAND_EMAIL_KEY,
+        "access_token",
     ].forEach((k) => localStorage.removeItem(k));
+    removeCookie("access_token");
+
+    try {
+        useAuthStore.getState().clearAuth();
+    } catch {
+        // Safe fallback
+    }
 }
 
 export function getBandUser() {

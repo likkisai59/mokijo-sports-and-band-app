@@ -1,35 +1,39 @@
-from fastapi import APIRouter, Depends, HTTPException
+"""Band Payments Router — escrow releases, invoice calculation, and transactions."""
+
+from typing import Dict, Any
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
-from app.core.dependencies import get_current_user
-from app.models.schemas import UserResponse
-from app.models.band_schemas import BandPaymentOrderCreate, BandPaymentOrderVerify, BandPaymentOrderResponse
-from app.api.band.payments import service
+from app.models import band_schemas as schemas
+from app.models.band_models import BandAccount
 from app.api.band.common.deps import get_band_account
+from app.api.band.payments import service
 
-router = APIRouter()
+router = APIRouter(prefix="/band/payments", tags=["Band Payments"])
 
-@router.post("/order", response_model=BandPaymentOrderResponse)
-def create_payment_order(
-    request: BandPaymentOrderCreate,
+
+@router.post(
+    "/release-escrow/{booking_id}",
+    response_model=schemas.BandBookingResponse,
+)
+def release_escrow(
+    booking_id: int,
     db: Session = Depends(get_db),
-    current_account: UserResponse = Depends(get_band_account)
+    account: BandAccount = Depends(get_band_account),
 ):
-    """Create a new Razorpay payment order for a booking."""
-    return service.create_payment_order(db, current_account.id, request.booking_id)
+    """Release remaining 80% escrow balance to provider wallet and mark gig completed."""
+    return service.release_escrow(db, account, booking_id)
 
-@router.post("/verify", response_model=BandPaymentOrderResponse)
-def verify_payment(
-    request: BandPaymentOrderVerify,
+
+@router.get(
+    "/invoices/{booking_id}",
+    response_model=Dict[str, Any],
+)
+def get_booking_invoice(
+    booking_id: int,
     db: Session = Depends(get_db),
-    current_account: UserResponse = Depends(get_band_account)
+    account: BandAccount = Depends(get_band_account),
 ):
-    """Verify the Razorpay payment signature."""
-    return service.verify_payment(
-        db, 
-        current_account.id, 
-        request.booking_id,
-        request.razorpay_order_id,
-        request.razorpay_payment_id,
-        request.razorpay_signature
-    )
+    """Get calculated tax invoice breakdown with GST and escrow status."""
+    return service.get_booking_invoice(db, account, booking_id)

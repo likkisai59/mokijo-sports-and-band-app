@@ -1,6 +1,8 @@
 import { siteConfig } from "@/config/site";
 import axios from "axios";
 
+export const API_BASE_URL = siteConfig.apiUrl || "http://127.0.0.1:8001";
+
 export const api = axios.create({
   baseURL: `${siteConfig.apiUrl}/api/v1`,
   headers: {

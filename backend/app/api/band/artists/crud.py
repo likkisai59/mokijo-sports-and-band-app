@@ -1,143 +1,125 @@
-"""CRUD + serialization helpers for Band artist profiles."""
-
-from typing import Optional
-
-from sqlalchemy.orm import Session
-
-from app.models.band_models import BandArtistProfile, BandCategory, band_artist_genres
-
-
-def get_by_id(db: Session, artist_id: int) -> Optional[BandArtistProfile]:
-    return (
-        db.query(BandArtistProfile)
-        .filter(BandArtistProfile.id == artist_id)
-        .filter(BandArtistProfile.deleted_at.is_(None))
-        .first()
-    )
+"""
+CRUD operations for Band Artists discovery and profiles.
+"""
+from typing import List, Optional, Tuple
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import or_, and_, desc, asc
+from app.models.band_models import BandArtistProfile, BandAccount, BandCategory
 
 
-def get_by_account(db: Session, account_id: int) -> Optional[BandArtistProfile]:
-    return (
-        db.query(BandArtistProfile)
-        .filter(BandArtistProfile.account_id == account_id)
-        .filter(BandArtistProfile.deleted_at.is_(None))
-        .first()
-    )
-
-
-def list_filtered(db: Session, search: str | None = None, verification_status: str | None = None,
-                  limit: int = 50, offset: int = 0):
-    q = db.query(BandArtistProfile).filter(BandArtistProfile.deleted_at.is_(None))
-    if search:
-        like = f"%{search.lower()}%"
-        q = q.filter(
-            BandArtistProfile.display_name.ilike(like)
-            | BandArtistProfile.bio.ilike(like)
-        )
-    if verification_status:
-        q = q.filter(BandArtistProfile.verification_status == verification_status)
-    total = q.count()
-    items = q.order_by(BandArtistProfile.created_at.desc()).offset(offset).limit(limit).all()
-    return items, total
-
-
-def list_public_filtered(
+def get_artists(
     db: Session,
-    search: str | None = None,
-    city: str | None = None,
-    performer_type: str | None = None,
-    genre: str | None = None,
-    min_rate: float | None = None,
-    max_rate: float | None = None,
-    min_rating: float | None = None,
+    query: Optional[str] = None,
+    genre: Optional[str] = None,
+    language: Optional[str] = None,
+    band_type: Optional[str] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    min_rating: Optional[float] = None,
+    verification_status: Optional[str] = "approved",
+    sort_by: str = "rating_desc",
+    skip: int = 0,
     limit: int = 50,
-    offset: int = 0
-):
-    q = db.query(BandArtistProfile).filter(
-        BandArtistProfile.deleted_at.is_(None),
-        BandArtistProfile.verification_status == "approved"
-    )
+) -> Tuple[List[BandArtistProfile], int]:
+    q = db.query(BandArtistProfile).join(BandAccount, BandArtistProfile.account_id == BandAccount.id)
+    q = q.filter(BandAccount.is_active == True, BandArtistProfile.deleted_at.is_(None))
 
-    if search:
-        like = f"%{search.lower()}%"
+    if verification_status and verification_status != "all":
+        q = q.filter(BandArtistProfile.verification_status == verification_status)
+
+    if query:
+        search_pattern = f"%{query}%"
         q = q.filter(
-            BandArtistProfile.display_name.ilike(like)
-            | BandArtistProfile.bio.ilike(like)
+            or_(
+                BandArtistProfile.display_name.ilike(search_pattern),
+                BandArtistProfile.username.ilike(search_pattern),
+                BandArtistProfile.bio.ilike(search_pattern),
+                BandAccount.name.ilike(search_pattern),
+            )
         )
-    
-    # Simple JSON/JSONB text matching for city (since geography is minimal or in metadata)
-    # Actually, BandAccount doesn't have city directly, and BandArtistProfile relies on metadata/location in the app.
-    # We will ignore city for now, or match it if there is a column. There's no direct city column on BandArtistProfile.
-    
-    if performer_type:
-        q = q.filter(BandArtistProfile.band_type.ilike(performer_type))
-    
-    if genre:
-        q = q.join(BandArtistProfile.genres).filter(BandCategory.name.ilike(genre))
-        
-    if min_rate is not None:
-        q = q.filter(BandArtistProfile.base_rate >= min_rate)
-        
-    if max_rate is not None:
-        q = q.filter(BandArtistProfile.base_rate <= max_rate)
-        
+
+    if band_type:
+        q = q.filter(BandArtistProfile.band_type.ilike(band_type))
+
+    if min_price is not None:
+        q = q.filter(BandArtistProfile.base_rate >= min_price)
+
+    if max_price is not None:
+        q = q.filter(BandArtistProfile.base_rate <= max_price)
+
     if min_rating is not None:
         q = q.filter(BandArtistProfile.rating >= min_rating)
-        
+
+    if genre:
+        q = q.filter(BandArtistProfile.genres.any(BandCategory.name.ilike(genre)))
+
+    if language:
+        q = q.filter(BandArtistProfile.languages.any(BandCategory.name.ilike(language)))
+
     total = q.count()
-    items = q.order_by(BandArtistProfile.rating.desc(), BandArtistProfile.created_at.desc()).offset(offset).limit(limit).all()
+
+    # Sorting
+    if sort_by == "price_asc":
+        q = q.order_by(asc(BandArtistProfile.base_rate))
+    elif sort_by == "price_desc":
+        q = q.order_by(desc(BandArtistProfile.base_rate))
+    elif sort_by == "rating_desc":
+        q = q.order_by(desc(BandArtistProfile.rating), desc(BandArtistProfile.id))
+    else:
+        q = q.order_by(desc(BandArtistProfile.id))
+
+    items = q.options(
+        joinedload(BandArtistProfile.genres),
+        joinedload(BandArtistProfile.languages),
+        joinedload(BandArtistProfile.account),
+    ).offset(skip).limit(limit).all()
+
     return items, total
 
 
-
-def resolve_category(db: Session, name: str, type_: str) -> BandCategory:
-    """Find or auto-create a taxonomy category by name+type (reference behavior)."""
-    cat = (
-        db.query(BandCategory)
-        .filter(BandCategory.name.ilike(name))
-        .filter(BandCategory.type == type_)
+def get_artist_by_id(db: Session, artist_id: int) -> Optional[BandArtistProfile]:
+    return (
+        db.query(BandArtistProfile)
+        .options(
+            joinedload(BandArtistProfile.genres),
+            joinedload(BandArtistProfile.languages),
+            joinedload(BandArtistProfile.account),
+        )
+        .filter(BandArtistProfile.id == artist_id, BandArtistProfile.deleted_at.is_(None))
         .first()
     )
-    if not cat:
-        cat = BandCategory(name=name, type=type_, is_active=True)
-        db.add(cat)
-        db.flush()
-    return cat
 
 
-def serialize(artist: BandArtistProfile) -> dict:
-    """Build a JSON-safe dict matching BandArtistProfileResponse."""
-    return {
-        "id": artist.id,
-        "account_id": artist.account_id,
-        "display_name": artist.display_name,
-        "bio": artist.bio,
-        "base_rate": float(artist.base_rate or 0),
-        "rating": float(artist.rating or 5.0),
-        "verification_status": artist.verification_status,
-        "verification_notes": artist.verification_notes,
-        "mobile_number": artist.mobile_number,
-        "years_of_experience": artist.years_of_experience or 0,
-        "profile_image": artist.profile_image,
-        "cover_image": artist.cover_image,
-        "band_type": artist.band_type,
-        "total_members": artist.total_members or 1,
-        "currency": artist.currency,
-        "travel_radius": float(artist.travel_radius or 0),
-        "travel_charges": float(artist.travel_charges or 0),
-        "min_booking_hours": float(artist.min_booking_hours or 0),
-        "max_booking_hours": float(artist.max_booking_hours or 0),
-        "equipment": artist.equipment or [],
-        "availability": artist.availability or {},
-        "social_links": artist.social_links or {},
-        "achievements": artist.achievements or [],
-        "documents": artist.documents or [],
-        "gallery": artist.gallery or [],
-        "videos": artist.videos or [],
-        "youtube_links": artist.youtube_links or [],
-        "instagram_reels": artist.instagram_reels or [],
-        "pricing_details": artist.pricing_details or {},
-        "genres": [c.name for c in (artist.genres or [])],
-        "languages": [c.name for c in (artist.languages or [])],
-        "created_at": artist.created_at,
-    }
+def get_artist_by_username(db: Session, username: str) -> Optional[BandArtistProfile]:
+    clean_username = username.lstrip("@").strip().lower()
+    return (
+        db.query(BandArtistProfile)
+        .options(
+            joinedload(BandArtistProfile.genres),
+            joinedload(BandArtistProfile.languages),
+            joinedload(BandArtistProfile.account),
+        )
+        .filter(
+            BandArtistProfile.username.ilike(clean_username),
+            BandArtistProfile.deleted_at.is_(None),
+        )
+        .first()
+    )
+
+
+def get_featured_artists(db: Session, limit: int = 6) -> List[BandArtistProfile]:
+    return (
+        db.query(BandArtistProfile)
+        .options(
+            joinedload(BandArtistProfile.genres),
+            joinedload(BandArtistProfile.languages),
+            joinedload(BandArtistProfile.account),
+        )
+        .filter(
+            BandArtistProfile.verification_status == "approved",
+            BandArtistProfile.deleted_at.is_(None),
+        )
+        .order_by(desc(BandArtistProfile.rating), desc(BandArtistProfile.id))
+        .limit(limit)
+        .all()
+    )

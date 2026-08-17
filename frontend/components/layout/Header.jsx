@@ -11,6 +11,8 @@ import { NotificationsBell } from "@/components/layout/NotificationsBell";
 import { HeaderProfileDropdown } from "@/components/layout/HeaderProfileDropdown";
 import * as React from "react";
 
+import { getBandUser } from "@/lib/bandAuth";
+
 export function Header({ onMenuClick }) {
   const { user, isLoading: authLoading } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -19,6 +21,9 @@ export function Header({ onMenuClick }) {
   const [mounted, setMounted] = React.useState(false);
   const [loginOpen, setLoginOpen] = React.useState(false);
   const [registerOpen, setRegisterOpen] = React.useState(false);
+
+  const bandUser = mounted && typeof window !== "undefined" ? getBandUser() : null;
+  const currentUser = user || bandUser;
 
   React.useEffect(() => {
     setMounted(true);
@@ -39,7 +44,7 @@ export function Header({ onMenuClick }) {
     };
   }, [loginOpen, registerOpen]);
 
-  const effectiveRole = isPreviewMode ? previewRole : user?.role;
+  const effectiveRole = isPreviewMode ? previewRole : currentUser?.role;
   const isAdmin = effectiveRole === "admin";
 
   const handleExitPreview = () => {
@@ -48,7 +53,7 @@ export function Header({ onMenuClick }) {
   };
 
   const renderRightControls = () => {
-    if (!mounted || authLoading || !previewHydrated) {
+    if (!mounted) {
       return <div className="h-9 w-24" />;
     }
 
@@ -64,7 +69,7 @@ export function Header({ onMenuClick }) {
       );
     }
 
-    if (user) {
+    if (currentUser) {
       return (
         <div className="flex items-center gap-2">
           {!isAdmin && <NotificationsBell />}

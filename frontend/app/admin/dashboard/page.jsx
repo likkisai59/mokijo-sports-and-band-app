@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import React, { useState } from "react";
 import {
   Users,
   Music,
@@ -11,316 +11,427 @@ import {
   FileText,
   Activity,
   Percent,
-  CheckCircle,
+  CheckCircle2,
   XCircle,
-  Star
+  Star,
+  Sparkles,
+  ArrowUpRight,
+  ArrowDownLeft,
+  Filter,
+  Eye,
+  Building2,
 } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { AdminPageContainer } from "@/components/layout/admin/AdminPageContainer";
-import { AdminStatCard } from "@/components/layout/admin/AdminWidgets";
-import {
-  ReviewActivityChart,
-  RoleComparisonChart,
-  TopRatedProfilesWidget
-} from "@/components/reviews";
-import { useAdminReviewAnalytics } from "@/hooks/use-review-analytics";
 import toast from "react-hot-toast";
 
-function CustomAreaChart() {
-  return (
-    <div className="w-full h-64 relative mt-4">
-      <svg className="w-full h-full" viewBox="0 0 500 200" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="chartGlow" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#FF6B35" stopOpacity="0.4" />
-            <stop offset="100%" stopColor="#FF6B35" stopOpacity="0.0" />
-          </linearGradient>
-        </defs>
-        <line x1="0" y1="50" x2="500" y2="50" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="4" />
-        <line x1="0" y1="100" x2="500" y2="100" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="4" />
-        <line x1="0" y1="150" x2="500" y2="150" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="4" />
-
-        <path
-          d="M 0 160 Q 100 120 200 140 T 400 60 T 500 40 L 500 200 L 0 200 Z"
-          fill="url(#chartGlow)"
-        />
-        <path
-          d="M 0 160 Q 100 120 200 140 T 400 60 T 500 40"
-          fill="none"
-          stroke="#FF6B35"
-          strokeWidth="3"
-        />
-        <circle cx="200" cy="140" r="4" fill="#FF6B35" stroke="#12121A" strokeWidth="2" />
-        <circle cx="400" cy="60" r="4" fill="#FF6B35" stroke="#12121A" strokeWidth="2" />
-      </svg>
-      <div className="absolute bottom-0 left-0 right-0 flex justify-between text-[10px] text-text-secondary px-2">
-        <span>Jan</span>
-        <span>Mar</span>
-        <span>May</span>
-        <span>Jul</span>
-        <span>Sep</span>
-        <span>Nov</span>
-      </div>
-    </div>
-  );
-}
-
-function CustomBarChart() {
-  return (
-    <div className="w-full h-64 relative mt-4 flex items-end justify-between gap-2 px-4 pt-6">
-      {[60, 80, 45, 90, 110, 75, 120, 95, 130, 85, 140, 105].map((val, idx) => (
-        <div key={idx} className="flex-1 flex flex-col items-center gap-2 group cursor-pointer">
-          <div className="text-[9px] text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity font-bold">
-            {val}
-          </div>
-          <div
-            className="w-full rounded-t bg-primary/25 group-hover:bg-primary border border-primary/20 transition-all duration-300"
-            style={{ height: `${(val / 150) * 160}px` }}
-          />
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export default function AdminDashboardPage() {
-  const { analytics: adminAnalytics } = useAdminReviewAnalytics();
-
-  const [approvals, setApprovals] = React.useState([
-    { id: "1", name: "The Metal Core", type: "Band", email: "metal@core.in", time: "10 min ago" },
-    { id: "2", name: "Royal Plaza Turf", type: "Venue", email: "plaza@royal.com", time: "1 hour ago" },
-    { id: "3", name: "Jazz Elements Trio", type: "Band", email: "elements@jazz.org", time: "2 hours ago" },
+  const [approvals, setApprovals] = useState([
+    { id: "1", name: "The Metal Core", type: "Band", email: "metal@core.in", time: "10 min ago", city: "Hyderabad" },
+    { id: "2", name: "Royal Plaza Turf", type: "Venue", email: "plaza@royal.com", time: "1 hour ago", city: "Bengaluru" },
+    { id: "3", name: "Jazz Elements Trio", type: "Band", email: "elements@jazz.org", time: "2 hours ago", city: "Chennai" },
   ]);
 
   const handleApprove = (id, name) => {
     setApprovals((prev) => prev.filter((item) => item.id !== id));
-    toast.success(`Successfully approved profile: ${name}`);
+    toast.success(`Approved verification for: ${name}`);
   };
 
   const handleDecline = (id, name) => {
     setApprovals((prev) => prev.filter((item) => item.id !== id));
-    toast.error(`Declined profile verification for: ${name}`);
-  };
-
-  const handleQuickAction = (actionName) => {
-    toast.success(`Quick Action triggered: ${actionName}`);
+    toast.error(`Declined profile: ${name}`);
   };
 
   return (
-    <AdminPageContainer
-      title="Admin Home"
-      description="Real-time metric counters, escrow cash positions, review analytics, system approvals queue, and performance logs."
-      actions={
-        <div className="flex gap-2">
-          <Button size="sm" onClick={() => handleQuickAction("Generate Report")} className="flex items-center gap-1.5 font-bold">
-            <FileText className="h-4 w-4" />
-            <span>Export PDF Report</span>
-          </Button>
-          <Button variant="secondary" size="sm" onClick={() => handleQuickAction("Diagnostics")} className="flex items-center gap-1.5 font-bold">
-            <Activity className="h-4 w-4" />
-            <span>Run Diagnostics</span>
-          </Button>
+    <div style={{ display: "flex", flexDirection: "column", gap: "32px", width: "100%" }}>
+      {/* ── TOP EXECUTIVE BANNER ── */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "20px",
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "4px 12px",
+              borderRadius: "9999px",
+              backgroundColor: "#0a0a0f",
+              color: "#c6ff3d",
+              fontSize: "11px",
+              fontWeight: 800,
+              textTransform: "uppercase",
+              width: "fit-content",
+            }}
+          >
+            <Sparkles style={{ width: "12px", height: "12px" }} />
+            <span>Super Admin Governance Control</span>
+          </div>
+
+          <h1 style={{ fontSize: "32px", fontWeight: 900, color: "#0a0a0f", letterSpacing: "-0.03em", margin: 0 }}>
+            Marketplace Overview & Analytics
+          </h1>
+          <p style={{ fontSize: "14px", color: "#64748b", margin: 0, fontWeight: 500 }}>
+            Real-time platform GMV volume, escrow cash held, provider onboarding queues, and commission ledger.
+          </p>
         </div>
-      }
-    >
-      {/* 1. Metric Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <AdminStatCard
-          title="Total Users"
-          value="12,450"
-          trend={{ value: "+12.4%", isPositive: true }}
-          description="Registered profiles"
-          icon={Users}
-        />
-        <AdminStatCard
-          title="Platform Average Rating"
-          value={`${(adminAnalytics?.platform_average_rating ?? 4.85).toFixed(2)} ★`}
-          trend={{ value: "+0.3", isPositive: true }}
-          description="Across all verified reviews"
-          icon={Star}
-        />
-        <AdminStatCard
-          title="Total Reviews Submitted"
-          value={`${adminAnalytics?.total_reviews ?? 148}`}
-          trend={{ value: `+${adminAnalytics?.growth_percentage ?? 12.5}%`, isPositive: true }}
-          description="Platform review volume"
-          icon={Music}
-        />
-        <AdminStatCard
-          title="Bookings Completed"
-          value="5,640"
-          trend={{ value: "+18.9%", isPositive: true }}
-          description="Successful bookings"
-          icon={Calendar}
-        />
-        <AdminStatCard
-          title="Escrow Cash Held"
-          value="₹18,40,500"
-          trend={{ value: "+15.2%", isPositive: true }}
-          description="Held in platform escrow"
-          icon={IndianRupee}
-        />
-        <AdminStatCard
-          title="Platform Revenue"
-          value="₹4,85,000"
-          trend={{ value: "+9.4%", isPositive: true }}
-          description="10% commission deductions"
-          icon={TrendingUp}
-        />
-        <AdminStatCard
-          title="Pending Approvals"
-          value={approvals.length + 25}
-          trend={{ value: "-4.5%", isPositive: true }}
-          description="Awaiting admin reviews"
-          icon={ShieldCheck}
-        />
-        <AdminStatCard
-          title="Commissions Rate"
-          value="10%"
-          description="Fixed marketplace flat rate"
-          icon={Percent}
-        />
+
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <button
+            type="button"
+            onClick={() => toast.success("Exporting platform audit PDF report...")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "12px 20px",
+              borderRadius: "14px",
+              backgroundColor: "#ffffff",
+              color: "#0a0a0f",
+              fontWeight: 800,
+              fontSize: "13px",
+              border: "1px solid #e2e8f0",
+              cursor: "pointer",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.02)",
+            }}
+          >
+            <FileText style={{ width: "16px", height: "16px", color: "#64748b" }} />
+            <span>Export Report</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => toast.success("System integrity check: 100% Operational")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "12px 20px",
+              borderRadius: "14px",
+              backgroundColor: "#0a0a0f",
+              color: "#c6ff3d",
+              fontWeight: 800,
+              fontSize: "13px",
+              border: "none",
+              cursor: "pointer",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            }}
+          >
+            <Activity style={{ width: "16px", height: "16px" }} />
+            <span>System Health</span>
+          </button>
+        </div>
       </div>
 
-      {/* 2. Platform Review Analytics Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <ReviewActivityChart
-          data={adminAnalytics?.activity_breakdown || [
-            { period: "Nov 2025", average_rating: 4.8, count: 20 },
-            { period: "Dec 2025", average_rating: 4.8, count: 32 },
-            { period: "Jan 2026", average_rating: 4.9, count: 45 },
-            { period: "Feb 2026", average_rating: 4.9, count: 51 }
-          ]}
-        />
-
-        <RoleComparisonChart
-          data={adminAnalytics?.role_comparison || [
-            { role: "Client Reviews", average_rating: 4.9, total_reviews: 60 },
-            { role: "Artist Reviews", average_rating: 4.8, total_reviews: 45 },
-            { role: "Venue Reviews", average_rating: 4.7, total_reviews: 43 }
-          ]}
-        />
-
-        <TopRatedProfilesWidget
-          items={adminAnalytics?.top_rated_artists || [
-            { id: "1", name: "The Metal Core", entity_type: "artist", average_rating: 5.0, total_reviews: 18 },
-            { id: "2", name: "Royal Plaza Turf", entity_type: "venue", average_rating: 4.9, total_reviews: 14 }
-          ]}
-        />
-      </div>
-
-      {/* 3. Custom Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-bold flex items-center gap-2">
-              <TrendingUp className="h-4.5 w-4.5 text-primary" />
-              <span>Platform Commissions Revenue (INR)</span>
-            </CardTitle>
-            <CardDescription>Monthly flat commissions fees generated over time</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CustomAreaChart />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-bold flex items-center gap-2">
-              <Calendar className="h-4.5 w-4.5 text-secondary" />
-              <span>Marketplace Gigs Completed</span>
-            </CardTitle>
-            <CardDescription>Event bookings count per month</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CustomBarChart />
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* 4. Action Toggles & Lists Widgets */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
-          <CardHeader className="border-b border-border/30">
-            <CardTitle className="text-sm font-bold flex items-center gap-2">
-              <ShieldCheck className="h-4.5 w-4.5 text-primary" />
-              <span>Pending Profiles Verification Queue</span>
-            </CardTitle>
-            <CardDescription>Review new band listings and venue details</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-border/30">
-              {approvals.length === 0 ? (
-                <div className="p-8 text-center text-xs text-text-muted">No pending verify requests.</div>
-              ) : (
-                approvals.map((app) => (
-                  <div key={app.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 text-xs">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-text-primary text-sm">{app.name}</span>
-                        <Badge variant="secondary">{app.type}</Badge>
-                      </div>
-                      <p className="text-text-secondary mt-1">{app.email} • {app.time}</p>
-                    </div>
-                    <div className="flex gap-2 w-full sm:w-auto justify-end">
-                      <Button
-                        onClick={() => handleApprove(app.id, app.name)}
-                        size="sm"
-                        className="flex items-center gap-1 font-bold h-8 text-[11px]"
-                      >
-                        <CheckCircle className="h-3.5 w-3.5" />
-                        <span>Approve</span>
-                      </Button>
-                      <Button
-                        onClick={() => handleDecline(app.id, app.name)}
-                        variant="destructive"
-                        size="sm"
-                        className="flex items-center gap-1 font-bold h-8 text-[11px]"
-                      >
-                        <XCircle className="h-3.5 w-3.5" />
-                        <span>Decline</span>
-                      </Button>
-                    </div>
-                  </div>
-                ))
-              )}
+      {/* ── 4-GRID PRIMARY FINANCIAL METRIC CARDS ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px" }}>
+        {/* Card 1: Escrow Cash Held */}
+        <div style={{ backgroundColor: "#ffffff", borderRadius: "24px", border: "2px solid #c6ff3d", padding: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: "140px", boxShadow: "0 4px 16px rgba(198, 255, 61, 0.15)" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "#0a0a0f" }}>
+              Escrow Cash Held
+            </span>
+            <div style={{ width: "38px", height: "38px", borderRadius: "12px", backgroundColor: "#0a0a0f", color: "#c6ff3d", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <IndianRupee style={{ width: "20px", height: "20px" }} />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div style={{ marginTop: "16px" }}>
+            <div style={{ fontSize: "32px", fontWeight: 900, color: "#0a0a0f", lineHeight: 1 }}>
+              ₹18,40,500
+            </div>
+            <span style={{ fontSize: "12px", fontWeight: 700, color: "#10b981", marginTop: "6px", display: "block" }}>
+              +15.2% active locking volume
+            </span>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="border-b border-border/30">
-            <CardTitle className="text-sm font-bold flex items-center gap-2">
-              <Users className="h-4.5 w-4.5 text-secondary" />
-              <span>Latest Accounts Registered</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-border/30">
-              {[
-                { name: "Sarah Connor", role: "client", initials: "SC" },
-                { name: "Iron & Wine", role: "artist", initials: "IW" },
-                { name: "Grand Arena Owner", role: "venue_owner", initials: "GA" },
-                { name: "Dev Administrator", role: "admin", initials: "DA" }
-              ].map((usr, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-3.5 text-xs">
-                  <Avatar className="h-7 w-7">
-                    <AvatarFallback className="text-[10px] font-bold">{usr.initials}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-text-primary truncate">{usr.name}</p>
-                    <p className="text-[10px] text-text-muted mt-0.5 uppercase font-bold">{usr.role}</p>
+        {/* Card 2: Net Platform Revenue */}
+        <div style={{ backgroundColor: "#ffffff", borderRadius: "24px", border: "1px solid rgba(10, 10, 15, 0.08)", padding: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: "140px", boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b" }}>
+              Platform Revenue
+            </span>
+            <div style={{ width: "38px", height: "38px", borderRadius: "12px", backgroundColor: "rgba(16, 185, 129, 0.1)", color: "#10b981", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <TrendingUp style={{ width: "20px", height: "20px" }} />
+            </div>
+          </div>
+          <div style={{ marginTop: "16px" }}>
+            <div style={{ fontSize: "32px", fontWeight: 900, color: "#0a0a0f", lineHeight: 1 }}>
+              ₹4,85,000
+            </div>
+            <span style={{ fontSize: "12px", fontWeight: 700, color: "#10b981", marginTop: "6px", display: "block" }}>
+              10% net commission earnings
+            </span>
+          </div>
+        </div>
+
+        {/* Card 3: Total Gigs Completed */}
+        <div style={{ backgroundColor: "#ffffff", borderRadius: "24px", border: "1px solid rgba(10, 10, 15, 0.08)", padding: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: "140px", boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b" }}>
+              Gigs Executed
+            </span>
+            <div style={{ width: "38px", height: "38px", borderRadius: "12px", backgroundColor: "rgba(59, 130, 246, 0.1)", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Calendar style={{ width: "20px", height: "20px" }} />
+            </div>
+          </div>
+          <div style={{ marginTop: "16px" }}>
+            <div style={{ fontSize: "32px", fontWeight: 900, color: "#0a0a0f", lineHeight: 1 }}>
+              5,640
+            </div>
+            <span style={{ fontSize: "12px", fontWeight: 700, color: "#2563eb", marginTop: "6px", display: "block" }}>
+              +18.9% month-on-month
+            </span>
+          </div>
+        </div>
+
+        {/* Card 4: Registered Users */}
+        <div style={{ backgroundColor: "#ffffff", borderRadius: "24px", border: "1px solid rgba(10, 10, 15, 0.08)", padding: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: "140px", boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b" }}>
+              Registered Profiles
+            </span>
+            <div style={{ width: "38px", height: "38px", borderRadius: "12px", backgroundColor: "rgba(245, 158, 11, 0.1)", color: "#d97706", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Users style={{ width: "20px", height: "20px" }} />
+            </div>
+          </div>
+          <div style={{ marginTop: "16px" }}>
+            <div style={{ fontSize: "32px", fontWeight: 900, color: "#0a0a0f", lineHeight: 1 }}>
+              12,450
+            </div>
+            <span style={{ fontSize: "12px", fontWeight: 700, color: "#64748b", marginTop: "6px", display: "block" }}>
+              Across 6 metro cities
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 2-COLUMN: REVENUE CHART + KYC APPROVAL QUEUE ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "32px", alignItems: "start" }}>
+        
+        {/* ── LEFT: REVENUE GROWTH & COMMISSION BARS ── */}
+        <div style={{ backgroundColor: "#ffffff", borderRadius: "28px", border: "1px solid rgba(10, 10, 15, 0.08)", padding: "32px", boxShadow: "0 4px 20px rgba(0, 0, 0, 0.02)", display: "flex", flexDirection: "column", gap: "24px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "16px", borderBottom: "1px solid #f1f5f9" }}>
+            <div>
+              <h2 style={{ fontSize: "18px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+                Platform GMV & Volume Growth
+              </h2>
+              <p style={{ fontSize: "12px", color: "#64748b", margin: "4px 0 0 0" }}>
+                Monthly event transaction volume in Lakhs (INR)
+              </p>
+            </div>
+            <span style={{ fontSize: "12px", fontWeight: 800, color: "#0a0a0f", backgroundColor: "#c6ff3d", padding: "4px 10px", borderRadius: "9999px" }}>
+              10% Take-Rate
+            </span>
+          </div>
+
+          {/* Visual Bar Chart */}
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", height: "190px", paddingTop: "20px", gap: "14px" }}>
+            {[
+              { month: "Jan", val: 12, label: "₹12L" },
+              { month: "Feb", val: 16, label: "₹16L" },
+              { month: "Mar", val: 19, label: "₹19L" },
+              { month: "Apr", val: 24, label: "₹24L" },
+              { month: "May", val: 28, label: "₹28L" },
+              { month: "Jun", val: 38, label: "₹38L" },
+            ].map((pt, idx) => (
+              <div key={idx} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "11px", fontWeight: 800, color: "#0a0a0f" }}>
+                  {pt.label}
+                </span>
+                <div
+                  style={{
+                    width: "100%",
+                    height: `${(pt.val / 40) * 100}%`,
+                    backgroundColor: idx === 5 ? "#c6ff3d" : "#0a0a0f",
+                    borderRadius: "10px",
+                    transition: "all 0.3s ease",
+                  }}
+                />
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#64748b" }}>
+                  {pt.month}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── RIGHT: PROVIDER KYC ONBOARDING QUEUE ── */}
+        <div style={{ backgroundColor: "#ffffff", borderRadius: "28px", border: "1px solid rgba(10, 10, 15, 0.08)", padding: "32px", boxShadow: "0 4px 20px rgba(0, 0, 0, 0.02)", display: "flex", flexDirection: "column", gap: "20px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "16px", borderBottom: "1px solid #f1f5f9" }}>
+            <div>
+              <h2 style={{ fontSize: "18px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+                Pending Verification Desk
+              </h2>
+              <p style={{ fontSize: "12px", color: "#64748b", margin: "4px 0 0 0" }}>
+                Artist & venue owner onboarding review
+              </p>
+            </div>
+            <span style={{ fontSize: "11px", fontWeight: 900, color: "#d97706", backgroundColor: "rgba(245, 158, 11, 0.1)", padding: "4px 10px", borderRadius: "9999px" }}>
+              {approvals.length} Pending
+            </span>
+          </div>
+
+          {/* Approvals List */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            {approvals.length === 0 ? (
+              <div style={{ padding: "40px 16px", textAlign: "center", color: "#64748b", fontSize: "13px" }}>
+                🎉 All pending applications have been reviewed!
+              </div>
+            ) : (
+              approvals.map((app) => (
+                <div
+                  key={app.id}
+                  style={{
+                    padding: "16px 20px",
+                    borderRadius: "18px",
+                    backgroundColor: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "14px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ fontSize: "14px", fontWeight: 900, color: "#0a0a0f" }}>
+                        {app.name}
+                      </span>
+                      <span
+                        style={{
+                          padding: "2px 8px",
+                          borderRadius: "6px",
+                          fontSize: "10px",
+                          fontWeight: 800,
+                          backgroundColor: app.type === "Band" ? "#0a0a0f" : "rgba(37,99,235,0.1)",
+                          color: app.type === "Band" ? "#c6ff3d" : "#2563eb",
+                        }}
+                      >
+                        {app.type}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: "11px", color: "#64748b", margin: "2px 0 0 0" }}>
+                      {app.email} • {app.city} • {app.time}
+                    </p>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <button
+                      type="button"
+                      onClick={() => handleApprove(app.id, app.name)}
+                      style={{
+                        padding: "8px 16px",
+                        borderRadius: "10px",
+                        backgroundColor: "#c6ff3d",
+                        color: "#0a0a0f",
+                        fontWeight: 900,
+                        fontSize: "12px",
+                        border: "none",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                      }}
+                    >
+                      <CheckCircle2 style={{ width: "14px", height: "14px" }} />
+                      <span>Approve</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDecline(app.id, app.name)}
+                      style={{
+                        padding: "8px 14px",
+                        borderRadius: "10px",
+                        backgroundColor: "#fee2e2",
+                        color: "#b91c1c",
+                        fontWeight: 800,
+                        fontSize: "12px",
+                        border: "none",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Decline
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              ))
+            )}
+          </div>
+        </div>
+
       </div>
-    </AdminPageContainer>
+
+      {/* ── 3-COLUMN: TOP RATED PROFILES + LATEST REGISTRATIONS + COMMISSION RULES ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "24px" }}>
+        
+        {/* Box 1: Platform Rating & Reviews */}
+        <div style={{ backgroundColor: "#ffffff", borderRadius: "24px", border: "1px solid rgba(10, 10, 15, 0.08)", padding: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
+          <span style={{ fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b" }}>
+            Platform Trust & Ratings
+          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{ fontSize: "36px", fontWeight: 900, color: "#0a0a0f" }}>4.85</div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ display: "flex", color: "#fbbf24" }}>
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Star key={i} style={{ width: "16px", height: "16px", fill: "#fbbf24" }} />
+                ))}
+              </div>
+              <span style={{ fontSize: "11px", color: "#64748b", fontWeight: 600 }}>148 Verified Gig Reviews</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Box 2: Latest Registered Accounts */}
+        <div style={{ backgroundColor: "#ffffff", borderRadius: "24px", border: "1px solid rgba(10, 10, 15, 0.08)", padding: "24px", display: "flex", flexDirection: "column", gap: "12px" }}>
+          <span style={{ fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b" }}>
+            Latest User Signups
+          </span>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {[
+              { name: "Sarah Connor", role: "Client", time: "5m ago" },
+              { name: "The Deccan Strings", role: "Artist", time: "12m ago" },
+              { name: "Velvet Amphitheater", role: "Venue", time: "45m ago" },
+            ].map((u, idx) => (
+              <div key={idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "12px" }}>
+                <span style={{ fontWeight: 800, color: "#0a0a0f" }}>{u.name}</span>
+                <span style={{ color: "#64748b", fontSize: "11px" }}>{u.role} • {u.time}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Box 3: Commission Engine Status */}
+        <div style={{ backgroundColor: "#ffffff", borderRadius: "24px", border: "1px solid rgba(10, 10, 15, 0.08)", padding: "24px", display: "flex", flexDirection: "column", gap: "12px" }}>
+          <span style={{ fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b" }}>
+            Escrow & Fee Policy
+          </span>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "12px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "#64748b" }}>Take-Rate Fee</span>
+              <span style={{ fontWeight: 800, color: "#0a0a0f" }}>10% Flat</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "#64748b" }}>Advance Lock</span>
+              <span style={{ fontWeight: 800, color: "#10b981" }}>20% Escrow</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "#64748b" }}>Auto-Release</span>
+              <span style={{ fontWeight: 800, color: "#0a0a0f" }}>24 Hours Post-Gig</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
   );
 }

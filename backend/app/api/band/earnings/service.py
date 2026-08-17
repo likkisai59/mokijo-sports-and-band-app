@@ -1,32 +1,78 @@
-from fastapi import HTTPException
+"""Band Earnings Service layer — wallet summaries and payout withdrawals."""
+
+from typing import Optional, List
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+
+from app.models.band_models import BandAccount, BandArtistProfile, BandVenue
+from app.models import band_schemas as schemas
 from app.api.band.earnings import crud
-from app.models.band_models import BandArtistProfile, BandVenue
 
-def artist_earnings(db: Session, account_id: int):
-    profile = db.query(BandArtistProfile).filter(BandArtistProfile.account_id == account_id).first()
-    if not profile:
-        raise HTTPException(status_code=404, detail="Artist profile not found")
-    
-    count = crud.get_transaction_count_for_artist(db, profile.id)
-    if count == 0:
-        crud.seed_mock_transactions(db, artist_profile_id=profile.id)
-    
-    stats = crud.get_summary_core(db, artist_profile_id=profile.id)
-    txns = crud.get_recent_transactions_for_artist(db, profile.id, limit=20)
-    stats["recent_transactions"] = txns
-    return stats
 
-def venue_earnings(db: Session, account_id: int):
-    venue = db.query(BandVenue).filter(BandVenue.account_id == account_id).first()
-    if not venue:
-        raise HTTPException(status_code=404, detail="Venue not found")
-    
-    count = crud.get_transaction_count_for_venue(db, venue.id)
-    if count == 0:
-        crud.seed_mock_transactions(db, venue_id=venue.id)
-    
-    stats = crud.get_summary_core(db, venue_id=venue.id)
-    txns = crud.get_recent_transactions_for_venue(db, venue.id, limit=20)
-    stats["recent_transactions"] = txns
-    return stats
+def get_my_earnings_summary(
+    db: Session,
+    account: BandAccount,
+) -> schemas.BandEarningsSummaryResponse:
+    """Retrieve full earnings, wallet balance, and ledger for the authenticated provider."""
+    artist_id = None
+    venue_id = None
+
+    if account.role == "artist":
+        artist = db.query(BandArtistProfile).filter_by(account_id=account.id).first()
+        if artist:
+            artist_id = artist.id
+    elif account.role == "venue_owner":
+        venue = db.query(BandVenue).filter_by(account_id=account.id).first()
+        if venue:
+            venue_id = venue.id
+
+    return crud.calculate_earnings_summary(
+        db,
+        artist_profile_id=artist_id,
+        venue_id=venue_id,
+        account_id=account.id,
+    )
+
+
+def request_withdrawal(
+    db: Session,
+    account: BandAccount,
+    amount: float,
+    description: Optional[str] = None,
+) -> schemas.BandTransactionResponse:
+    """Request a payout withdrawal to bank or UPI."""
+    if amount <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Withdrawal amount must be greater than zero.",
+        )
+
+    summary = get_my_earnings_summary(db, account)
+    if amount > summary.wallet_balance:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Insufficient available wallet balance (₹{summary.wallet_balance:,.2f}).",
+        )
+
+    artist_id = None
+    venue_id = None
+    if account.role == "artist":
+        artist = db.query(BandArtistProfile).filter_by(account_id=account.id).first()
+        if artist:
+            artist_id = artist.id
+    elif account.role == "venue_owner":
+        venue = db.query(BandVenue).filter_by(account_id=account.id).first()
+        if venue:
+            venue_id = venue.id
+
+    tx = crud.create_transaction(
+        db=db,
+        amount=amount,
+        tx_type="debit",
+        status="pending",
+        description=description or "Payout withdrawal to bank account / UPI",
+        artist_profile_id=artist_id,
+        venue_id=venue_id,
+        account_id=account.id,
+    )
+    return schemas.BandTransactionResponse.model_validate(tx)

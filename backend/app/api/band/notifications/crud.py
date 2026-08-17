@@ -1,10 +1,42 @@
-"""CRUD operations for Band Notifications."""
-
+from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
+from datetime import datetime
+
 from app.models.band_models import BandNotification
 
 
-def create(db: Session, account_id: int, title: str, message: str, notification_type: str = None, reference_type: str = None, reference_id: int = None) -> BandNotification:
+def get_user_notifications(
+    db: Session, account_id: int, limit: int = 30
+) -> List[BandNotification]:
+    return (
+        db.query(BandNotification)
+        .filter(BandNotification.account_id == account_id)
+        .order_by(BandNotification.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+
+def count_unread_notifications(db: Session, account_id: int) -> int:
+    return (
+        db.query(BandNotification)
+        .filter(
+            BandNotification.account_id == account_id,
+            BandNotification.is_read == False,
+        )
+        .count()
+    )
+
+
+def create_notification(
+    db: Session,
+    account_id: int,
+    title: str,
+    message: str,
+    notification_type: Optional[str] = "SYSTEM",
+    reference_type: Optional[str] = None,
+    reference_id: Optional[int] = None,
+) -> BandNotification:
     notif = BandNotification(
         account_id=account_id,
         title=title,
@@ -12,7 +44,8 @@ def create(db: Session, account_id: int, title: str, message: str, notification_
         notification_type=notification_type,
         reference_type=reference_type,
         reference_id=reference_id,
-        is_read=False
+        is_read=False,
+        created_at=datetime.utcnow(),
     )
     db.add(notif)
     db.commit()
@@ -20,31 +53,32 @@ def create(db: Session, account_id: int, title: str, message: str, notification_
     return notif
 
 
-def list_for_account(db: Session, account_id: int, unread_only: bool = False, limit: int = 50, offset: int = 0):
-    q = db.query(BandNotification).filter(BandNotification.account_id == account_id)
-    if unread_only:
-        q = q.filter(BandNotification.is_read == False)
-    
-    total = q.count()
-    items = q.order_by(BandNotification.created_at.desc()).offset(offset).limit(limit).all()
-    return items, total
-
-
-def mark_read(db: Session, account_id: int, notification_id: int) -> bool:
-    notif = db.query(BandNotification).filter(
-        BandNotification.account_id == account_id,
-        BandNotification.id == notification_id
-    ).first()
-    if notif and not notif.is_read:
+def mark_notification_read(db: Session, notification_id: int, account_id: int) -> bool:
+    notif = (
+        db.query(BandNotification)
+        .filter(
+            BandNotification.id == notification_id,
+            BandNotification.account_id == account_id,
+        )
+        .first()
+    )
+    if notif:
         notif.is_read = True
         db.commit()
         return True
     return False
 
 
-def mark_all_read(db: Session, account_id: int):
-    db.query(BandNotification).filter(
-        BandNotification.account_id == account_id,
-        BandNotification.is_read == False
-    ).update({"is_read": True})
+def mark_all_notifications_read(db: Session, account_id: int) -> int:
+    unread = (
+        db.query(BandNotification)
+        .filter(
+            BandNotification.account_id == account_id,
+            BandNotification.is_read == False,
+        )
+        .all()
+    )
+    for n in unread:
+        n.is_read = True
     db.commit()
+    return len(unread)

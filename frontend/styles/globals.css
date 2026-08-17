@@ -3,10 +3,25 @@
 @plugin "tailwindcss-animate";
 
 @theme {
-    --color-primary: #FF6B35;
-    --color-primary-hover: #E85A25;
+    --color-primary: #c6ff3d;
+    --color-primary-hover: #b8f52e;
     --color-secondary: #1DB954;
     --color-accent: #FFD700;
+    --color-bg-primary: #F7F7F8;
+    --color-bg-card: #FFFFFF;
+    --color-bg-elevated: #F1F2F4;
+    --color-border: #E2E4E8;
+    --color-text-primary: #0A0A0F;
+    --color-text-secondary: #5C5C66;
+    --color-text-muted: #8B8B9E;
+}
+
+html {
+    color-scheme: light;
+}
+
+[data-theme="dark"] {
+    color-scheme: dark;
     --color-bg-primary: #0A0A0F;
     --color-bg-card: #12121A;
     --color-bg-elevated: #1A1A28;
@@ -14,26 +29,6 @@
     --color-text-primary: #F0F0F5;
     --color-text-secondary: #8888AA;
     --color-text-muted: #555570;
-}
-
-html {
-    color-scheme: dark;
-}
-
-/* â”€â”€ Light theme overrides â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   Applied when ThemeProvider sets data-theme="light" on <html>.
-   Only override background, border, and text tokens.
-   Brand colours (primary, secondary, accent) remain constant.
-*/
-[data-theme="light"] {
-    color-scheme: light;
-    --color-bg-primary: #F5F5F7;
-    --color-bg-card: #FFFFFF;
-    --color-bg-elevated: #EBEBEF;
-    --color-border: #D8D8E0;
-    --color-text-primary: #1A1A28;
-    --color-text-secondary: #55556A;
-    --color-text-muted: #9090A8;
 }
 
 /* â”€â”€ Custom Scrollbars â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */

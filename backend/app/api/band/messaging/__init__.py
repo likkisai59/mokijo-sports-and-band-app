@@ -1,1 +1,0 @@
-"""BandConnect Messaging APIs"""

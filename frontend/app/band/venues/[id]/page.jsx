@@ -1,335 +1,286 @@
-"use client";
-
-import * as React from "react";
-import { useParams, useRouter } from "next/navigation";
-import { bandVenueService } from "@/services/bandVenueService";
-import { Spinner } from "@/components/ui/spinner";
-import { ErrorState } from "@/components/ui/error-state";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/hooks/use-auth";
-import toast from "react-hot-toast";
-import { 
-  Music, 
-  MapPin, 
-  Play, 
-  Clock, 
-  Check, 
-  ArrowRight,
-  X,
-  Award,
-  Video,
-  Globe,
-  Youtube
+import React, { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import BandNavbar from "@/components/band/BandNavbar";
+import BandFooter from "@/components/band/BandFooter";
+import {
+  Building2,
+  MapPin,
+  Users,
+  ShieldCheck,
+  CheckCircle2,
+  Share2,
+  Heart,
+  Volume2,
+  Clock,
 } from "lucide-react";
 
-export default function PublicvenueProfilePage() {
-  const params = useParams();
-  const router = useRouter();
-  const { user } = useAuth();
-  const venueId = params.id;
+export default function BandVenueDetailPage() {
+  const { id } = useParams();
+  const [venue, setVenue] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [bookingDate, setBookingDate] = useState("");
+  const [selectedSlot, setSelectedSlot] = useState("Evening Slot (5 PM - 11 PM)");
 
-  const [venue, setvenue] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(null);
-
-  // Video and Image gallery modal states
-  const [activeMediaUrl, setActiveMediaUrl] = React.useState(null);
-  const [activeMediaType, setActiveMediaType] = React.useState(null);
-
-  const fetchvenueDetail = React.useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await bandVenueService.getPublicVenueDetail(venueId);
-      setvenue(data);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load public venue details.");
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    async function fetchVenueDetail() {
+      try {
+        setLoading(true);
+        const res = await fetch(`http://localhost:8000/api/band/venues/${id}`);
+        if (!res.ok) throw new Error("Not found");
+        const data = await res.json();
+        setVenue(data);
+      } catch (err) {
+        console.error("Failed to load venue detail:", err);
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [venueId]);
-
-  React.useEffect(() => {
-    fetchvenueDetail();
-  }, [fetchvenueDetail]);
+    if (id) fetchVenueDetail();
+  }, [id]);
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[75vh] gap-3">
-        <Spinner className="h-10 w-10 text-primary" />
-        <p className="text-sm text-text-secondary animate-pulse font-medium">Retrieving venue profile details...</p>
+      <div className="min-h-screen flex flex-col">
+        <BandNavbar />
+        <div className="max-w-[1600px] mx-auto px-4 py-20 text-center flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-slate-900" />
+        </div>
+        <BandFooter />
       </div>
     );
   }
 
-  if (error || !venue) {
+  if (!venue) {
     return (
-      <div className="flex items-center justify-center min-h-[75vh] p-4">
-        <ErrorState 
-          title="venue Profile Not Found" 
-          message={error || "This profile listing is temporarily offline or invalid."} 
-          onRetry={fetchvenueDetail} 
-        />
+      <div className="min-h-screen flex flex-col">
+        <BandNavbar />
+        <div className="max-w-[1600px] mx-auto px-4 py-20 text-center flex-1">
+          <h2 className="text-2xl font-extrabold text-[#0a0a0f] mb-2">Venue Not Found</h2>
+          <p className="text-[#5c5c66] text-sm mb-6">The requested performance venue does not exist or has been unlisted.</p>
+          <Link to="/band/venues" className="mokijo-btn-primary">
+            Browse Venues
+          </Link>
+        </div>
+        <BandFooter />
       </div>
     );
   }
-
-  const coverImage = typeof venue.gallery?.[0] === "string"
-    ? venue.gallery[0]
-    : venue.gallery?.[0]?.url || "https://images.unsplash.com/photo-1501386761578-eac5c94b800a";
-  const youtubeLinks = venue.youtube_links || [];
-  
-  // Facilities
-  const facilities = Object.entries(venue.facilities || {})
-    .filter(([_, present]) => present)
-    .map(([key]) => key);
-
-  const handleBookvenue = () => {
-    const intent = {
-      venueProfileId: venue.id,
-      venueName: venue.name || venue.user?.name,
-      proposedPrice: venue.base_rate,
-    };
-
-    if (!user) {
-      sessionStorage.setItem("pending_booking_intent", JSON.stringify(intent));
-      toast.success("Please log in to submit a booking request.");
-      router.push("/login");
-    } else if (user.role !== "client") {
-      toast.error("Only client accounts can submit booking requests.");
-    } else {
-      sessionStorage.setItem("active_booking_intent", JSON.stringify(intent));
-      router.push("/client/bookings");
-    }
-  };
 
   return (
-    <div className="min-h-screen bg-background text-text-primary pb-16">
-      
-      {/* HERO & GALLERY */}
-      <div className="relative h-[45vh] md:h-[60vh] w-full overflow-hidden">
-        <img 
-          src={coverImage} 
-          alt={venue.name || "venue"} 
-          className="absolute inset-0 h-full w-full object-cover filter brightness-75"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
-        
-        <div className="absolute bottom-6 left-0 right-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Badge className="bg-primary/20 text-primary border border-primary/25 font-bold uppercase tracking-wider text-[10px] px-2.5 py-0.5">
-                {venue.venue_type || "Solo"}
-              </Badge>
-              {venue.verification_status === "approved" && (
-                <Badge className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/25 font-bold uppercase tracking-wider text-[10px] px-2.5 py-0.5">
-                  Verified venue
-                </Badge>
+    <div className="flex flex-col min-h-screen">
+      <BandNavbar />
+
+      <main className="flex-1">
+        {/* ── 1. PHOTO GALLERY HEADER ── */}
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="mokijo-badge-venue">
+                  {venue.venue_number}
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-700">
+                  {venue.venue_type}
+                </span>
+                <div className="mokijo-badge-verified">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Admin Verified</span>
+                </div>
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-[#0a0a0f] tracking-tight">{venue.name}</h1>
+              <p className="text-xs sm:text-sm text-[#5c5c66] flex items-center gap-1 mt-1 font-medium">
+                <MapPin className="w-4 h-4 text-slate-500" />
+                {venue.address}, {venue.city}, {venue.state} - {venue.pincode}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button className="mokijo-btn-secondary text-xs">
+                <Share2 className="w-4 h-4" /> Share
+              </button>
+              <button className="mokijo-btn-secondary text-xs">
+                <Heart className="w-4 h-4" /> Save
+              </button>
+            </div>
+          </div>
+
+          {/* Gallery Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-80 sm:h-96 rounded-3xl overflow-hidden border border-slate-200/80 shadow-xs bg-slate-100">
+            <div className="md:col-span-2 h-full overflow-hidden">
+              <img src={venue.gallery[0] || venue.cover_image} alt={venue.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+            </div>
+            <div className="hidden md:flex flex-col gap-4 h-full">
+              <div className="flex-1 overflow-hidden">
+                <img src={venue.gallery[1] || venue.cover_image} alt={venue.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <img src={venue.gallery[2] || venue.cover_image} alt={venue.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── 2. DETAILS & BOOKING CARD ── */}
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            {/* Left Column: Details */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* Quick Specs Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div className="mokijo-card p-5">
+                  <span className="text-[#5c5c66] text-[11px] font-bold uppercase tracking-wider block mb-1">Seating Capacity</span>
+                  <span className="text-lg font-extrabold text-[#0a0a0f] flex items-center gap-1.5">
+                    <Users className="w-4 h-4 text-slate-700" />
+                    {venue.capacity} Pax
+                  </span>
+                </div>
+                <div className="mokijo-card p-5">
+                  <span className="text-[#5c5c66] text-[11px] font-bold uppercase tracking-wider block mb-1">Acoustic Specs</span>
+                  <span className="text-lg font-extrabold text-[#0a0a0f] flex items-center gap-1.5">
+                    <Volume2 className="w-4 h-4 text-slate-700" />
+                    Concert Ready
+                  </span>
+                </div>
+                <div className="mokijo-card p-5">
+                  <span className="text-[#5c5c66] text-[11px] font-bold uppercase tracking-wider block mb-1">Operating Hours</span>
+                  <span className="text-lg font-extrabold text-[#0a0a0f] flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-slate-700" />
+                    10 AM - 11:30 PM
+                  </span>
+                </div>
+              </div>
+
+              {/* Navigation Tabs */}
+              <div className="flex items-center gap-2 border-b border-slate-200/80 pb-2">
+                <button
+                  onClick={() => setActiveTab("overview")}
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all ${
+                    activeTab === "overview" ? "bg-[#c6ff3d] text-slate-950 shadow-xs" : "text-[#5c5c66] hover:text-[#0a0a0f]"
+                  }`}
+                >
+                  Overview & Facilities
+                </button>
+                <button
+                  onClick={() => setActiveTab("rules")}
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all ${
+                    activeTab === "rules" ? "bg-[#c6ff3d] text-slate-950 shadow-xs" : "text-[#5c5c66] hover:text-[#0a0a0f]"
+                  }`}
+                >
+                  Venue Policies & Curfew
+                </button>
+              </div>
+
+              {activeTab === "overview" && (
+                <div className="space-y-6">
+                  <div className="mokijo-card p-6">
+                    <h3 className="text-base font-extrabold text-[#0a0a0f] mb-2">About the Venue</h3>
+                    <p className="text-xs sm:text-sm text-[#5c5c66] leading-relaxed">{venue.description}</p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-base font-extrabold text-[#0a0a0f] mb-3">Key Facilities & Infrastructure</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {venue.facilities.map((f, idx) => (
+                        <div key={idx} className="flex items-center gap-3 mokijo-card p-4 text-xs font-semibold text-[#0a0a0f]">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                          <span>{f}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "rules" && (
+                <div className="space-y-6 text-sm text-[#5c5c66]">
+                  <div className="mokijo-card p-6 space-y-4">
+                    <h3 className="text-base font-extrabold text-[#0a0a0f]">House Rules & Technical Guidelines</h3>
+                    <ul className="space-y-2.5 text-xs text-[#5c5c66]">
+                      <li>• <strong>Sound Curfew:</strong> Outdoor amplification must be lowered by 10:00 PM per city zoning laws.</li>
+                      <li>• <strong>Green Room Access:</strong> 2 air-conditioned dressing suites available 2 hours before event start.</li>
+                      <li>• <strong>Power Backup:</strong> Dedicated 125 KVA silent DG power generator for audio and stage lighting rigs.</li>
+                      <li>• <strong>Security Deposit:</strong> Refundable deposit of ₹10,000 required upon check-in.</li>
+                    </ul>
+                  </div>
+                </div>
               )}
             </div>
-            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-text-primary font-heading">
-              {venue.name || venue.user?.name}
-            </h1>
-            <p className="text-sm text-text-secondary flex items-center gap-1.5 font-medium">
-              <MapPin className="h-4 w-4 text-primary shrink-0" />
-              <span>{venue.city || "Not specified"}, {venue.state || "India"}</span>
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            {venue.gallery && venue.gallery.length > 0 && (
-              <Button 
-                onClick={() => {
-                  setActiveMediaUrl(typeof venue.gallery[0] === "string" ? venue.gallery[0] : venue.gallery[0]?.url || "");
-                  setActiveMediaType("image");
-                }}
-                className="bg-white/10 hover:bg-white/20 text-white backdrop-blur-md font-bold text-xs border border-white/10 rounded-xl px-4 py-2"
-              >
-                View Gallery ({venue.gallery.length})
-              </Button>
-            )}
-            {youtubeLinks.length > 0 && (
-              <Button 
-                onClick={() => {
-                  setActiveMediaUrl(youtubeLinks[0]);
-                  setActiveMediaType("video");
-                }}
-                className="bg-primary hover:bg-primary/95 text-white font-bold text-xs rounded-xl px-4 py-2 flex items-center gap-1.5"
-              >
-                <Play className="h-3.5 w-3.5 fill-current" />
-                <span>Play Tour Video</span>
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
 
-      {/* BODY CONTENT */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Left Section */}
-        <div className="lg:col-span-2 space-y-10">
-          
-          {/* About / Biography */}
-          <div className="space-y-4">
-            <h2 className="text-xl font-extrabold text-text-primary border-b border-border/30 pb-3 flex items-center gap-2 font-heading">
-              <Music className="h-5 w-5 text-primary" />
-              About the venue
-            </h2>
-            <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-line">
-              {venue.bio || "No biography details supplied by the venue."}
-            </p>
-          </div>
-
-          {/* Quick Specifications Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 p-4 space-y-1">
-              <Clock className="h-5 w-5 text-primary mb-1" />
-              <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider block">Experience</span>
-              <span className="text-sm font-extrabold text-text-primary block">{venue.years_of_experience || 0} Years</span>
-            </Card>
-            <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 p-4 space-y-1">
-              <Award className="h-5 w-5 text-primary mb-1" />
-              <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider block">Capacity</span>
-              <span className="text-sm font-extrabold text-text-primary block">{venue.capacity || 100} Guests</span>
-            </Card>
-            <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 p-4 space-y-1">
-              <Globe className="h-5 w-5 text-primary mb-1" />
-              <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider block">Travel Radius</span>
-              <span className="text-sm font-extrabold text-text-primary block">{venue.travel_radius || 0} KM</span>
-            </Card>
-          </div>
-
-          {/* Facilities list */}
-          {facilities.length > 0 && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-extrabold text-text-primary border-b border-border/30 pb-3 flex items-center gap-2 font-heading">
-                <Check className="h-5 w-5 text-primary" />
-                Venue Facilities
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {facilities.map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-2 p-3 bg-bg-elevated/20 border border-border/50 rounded-xl text-xs text-text-secondary">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0" />
-                    <span className="capitalize font-medium">{item.replace(/_/g, " ")}</span>
+            {/* Right Column: Sticky Booking Card */}
+            <div>
+              <div className="mokijo-card p-7 sticky top-28 space-y-6 shadow-md">
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                  <div>
+                    <span className="text-[11px] text-slate-400 block font-bold uppercase tracking-wider">Slot Rental Rate</span>
+                    <span className="text-2xl font-extrabold text-[#0a0a0f]">
+                      ₹{Number(venue.base_price).toLocaleString("en-IN")}{" "}
+                      <span className="text-xs text-slate-400 font-normal">/ slot</span>
+                    </span>
                   </div>
-                ))}
+                  <div className="text-right">
+                    <span className="mokijo-badge-venue">{venue.venue_number}</span>
+                    <span className="text-xs text-[#5c5c66] block mt-1">{venue.city}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-4 text-xs">
+                  <div>
+                    <label className="font-extrabold text-[#0a0a0f] block mb-1.5">Booking Date</label>
+                    <input
+                      type="date"
+                      value={bookingDate}
+                      onChange={(e) => setBookingDate(e.target.value)}
+                      className="w-full bg-[#f8fafc] border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-sm text-[#0a0a0f] focus:outline-none focus:border-[#0a0a0f]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-extrabold text-[#0a0a0f] block mb-1.5">Time Slot</label>
+                    <select
+                      value={selectedSlot}
+                      onChange={(e) => setSelectedSlot(e.target.value)}
+                      className="w-full bg-[#f8fafc] border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#0a0a0f] focus:outline-none focus:border-[#0a0a0f]"
+                    >
+                      <option value="Morning Slot (10 AM - 4 PM)">Morning Slot (10:00 AM - 04:00 PM)</option>
+                      <option value="Evening Slot (5 PM - 11 PM)">Evening Concert Slot (05:00 PM - 11:00 PM)</option>
+                      <option value="Full Day (10 AM - 11 PM)">Full Day Rental (10:00 AM - 11:00 PM)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 space-y-2 text-xs">
+                  <div className="flex justify-between text-[#5c5c66]">
+                    <span>Base Venue Slot</span>
+                    <span className="text-[#0a0a0f] font-bold">₹{Number(venue.base_price).toLocaleString("en-IN")}</span>
+                  </div>
+                  <div className="flex justify-between text-[#5c5c66]">
+                    <span>Acoustic Rig & Sound PA</span>
+                    <span className="text-emerald-700 font-bold">INCLUDED</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-extrabold text-[#0a0a0f] pt-2 border-t border-slate-100">
+                    <span>Total Estimate</span>
+                    <span className="text-slate-950 text-base font-extrabold">₹{Number(venue.base_price).toLocaleString("en-IN")}</span>
+                  </div>
+                </div>
+
+                <Link
+                  to={`/band/login?redirect=/band/venues/${venue.id}`}
+                  className="w-full mokijo-btn-primary py-3.5 text-center block text-sm"
+                >
+                  Request Venue Booking
+                </Link>
+
+                <p className="text-[11px] text-slate-400 text-center leading-tight">
+                  Venue manager will confirm slot availability within 24 hours.
+                </p>
               </div>
             </div>
-          )}
-
-          {/* Video preview / clips */}
-          {youtubeLinks.length > 0 && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-extrabold text-text-primary border-b border-border/30 pb-3 flex items-center gap-2 font-heading">
-                <Video className="h-5 w-5 text-primary" />
-                Demo Performance Clip
-              </h2>
-              <Card className="bg-bg-card/45 border border-border/80 overflow-hidden rounded-2xl">
-                <div className="relative w-full aspect-video">
-                  <iframe 
-                    src={youtubeLinks[0].replace("watch?v=", "embed/")} 
-                    title="Live Tour Walkthrough"
-                    className="absolute inset-0 w-full h-full"
-                    allowFullScreen
-                  />
-                </div>
-              </Card>
-            </div>
-          )}
-
-        </div>
-
-        {/* Right Section */}
-        <div className="space-y-6">
-          <div className="lg:sticky lg:top-24 space-y-6">
-            
-            <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 rounded-2xl shadow p-6 space-y-5">
-              <div className="border-b border-border/30 pb-4">
-                <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider block mb-1">Base Rate</span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-extrabold text-text-primary">₹{venue.base_price?.toLocaleString()}</span>
-                  <span className="text-xs text-text-secondary font-medium">/ hour base</span>
-                </div>
-              </div>
-
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-text-secondary">Minimum Hours Required</span>
-                  <span className="font-bold text-text-primary font-mono">{venue.min_booking_hours || 1} hrs</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-text-secondary">Travel Surcharge</span>
-                  <span className="font-bold text-text-primary font-mono">₹{(venue.travel_charges || 0).toLocaleString()}</span>
-                </div>
-              </div>
-
-              <Button 
-                onClick={handleBookvenue}
-                className="w-full bg-primary hover:bg-primary/95 text-white font-bold h-11 px-5 rounded-xl flex items-center justify-center gap-2 group transition-all cursor-pointer"
-              >
-                <span>Book this venue</span>
-                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Card>
-
-            {venue.social_links && Object.keys(venue.social_links).length > 0 && (
-              <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 rounded-2xl shadow p-6 space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary">
-                  Social Channels
-                </h3>
-                <div className="flex items-center gap-3">
-                  {Object.entries(venue.social_links).map(([platform, url], idx) => (
-                    <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="p-2 bg-bg-elevated/40 hover:bg-bg-elevated border border-border/80 text-text-secondary hover:text-text-primary rounded-xl transition-all">
-                      {platform === "youtube" ? <Youtube className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
-                    </a>
-                  ))}
-                </div>
-              </Card>
-            )}
-
           </div>
         </div>
+      </main>
 
-      </div>
-
-      {activeMediaUrl && activeMediaType && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-md">
-          <Button 
-            variant="outline"
-            onClick={() => {
-              setActiveMediaUrl(null);
-              setActiveMediaType(null);
-            }}
-            className="absolute top-4 right-4 p-2.5 bg-white/10 hover:bg-white/20 border-white/15 text-white rounded-full transition-all cursor-pointer"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-
-          <div className="max-w-4xl max-h-[85vh] w-full flex items-center justify-center overflow-hidden rounded-xl border border-white/10 relative aspect-video">
-            {activeMediaType === "image" ? (
-              <img 
-                src={activeMediaUrl} 
-                alt="Gallery display" 
-                className="w-full h-full object-contain"
-              />
-            ) : (
-              <div className="relative w-full aspect-video">
-                <iframe 
-                  src={activeMediaUrl.replace("watch?v=", "embed/")} 
-                  title="Tour Walkthrough Video"
-                  className="absolute inset-0 w-full h-full"
-                  allowFullScreen
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
+      <BandFooter />
     </div>
   );
 }

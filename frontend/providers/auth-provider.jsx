@@ -4,6 +4,7 @@ import { api } from "@/services/api";
 import { useAuthStore } from "@/store/auth-store";
 import { useNotificationsStore } from "@/features/notifications/store";
 import { notificationWs } from "@/features/notifications/websocket";
+import { getBandUser } from "@/lib/bandAuth";
 import toast from "react-hot-toast";
 import * as React from "react";
 
@@ -21,18 +22,31 @@ export function AuthProvider({ children }) {
     let cancelled = false;
 
     const restoreSession = async () => {
-      const token =
+      const isBandSession = typeof window !== "undefined" && Boolean(localStorage.getItem("bandAccessToken"));
+      const sportsToken =
         typeof window !== "undefined"
-          ? localStorage.getItem("access_token")
+          ? (localStorage.getItem("mokijo_access_token") || (!isBandSession ? localStorage.getItem("access_token") : null))
           : null;
 
-      if (!token) {
+      if (isBandSession) {
+        const bandToken =
+          localStorage.getItem("bandAccessToken") ||
+          localStorage.getItem("access_token");
+        const bandUser = getBandUser();
+        if (bandToken && bandUser) {
+          setAuth(bandUser, bandToken);
+        }
+        if (!cancelled) setIsLoading(false);
+        return;
+      }
+
+      if (!sportsToken) {
         clearAuth();
         if (!cancelled) setIsLoading(false);
         return;
       }
 
-      if (isDevModeToken(token)) {
+      if (isDevModeToken(sportsToken)) {
         clearAuth();
         if (!cancelled) setIsLoading(false);
         return;
@@ -42,7 +56,7 @@ export function AuthProvider({ children }) {
         const response = await api.get("/auth/me");
         const { success, data: userData } = response.data;
         if (success && userData) {
-          setAuth(userData, token);
+          setAuth(userData, sportsToken);
         } else {
           clearAuth();
         }
