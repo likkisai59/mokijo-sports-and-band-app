@@ -1,1 +1,0 @@
-import{u as r,d as s,c as t,k as n}from"./index-BfHr6Sua.js";function u(){const a=r();return{push:e=>a(e),replace:e=>a(e,{replace:!0}),back:()=>a(-1),forward:()=>a(1),prefetch:()=>{},refresh:()=>window.location.reload()}}function c(){return n().pathname}function i(){const[a]=s();return a}function m(){return t()}export{u as a,m as b,c,i as u};

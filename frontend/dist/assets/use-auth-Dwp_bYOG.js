@@ -1,1 +1,0 @@
-import{n,o as r}from"./index-BfHr6Sua.js";function c(){const t=n(),{user:o,accessToken:s,setAuth:u,clearAuth:e}=r();return{user:o,accessToken:s,isLoading:t.isLoading,logout:t.logout,setAuth:u,clearAuth:e}}export{c as u};

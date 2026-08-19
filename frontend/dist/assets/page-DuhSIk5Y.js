@@ -1,1 +1,0 @@
-import{r as a,j as e}from"./index-BfHr6Sua.js";import{a as s}from"./next-navigation-CXTou31J.js";function i(){const r=s();return a.useEffect(()=>{r.replace("/trainer-dashboard/overview")},[r]),e.jsx("div",{className:"vd-loading",children:e.jsx("div",{className:"vd-spinner"})})}export{i as default};
