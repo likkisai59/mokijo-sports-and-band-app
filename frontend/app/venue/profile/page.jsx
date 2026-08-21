@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { venueService } from "@/services/venueService";
+import { bandVenueService as venueService } from "@/services/bandVenueService";
 import { VenueProfileEdit } from "@/components/venue/VenueProfileEdit";
 import { VenueProfilePreview } from "@/components/venue/VenueProfilePreview";
 import { VenueMediaGallery } from "@/components/venue/VenueMediaGallery";
@@ -9,8 +9,7 @@ import { VenueFacilities } from "@/components/venue/VenueFacilities";
 import { VenuePricing } from "@/components/venue/VenuePricing";
 import { Spinner } from "@/components/ui/spinner";
 import { ErrorState } from "@/components/ui/error-state";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Eye, Edit3, Image as ImageIcon, Sliders, DollarSign } from "lucide-react";
+import { Eye, Edit3, Image as ImageIcon, Sliders, DollarSign, Building2, Sparkles, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -43,7 +42,8 @@ export default function VenueProfilePage() {
       const data = await venueService.getProfile();
       setProfile(data);
     } catch (err) {
-      const msg = err.response?.data?.error?.message || "Failed to load venue profile.";
+      console.error("Venue profile fetch failed:", err);
+      const msg = err.response?.data?.detail || err.response?.data?.error?.message || "Failed to load venue profile.";
       setError(msg);
     } finally {
       setLoading(false);
@@ -60,7 +60,7 @@ export default function VenueProfilePage() {
       setProfile(updated);
       toast.success("Venue profile details updated successfully!");
     } catch (err) {
-      const errMsg = err.response?.data?.error?.message || "Failed to save profile changes.";
+      const errMsg = err.response?.data?.detail || err.response?.data?.error?.message || "Failed to save profile changes.";
       toast.error(errMsg);
     }
   };
@@ -80,6 +80,7 @@ export default function VenueProfilePage() {
           }
         });
       }
+      toast.success("Media gallery updated successfully!");
     } catch (err) {
       toast.error("Failed to save media changes.");
       throw err;
@@ -138,10 +139,10 @@ export default function VenueProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-        <Spinner className="h-10 w-10 text-primary" />
-        <p className="text-sm text-text-secondary animate-pulse">
-          Loading venue owner profile...
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", gap: "16px" }}>
+        <Spinner className="h-10 w-10" style={{ color: "#0a0a0f" }} />
+        <p style={{ fontSize: "14px", fontWeight: 700, color: "#64748b" }}>
+          Loading venue workspace profile...
         </p>
       </div>
     );
@@ -149,7 +150,7 @@ export default function VenueProfilePage() {
 
   if (error || !profile) {
     return (
-      <div className="flex items-center justify-center min-h-[65vh] p-4">
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "65vh", padding: "16px" }}>
         <ErrorState 
           title="Profile Load Failure"
           message={error || "An unexpected error occurred while loading your profile data."} 
@@ -219,61 +220,92 @@ export default function VenueProfilePage() {
     currency: profile.pricing_details?.currency || "INR"
   };
 
+  const tabs = [
+    { id: "edit", label: "Venue Details", icon: Edit3 },
+    { id: "facilities", label: "Facilities & Specs", icon: Sliders },
+    { id: "pricing", label: "Rental Pricing", icon: DollarSign },
+    { id: "media", label: "Photo Gallery", icon: ImageIcon },
+    { id: "preview", label: "Public Preview", icon: Eye },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-extrabold text-text-primary tracking-tight">
-          Venue Space Management
-        </h1>
-        <p className="text-xs text-text-secondary">
-          Configure capacities, locations, media galleries, facility amenities, rental pricing packages, and preview the public presentation.
-        </p>
+    <div style={{ display: "flex", flexDirection: "column", gap: "28px", maxWidth: "1280px", margin: "0 auto", width: "100%" }}>
+      
+      {/* Top Header Banner */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "16px", paddingBottom: "8px" }}>
+        <div>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "4px 12px", borderRadius: "9999px", backgroundColor: "#0a0a0f", color: "#c6ff3d", fontSize: "11px", fontWeight: 800, textTransform: "uppercase", marginBottom: "10px" }}>
+            <Building2 style={{ width: "13px", height: "13px" }} />
+            <span>Venue Host Management Hub</span>
+          </div>
+          <h1 style={{ fontSize: "28px", fontWeight: 900, color: "#0a0a0f", letterSpacing: "-0.02em", margin: 0 }}>
+            {profile.name || "Venue Space Configuration"}
+          </h1>
+          <p style={{ fontSize: "13.5px", color: "#64748b", margin: "6px 0 0 0", fontWeight: 500 }}>
+            Configure capacity limits, stage acoustics, rental packages, photo galleries, and preview public marketplace listing.
+          </p>
+        </div>
+
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "8px 16px", borderRadius: "14px", backgroundColor: "#ffffff", border: "1px solid #e2e8f0", boxShadow: "0 2px 8px rgba(0,0,0,0.03)" }}>
+          <span style={{ width: "9px", height: "9px", borderRadius: "9999px", backgroundColor: profile.verification_status === "approved" ? "#10b981" : "#f59e0b" }} />
+          <span style={{ fontSize: "12px", fontWeight: 800, color: "#0a0a0f" }}>
+            Status: <span style={{ textTransform: "uppercase", color: profile.verification_status === "approved" ? "#047857" : "#b45309" }}>{profile.verification_status || "Approved"}</span>
+          </span>
+        </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="bg-bg-elevated border border-border/80 p-1 rounded-xl flex flex-wrap gap-1 self-start max-w-2xl mb-4">
-          <TabsTrigger value="edit" className="flex items-center gap-1.5 text-xs py-2 px-3 rounded-lg w-[18%] justify-center">
-            <Edit3 className="h-3.5 w-3.5" />
-            <span>Venue Details</span>
-          </TabsTrigger>
-          <TabsTrigger value="facilities" className="flex items-center gap-1.5 text-xs py-2 px-3 rounded-lg w-[18%] justify-center">
-            <Sliders className="h-3.5 w-3.5" />
-            <span>Facilities</span>
-          </TabsTrigger>
-          <TabsTrigger value="pricing" className="flex items-center gap-1.5 text-xs py-2 px-3 rounded-lg w-[18%] justify-center">
-            <DollarSign className="h-3.5 w-3.5" />
-            <span>Pricing</span>
-          </TabsTrigger>
-          <TabsTrigger value="media" className="flex items-center gap-1.5 text-xs py-2 px-3 rounded-lg w-[18%] justify-center">
-            <ImageIcon className="h-3.5 w-3.5" />
-            <span>Gallery</span>
-          </TabsTrigger>
-          <TabsTrigger value="preview" className="flex items-center gap-1.5 text-xs py-2 px-3 rounded-lg w-[18%] justify-center">
-            <Eye className="h-3.5 w-3.5" />
-            <span>Public Preview</span>
-          </TabsTrigger>
-        </TabsList>
+      {/* Segmented Tab Navigation Bar */}
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#ffffff", padding: "8px", borderRadius: "18px", border: "1px solid #e2e8f0", boxShadow: "0 2px 10px rgba(0,0,0,0.02)", flexWrap: "wrap" }}>
+        {tabs.map((t) => {
+          const Icon = t.icon;
+          const isActive = activeTab === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => handleTabChange(t.id)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "10px 18px",
+                borderRadius: "12px",
+                fontSize: "13px",
+                fontWeight: isActive ? 900 : 700,
+                backgroundColor: isActive ? "#0a0a0f" : "transparent",
+                color: isActive ? "#c6ff3d" : "#475569",
+                border: "none",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+                boxShadow: isActive ? "0 4px 12px rgba(10,10,15,0.2)" : "none",
+              }}
+            >
+              <Icon style={{ width: "15px", height: "15px" }} />
+              <span>{t.label}</span>
+            </button>
+          );
+        })}
+      </div>
 
-        <TabsContent value="edit">
+      {/* Tab Content Container */}
+      <div style={{ width: "100%" }}>
+        {activeTab === "edit" && (
           <VenueProfileEdit profile={profile} onSuccess={handleUpdateSuccess} />
-        </TabsContent>
-
-        <TabsContent value="facilities">
+        )}
+        {activeTab === "facilities" && (
           <VenueFacilities data={componentFacilitiesData} onSave={handleFacilitiesSave} />
-        </TabsContent>
-
-        <TabsContent value="pricing">
+        )}
+        {activeTab === "pricing" && (
           <VenuePricing data={componentPricingData} onSave={handlePricingSave} />
-        </TabsContent>
-
-        <TabsContent value="media">
+        )}
+        {activeTab === "media" && (
           <VenueMediaGallery media={componentMediaData} onSave={handleMediaSave} />
-        </TabsContent>
-
-        <TabsContent value="preview">
+        )}
+        {activeTab === "preview" && (
           <VenueProfilePreview profile={profile} />
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
+
     </div>
   );
 }

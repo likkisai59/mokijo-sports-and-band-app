@@ -5,9 +5,104 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.core.database import get_db
+from app.models.band_models import BandAccount
+from app.api.band.common.deps import get_band_account
 from app.api.band.venues import service
 
 router = APIRouter(prefix="/band/venues", tags=["Band Venues"])
+
+
+@router.get("/me", summary="Get authenticated venue host profile")
+def get_my_venue_profile(
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    return service.get_my_venue_profile(db, account)
+
+
+@router.put("/me", summary="Update authenticated venue host profile")
+def update_my_venue_profile(
+    payload: Dict[str, Any],
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    return service.update_my_venue_profile(db, account, payload)
+
+
+@router.get("/me/media", summary="Get authenticated venue media gallery")
+def get_my_venue_media(
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    prof = service.get_my_venue_profile(db, account)
+    return {
+        "gallery": prof.get("gallery", []),
+        "cover_image": prof.get("cover_image"),
+        "youtube_links": prof.get("metadata_fields", {}).get("youtube_links", []),
+        "virtual_tour": prof.get("metadata_fields", {}).get("virtual_tour")
+    }
+
+
+@router.put("/me/media", summary="Update authenticated venue media gallery")
+def update_my_venue_media(
+    payload: Dict[str, Any],
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    return service.update_my_venue_media(db, account, payload)
+
+
+@router.get("/me/facilities", summary="Get authenticated venue facilities")
+def get_my_venue_facilities(
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    prof = service.get_my_venue_profile(db, account)
+    return {"facilities": prof.get("facilities", [])}
+
+
+@router.put("/me/facilities", summary="Update authenticated venue facilities")
+def update_my_venue_facilities(
+    payload: Dict[str, Any],
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    return service.update_my_venue_facilities(db, account, payload)
+
+
+@router.get("/me/pricing", summary="Get authenticated venue pricing details")
+def get_my_venue_pricing(
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    prof = service.get_my_venue_profile(db, account)
+    return prof.get("pricing_details", {})
+
+
+@router.put("/me/pricing", summary="Update authenticated venue pricing details")
+def update_my_venue_pricing(
+    payload: Dict[str, Any],
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    return service.update_my_venue_pricing(db, account, payload)
+
+
+@router.get("/me/availability", summary="Get authenticated venue availability rules")
+def get_my_venue_availability(
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    return service.get_my_venue_availability(db, account)
+
+
+@router.put("/me/availability", summary="Update authenticated venue availability rules")
+def update_my_venue_availability(
+    payload: Dict[str, Any],
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    return service.update_my_venue_availability(db, account, payload)
 
 
 @router.get("", summary="Browse & search verified performance venues")

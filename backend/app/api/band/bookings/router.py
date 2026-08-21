@@ -54,12 +54,57 @@ def create_booking(
 )
 def get_my_bookings(
     status: Optional[str] = Query(None, description="pending|accepted|counter_offered|confirmed|completed|cancelled|rejected"),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     account: BandAccount = Depends(get_band_account),
 ):
     """Retrieve bookings for the currently authenticated user based on role."""
+    return service.get_user_bookings(db, account, status_filter=status, limit=limit, offset=offset)
+
+
+@router.get(
+    "/artist",
+    response_model=schemas.BandPaginatedBookingList,
+)
+def get_artist_bookings_alias(
+    status: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    """Alias to retrieve provider bookings for artist."""
+    return service.get_user_bookings(db, account, status_filter=status, limit=limit, offset=offset)
+
+
+@router.get(
+    "/client",
+    response_model=schemas.BandPaginatedBookingList,
+)
+def get_client_bookings_alias(
+    status: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    """Alias to retrieve client bookings."""
+    return service.get_user_bookings(db, account, status_filter=status, limit=limit, offset=offset)
+
+
+@router.get(
+    "/venue",
+    response_model=schemas.BandPaginatedBookingList,
+)
+def get_venue_bookings_alias(
+    status: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    """Alias to retrieve bookings for host venue space."""
     return service.get_user_bookings(db, account, status_filter=status, limit=limit, offset=offset)
 
 

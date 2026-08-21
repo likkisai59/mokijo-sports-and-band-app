@@ -1,18 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { 
   Trash2, 
   Plus, 
   Scale, 
   Gift,
   Building,
-  Save
+  Save,
+  Globe,
+  DollarSign
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -38,7 +35,6 @@ export function VenuePricing({ data, onSave }) {
   const [taxPercentage, setTaxPercentage] = React.useState(data.tax_percentage || 0);
 
   const [discounts, setDiscounts] = React.useState(data.discounts || []);
-
   const [saving, setSaving] = React.useState(false);
 
   const [newDiscName, setNewDiscName] = React.useState("");
@@ -108,34 +104,104 @@ export function VenuePricing({ data, onSave }) {
   };
 
   return (
-    <div className="space-y-8 bg-bg-card/45 backdrop-blur-md border border-border/80 p-6 md:p-8 rounded-3xl shadow-xl">
-      <div className="border-b border-border/50 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-0.5">
-          <h2 className="text-xl font-bold text-text-primary">Rental Pricing Packages &amp; Modifiers</h2>
-          <p className="text-xs text-text-secondary">Configure base rental rates, multi-hour package discounts, security deposits, and taxes.</p>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "28px",
+        width: "100%",
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "24px",
+          border: "1px solid #e2e8f0",
+          padding: "24px 32px",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "16px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div style={{ width: "42px", height: "42px", borderRadius: "12px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#c6ff3d" }}>
+            <DollarSign style={{ width: "20px", height: "20px" }} />
+          </div>
+          <div>
+            <h1 style={{ fontSize: "18px", fontWeight: 900, color: "#0a0a0f", margin: 0, letterSpacing: "-0.01em" }}>
+              Rental Pricing Packages &amp; Surcharges
+            </h1>
+            <p style={{ fontSize: "12.5px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>
+              Configure base rental tiers, package durations, cleaning fees, security deposits, and multi-day discounts.
+            </p>
+          </div>
         </div>
-        <Button 
-          onClick={handleSave} 
-          disabled={saving} 
-          className="bg-primary hover:bg-primary/95 text-white font-bold h-10 px-6 flex items-center gap-1.5 self-start sm:self-center"
+
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "12px 28px",
+            borderRadius: "14px",
+            backgroundColor: "#c6ff3d",
+            color: "#0a0a0f",
+            fontWeight: 900,
+            fontSize: "14px",
+            border: "none",
+            cursor: saving ? "not-allowed" : "pointer",
+            boxShadow: "0 4px 14px rgba(198, 255, 61, 0.4)",
+            transition: "all 0.15s ease",
+          }}
         >
-          <Save className="h-4 w-4" />
+          <Save style={{ width: "17px", height: "17px" }} />
           <span>{saving ? "Saving Pricing..." : "Save Pricing Rules"}</span>
-        </Button>
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center p-4 border border-border/60 bg-bg-elevated/15 rounded-2xl">
-        <div className="md:col-span-2 space-y-1">
-          <Label className="text-xs font-bold text-text-primary flex items-center gap-2">
-            <GlobeIcon className="h-4 w-4 text-primary" />
-            Pricing Currency
-          </Label>
-          <p className="text-[10px] text-text-secondary">Choose the currency display unit for all booking offers and invoices.</p>
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "20px",
+          border: "1px solid #e2e8f0",
+          padding: "18px 24px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "16px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.015)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <Globe style={{ width: "18px", height: "18px", color: "#0a0a0f" }} />
+          <div>
+            <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#0a0a0f" }}>Display Currency</div>
+            <div style={{ fontSize: "11.5px", color: "#64748b", fontWeight: 500 }}>All client invoices, offers, and booking totals will be calculated in this unit.</div>
+          </div>
         </div>
-        <select 
-          value={currency} 
+
+        <select
+          value={currency}
           onChange={e => setCurrency(e.target.value)}
-          className="w-full h-10 px-3 rounded-lg border border-border bg-bg-card text-text-primary text-xs font-bold"
+          style={{
+            height: "40px",
+            padding: "0 16px",
+            borderRadius: "12px",
+            backgroundColor: "#f8fafc",
+            border: "1px solid #cbd5e1",
+            fontSize: "13px",
+            fontWeight: 800,
+            color: "#0a0a0f",
+            cursor: "pointer",
+            outline: "none",
+          }}
         >
           {CURRENCIES.map(curr => (
             <option key={curr.code} value={curr.code}>{curr.name}</option>
@@ -143,277 +209,305 @@ export function VenuePricing({ data, onSave }) {
         </select>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary flex items-center gap-2">
-            <Building className="h-4.5 w-4.5 text-primary" />
-            Core Rates Packages
-          </h3>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))", gap: "24px" }}>
+        <div
+          style={{
+            backgroundColor: "#ffffff",
+            borderRadius: "24px",
+            border: "1px solid #e2e8f0",
+            padding: "24px 28px",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "20px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "12px" }}>
+            <div style={{ width: "32px", height: "32px", borderRadius: "10px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#c6ff3d" }}>
+              <Building style={{ width: "16px", height: "16px" }} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: "15px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+                Core Rates &amp; Duration Packages
+              </h2>
+              <p style={{ fontSize: "11.5px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>Base pricing for standard and extended venue slots.</p>
+            </div>
+          </div>
 
-          <Card className="bg-bg-card/45 border border-border/80 rounded-2xl shadow">
-            <CardContent className="p-5 space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="base_price">Default Base Price (Single Day Rent)</Label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-2.5 text-xs text-text-muted font-bold">{symbol}</span>
-                  <Input 
-                    id="base_price" 
-                    type="number"
-                    value={basePrice}
-                    onChange={e => setBasePrice(Number(e.target.value))}
-                    className="pl-9 h-9.5 text-xs font-bold text-text-primary" 
-                  />
-                </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <label style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>Default Base Price (Single Full-Day Booking)</label>
+              <div style={{ position: "relative" }}>
+                <span style={{ position: "absolute", left: "14px", top: "11px", fontSize: "14px", fontWeight: 900, color: "#64748b" }}>{symbol}</span>
+                <input
+                  type="number"
+                  value={basePrice}
+                  onChange={e => setBasePrice(Number(e.target.value))}
+                  style={{
+                    width: "100%",
+                    height: "44px",
+                    padding: "0 16px 0 38px",
+                    borderRadius: "12px",
+                    backgroundColor: "#f8fafc",
+                    border: "1px solid #cbd5e1",
+                    fontSize: "14px",
+                    fontWeight: 700,
+                    color: "#0a0a0f",
+                    outline: "none",
+                    boxSizing: "border-box",
+                  }}
+                />
               </div>
+            </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="hourly_price">Hourly Rate (Short Events)</Label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-2.5 text-xs text-text-muted font-bold">{symbol}</span>
-                  <Input 
-                    id="hourly_price" 
-                    type="number"
-                    value={hourlyPrice}
-                    onChange={e => setHourlyPrice(Number(e.target.value))}
-                    className="pl-9 h-9.5 text-xs font-bold text-text-primary" 
-                  />
-                </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <label style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>Hourly Rate (For Rehearsals &amp; Short Gigs)</label>
+              <div style={{ position: "relative" }}>
+                <span style={{ position: "absolute", left: "14px", top: "11px", fontSize: "14px", fontWeight: 900, color: "#64748b" }}>{symbol}</span>
+                <input
+                  type="number"
+                  value={hourlyPrice}
+                  onChange={e => setHourlyPrice(Number(e.target.value))}
+                  style={{
+                    width: "100%",
+                    height: "44px",
+                    padding: "0 16px 0 38px",
+                    borderRadius: "12px",
+                    backgroundColor: "#f8fafc",
+                    border: "1px solid #cbd5e1",
+                    fontSize: "14px",
+                    fontWeight: 700,
+                    color: "#0a0a0f",
+                    outline: "none",
+                    boxSizing: "border-box",
+                  }}
+                />
               </div>
+            </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="half_day_price">Half-Day Package (Up to 6 Hours)</Label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-2.5 text-xs text-text-muted font-bold">{symbol}</span>
-                  <Input 
-                    id="half_day_price" 
-                    type="number"
-                    value={halfDayPrice}
-                    onChange={e => setHalfDayPrice(Number(e.target.value))}
-                    className="pl-9 h-9.5 text-xs font-bold text-text-primary" 
-                  />
-                </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <label style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>Half-Day Package (Up to 6 Hours)</label>
+              <div style={{ position: "relative" }}>
+                <span style={{ position: "absolute", left: "14px", top: "11px", fontSize: "14px", fontWeight: 900, color: "#64748b" }}>{symbol}</span>
+                <input
+                  type="number"
+                  value={halfDayPrice}
+                  onChange={e => setHalfDayPrice(Number(e.target.value))}
+                  style={{
+                    width: "100%",
+                    height: "44px",
+                    padding: "0 16px 0 38px",
+                    borderRadius: "12px",
+                    backgroundColor: "#f8fafc",
+                    border: "1px solid #cbd5e1",
+                    fontSize: "14px",
+                    fontWeight: 700,
+                    color: "#0a0a0f",
+                    outline: "none",
+                    boxSizing: "border-box",
+                  }}
+                />
               </div>
+            </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="full_day_price">Full-Day Package (Up to 12 Hours)</Label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-2.5 text-xs text-text-muted font-bold">{symbol}</span>
-                  <Input 
-                    id="full_day_price" 
-                    type="number"
-                    value={fullDayPrice}
-                    onChange={e => setFullDayPrice(Number(e.target.value))}
-                    className="pl-9 h-9.5 text-xs font-bold text-text-primary" 
-                  />
-                </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <label style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>Full-Day Package (Up to 12 Hours)</label>
+              <div style={{ position: "relative" }}>
+                <span style={{ position: "absolute", left: "14px", top: "11px", fontSize: "14px", fontWeight: 900, color: "#64748b" }}>{symbol}</span>
+                <input
+                  type="number"
+                  value={fullDayPrice}
+                  onChange={e => setFullDayPrice(Number(e.target.value))}
+                  style={{
+                    width: "100%",
+                    height: "44px",
+                    padding: "0 16px 0 38px",
+                    borderRadius: "12px",
+                    backgroundColor: "#f8fafc",
+                    border: "1px solid #cbd5e1",
+                    fontSize: "14px",
+                    fontWeight: 700,
+                    color: "#0a0a0f",
+                    outline: "none",
+                    boxSizing: "border-box",
+                  }}
+                />
               </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary flex items-center gap-2">
-            <Scale className="h-4.5 w-4.5 text-primary" />
-            Modifiers &amp; Surcharges
-          </h3>
-
-          <Card className="bg-bg-card/45 border border-border/80 rounded-2xl shadow">
-            <CardContent className="p-5 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="weekend_price">Weekend Premium (%)</Label>
-                  <div className="relative">
-                    <span className="absolute right-3.5 top-2.5 text-xs text-text-muted font-bold">%</span>
-                    <Input 
-                      id="weekend_price" 
-                      type="number"
-                      value={weekendPrice}
-                      onChange={e => setWeekendPrice(Number(e.target.value))}
-                      className="pr-9 h-9.5 text-xs font-bold text-text-primary" 
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="holiday_price">Holiday Surcharge (%)</Label>
-                  <div className="relative">
-                    <span className="absolute right-3.5 top-2.5 text-xs text-text-muted font-bold">%</span>
-                    <Input 
-                      id="holiday_price" 
-                      type="number"
-                      value={holidayPrice}
-                      onChange={e => setHolidayPrice(Number(e.target.value))}
-                      className="pr-9 h-9.5 text-xs font-bold text-text-primary" 
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="security_deposit">Security Caution Deposit (Refundable)</Label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-2.5 text-xs text-text-muted font-bold">{symbol}</span>
-                  <Input 
-                    id="security_deposit" 
-                    type="number"
-                    value={securityDeposit}
-                    onChange={e => setSecurityDeposit(Number(e.target.value))}
-                    className="pl-9 h-9.5 text-xs font-bold text-text-primary" 
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="cleaning_charges">Cleaning Charges</Label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-2.5 text-xs text-text-muted font-bold">{symbol}</span>
-                    <Input 
-                      id="cleaning_charges" 
-                      type="number"
-                      value={cleaningCharges}
-                      onChange={e => setCleaningCharges(Number(e.target.value))}
-                      className="pl-9 h-9.5 text-xs font-bold text-text-primary" 
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="cancellation_charges">Cancellation Fee (%)</Label>
-                  <div className="relative">
-                    <span className="absolute right-3.5 top-2.5 text-xs text-text-muted font-bold">%</span>
-                    <Input 
-                      id="cancellation_charges" 
-                      type="number"
-                      value={cancellationCharges}
-                      onChange={e => setCancellationCharges(Number(e.target.value))}
-                      className="pr-9 h-9.5 text-xs font-bold text-text-primary" 
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="tax_percentage">Local GST / Tax Percentage (%)</Label>
-                <div className="relative">
-                  <span className="absolute right-3.5 top-2.5 text-xs text-text-muted font-bold">%</span>
-                  <Input 
-                    id="tax_percentage" 
-                    type="number"
-                    value={taxPercentage}
-                    onChange={e => setTaxPercentage(Number(e.target.value))}
-                    className="pr-9 h-9.5 text-xs font-bold text-text-primary" 
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="pt-6 border-t border-border/50 space-y-4">
-        <div className="space-y-1">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary flex items-center gap-2">
-            <Gift className="h-4.5 w-4.5 text-primary" />
-            Promo Discounts Manager
-          </h3>
-          <p className="text-[11px] text-text-secondary">Configure early bird discounts, off-season rates, or corporate package deals.</p>
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "24px",
+          border: "1px solid #e2e8f0",
+          padding: "24px 32px",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "20px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "14px" }}>
+          <div style={{ width: "36px", height: "36px", borderRadius: "10px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#c6ff3d" }}>
+            <Gift style={{ width: "18px", height: "18px" }} />
+          </div>
+          <div>
+            <h2 style={{ fontSize: "16px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+              Special Discount &amp; Promotional Programs
+            </h2>
+            <p style={{ fontSize: "12px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>
+              Create early-bird or multi-day discounts for performing artists and event organizers.
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end p-4 border border-border/60 bg-bg-elevated/15 rounded-2xl">
-          <div className="space-y-1.5 md:col-span-2">
-            <Label htmlFor="disc_name">Discount Program Title</Label>
-            <Input 
-              id="disc_name" 
-              placeholder="e.g. Weekday Early Bird Deal" 
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr)) 140px",
+            gap: "14px",
+            alignItems: "flex-end",
+            backgroundColor: "#f8fafc",
+            padding: "16px",
+            borderRadius: "16px",
+            border: "1px solid #e2e8f0",
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <label style={{ fontSize: "12px", fontWeight: 800, color: "#1e293b" }}>Discount Name</label>
+            <input
+              placeholder="e.g. 3-Day Concert Bundle"
               value={newDiscName}
               onChange={e => setNewDiscName(e.target.value)}
-              className="h-9.5 text-xs"
+              style={{
+                height: "40px",
+                padding: "0 14px",
+                borderRadius: "10px",
+                border: "1px solid #cbd5e1",
+                backgroundColor: "#ffffff",
+                fontSize: "13px",
+                color: "#0a0a0f",
+                fontWeight: 600,
+                outline: "none",
+              }}
             />
           </div>
 
-          <div className="space-y-1.5 md:col-span-1">
-            <Label>Type</Label>
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <label style={{ fontSize: "12px", fontWeight: 800, color: "#1e293b" }}>Discount Type</label>
             <select
               value={newDiscType}
               onChange={e => setNewDiscType(e.target.value)}
-              className="w-full h-9.5 px-3 rounded-lg border border-border bg-bg-card text-text-primary text-xs"
+              style={{
+                height: "40px",
+                padding: "0 12px",
+                borderRadius: "10px",
+                border: "1px solid #cbd5e1",
+                backgroundColor: "#ffffff",
+                fontSize: "12.5px",
+                color: "#0a0a0f",
+                fontWeight: 700,
+                outline: "none",
+                cursor: "pointer",
+              }}
             >
-              <option value="percentage">Percentage (%)</option>
-              <option value="flat">Flat Value ({symbol})</option>
+              <option value="percentage">Percentage Discount (%)</option>
+              <option value="fixed">Flat Fixed Amount ({symbol})</option>
             </select>
           </div>
 
-          <div className="space-y-1.5 md:col-span-1">
-            <Label htmlFor="disc_val">Discount Value</Label>
-            <div className="relative">
-              <span className="absolute right-3.5 top-2.5 text-xs text-text-muted">{newDiscType === "percentage" ? "%" : symbol}</span>
-              <Input 
-                id="disc_val" 
-                type="number"
-                value={newDiscValue}
-                onChange={e => setNewDiscValue(Number(e.target.value))}
-                className="pr-9 h-9.5 text-xs font-bold"
-              />
-            </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <label style={{ fontSize: "12px", fontWeight: 800, color: "#1e293b" }}>Discount Value</label>
+            <input
+              type="number"
+              value={newDiscValue}
+              onChange={e => setNewDiscValue(Number(e.target.value))}
+              style={{
+                height: "40px",
+                padding: "0 14px",
+                borderRadius: "10px",
+                border: "1px solid #cbd5e1",
+                backgroundColor: "#ffffff",
+                fontSize: "13px",
+                color: "#0a0a0f",
+                fontWeight: 700,
+                outline: "none",
+              }}
+            />
           </div>
 
-          <Button type="button" onClick={handleAddDiscount} className="bg-primary text-white h-9.5 font-bold flex items-center justify-center gap-1 md:col-span-4">
-            <Plus className="h-4 w-4" />
-            <span>Register Discount Offer</span>
-          </Button>
+          <button
+            type="button"
+            onClick={handleAddDiscount}
+            style={{
+              height: "40px",
+              padding: "0 18px",
+              borderRadius: "10px",
+              backgroundColor: "#0a0a0f",
+              color: "#c6ff3d",
+              fontWeight: 900,
+              fontSize: "12.5px",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+            }}
+          >
+            <Plus style={{ width: "16px", height: "16px" }} />
+            <span>Add Discount</span>
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-2">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "12px" }}>
           {discounts.map((disc, idx) => (
-            <div key={idx} className="p-3.5 border border-border bg-bg-card/80 rounded-2xl flex items-start justify-between relative group shadow">
-              <div className="space-y-1">
-                <Badge className="bg-primary/10 text-primary border border-primary/20 text-[9px] py-0.5 uppercase font-bold">
-                  Active Promo
-                </Badge>
-                <p className="text-xs font-bold text-text-primary">{disc.name}</p>
-                <p className="text-sm font-black text-text-primary pt-1">
-                  {disc.type === "percentage" ? `-${disc.value}%` : `-${symbol}${disc.value}`}
-                </p>
+            <div
+              key={idx}
+              style={{
+                padding: "14px 16px",
+                borderRadius: "14px",
+                backgroundColor: "#ffffff",
+                border: "1px solid #e2e8f0",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.02)",
+              }}
+            >
+              <div>
+                <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#0a0a0f" }}>{disc.name}</div>
+                <div style={{ fontSize: "12px", fontWeight: 800, color: "#16a34a", marginTop: "2px" }}>
+                  {disc.type === "percentage" ? `${disc.value}% OFF` : `${symbol} ${disc.value} FLAT OFF`}
+                </div>
               </div>
 
-              <button 
+              <button
                 type="button"
                 onClick={() => handleRemoveDiscount(idx)}
-                className="text-error hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#e11d48",
+                  cursor: "pointer",
+                  padding: "4px",
+                }}
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 style={{ width: "16px", height: "16px" }} />
               </button>
             </div>
           ))}
+
           {discounts.length === 0 && (
-            <div className="col-span-full py-8 text-center text-xs text-text-muted italic border border-dashed border-border rounded-xl">
-              No custom promo discounts registered yet.
+            <div style={{ gridColumn: "1 / -1", padding: "24px", textAlign: "center", border: "1px dashed #cbd5e1", borderRadius: "14px", color: "#94a3b8", fontSize: "12.5px", fontWeight: 600 }}>
+              No custom discount plans configured yet.
             </div>
           )}
         </div>
       </div>
     </div>
-  );
-}
-
-function GlobeIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <line x1="2" y1="12" x2="22" y2="12" />
-      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-    </svg>
   );
 }

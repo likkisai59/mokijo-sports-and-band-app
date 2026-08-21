@@ -30,8 +30,10 @@ export function useEarnings(type) {
       setData(summary);
     } catch (err) {
       setError(
+        err.response?.data?.detail ||
         err.response?.data?.error?.message ||
-          `Failed to load ${type} earnings metrics.`
+        err.message ||
+        `Failed to load ${type} earnings metrics.`
       );
     } finally {
       setLoading(false);

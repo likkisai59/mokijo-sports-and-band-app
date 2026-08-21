@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { TrendingUp } from "lucide-react";
 
-export function VenueRevenueChart({ data }) {
+export function VenueRevenueChart({ data = [] }) {
   const [hoveredIdx, setHoveredIdx] = React.useState(null);
 
-  const chartData = data.length > 0 ? data : [
+  const chartData = (data && data.length > 0) ? data : [
     { month: "Jan", revenue: 0 },
     { month: "Feb", revenue: 0 },
     { month: "Mar", revenue: 0 },
@@ -14,7 +15,7 @@ export function VenueRevenueChart({ data }) {
     { month: "Jun", revenue: 0 }
   ];
 
-  const maxVal = Math.max(...chartData.map(d => d.revenue), 10000);
+  const maxVal = Math.max(...chartData.map(d => Number(d.revenue || 0)), 10000);
 
   const width = 500;
   const height = 200;
@@ -27,9 +28,9 @@ export function VenueRevenueChart({ data }) {
   const chartHeight = height - paddingTop - paddingBottom;
 
   const points = chartData.map((d, idx) => {
-    const x = paddingLeft + (idx / (chartData.length - 1)) * chartWidth;
-    const y = paddingTop + chartHeight - (d.revenue / maxVal) * chartHeight;
-    return { x, y, month: d.month, revenue: d.revenue };
+    const x = paddingLeft + (idx / Math.max(1, chartData.length - 1)) * chartWidth;
+    const y = paddingTop + chartHeight - (Number(d.revenue || 0) / maxVal) * chartHeight;
+    return { x, y, month: d.month, revenue: Number(d.revenue || 0) };
   });
 
   const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
@@ -39,21 +40,39 @@ export function VenueRevenueChart({ data }) {
     : "";
 
   return (
-    <div className="p-5 border border-border/80 bg-bg-card/45 backdrop-blur-md rounded-2xl shadow-lg text-text-primary space-y-4">
-      
-      <div className="flex justify-between items-center border-b border-border/30 pb-2.5">
-        <div className="space-y-0.5">
-          <span className="text-[10px] uppercase font-bold text-text-muted tracking-wider">Revenue Trend</span>
-          <h4 className="text-xs font-bold text-text-primary">Last 6 Months Performance</h4>
+    <div
+      style={{
+        backgroundColor: "#ffffff",
+        borderRadius: "24px",
+        border: "1px solid #e2e8f0",
+        padding: "24px 28px",
+        boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+        display: "flex",
+        flexDirection: "column",
+        gap: "16px",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #f1f5f9", paddingBottom: "12px" }}>
+        <div>
+          <h3 style={{ fontSize: "14px", fontWeight: 900, color: "#0a0a0f", margin: 0, display: "flex", alignItems: "center", gap: "6px" }}>
+            <TrendingUp style={{ width: "16px", height: "16px", color: "#16a34a" }} />
+            <span>Revenue Trajectory</span>
+          </h3>
+          <p style={{ fontSize: "11px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>
+            Monthly rental receipts progression
+          </p>
         </div>
+        <span style={{ fontSize: "11px", fontWeight: 800, backgroundColor: "#f0fdf4", color: "#15803d", padding: "3px 10px", borderRadius: "8px", border: "1px solid #bbf7d0" }}>
+          6-Month Period
+        </span>
       </div>
 
-      <div className="relative">
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
+      <div style={{ position: "relative" }}>
+        <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", height: "auto", overflow: "visible" }}>
           <defs>
             <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#16a34a" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#16a34a" stopOpacity="0.0" />
             </linearGradient>
           </defs>
 
@@ -67,17 +86,17 @@ export function VenueRevenueChart({ data }) {
                   y1={y} 
                   x2={width - paddingRight} 
                   y2={y} 
-                  stroke="var(--color-border)" 
-                  strokeWidth="0.8" 
+                  stroke="#f1f5f9" 
+                  strokeWidth="1" 
                   strokeDasharray="4 4" 
                 />
                 <text 
                   x={paddingLeft - 8} 
                   y={y + 3} 
-                  fill="#6b7280" 
-                  fontSize="8" 
+                  fill="#94a3b8" 
+                  fontSize="8.5" 
                   textAnchor="end"
-                  className="font-mono"
+                  fontWeight="600"
                 >
                   ₹{(labelValue / 1000).toFixed(0)}k
                 </text>
@@ -93,8 +112,8 @@ export function VenueRevenueChart({ data }) {
             <path 
               d={linePath} 
               fill="none" 
-              stroke="#10b981" 
-              strokeWidth="2" 
+              stroke="#16a34a" 
+              strokeWidth="2.5" 
               strokeLinecap="round" 
               strokeLinejoin="round" 
             />
@@ -105,10 +124,10 @@ export function VenueRevenueChart({ data }) {
               <text 
                 x={p.x} 
                 y={height - 5} 
-                fill="#6b7280" 
-                fontSize="8.5" 
+                fill="#64748b" 
+                fontSize="9" 
                 textAnchor="middle"
-                className="font-sans font-medium"
+                fontWeight="700"
               >
                 {p.month}
               </text>
@@ -121,17 +140,17 @@ export function VenueRevenueChart({ data }) {
                 fill="transparent"
                 onMouseEnter={() => setHoveredIdx(idx)}
                 onMouseLeave={() => setHoveredIdx(null)}
-                className="cursor-pointer"
+                style={{ cursor: "pointer" }}
               />
 
               {(hoveredIdx === idx) && (
                 <circle 
                   cx={p.x} 
                   cy={p.y} 
-                  r="4" 
-                  fill="#10b981" 
-                  stroke="var(--color-bg-card)" 
-                  strokeWidth="1.5" 
+                  r="5" 
+                  fill="#16a34a" 
+                  stroke="#ffffff" 
+                  strokeWidth="2" 
                 />
               )}
             </g>
@@ -140,17 +159,25 @@ export function VenueRevenueChart({ data }) {
 
         {hoveredIdx !== null && points[hoveredIdx] && (
           <div 
-            className="absolute bg-bg-elevated border border-border p-2.5 rounded-xl shadow-2xl text-text-primary text-[10px] pointer-events-none transition-all duration-75"
             style={{
+              position: "absolute",
               left: `${(points[hoveredIdx].x / width) * 100}%`,
-              top: `${(points[hoveredIdx].y / height) * 100 - 25}%`,
-              transform: "translateX(-50%)"
+              top: `${(points[hoveredIdx].y / height) * 100 - 28}%`,
+              transform: "translateX(-50%)",
+              backgroundColor: "#0a0a0f",
+              color: "#ffffff",
+              padding: "6px 12px",
+              borderRadius: "8px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+              fontSize: "11px",
+              fontWeight: 800,
+              pointerEvents: "none",
             }}
           >
-            <p className="font-bold text-text-muted">{points[hoveredIdx].month}</p>
-            <p className="text-primary font-black text-xs pt-0.5">
+            <span style={{ color: "#94a3b8", display: "block", fontSize: "9.5px" }}>{points[hoveredIdx].month}</span>
+            <span style={{ color: "#c6ff3d", fontSize: "12px", fontWeight: 900 }}>
               ₹{points[hoveredIdx].revenue.toLocaleString("en-IN")}
-            </p>
+            </span>
           </div>
         )}
       </div>

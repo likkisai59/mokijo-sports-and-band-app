@@ -25,6 +25,30 @@ def get_earnings_summary(
     return service.get_my_earnings_summary(db, account)
 
 
+@router.get(
+    "/venue",
+    response_model=schemas.BandEarningsSummaryResponse,
+)
+def get_venue_earnings_summary(
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    """Alias to retrieve venue earnings summary."""
+    return service.get_my_earnings_summary(db, account)
+
+
+@router.get(
+    "/artist",
+    response_model=schemas.BandEarningsSummaryResponse,
+)
+def get_artist_earnings_summary(
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    """Alias to retrieve artist earnings summary."""
+    return service.get_my_earnings_summary(db, account)
+
+
 @router.post(
     "/withdraw",
     response_model=schemas.BandTransactionResponse,

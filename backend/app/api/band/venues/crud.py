@@ -89,7 +89,7 @@ def get_venue_by_id(db: Session, venue_id: int) -> Optional[BandVenue]:
     )
 
 
-def get_featured_venues(db: Session, limit: int = 6) -> List[BandVenue]:
+def get_venue_by_account_id(db: Session, account_id: int) -> Optional[BandVenue]:
     return (
         db.query(BandVenue)
         .options(
@@ -97,11 +97,6 @@ def get_featured_venues(db: Session, limit: int = 6) -> List[BandVenue]:
             joinedload(BandVenue.categories),
             joinedload(BandVenue.account),
         )
-        .filter(
-            BandVenue.verification_status == "approved",
-            BandVenue.deleted_at.is_(None),
-        )
-        .order_by(desc(BandVenue.capacity), desc(BandVenue.id))
-        .limit(limit)
-        .all()
+        .filter(BandVenue.account_id == account_id, BandVenue.deleted_at.is_(None))
+        .first()
     )

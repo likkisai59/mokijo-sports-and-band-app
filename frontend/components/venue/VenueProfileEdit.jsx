@@ -4,10 +4,6 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { venueProfileUpdateSchema } from "@/utils/validation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { 
   Save, 
   MapPin, 
@@ -68,9 +64,6 @@ export function VenueProfileEdit({ profile, onSuccess }) {
   const [loadingLocations, setLoadingLocations] = React.useState(false);
 
   const [youtubeInput, setYoutubeInput] = React.useState("");
-  const [blockedDateInput, setBlockedDateInput] = React.useState("");
-  const [maintenanceInput, setMaintenanceInput] = React.useState("");
-
   const [uploadingDoc, setUploadingDoc] = React.useState({});
 
   const {
@@ -131,14 +124,11 @@ export function VenueProfileEdit({ profile, onSuccess }) {
   const watchedFacilities = watch("facilities") || [];
   const watchedWeeklySchedule = watch("weekly_schedule") || {};
   const watchedYoutubeLinks = watch("youtube_links") || [];
-  const watchedBlockedDates = watch("blocked_dates") || [];
-  const watchedMaintenanceDays = watch("maintenance_days") || [];
 
   const watchedDocPan = watch("doc_pan");
   const watchedDocGst = watch("doc_gst");
   const watchedDocOwnershipProof = watch("doc_ownership_proof");
   const watchedDocGovId = watch("doc_government_id");
-  const watchedDocLicense = watch("doc_business_license");
 
   React.useEffect(() => {
     const fetchLocationsOnLoad = async () => {
@@ -247,199 +237,626 @@ export function VenueProfileEdit({ profile, onSuccess }) {
   return (
     <form 
       onSubmit={handleSubmit(onSuccess)}
-      className="space-y-8 bg-bg-card/45 backdrop-blur-md border border-border/80 p-6 md:p-8 rounded-3xl shadow-xl"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "28px",
+        width: "100%",
+      }}
     >
-      <div className="border-b border-border/50 pb-4">
-        <h2 className="text-xl font-bold text-text-primary">Edit Venue Profile Details</h2>
-        <p className="text-xs text-text-secondary">Update your workspace information, capacity constraints, location, and operating hours.</p>
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 border-b border-border/30 pb-2">
-          <Building2 className="h-4.5 w-4.5 text-primary" />
-          <span className="text-sm font-bold text-text-primary uppercase tracking-wider">Basic Space Information</span>
+      {/* ── Section 1: Basic Space Information ── */}
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "24px",
+          border: "1px solid #e2e8f0",
+          padding: "28px 32px",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "22px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #f1f5f9", paddingBottom: "14px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{ width: "36px", height: "36px", borderRadius: "10px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#c6ff3d" }}>
+              <Building2 style={{ width: "18px", height: "18px" }} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: "16px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+                Basic Venue &amp; Space Identity
+              </h2>
+              <p style={{ fontSize: "12px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>
+                Primary public naming, space categorization, and acoustic atmosphere description.
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-1.5">
-            <Label htmlFor="venue_name">Venue Name</Label>
-            <Input id="venue_name" {...register("venue_name")} />
-            {errors.venue_name && <p className="text-xs text-error">{errors.venue_name.message}</p>}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px" }}>
+          {/* Venue Name */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label htmlFor="venue_name" style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>
+              Venue Name <span style={{ color: "#e11d48" }}>*</span>
+            </label>
+            <input
+              id="venue_name"
+              {...register("venue_name")}
+              placeholder="e.g. Grand Velvet Amphitheater"
+              style={{
+                height: "44px",
+                padding: "0 16px",
+                borderRadius: "12px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "13.5px",
+                color: "#0a0a0f",
+                fontWeight: 600,
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+            {errors.venue_name && <p style={{ fontSize: "11px", color: "#e11d48", fontWeight: 700, margin: 0 }}>{errors.venue_name.message}</p>}
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="venue_type">Venue Type</Label>
+          {/* Venue Type */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label htmlFor="venue_type" style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>
+              Venue Type <span style={{ color: "#e11d48" }}>*</span>
+            </label>
             <select 
               id="venue_type"
-              className="w-full h-10 px-3 rounded-lg border border-border bg-bg-card text-text-primary text-xs"
               {...register("venue_type")}
+              style={{
+                height: "44px",
+                padding: "0 14px",
+                borderRadius: "12px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "13.5px",
+                color: "#0a0a0f",
+                fontWeight: 700,
+                outline: "none",
+                cursor: "pointer",
+                boxSizing: "border-box",
+              }}
             >
               {VENUE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="established_year">Established Year</Label>
-            <Input id="established_year" type="number" {...register("established_year", { valueAsNumber: true })} />
-            {errors.established_year && <p className="text-xs text-error">{errors.established_year.message}</p>}
+          {/* Established Year */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label htmlFor="established_year" style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>
+              Established Year
+            </label>
+            <input
+              id="established_year"
+              type="number"
+              placeholder="e.g. 2018"
+              {...register("established_year", { valueAsNumber: true })}
+              style={{
+                height: "44px",
+                padding: "0 16px",
+                borderRadius: "12px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "13.5px",
+                color: "#0a0a0f",
+                fontWeight: 600,
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+            {errors.established_year && <p style={{ fontSize: "11px", color: "#e11d48", fontWeight: 700, margin: 0 }}>{errors.established_year.message}</p>}
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="indoor_outdoor">Preference Area</Label>
+          {/* Preference Area */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label htmlFor="indoor_outdoor" style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>
+              Area Setting
+            </label>
             <select 
               id="indoor_outdoor"
-              className="w-full h-10 px-3 rounded-lg border border-border bg-bg-card text-text-primary text-xs"
               {...register("indoor_outdoor")}
+              style={{
+                height: "44px",
+                padding: "0 14px",
+                borderRadius: "12px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "13.5px",
+                color: "#0a0a0f",
+                fontWeight: 700,
+                outline: "none",
+                cursor: "pointer",
+                boxSizing: "border-box",
+              }}
             >
-              <option value="Indoor">Indoor</option>
-              <option value="Outdoor">Outdoor</option>
-              <option value="Both">Both Indoor &amp; Outdoor</option>
+              <option value="Indoor">Indoor Only</option>
+              <option value="Outdoor">Outdoor / Open Air</option>
+              <option value="Both">Both Indoor &amp; Outdoor Spaces</option>
             </select>
           </div>
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="description">About Venue / Spaces Description</Label>
-          <Textarea id="description" rows={4} placeholder="Tell clients about your design layouts, acoustics, parking limits..." {...register("description")} />
-          {errors.description && <p className="text-xs text-error">{errors.description.message}</p>}
+        {/* Description */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <label htmlFor="description" style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>
+            Venue Story &amp; Acoustic Description <span style={{ color: "#e11d48" }}>*</span>
+          </label>
+          <textarea
+            id="description"
+            rows={4}
+            placeholder="Describe acoustic treatments, stage dimensions, natural light, green room features, and surrounding ambiance..."
+            {...register("description")}
+            style={{
+              padding: "14px 16px",
+              borderRadius: "12px",
+              backgroundColor: "#f8fafc",
+              border: "1px solid #cbd5e1",
+              fontSize: "13.5px",
+              color: "#0a0a0f",
+              fontWeight: 500,
+              outline: "none",
+              resize: "vertical",
+              boxSizing: "border-box",
+              lineHeight: 1.6,
+            }}
+          />
+          {errors.description && <p style={{ fontSize: "11px", color: "#e11d48", fontWeight: 700, margin: 0 }}>{errors.description.message}</p>}
         </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 border-b border-border/30 pb-2">
-          <Briefcase className="h-4.5 w-4.5 text-primary" />
-          <span className="text-sm font-bold text-text-primary uppercase tracking-wider">Owner &amp; Business Information</span>
+      {/* ── Section 2: Owner & Legal Business Entity ── */}
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "24px",
+          border: "1px solid #e2e8f0",
+          padding: "28px 32px",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "22px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "14px" }}>
+          <div style={{ width: "36px", height: "36px", borderRadius: "10px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#c6ff3d" }}>
+            <Briefcase style={{ width: "18px", height: "18px" }} />
+          </div>
+          <div>
+            <h2 style={{ fontSize: "16px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+              Business &amp; Legal Entity
+            </h2>
+            <p style={{ fontSize: "12px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>
+              Corporate registration details, billing entity, and authorized point of contact.
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="owner_name">Owner Legal Name</Label>
-            <Input id="owner_name" {...register("owner_name")} />
-            {errors.owner_name && <p className="text-xs text-error">{errors.owner_name.message}</p>}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "20px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label htmlFor="owner_name" style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>
+              Owner Legal Name <span style={{ color: "#e11d48" }}>*</span>
+            </label>
+            <input
+              id="owner_name"
+              {...register("owner_name")}
+              placeholder="e.g. Ramesh Chandra"
+              style={{
+                height: "44px",
+                padding: "0 16px",
+                borderRadius: "12px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "13.5px",
+                color: "#0a0a0f",
+                fontWeight: 600,
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+            {errors.owner_name && <p style={{ fontSize: "11px", color: "#e11d48", fontWeight: 700, margin: 0 }}>{errors.owner_name.message}</p>}
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="business_name">Business/Firm Name</Label>
-            <Input id="business_name" {...register("business_name")} />
-            {errors.business_name && <p className="text-xs text-error">{errors.business_name.message}</p>}
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label htmlFor="business_name" style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>
+              Business / Firm Name <span style={{ color: "#e11d48" }}>*</span>
+            </label>
+            <input
+              id="business_name"
+              {...register("business_name")}
+              placeholder="e.g. Velvet Spaces Private Limited"
+              style={{
+                height: "44px",
+                padding: "0 16px",
+                borderRadius: "12px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "13.5px",
+                color: "#0a0a0f",
+                fontWeight: 600,
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+            {errors.business_name && <p style={{ fontSize: "11px", color: "#e11d48", fontWeight: 700, margin: 0 }}>{errors.business_name.message}</p>}
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="contact_person">Booking Representative</Label>
-            <Input id="contact_person" {...register("contact_person")} />
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label htmlFor="contact_person" style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>
+              Booking Representative
+            </label>
+            <input
+              id="contact_person"
+              {...register("contact_person")}
+              placeholder="e.g. Venue Manager (Priya)"
+              style={{
+                height: "44px",
+                padding: "0 16px",
+                borderRadius: "12px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "13.5px",
+                color: "#0a0a0f",
+                fontWeight: 600,
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="gst_number">GST Identification Number</Label>
-            <Input id="gst_number" placeholder="Optional" {...register("gst_number")} />
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label htmlFor="gst_number" style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>
+              GST Identification Number (GSTIN)
+            </label>
+            <input
+              id="gst_number"
+              placeholder="e.g. 36AAAAA0000A1Z5"
+              {...register("gst_number")}
+              style={{
+                height: "44px",
+                padding: "0 16px",
+                borderRadius: "12px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "13.5px",
+                color: "#0a0a0f",
+                fontWeight: 600,
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="pan_number">Corporate PAN Card</Label>
-            <Input id="pan_number" placeholder="Optional" {...register("pan_number")} />
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label htmlFor="pan_number" style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>
+              Corporate PAN Number
+            </label>
+            <input
+              id="pan_number"
+              placeholder="e.g. ABCDE1234F"
+              {...register("pan_number")}
+              style={{
+                height: "44px",
+                padding: "0 16px",
+                borderRadius: "12px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "13.5px",
+                color: "#0a0a0f",
+                fontWeight: 600,
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
           </div>
         </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 border-b border-border/30 pb-2">
-          <MapPin className="h-4.5 w-4.5 text-primary" />
-          <span className="text-sm font-bold text-text-primary uppercase tracking-wider">Address Management &amp; Maps</span>
+      {/* ── Section 3: Physical Location & Address ── */}
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "24px",
+          border: "1px solid #e2e8f0",
+          padding: "28px 32px",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "22px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "14px" }}>
+          <div style={{ width: "36px", height: "36px", borderRadius: "10px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#c6ff3d" }}>
+            <MapPin style={{ width: "18px", height: "18px" }} />
+          </div>
+          <div>
+            <h2 style={{ fontSize: "16px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+              Location &amp; Physical Address
+            </h2>
+            <p style={{ fontSize: "12px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>
+              Physical coordinates for client directions, GPS navigation, and regional filtering.
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="space-y-1.5">
-            <Label>Country</Label>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "18px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>Country</label>
             <select 
-              className="w-full h-10 px-3 rounded-lg border border-border bg-bg-card text-text-primary text-xs"
               value={watch("country")}
               onChange={e => handleCountryChange(e.target.value)}
+              style={{
+                height: "44px",
+                padding: "0 14px",
+                borderRadius: "12px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "13.5px",
+                color: "#0a0a0f",
+                fontWeight: 700,
+                outline: "none",
+                cursor: "pointer",
+                boxSizing: "border-box",
+              }}
             >
               <option value="">Select Country</option>
               {countries.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
             </select>
-            {errors.country && <p className="text-xs text-error">{errors.country.message}</p>}
           </div>
 
-          <div className="space-y-1.5">
-            <Label>State</Label>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>State / Province</label>
             <select 
-              className="w-full h-10 px-3 rounded-lg border border-border bg-bg-card text-text-primary text-xs"
               value={watch("state")}
               onChange={e => handleStateChange(e.target.value)}
               disabled={!watch("country") || loadingLocations}
+              style={{
+                height: "44px",
+                padding: "0 14px",
+                borderRadius: "12px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "13.5px",
+                color: "#0a0a0f",
+                fontWeight: 700,
+                outline: "none",
+                cursor: "pointer",
+                boxSizing: "border-box",
+              }}
             >
               <option value="">Select State</option>
               {states.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
             </select>
-            {errors.state && <p className="text-xs text-error">{errors.state.message}</p>}
           </div>
 
-          <div className="space-y-1.5">
-            <Label>City</Label>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>City</label>
             <select 
-              className="w-full h-10 px-3 rounded-lg border border-border bg-bg-card text-text-primary text-xs"
               value={watch("city_id")}
               onChange={e => setValue("city_id", e.target.value)}
               disabled={!watch("state") || loadingLocations}
+              style={{
+                height: "44px",
+                padding: "0 14px",
+                borderRadius: "12px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "13.5px",
+                color: "#0a0a0f",
+                fontWeight: 700,
+                outline: "none",
+                cursor: "pointer",
+                boxSizing: "border-box",
+              }}
             >
               <option value="">Select City</option>
               {cities.map(c => <option key={c.id} value={c.id.toString()}>{c.name}</option>)}
             </select>
-            {errors.city_id && <p className="text-xs text-error">{errors.city_id.message}</p>}
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="district">District</Label>
-            <Input id="district" {...register("district")} />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="area">Area / Suburb</Label>
-            <Input id="area" {...register("area")} />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="landmark">Landmark</Label>
-            <Input id="landmark" {...register("landmark")} />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="pincode">Pincode</Label>
-            <Input id="pincode" {...register("pincode")} />
-            {errors.pincode && <p className="text-xs text-error">{errors.pincode.message}</p>}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="google_map_location">Google Maps Link</Label>
-            <Input id="google_map_location" placeholder="https://maps.google.com/..." {...register("google_map_location")} />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="latitude">Latitude</Label>
-            <Input id="latitude" type="number" step="any" {...register("latitude", { valueAsNumber: true })} />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="longitude">Longitude</Label>
-            <Input id="longitude" type="number" step="any" {...register("longitude", { valueAsNumber: true })} />
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label htmlFor="pincode" style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>Pincode / Postal Code</label>
+            <input
+              id="pincode"
+              placeholder="e.g. 500033"
+              {...register("pincode")}
+              style={{
+                height: "44px",
+                padding: "0 16px",
+                borderRadius: "12px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "13.5px",
+                color: "#0a0a0f",
+                fontWeight: 600,
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
           </div>
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="address">Full Street Address</Label>
-          <Textarea id="address" rows={2} {...register("address")} />
-          {errors.address && <p className="text-xs text-error">{errors.address.message}</p>}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label htmlFor="district" style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>District / Sub-Division</label>
+            <input
+              id="district"
+              placeholder="e.g. Hyderabad District"
+              {...register("district")}
+              style={{
+                height: "44px",
+                padding: "0 16px",
+                borderRadius: "12px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "13.5px",
+                color: "#0a0a0f",
+                fontWeight: 600,
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label htmlFor="google_map_location" style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>Google Maps Share Link</label>
+            <input
+              id="google_map_location"
+              placeholder="https://maps.google.com/..."
+              {...register("google_map_location")}
+              style={{
+                height: "44px",
+                padding: "0 16px",
+                borderRadius: "12px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "13.5px",
+                color: "#0a0a0f",
+                fontWeight: 600,
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <label htmlFor="address" style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>
+            Full Street Address &amp; Landmarks <span style={{ color: "#e11d48" }}>*</span>
+          </label>
+          <textarea
+            id="address"
+            rows={2}
+            placeholder="Plot No. 42, Road No. 36, Beside Metro Station, Jubilee Hills, Hyderabad..."
+            {...register("address")}
+            style={{
+              padding: "12px 16px",
+              borderRadius: "12px",
+              backgroundColor: "#f8fafc",
+              border: "1px solid #cbd5e1",
+              fontSize: "13.5px",
+              color: "#0a0a0f",
+              fontWeight: 500,
+              outline: "none",
+              resize: "vertical",
+              boxSizing: "border-box",
+            }}
+          />
+          {errors.address && <p style={{ fontSize: "11px", color: "#e11d48", fontWeight: 700, margin: 0 }}>{errors.address.message}</p>}
         </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 border-b border-border/30 pb-2">
-          <Grid className="h-4.5 w-4.5 text-primary" />
-          <span className="text-sm font-bold text-text-primary uppercase tracking-wider">Amenities Summary</span>
+      {/* ── Section 4: Capacity & Rental Constraints ── */}
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "24px",
+          border: "1px solid #e2e8f0",
+          padding: "28px 32px",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "22px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "14px" }}>
+          <div style={{ width: "36px", height: "36px", borderRadius: "10px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#c6ff3d" }}>
+            <Users style={{ width: "18px", height: "18px" }} />
+          </div>
+          <div>
+            <h2 style={{ fontSize: "16px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+              Guest Capacity &amp; Booking Constraints
+            </h2>
+            <p style={{ fontSize: "12px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>
+              Audience size limits and fire-code occupancy numbers.
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label htmlFor="min_capacity" style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>
+              Minimum Guest Capacity
+            </label>
+            <input
+              id="min_capacity"
+              type="number"
+              placeholder="e.g. 50"
+              {...register("min_capacity", { valueAsNumber: true })}
+              style={{
+                height: "44px",
+                padding: "0 16px",
+                borderRadius: "12px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "13.5px",
+                color: "#0a0a0f",
+                fontWeight: 600,
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+            {errors.min_capacity && <p style={{ fontSize: "11px", color: "#e11d48", fontWeight: 700, margin: 0 }}>{errors.min_capacity.message}</p>}
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label htmlFor="max_capacity" style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>
+              Maximum Guest Capacity <span style={{ color: "#e11d48" }}>*</span>
+            </label>
+            <input
+              id="max_capacity"
+              type="number"
+              placeholder="e.g. 450"
+              {...register("max_capacity", { valueAsNumber: true })}
+              style={{
+                height: "44px",
+                padding: "0 16px",
+                borderRadius: "12px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "13.5px",
+                color: "#0a0a0f",
+                fontWeight: 600,
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+            {errors.max_capacity && <p style={{ fontSize: "11px", color: "#e11d48", fontWeight: 700, margin: 0 }}>{errors.max_capacity.message}</p>}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Section 5: Key Amenities Quick Matrix ── */}
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "24px",
+          border: "1px solid #e2e8f0",
+          padding: "28px 32px",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "20px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "14px" }}>
+          <div style={{ width: "36px", height: "36px", borderRadius: "10px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#c6ff3d" }}>
+            <Grid style={{ width: "18px", height: "18px" }} />
+          </div>
+          <div>
+            <h2 style={{ fontSize: "16px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+              Primary Amenities &amp; Rigging Specs
+            </h2>
+            <p style={{ fontSize: "12px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>
+              Toggle infrastructure elements available for performing bands and event hosts.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "10px" }}>
           {FACILITY_OPTIONS.map(opt => {
             const active = watchedFacilities.includes(opt.id);
             return (
@@ -447,287 +864,351 @@ export function VenueProfileEdit({ profile, onSuccess }) {
                 key={opt.id}
                 type="button"
                 onClick={() => toggleFacility(opt.id)}
-                className={`h-11 px-3 text-xs font-semibold rounded-lg border text-left flex items-center justify-between transition-all duration-200 ${
-                  active ? "bg-primary/10 border-primary text-primary" : "bg-bg-elevated/20 border-border text-text-secondary"
-                }`}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "12px 16px",
+                  borderRadius: "14px",
+                  fontSize: "12.5px",
+                  fontWeight: active ? 800 : 600,
+                  backgroundColor: active ? "#0a0a0f" : "#f8fafc",
+                  color: active ? "#c6ff3d" : "#475569",
+                  border: active ? "1px solid #0a0a0f" : "1px solid #e2e8f0",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                  textAlign: "left",
+                }}
               >
                 <span>{opt.label}</span>
-                <span className="text-[9px] uppercase font-bold">{active ? "Yes" : "No"}</span>
+                <span
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: 900,
+                    textTransform: "uppercase",
+                    padding: "2px 8px",
+                    borderRadius: "6px",
+                    backgroundColor: active ? "#c6ff3d" : "#e2e8f0",
+                    color: active ? "#0a0a0f" : "#64748b",
+                  }}
+                >
+                  {active ? "Active" : "Off"}
+                </span>
               </button>
             );
           })}
         </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 border-b border-border/30 pb-2">
-          <Users className="h-4.5 w-4.5 text-primary" />
-          <span className="text-sm font-bold text-text-primary uppercase tracking-wider">Guest Capacity Limits</span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-1.5">
-            <Label htmlFor="min_capacity">Minimum Capacity</Label>
-            <Input id="min_capacity" type="number" {...register("min_capacity", { valueAsNumber: true })} />
-            {errors.min_capacity && <p className="text-xs text-error">{errors.min_capacity.message}</p>}
+      {/* ── Section 6: Weekly Operating Schedule ── */}
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "24px",
+          border: "1px solid #e2e8f0",
+          padding: "28px 32px",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "20px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "14px" }}>
+          <div style={{ width: "36px", height: "36px", borderRadius: "10px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#c6ff3d" }}>
+            <Clock style={{ width: "18px", height: "18px" }} />
           </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="max_capacity">Maximum Capacity</Label>
-            <Input id="max_capacity" type="number" {...register("max_capacity", { valueAsNumber: true })} />
-            {errors.max_capacity && <p className="text-xs text-error">{errors.max_capacity.message}</p>}
+          <div>
+            <h2 style={{ fontSize: "16px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+              Operating Schedule &amp; Sound Curfews
+            </h2>
+            <p style={{ fontSize: "12px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>
+              Define open days and time slots for rehearsals and stage performances.
+            </p>
           </div>
         </div>
-      </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 border-b border-border/30 pb-2">
-          <Clock className="h-4.5 w-4.5 text-primary" />
-          <span className="text-sm font-bold text-text-primary uppercase tracking-wider">Operational availability rules</span>
-        </div>
-
-        <div className="space-y-3.5">
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           {Object.keys(watchedWeeklySchedule).map(day => {
             const dayConfig = watchedWeeklySchedule[day];
             return (
-              <div key={day} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-border bg-bg-elevated/20">
-                <div className="flex items-center gap-4">
-                  <span className="text-xs font-bold text-text-primary w-24 block">{day}</span>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input 
-                      type="checkbox"
-                      checked={!!dayConfig.available}
-                      onChange={e => setValue(`weekly_schedule.${day}.available`, e.target.checked)}
-                      className="rounded border-border text-primary focus:ring-primary h-4.5 w-4.5 bg-bg-card"
-                    />
-                    <span className="text-xs text-text-secondary">Open</span>
-                  </label>
+              <div
+                key={day}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "14px 18px",
+                  borderRadius: "14px",
+                  backgroundColor: dayConfig.available ? "#f8fafc" : "#f1f5f9",
+                  border: "1px solid #e2e8f0",
+                  flexWrap: "wrap",
+                  gap: "12px",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "16px", minWidth: "160px" }}>
+                  <input 
+                    type="checkbox"
+                    checked={!!dayConfig.available}
+                    onChange={e => setValue(`weekly_schedule.${day}.available`, e.target.checked)}
+                    style={{ width: "18px", height: "18px", accentColor: "#0a0a0f", cursor: "pointer" }}
+                  />
+                  <span style={{ fontSize: "13.5px", fontWeight: 800, color: dayConfig.available ? "#0a0a0f" : "#94a3b8" }}>
+                    {day}
+                  </span>
                 </div>
 
-                {dayConfig.available && (
-                  <div className="flex items-center gap-2 self-start sm:self-auto">
-                    <Input 
+                {dayConfig.available ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <input 
                       type="text" 
-                      className="w-20 text-center h-8"
                       value={dayConfig.start}
                       onChange={e => setValue(`weekly_schedule.${day}.start`, e.target.value)}
+                      style={{
+                        width: "80px",
+                        height: "36px",
+                        textAlign: "center",
+                        borderRadius: "8px",
+                        border: "1px solid #cbd5e1",
+                        backgroundColor: "#ffffff",
+                        fontSize: "13px",
+                        fontWeight: 700,
+                        color: "#0a0a0f",
+                      }}
                     />
-                    <span className="text-xs text-text-muted">to</span>
-                    <Input 
+                    <span style={{ fontSize: "12px", fontWeight: 700, color: "#64748b" }}>to</span>
+                    <input 
                       type="text" 
-                      className="w-20 text-center h-8"
                       value={dayConfig.end}
                       onChange={e => setValue(`weekly_schedule.${day}.end`, e.target.value)}
+                      style={{
+                        width: "80px",
+                        height: "36px",
+                        textAlign: "center",
+                        borderRadius: "8px",
+                        border: "1px solid #cbd5e1",
+                        backgroundColor: "#ffffff",
+                        fontSize: "13px",
+                        fontWeight: 700,
+                        color: "#0a0a0f",
+                      }}
                     />
                   </div>
+                ) : (
+                  <span style={{ fontSize: "12px", fontWeight: 700, color: "#94a3b8" }}>Closed / Unavailable</span>
                 )}
               </div>
             );
           })}
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-          
-          <div className="space-y-3">
-            <Label>Blocked Dates</Label>
-            <div className="flex gap-2">
-              <Input 
-                type="date"
-                value={blockedDateInput} 
-                onChange={e => setBlockedDateInput(e.target.value)}
-              />
-              <Button type="button" onClick={() => {
-                if (!blockedDateInput) return;
-                setValue("blocked_dates", [...watchedBlockedDates, blockedDateInput]);
-                setBlockedDateInput("");
-              }} className="bg-primary text-white h-10 px-4">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {watchedBlockedDates.map((d, i) => (
-                <div key={i} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-border bg-bg-elevated text-[10px] text-text-primary">
-                  <span>{d}</span>
-                  <button type="button" onClick={() => {
-                    const current = [...watchedBlockedDates];
-                    current.splice(i, 1);
-                    setValue("blocked_dates", current);
-                  }} className="text-error hover:text-red-400 font-bold font-mono">×</button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <Label>Maintenance Dates</Label>
-            <div className="flex gap-2">
-              <Input 
-                type="date"
-                value={maintenanceInput} 
-                onChange={e => setMaintenanceInput(e.target.value)}
-              />
-              <Button type="button" onClick={() => {
-                if (!maintenanceInput) return;
-                setValue("maintenance_days", [...watchedMaintenanceDays, maintenanceInput]);
-                setMaintenanceInput("");
-              }} className="bg-primary text-white h-10 px-4">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {watchedMaintenanceDays.map((d, i) => (
-                <div key={i} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-border bg-bg-elevated text-[10px] text-text-primary">
-                  <span>{d}</span>
-                  <button type="button" onClick={() => {
-                    const current = [...watchedMaintenanceDays];
-                    current.splice(i, 1);
-                    setValue("maintenance_days", current);
-                  }} className="text-error hover:text-red-400 font-bold font-mono">×</button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-        </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 border-b border-border/30 pb-2">
-          <Video className="h-4.5 w-4.5 text-primary" />
-          <span className="text-sm font-bold text-text-primary uppercase tracking-wider">Social Links &amp; Youtube Media</span>
+      {/* ── Section 7: Social Links & YouTube Embeds ── */}
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "24px",
+          border: "1px solid #e2e8f0",
+          padding: "28px 32px",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "20px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "14px" }}>
+          <div style={{ width: "36px", height: "36px", borderRadius: "10px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#c6ff3d" }}>
+            <Video style={{ width: "18px", height: "18px" }} />
+          </div>
+          <div>
+            <h2 style={{ fontSize: "16px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+              Live Performance Videos &amp; Virtual Tour
+            </h2>
+            <p style={{ fontSize: "12px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>
+              Showcase YouTube videos of live concerts and acoustic atmosphere recordings.
+            </p>
+          </div>
         </div>
 
-        <div className="space-y-3">
-          <Label>Youtube Video Embed Links</Label>
-          <div className="flex gap-2">
-            <Input 
-              placeholder="https://www.youtube.com/watch?v=..." 
-              value={youtubeInput} 
-              onChange={e => setYoutubeInput(e.target.value)}
-            />
-            <Button type="button" onClick={() => {
+        <div style={{ display: "flex", gap: "10px" }}>
+          <input 
+            placeholder="https://www.youtube.com/watch?v=..." 
+            value={youtubeInput} 
+            onChange={e => setYoutubeInput(e.target.value)}
+            style={{
+              flex: 1,
+              height: "44px",
+              padding: "0 16px",
+              borderRadius: "12px",
+              backgroundColor: "#f8fafc",
+              border: "1px solid #cbd5e1",
+              fontSize: "13.5px",
+              color: "#0a0a0f",
+              fontWeight: 600,
+              outline: "none",
+            }}
+          />
+          <button 
+            type="button" 
+            onClick={() => {
               if (!youtubeInput.trim()) return;
               setValue("youtube_links", [...watchedYoutubeLinks, youtubeInput.trim()]);
               setYoutubeInput("");
-            }} className="bg-primary text-white h-10 px-4">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="space-y-2">
-            {watchedYoutubeLinks.map((url, i) => (
-              <div key={i} className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-bg-elevated/20">
-                <span className="text-xs text-text-secondary truncate pr-4">{url}</span>
-                <button type="button" onClick={() => {
+            }} 
+            style={{
+              padding: "0 22px",
+              height: "44px",
+              borderRadius: "12px",
+              backgroundColor: "#0a0a0f",
+              color: "#c6ff3d",
+              fontWeight: 800,
+              fontSize: "13px",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px"
+            }}
+          >
+            <Plus style={{ width: "16px", height: "16px" }} />
+            <span>Add Link</span>
+          </button>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {watchedYoutubeLinks.map((url, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: "12px", backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }}>
+              <span style={{ fontSize: "13px", fontWeight: 600, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{url}</span>
+              <button 
+                type="button" 
+                onClick={() => {
                   const current = [...watchedYoutubeLinks];
                   current.splice(i, 1);
                   setValue("youtube_links", current);
-                }} className="text-error hover:text-red-400">
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
+                }} 
+                style={{ background: "none", border: "none", color: "#e11d48", cursor: "pointer", padding: "4px" }}
+              >
+                <Trash2 style={{ width: "16px", height: "16px" }} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Section 8: Credentials & Verification Documents ── */}
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "24px",
+          border: "1px solid #e2e8f0",
+          padding: "28px 32px",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "20px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "14px" }}>
+          <div style={{ width: "36px", height: "36px", borderRadius: "10px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#c6ff3d" }}>
+            <FileText style={{ width: "18px", height: "18px" }} />
+          </div>
+          <div>
+            <h2 style={{ fontSize: "16px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+              Credentials &amp; Verification Documents
+            </h2>
+            <p style={{ fontSize: "12px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>
+              Upload property ownership, GST, and trade licenses for verified badge approval.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "18px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>PAN Card Document</label>
+            <input 
+              type="file" 
+              onChange={e => handleDocumentUpload(e, "doc_pan")}
+              disabled={uploadingDoc.doc_pan}
+              style={{ fontSize: "12px", padding: "8px", borderRadius: "10px", border: "1px solid #cbd5e1", backgroundColor: "#f8fafc" }}
+            />
+            {watchedDocPan && (
+              <a href={watchedDocPan} target="_blank" rel="noopener noreferrer" style={{ fontSize: "11.5px", color: "#0284c7", fontWeight: 800, textDecoration: "underline" }}>
+                ✓ View Uploaded PAN
+              </a>
+            )}
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>GST Document</label>
+            <input 
+              type="file" 
+              onChange={e => handleDocumentUpload(e, "doc_gst")}
+              disabled={uploadingDoc.doc_gst}
+              style={{ fontSize: "12px", padding: "8px", borderRadius: "10px", border: "1px solid #cbd5e1", backgroundColor: "#f8fafc" }}
+            />
+            {watchedDocGst && (
+              <a href={watchedDocGst} target="_blank" rel="noopener noreferrer" style={{ fontSize: "11.5px", color: "#0284c7", fontWeight: 800, textDecoration: "underline" }}>
+                ✓ View Uploaded GST
+              </a>
+            )}
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>Ownership Proof (Title Deed / Lease)</label>
+            <input 
+              type="file" 
+              onChange={e => handleDocumentUpload(e, "doc_ownership_proof")}
+              disabled={uploadingDoc.doc_ownership_proof}
+              style={{ fontSize: "12px", padding: "8px", borderRadius: "10px", border: "1px solid #cbd5e1", backgroundColor: "#f8fafc" }}
+            />
+            {watchedDocOwnershipProof && (
+              <a href={watchedDocOwnershipProof} target="_blank" rel="noopener noreferrer" style={{ fontSize: "11.5px", color: "#0284c7", fontWeight: 800, textDecoration: "underline" }}>
+                ✓ View Ownership Proof
+              </a>
+            )}
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <label style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>Government Authorized ID</label>
+            <input 
+              type="file" 
+              onChange={e => handleDocumentUpload(e, "doc_government_id")}
+              disabled={uploadingDoc.doc_government_id}
+              style={{ fontSize: "12px", padding: "8px", borderRadius: "10px", border: "1px solid #cbd5e1", backgroundColor: "#f8fafc" }}
+            />
+            {watchedDocGovId && (
+              <a href={watchedDocGovId} target="_blank" rel="noopener noreferrer" style={{ fontSize: "11.5px", color: "#0284c7", fontWeight: 800, textDecoration: "underline" }}>
+                ✓ View Uploaded ID
+              </a>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 border-b border-border/30 pb-2">
-          <FileText className="h-4.5 w-4.5 text-primary" />
-          <span className="text-sm font-bold text-text-primary uppercase tracking-wider">Credentials &amp; Verification Documents</span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label>PAN Card Document File</Label>
-            <div className="flex items-center gap-3">
-              <Input 
-                type="file" 
-                className="h-10 text-xs bg-bg-card/30 border-border"
-                onChange={e => handleDocumentUpload(e, "doc_pan")}
-                disabled={uploadingDoc.doc_pan}
-              />
-              {watchedDocPan && (
-                <a href={watchedDocPan} target="_blank" rel="noopener noreferrer" className="text-xs text-primary font-bold hover:underline shrink-0">
-                  View Upload
-                </a>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>GST Document File</Label>
-            <div className="flex items-center gap-3">
-              <Input 
-                type="file" 
-                className="h-10 text-xs bg-bg-card/30 border-border"
-                onChange={e => handleDocumentUpload(e, "doc_gst")}
-                disabled={uploadingDoc.doc_gst}
-              />
-              {watchedDocGst && (
-                <a href={watchedDocGst} target="_blank" rel="noopener noreferrer" className="text-xs text-primary font-bold hover:underline shrink-0">
-                  View Upload
-                </a>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Ownership Proof File (Title Deed/Lease)</Label>
-            <div className="flex items-center gap-3">
-              <Input 
-                type="file" 
-                className="h-10 text-xs bg-bg-card/30 border-border"
-                onChange={e => handleDocumentUpload(e, "doc_ownership_proof")}
-                disabled={uploadingDoc.doc_ownership_proof}
-              />
-              {watchedDocOwnershipProof && (
-                <a href={watchedDocOwnershipProof} target="_blank" rel="noopener noreferrer" className="text-xs text-primary font-bold hover:underline shrink-0">
-                  View Upload
-                </a>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Government ID Proof</Label>
-            <div className="flex items-center gap-3">
-              <Input 
-                type="file" 
-                className="h-10 text-xs bg-bg-card/30 border-border"
-                onChange={e => handleDocumentUpload(e, "doc_government_id")}
-                disabled={uploadingDoc.doc_government_id}
-              />
-              {watchedDocGovId && (
-                <a href={watchedDocGovId} target="_blank" rel="noopener noreferrer" className="text-xs text-primary font-bold hover:underline shrink-0">
-                  View Upload
-                </a>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Business / Trade License</Label>
-            <div className="flex items-center gap-3">
-              <Input 
-                type="file" 
-                className="h-10 text-xs bg-bg-card/30 border-border"
-                onChange={e => handleDocumentUpload(e, "doc_business_license")}
-                disabled={uploadingDoc.doc_business_license}
-              />
-              {watchedDocLicense && (
-                <a href={watchedDocLicense} target="_blank" rel="noopener noreferrer" className="text-xs text-primary font-bold hover:underline shrink-0">
-                  View Upload
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
+      {/* ── Save Action Button ── */}
+      <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: "8px", paddingBottom: "32px" }}>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "10px",
+            padding: "16px 40px",
+            borderRadius: "16px",
+            backgroundColor: "#c6ff3d",
+            color: "#0a0a0f",
+            fontWeight: 900,
+            fontSize: "15px",
+            border: "none",
+            cursor: isSubmitting ? "not-allowed" : "pointer",
+            boxShadow: "0 4px 20px rgba(198, 255, 61, 0.45)",
+            transition: "all 0.15s ease",
+          }}
+        >
+          <Save style={{ width: "19px", height: "19px" }} />
+          <span>{isSubmitting ? "Saving Venue Updates..." : "Save Venue Changes"}</span>
+        </button>
       </div>
-
-      <Button type="submit" disabled={isSubmitting} className="w-full bg-primary hover:bg-primary/90 text-white font-bold h-11 flex items-center justify-center gap-2">
-        <Save className="h-4 w-4" />
-        <span>{isSubmitting ? "Saving Venue Updates..." : "Save Profile Details"}</span>
-      </Button>
 
     </form>
   );

@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
 import { 
   Building2, 
   MapPin, 
@@ -14,7 +13,9 @@ import {
   Video,
   FileCheck,
   CheckCircle2,
-  Phone
+  Phone,
+  Compass,
+  Star
 } from "lucide-react";
 
 const FACILITY_OPTIONS = [
@@ -43,254 +44,301 @@ export function VenueProfilePreview({ profile }) {
   const blockedDates = profile.availability_rules?.blocked_dates || [];
   const maintenanceDays = profile.availability_rules?.maintenance_days || [];
   const youtubeLinks = profile.metadata_fields?.youtube_links || [];
+  const gallery = profile.metadata_fields?.gallery || [];
+  const coverImage = profile.cover_image || profile.image_url;
 
   return (
-    <div className="space-y-6">
-      <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 rounded-3xl overflow-hidden shadow-2xl relative">
-        <div className="h-44 sm:h-60 bg-gradient-to-r from-primary/30 to-purple-600/35 relative flex items-center justify-center">
-          <div className="text-center space-y-1">
-            <Building2 className="h-10 w-10 text-primary mx-auto opacity-75" />
-            <p className="text-xs text-text-secondary uppercase tracking-widest font-black">
-              {profile.venue_type || "Event Venue"}
-            </p>
-          </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-bg-card via-transparent to-transparent" />
-        </div>
-
-        <CardContent className="p-6 relative pt-0 flex flex-col sm:flex-row items-center sm:items-end gap-5 -mt-16 sm:-mt-20">
-          <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl border-4 border-bg-card overflow-hidden bg-bg-elevated/90 shadow-lg shrink-0 flex items-center justify-center relative">
-            <Building2 className="h-12 w-12 text-primary" />
-          </div>
-
-          <div className="text-center sm:text-left space-y-1.5 flex-1 pb-2">
-            <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2">
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight font-heading">
-                {profile.name}
-              </h2>
-              <Badge variant="outline" className="text-[9px] py-0.5 px-2 bg-emerald-500/10 border-emerald-500/20 text-emerald-400 capitalize">
-                {profile.verification_status}
-              </Badge>
-            </div>
-            <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 text-xs text-text-secondary">
-              <span className="font-semibold text-primary">{profile.venue_type}</span>
-              <span className="text-text-muted">•</span>
-              <span>Est. {profile.metadata_fields?.established_year || "N/A"}</span>
-              <span className="text-text-muted">•</span>
-              <span>{profile.metadata_fields?.indoor_outdoor || "Both"} Area</span>
-            </div>
-          </div>
-
-          <div className="bg-bg-elevated border border-border/80 px-5 py-3 rounded-2xl text-center self-stretch sm:self-auto flex flex-col justify-center shadow-md">
-            <span className="text-[10px] text-text-secondary uppercase font-bold tracking-wider block">Max Guests</span>
-            <span className="text-lg font-black text-text-primary block">
-              {profile.capacity} pax
+    <div style={{ display: "flex", flexDirection: "column", gap: "24px", width: "100%" }}>
+      
+      {/* ── Hero Banner Card ── */}
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "28px",
+          border: "1px solid #e2e8f0",
+          overflow: "hidden",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
+        }}
+      >
+        {/* Banner Image or Gradient */}
+        <div
+          style={{
+            height: "220px",
+            position: "relative",
+            backgroundColor: "#0a0a0f",
+            background: coverImage 
+              ? `url(${coverImage}) center / cover no-repeat`
+              : "linear-gradient(135deg, #0a0a0f 0%, #1e1b4b 100%)",
+            display: "flex",
+            alignItems: "flex-end",
+            padding: "20px 32px",
+          }}
+        >
+          <div style={{ position: "absolute", inset: 0, backgroundColor: "rgba(10, 10, 15, 0.45)" }} />
+          
+          <div style={{ position: "relative", zIndex: 2, display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ backgroundColor: "#c6ff3d", color: "#0a0a0f", fontSize: "11px", fontWeight: 900, padding: "4px 12px", borderRadius: "8px", textTransform: "uppercase" }}>
+              {profile.venue_type || "Event Space"}
+            </span>
+            <span style={{ backgroundColor: "rgba(255,255,255,0.2)", backdropFilter: "blur(6px)", color: "#ffffff", fontSize: "11px", fontWeight: 800, padding: "4px 12px", borderRadius: "8px" }}>
+              Est. {profile.metadata_fields?.established_year || "2020"}
             </span>
           </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 rounded-2xl shadow-xl">
-            <CardContent className="p-5 space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-                About The Event Space
-              </h3>
-              <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-line">
-                {profile.description || "No space description provided yet."}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 rounded-2xl shadow-xl">
-            <CardContent className="p-5 space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary flex items-center gap-2">
-                <Clock className="h-4 w-4 text-primary" />
-                Operating Schedule
-              </h3>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                {Object.keys(weeklySchedule).map((day) => {
-                  const item = weeklySchedule[day];
-                  return (
-                    <div key={day} className="flex justify-between items-center p-2.5 rounded-xl border border-border/40 bg-bg-elevated/10">
-                      <span className="text-xs font-bold text-text-primary">{day}</span>
-                      {item.available ? (
-                        <span className="text-xs text-text-secondary font-medium">
-                          {item.start} - {item.end}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-error font-semibold">Closed</span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-
-          {(blockedDates.length > 0 || maintenanceDays.length > 0) && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {blockedDates.length > 0 && (
-                <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 rounded-2xl shadow-xl">
-                  <CardContent className="p-5 space-y-3">
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-red-400" />
-                      Blocked Dates
-                    </h3>
-                    <div className="flex flex-wrap gap-1.5 pt-2">
-                      {blockedDates.map((d, idx) => (
-                        <Badge key={idx} variant="outline" className="text-[10px] py-1 border-red-500/35 text-red-400">
-                          {d}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {maintenanceDays.length > 0 && (
-                <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 rounded-2xl shadow-xl">
-                  <CardContent className="p-5 space-y-3">
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-amber-400" />
-                      Maintenance Days
-                    </h3>
-                    <div className="flex flex-wrap gap-1.5 pt-2">
-                      {maintenanceDays.map((d, idx) => (
-                        <Badge key={idx} variant="outline" className="text-[10px] py-1 border-amber-500/35 text-amber-400">
-                          {d}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          )}
-
-          {youtubeLinks.length > 0 && (
-            <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 rounded-2xl shadow-xl">
-              <CardContent className="p-5 space-y-3">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary flex items-center gap-2">
-                  <Video className="h-4 w-4 text-primary" />
-                  YouTube Walkthrough Media
-                </h3>
-                <div className="space-y-2 pt-2">
-                  {youtubeLinks.map((url, idx) => (
-                    <div key={idx} className="flex gap-2.5 items-center p-2.5 rounded-lg border border-border/60 bg-bg-elevated/10">
-                      <span className="p-1.5 bg-primary/10 border border-primary/20 text-primary rounded-md shrink-0">
-                        <Video className="h-3.5 w-3.5" />
-                      </span>
-                      <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-text-secondary truncate hover:text-text-primary hover:underline">
-                        {url}
-                      </a>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
         </div>
 
-        <div className="space-y-6">
+        {/* Identity Row */}
+        <div style={{ padding: "24px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <h1 style={{ fontSize: "24px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+                {profile.name}
+              </h1>
+              <span style={{ backgroundColor: "#dcfce7", color: "#15803d", border: "1px solid #bbf7d0", fontSize: "10.5px", fontWeight: 900, padding: "3px 10px", borderRadius: "6px", textTransform: "uppercase" }}>
+                {profile.verification_status || "Verified Space"}
+              </span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px", fontSize: "13px", color: "#64748b", fontWeight: 600 }}>
+              <MapPin style={{ width: "15px", height: "15px", color: "#0a0a0f" }} />
+              <span>{profile.city?.name || profile.city_id || "Hyderabad"}, {profile.state || "Telangana"}</span>
+              <span>•</span>
+              <span>{profile.metadata_fields?.indoor_outdoor || "Indoor & Outdoor"}</span>
+            </div>
+          </div>
 
-          <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 rounded-2xl shadow-xl">
-            <CardContent className="p-5 space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary flex items-center gap-2">
-                <MapPin className="h-4.5 w-4.5 text-primary" />
-                Location Address
-              </h3>
-              <div className="space-y-2.5 text-xs text-text-secondary">
-                <p className="leading-relaxed font-medium text-text-primary">{profile.address}</p>
-                {profile.metadata_fields?.landmark && <p>Landmark: {profile.metadata_fields.landmark}</p>}
-                <p>City / Area: {profile.city.name}, {profile.metadata_fields?.area || "N/A"}</p>
-                <p>State / Pin: {profile.state}, {profile.pincode}</p>
-                {profile.google_map_location && (
-                  <a 
-                    href={profile.google_map_location} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-primary font-bold hover:underline pt-2"
+          <div style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", padding: "12px 24px", borderRadius: "16px", textAlign: "center" }}>
+            <span style={{ fontSize: "11px", fontWeight: 800, color: "#64748b", textTransform: "uppercase", display: "block" }}>Audience Capacity</span>
+            <span style={{ fontSize: "20px", fontWeight: 900, color: "#0a0a0f", display: "block", marginTop: "2px" }}>
+              {profile.capacity} Guests
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 2-Column Split: Details vs Sidebar ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr)) 340px", gap: "24px" }}>
+        
+        {/* Main Content Column */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          
+          {/* About Card */}
+          <div
+            style={{
+              backgroundColor: "#ffffff",
+              borderRadius: "24px",
+              border: "1px solid #e2e8f0",
+              padding: "24px 28px",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "14px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "12px" }}>
+              <div style={{ width: "32px", height: "32px", borderRadius: "10px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#c6ff3d" }}>
+                <Sparkles style={{ width: "16px", height: "16px" }} />
+              </div>
+              <h2 style={{ fontSize: "15px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+                About The Performance Space
+              </h2>
+            </div>
+            <p style={{ fontSize: "13.5px", color: "#334155", lineHeight: 1.6, margin: 0, fontWeight: 500, whiteSpace: "pre-line" }}>
+              {profile.description || "No space description provided yet. Update in Venue Details."}
+            </p>
+          </div>
+
+          {/* Amenities Badges Card */}
+          <div
+            style={{
+              backgroundColor: "#ffffff",
+              borderRadius: "24px",
+              border: "1px solid #e2e8f0",
+              padding: "24px 28px",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "14px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "12px" }}>
+              <div style={{ width: "32px", height: "32px", borderRadius: "10px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#c6ff3d" }}>
+                <Grid style={{ width: "16px", height: "16px" }} />
+              </div>
+              <h2 style={{ fontSize: "15px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+                Included Amenities &amp; Facilities
+              </h2>
+            </div>
+
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              {FACILITY_OPTIONS.map(opt => {
+                const hasFacility = profile.facilities?.includes(opt.id);
+                if (!hasFacility) return null;
+                return (
+                  <span
+                    key={opt.id}
+                    style={{
+                      padding: "6px 14px",
+                      borderRadius: "10px",
+                      backgroundColor: "#0a0a0f",
+                      color: "#c6ff3d",
+                      fontSize: "12px",
+                      fontWeight: 800,
+                    }}
                   >
-                    <span>View on Google Maps</span>
-                    <span className="text-[10px]">↗</span>
-                  </a>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                    ✓ {opt.label}
+                  </span>
+                );
+              })}
+              {(!profile.facilities || profile.facilities.length === 0) && (
+                <span style={{ fontSize: "13px", color: "#94a3b8", fontStyle: "italic" }}>
+                  No facilities configured. Update in Facilities &amp; Specs tab.
+                </span>
+              )}
+            </div>
+          </div>
 
-          <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 rounded-2xl shadow-xl">
-            <CardContent className="p-5 space-y-3">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary flex items-center gap-2">
-                <Users className="h-4.5 w-4.5 text-primary" />
-                Guest Capacity Rules
-              </h3>
-              <div className="space-y-3 pt-2">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-text-secondary">Min capacity</span>
-                  <span className="font-black text-text-primary">{profile.min_capacity} guests</span>
-                </div>
-                <div className="flex justify-between items-center text-xs pt-1">
-                  <span className="text-text-secondary">Max capacity</span>
-                  <span className="font-black text-text-primary">{profile.capacity} guests</span>
-                </div>
-                <div className="flex justify-between items-center text-xs pt-1">
-                  <span className="text-text-secondary">Buffer time</span>
-                  <span className="font-black text-text-primary">{profile.availability_rules?.booking_buffer_time || 0} Hours</span>
-                </div>
+          {/* Operating Schedule */}
+          <div
+            style={{
+              backgroundColor: "#ffffff",
+              borderRadius: "24px",
+              border: "1px solid #e2e8f0",
+              padding: "24px 28px",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "14px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "12px" }}>
+              <div style={{ width: "32px", height: "32px", borderRadius: "10px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#c6ff3d" }}>
+                <Clock style={{ width: "16px", height: "16px" }} />
               </div>
-            </CardContent>
-          </Card>
+              <h2 style={{ fontSize: "15px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+                Weekly Operating Schedule &amp; Sound Curfews
+              </h2>
+            </div>
 
-          <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 rounded-2xl shadow-xl">
-            <CardContent className="p-5 space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary flex items-center gap-2">
-                <Grid className="h-4.5 w-4.5 text-primary" />
-                Amenties Checklist
-              </h3>
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {FACILITY_OPTIONS.map(opt => {
-                  const hasFacility = profile.facilities?.includes(opt.id);
-                  if (!hasFacility) return null;
-                  return (
-                    <Badge key={opt.id} variant="secondary" className="text-[10px] py-1 font-semibold text-text-primary">
-                      {opt.label}
-                    </Badge>
-                  );
-                })}
-                {(!profile.facilities || profile.facilities.length === 0) && (
-                  <span className="text-xs text-text-muted italic">No facilities configured</span>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "10px" }}>
+              {Object.keys(weeklySchedule).map((day) => {
+                const item = weeklySchedule[day];
+                return (
+                  <div
+                    key={day}
+                    style={{
+                      padding: "10px 14px",
+                      borderRadius: "12px",
+                      backgroundColor: "#f8fafc",
+                      border: "1px solid #e2e8f0",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "2px",
+                    }}
+                  >
+                    <span style={{ fontSize: "12px", fontWeight: 900, color: "#0a0a0f" }}>{day}</span>
+                    {item.available ? (
+                      <span style={{ fontSize: "11px", color: "#16a34a", fontWeight: 700 }}>
+                        {item.start} - {item.end}
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: "11px", color: "#e11d48", fontWeight: 700 }}>Closed</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
 
-          <Card className="bg-bg-card/45 backdrop-blur-md border border-border/80 rounded-2xl shadow-xl">
-            <CardContent className="p-5 space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary flex items-center gap-2">
-                <FileCheck className="h-4.5 w-4.5 text-primary" />
-                Contact Representative
-              </h3>
-              <div className="space-y-3 text-xs text-text-secondary">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                  <span className="font-bold text-text-primary">{profile.user.name}</span>
-                </div>
-                {profile.business_name && <p className="pl-6">Business Name: {profile.business_name}</p>}
-                {profile.metadata_fields?.contact_person && (
-                  <p className="pl-6">Representative: {profile.metadata_fields.contact_person}</p>
-                )}
-                <div className="flex items-center gap-2 pl-6 pt-1">
-                  <Phone className="h-3.5 w-3.5 text-text-muted" />
-                  <span>{profile.user.email}</span>
+        {/* Sidebar Info Column */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          
+          {/* Location Card */}
+          <div
+            style={{
+              backgroundColor: "#ffffff",
+              borderRadius: "24px",
+              border: "1px solid #e2e8f0",
+              padding: "24px 28px",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", borderBottom: "1px solid #f1f5f9", paddingBottom: "10px" }}>
+              <MapPin style={{ width: "16px", height: "16px", color: "#0a0a0f" }} />
+              <h3 style={{ fontSize: "14px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>Physical Location</h3>
+            </div>
+            <p style={{ fontSize: "13px", color: "#334155", fontWeight: 600, margin: 0, lineHeight: 1.5 }}>
+              {profile.address || "Address not provided"}
+            </p>
+            {profile.metadata_fields?.landmark && (
+              <span style={{ fontSize: "12px", color: "#64748b" }}>Landmark: {profile.metadata_fields.landmark}</span>
+            )}
+            <span style={{ fontSize: "12px", color: "#64748b" }}>Pincode: {profile.pincode}</span>
+            {profile.google_map_location && (
+              <a
+                href={profile.google_map_location}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  fontSize: "12px",
+                  fontWeight: 800,
+                  color: "#0a0a0f",
+                  backgroundColor: "#f8fafc",
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  border: "1px solid #e2e8f0",
+                  textDecoration: "none",
+                  marginTop: "6px",
+                }}
+              >
+                <span>Open Google Maps</span> ↗
+              </a>
+            )}
+          </div>
+
+          {/* Contact Representative */}
+          <div
+            style={{
+              backgroundColor: "#ffffff",
+              borderRadius: "24px",
+              border: "1px solid #e2e8f0",
+              padding: "24px 28px",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", borderBottom: "1px solid #f1f5f9", paddingBottom: "10px" }}>
+              <FileCheck style={{ width: "16px", height: "16px", color: "#0a0a0f" }} />
+              <h3 style={{ fontSize: "14px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>Host Details</h3>
+            </div>
+            <div>
+              <span style={{ fontSize: "11px", fontWeight: 800, color: "#64748b", textTransform: "uppercase" }}>Legal Representative</span>
+              <div style={{ fontSize: "14px", fontWeight: 900, color: "#0a0a0f", marginTop: "2px" }}>
+                {profile.user?.name || profile.business_name || "Venue Host"}
+              </div>
+            </div>
+            {profile.metadata_fields?.contact_person && (
+              <div>
+                <span style={{ fontSize: "11px", fontWeight: 800, color: "#64748b", textTransform: "uppercase" }}>Booking Manager</span>
+                <div style={{ fontSize: "13px", fontWeight: 700, color: "#0a0a0f", marginTop: "2px" }}>
+                  {profile.metadata_fields.contact_person}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            )}
+            <div>
+              <span style={{ fontSize: "11px", fontWeight: 800, color: "#64748b", textTransform: "uppercase" }}>Registered Email</span>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: "#0a0a0f", marginTop: "2px" }}>
+                {profile.user?.email || "N/A"}
+              </div>
+            </div>
+          </div>
 
         </div>
 

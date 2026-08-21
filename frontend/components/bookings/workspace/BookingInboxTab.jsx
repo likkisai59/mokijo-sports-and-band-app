@@ -1,11 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Spinner } from "@/components/ui/spinner";
 import { BookingStatusBadge } from "../BookingStatusBadge";
 import { BookingDetailsDialog } from "../BookingDetailsDialog";
 import {
@@ -13,6 +8,8 @@ import {
   Calendar,
   User,
   Inbox,
+  Sparkles,
+  ChevronRight
 } from "lucide-react";
 import { formatCurrency } from "@/utils/format-currency";
 import { formatDate } from "@/utils/format-date";
@@ -38,7 +35,7 @@ export function BookingInboxTab({
       const st = (b.status || "").toLowerCase();
       let matchesTab = false;
       if (subTab === "incoming") {
-        matchesTab = st === "requested" || st === "received" || st === "created";
+        matchesTab = st === "requested" || st === "received" || st === "created" || st === "inquiry";
       } else if (subTab === "countered") {
         matchesTab = st === "countered" || st === "counter_offered";
       } else if (subTab === "pending") {
@@ -46,7 +43,7 @@ export function BookingInboxTab({
       } else if (subTab === "accepted") {
         matchesTab = st === "accepted" || st === "confirmed";
       } else if (subTab === "rejected") {
-        matchesTab = st === "rejected";
+        matchesTab = st === "rejected" || st === "declined";
       }
 
       const q = search.toLowerCase().trim();
@@ -54,9 +51,11 @@ export function BookingInboxTab({
         !q ||
         (b.event_name || "").toLowerCase().includes(q) ||
         (b.client?.name && b.client.name.toLowerCase().includes(q)) ||
+        (b.client_name && b.client_name.toLowerCase().includes(q)) ||
         (b.artist?.display_name && b.artist.display_name.toLowerCase().includes(q)) ||
         (b.artist_name && b.artist_name.toLowerCase().includes(q)) ||
-        (b.id || "").toLowerCase().includes(q);
+        (b.venue_name && b.venue_name.toLowerCase().includes(q)) ||
+        String(b.id || "").toLowerCase().includes(q);
 
       return matchesTab && matchesSearch;
     });
@@ -65,7 +64,7 @@ export function BookingInboxTab({
   const subTabCounts = React.useMemo(() => {
     return {
       incoming: activeBookings.filter((b) =>
-        ["requested", "received", "created"].includes((b.status || "").toLowerCase())
+        ["requested", "received", "created", "inquiry"].includes((b.status || "").toLowerCase())
       ).length,
       countered: activeBookings.filter((b) =>
         ["countered", "counter_offered"].includes((b.status || "").toLowerCase())
@@ -76,141 +75,252 @@ export function BookingInboxTab({
       accepted: activeBookings.filter((b) =>
         ["accepted", "confirmed"].includes((b.status || "").toLowerCase())
       ).length,
-      rejected: activeBookings.filter((b) => (b.status || "").toLowerCase() === "rejected").length,
+      rejected: activeBookings.filter((b) => ["rejected", "declined"].includes((b.status || "").toLowerCase())).length,
     };
   }, [activeBookings]);
 
+  const TABS = [
+    { id: "incoming", label: "Incoming Requests", count: subTabCounts.incoming },
+    { id: "countered", label: "Counter Offers", count: subTabCounts.countered },
+    { id: "pending", label: "Pending Client", count: subTabCounts.pending },
+    { id: "accepted", label: "Accepted Gigs", count: subTabCounts.accepted },
+    { id: "rejected", label: "Rejected / Declined", count: subTabCounts.rejected },
+  ];
+
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-bg-card/40 p-2 rounded-xl border border-border/60">
-        <div className="flex flex-wrap items-center gap-1">
-          <Button
-            variant={subTab === "incoming" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setSubTab("incoming")}
-            className="text-xs h-8 font-bold gap-1.5"
-          >
-            <span>Incoming Requests</span>
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-              {subTabCounts.incoming}
-            </Badge>
-          </Button>
-
-          <Button
-            variant={subTab === "countered" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setSubTab("countered")}
-            className="text-xs h-8 font-bold gap-1.5"
-          >
-            <span>Counter Offers</span>
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-              {subTabCounts.countered}
-            </Badge>
-          </Button>
-
-          <Button
-            variant={subTab === "pending" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setSubTab("pending")}
-            className="text-xs h-8 font-bold gap-1.5"
-          >
-            <span>Pending</span>
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-              {subTabCounts.pending}
-            </Badge>
-          </Button>
-
-          <Button
-            variant={subTab === "accepted" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setSubTab("accepted")}
-            className="text-xs h-8 font-bold gap-1.5"
-          >
-            <span>Accepted</span>
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-              {subTabCounts.accepted}
-            </Badge>
-          </Button>
-
-          <Button
-            variant={subTab === "rejected" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setSubTab("rejected")}
-            className="text-xs h-8 font-bold gap-1.5"
-          >
-            <span>Rejected</span>
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-              {subTabCounts.rejected}
-            </Badge>
-          </Button>
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      
+      {/* ── Sub-navigation & Search Toolbar ── */}
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "20px",
+          border: "1px solid #e2e8f0",
+          padding: "12px 18px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "12px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.02)",
+        }}
+      >
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px" }}>
+          {TABS.map((tab) => {
+            const isActive = subTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setSubTab(tab.id)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "8px 16px",
+                  borderRadius: "10px",
+                  fontSize: "12px",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  border: isActive ? "none" : "1px solid #e2e8f0",
+                  backgroundColor: isActive ? "#0a0a0f" : "#f8fafc",
+                  color: isActive ? "#c6ff3d" : "#475569",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <span>{tab.label}</span>
+                <span
+                  style={{
+                    padding: "2px 6px",
+                    borderRadius: "6px",
+                    fontSize: "10px",
+                    fontWeight: 900,
+                    backgroundColor: isActive ? "#c6ff3d" : "#e2e8f0",
+                    color: "#0a0a0f",
+                  }}
+                >
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
-        <div className="relative w-full sm:w-64 shrink-0">
-          <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-text-muted" />
-          <Input
-            placeholder="Search active requests..."
+        <div style={{ position: "relative", minWidth: "260px" }}>
+          <Search
+            style={{
+              position: "absolute",
+              left: "12px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              width: "15px",
+              height: "15px",
+              color: "#94a3b8",
+            }}
+          />
+          <input
+            placeholder="Search inquiries by name, event or ID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-8 text-xs h-8 bg-bg-card border-border/80"
+            style={{
+              width: "100%",
+              height: "38px",
+              paddingLeft: "36px",
+              paddingRight: "14px",
+              borderRadius: "10px",
+              backgroundColor: "#f8fafc",
+              border: "1px solid #cbd5e1",
+              fontSize: "12px",
+              fontWeight: 600,
+              color: "#0a0a0f",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
           />
         </div>
       </div>
 
+      {/* ── Content Grid or Empty State ── */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-16 gap-3">
-          <Spinner className="h-8 w-8 text-primary" />
-          <p className="text-xs text-text-secondary animate-pulse">Loading active inbox...</p>
+        <div
+          style={{
+            backgroundColor: "#ffffff",
+            borderRadius: "24px",
+            border: "1px solid #e2e8f0",
+            padding: "60px 20px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "12px",
+          }}
+        >
+          <div style={{ width: "36px", height: "36px", borderRadius: "50%", border: "3px solid #0a0a0f", borderTopColor: "#c6ff3d", animation: "spin 1s linear infinite" }} />
+          <span style={{ fontSize: "13px", fontWeight: 700, color: "#64748b" }}>Loading booking records...</span>
         </div>
       ) : filteredBookings.length === 0 ? (
-        <Card className="bg-bg-card/30 border-border/40 p-8 text-center">
-          <Inbox className="h-8 w-8 mx-auto mb-2 text-text-muted opacity-50" />
-          <h3 className="text-xs font-bold text-text-primary mb-1">No requests found</h3>
-          <p className="text-[11px] text-text-secondary">
-            No active booking requests match the current tab filter or search query.
+        <div
+          style={{
+            backgroundColor: "#ffffff",
+            borderRadius: "24px",
+            border: "1px dashed #cbd5e1",
+            padding: "50px 24px",
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "10px",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+          }}
+        >
+          <div
+            style={{
+              width: "48px",
+              height: "48px",
+              borderRadius: "16px",
+              backgroundColor: "#f1f5f9",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#64748b",
+            }}
+          >
+            <Inbox style={{ width: "24px", height: "24px" }} />
+          </div>
+          <h3 style={{ fontSize: "15px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+            No Active Inquiries Found
+          </h3>
+          <p style={{ fontSize: "12.5px", color: "#64748b", margin: 0, maxWidth: "380px", lineHeight: 1.5 }}>
+            No booking records currently match the &ldquo;{TABS.find(t => t.id === subTab)?.label}&rdquo; filter. New incoming requests will appear here in real time.
           </p>
-        </Card>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredBookings.map((b) => (
-            <Card
-              key={b.id}
-              onClick={() => setSelectedBookingId(b.id)}
-              className="bg-bg-card/50 hover:bg-bg-card border border-border/80 hover:border-primary/50 transition-all cursor-pointer shadow-sm flex flex-col justify-between"
-            >
-              <CardHeader className="p-4 pb-2 space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-xs font-bold text-text-primary line-clamp-1">
-                    {b.event_name}
-                  </CardTitle>
-                  <BookingStatusBadge status={b.status} />
-                </div>
-                <div className="text-[11px] text-text-secondary flex items-center gap-1">
-                  <User className="h-3 w-3 text-primary shrink-0" />
-                  <span className="truncate">
-                    {role === "client"
-                      ? b.artist?.display_name || b.artist_name || "Performer"
-                      : b.client?.name || "Client"}
-                  </span>
-                </div>
-              </CardHeader>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+            gap: "16px",
+          }}
+        >
+          {filteredBookings.map((b) => {
+            const clientTitle = b.client?.name || b.client_name || "Direct Client";
+            const partnerTitle = b.artist?.display_name || b.artist_name || b.venue_name || "Event Venue";
+            
+            return (
+              <div
+                key={b.id}
+                onClick={() => setSelectedBookingId(b.id)}
+                style={{
+                  backgroundColor: "#ffffff",
+                  borderRadius: "20px",
+                  border: "1px solid #e2e8f0",
+                  padding: "20px",
+                  boxShadow: "0 2px 10px rgba(0,0,0,0.02)",
+                  cursor: "pointer",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  gap: "14px",
+                  transition: "transform 0.15s ease, box-shadow 0.15s ease",
+                }}
+              >
+                <div>
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "10px" }}>
+                    <h3 style={{ fontSize: "14.5px", fontWeight: 900, color: "#0a0a0f", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {b.event_name || "Venue Reservation"}
+                    </h3>
+                    <BookingStatusBadge status={b.status} />
+                  </div>
 
-              <CardContent className="p-4 pt-2 space-y-2 text-[11px] text-text-secondary">
-                <div className="flex items-center gap-1.5 text-text-muted">
-                  <Calendar className="h-3 w-3 text-primary shrink-0" />
-                  <span>{formatDate(b.event_date)}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "8px", fontSize: "12px", color: "#64748b", fontWeight: 600 }}>
+                    <User style={{ width: "13px", height: "13px", color: "#0a0a0f" }} />
+                    <span>{role === "client" ? partnerTitle : clientTitle}</span>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "4px", fontSize: "12px", color: "#64748b", fontWeight: 600 }}>
+                    <Calendar style={{ width: "13px", height: "13px", color: "#0a0a0f" }} />
+                    <span>{formatDate(b.event_date)} ({b.start_time} - {b.end_time})</span>
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-border/40">
-                  <span className="text-xs font-extrabold text-primary">
-                    {formatCurrency(b.proposed_price)}
-                  </span>
-                  <span className="text-[10px] text-text-muted font-mono">
-                    ID: {b.id?.slice(0, 8)}
-                  </span>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    paddingTop: "12px",
+                    borderTop: "1px solid #f1f5f9",
+                  }}
+                >
+                  <div>
+                    <span style={{ fontSize: "10px", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", display: "block" }}>Proposed Budget</span>
+                    <span style={{ fontSize: "15px", fontWeight: 900, color: "#0a0a0f" }}>
+                      {formatCurrency(b.proposed_price || b.total_price || 0)}
+                    </span>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      fontSize: "11.5px",
+                      fontWeight: 800,
+                      color: "#0a0a0f",
+                      backgroundColor: "#f8fafc",
+                      padding: "6px 12px",
+                      borderRadius: "8px",
+                      border: "1px solid #e2e8f0",
+                    }}
+                  >
+                    <span>Inspect</span>
+                    <ChevronRight style={{ width: "14px", height: "14px" }} />
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              </div>
+            );
+          })}
         </div>
       )}
 

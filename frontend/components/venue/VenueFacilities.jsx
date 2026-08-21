@@ -1,11 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { 
   Car, 
   Wind, 
@@ -23,11 +18,12 @@ import {
   ArrowUpDown, 
   Shield, 
   Grid,
-  Plus,
-  Trash2,
-  Search,
-  Sliders,
-  Save
+  Plus, 
+  Trash2, 
+  Search, 
+  Sliders, 
+  Save,
+  CheckCircle2
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -204,7 +200,7 @@ export function VenueFacilities({ data, onSave }) {
       data.facilities.forEach(fac => {
         if (fac.startsWith("Custom:")) {
           const name = fac.replace("Custom:", "");
-          const desc = data.details[fac]?.description || "";
+          const desc = data.details?.[fac]?.description || "";
           list.push({ name, desc });
         }
       });
@@ -311,40 +307,123 @@ export function VenueFacilities({ data, onSave }) {
   const showCustomSection = categoryFilter === "All" || categoryFilter === "Custom";
 
   return (
-    <div className="space-y-8 bg-bg-card/45 backdrop-blur-md border border-border/80 p-6 md:p-8 rounded-3xl shadow-xl">
-      <div className="border-b border-border/50 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-0.5">
-          <h2 className="text-xl font-bold text-text-primary">Amenities &amp; Facilities Management</h2>
-          <p className="text-xs text-text-secondary">Enable default spaces/utilities, input capacities, and configure custom facilities.</p>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "28px",
+        width: "100%",
+      }}
+    >
+      {/* ── Top Header & Save Banner ── */}
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "24px",
+          border: "1px solid #e2e8f0",
+          padding: "24px 32px",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "16px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div style={{ width: "42px", height: "42px", borderRadius: "12px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#c6ff3d" }}>
+            <Sliders style={{ width: "20px", height: "20px" }} />
+          </div>
+          <div>
+            <h1 style={{ fontSize: "18px", fontWeight: 900, color: "#0a0a0f", margin: 0, letterSpacing: "-0.01em" }}>
+              Amenities &amp; Technical Rigging Specs
+            </h1>
+            <p style={{ fontSize: "12.5px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>
+              Enable available infrastructure, sound output, power capabilities, and custom venue assets.
+            </p>
+          </div>
         </div>
-        <Button 
-          onClick={handleSave} 
-          disabled={saving} 
-          className="bg-primary hover:bg-primary/95 text-white font-bold h-10 px-6 flex items-center gap-1.5 self-start sm:self-center"
+
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "12px 28px",
+            borderRadius: "14px",
+            backgroundColor: "#c6ff3d",
+            color: "#0a0a0f",
+            fontWeight: 900,
+            fontSize: "14px",
+            border: "none",
+            cursor: saving ? "not-allowed" : "pointer",
+            boxShadow: "0 4px 14px rgba(198, 255, 61, 0.4)",
+            transition: "all 0.15s ease",
+          }}
         >
-          <Save className="h-4 w-4" />
-          <span>{saving ? "Saving Amenities..." : "Save Facilities"}</span>
-        </Button>
+          <Save style={{ width: "17px", height: "17px" }} />
+          <span>{saving ? "Saving Changes..." : "Save Facilities"}</span>
+        </button>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between p-4 border border-border/60 bg-bg-elevated/15 rounded-2xl">
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-3 top-2.5 h-4.5 w-4.5 text-text-muted" />
-          <Input 
-            placeholder="Search facility name..." 
+      {/* ── Filter & Search Bar ── */}
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "20px",
+          border: "1px solid #e2e8f0",
+          padding: "16px 24px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "16px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.015)",
+        }}
+      >
+        <div style={{ position: "relative", flex: "1 1 280px", maxWidth: "420px" }}>
+          <Search style={{ position: "absolute", left: "14px", top: "13px", width: "16px", height: "16px", color: "#94a3b8" }} />
+          <input
+            placeholder="Search facility name or category..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="pl-9 h-9.5 text-xs"
+            style={{
+              width: "100%",
+              height: "42px",
+              padding: "0 16px 0 40px",
+              borderRadius: "12px",
+              backgroundColor: "#f8fafc",
+              border: "1px solid #cbd5e1",
+              fontSize: "13px",
+              color: "#0a0a0f",
+              fontWeight: 600,
+              outline: "none",
+              boxSizing: "border-box",
+            }}
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 w-full md:w-auto justify-end">
-          <div className="flex items-center gap-1.5 text-xs text-text-secondary">
-            <span>Category:</span>
-            <select 
-              value={categoryFilter} 
+        <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ fontSize: "12.5px", fontWeight: 800, color: "#64748b" }}>Category:</span>
+            <select
+              value={categoryFilter}
               onChange={e => setCategoryFilter(e.target.value)}
-              className="h-8.5 px-2.5 rounded-lg border border-border bg-bg-card text-text-primary text-[11px]"
+              style={{
+                height: "38px",
+                padding: "0 12px",
+                borderRadius: "10px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "12.5px",
+                color: "#0a0a0f",
+                fontWeight: 700,
+                cursor: "pointer",
+                outline: "none",
+              }}
             >
               <option value="All">All Categories</option>
               <option value="Space">Halls &amp; Spaces</option>
@@ -355,193 +434,181 @@ export function VenueFacilities({ data, onSave }) {
             </select>
           </div>
 
-          <div className="flex items-center gap-1.5 text-xs text-text-secondary">
-            <span>Status:</span>
-            <select 
-              value={statusFilter} 
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ fontSize: "12.5px", fontWeight: 800, color: "#64748b" }}>Status:</span>
+            <select
+              value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="h-8.5 px-2.5 rounded-lg border border-border bg-bg-card text-text-primary text-[11px]"
+              style={{
+                height: "38px",
+                padding: "0 12px",
+                borderRadius: "10px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "12.5px",
+                color: "#0a0a0f",
+                fontWeight: 700,
+                cursor: "pointer",
+                outline: "none",
+              }}
             >
               <option value="All">All Statuses</option>
-              <option value="Active">Active Only</option>
+              <option value="Active">Active Only ({activeFacilities.length})</option>
               <option value="Inactive">Inactive Only</option>
             </select>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary flex items-center gap-2">
-            <Sliders className="h-4.5 w-4.5 text-primary" />
-            Standard Checklist
-          </h3>
-
-          <div className="grid grid-cols-1 gap-2.5 max-h-[60vh] overflow-y-auto pr-1">
-            {filteredDefault.map(fac => {
-              const active = activeFacilities.includes(fac.id);
-              const IconComp = fac.icon;
-              return (
-                <div 
-                  key={fac.id}
-                  className={`p-3.5 border rounded-xl flex items-center justify-between transition-colors ${
-                    active ? "bg-primary/5 border-primary/65" : "bg-bg-elevated/5 border-border/60"
-                  }`}
-                >
-                  <div className="flex items-center gap-3.5">
-                    <span className={`p-2 rounded-lg border ${
-                      active ? "bg-primary/10 border-primary/20 text-primary" : "bg-bg-elevated border-border/80 text-text-muted"
-                    }`}>
-                      <IconComp className="h-4 w-4" />
-                    </span>
-                    <div>
-                      <p className="text-xs font-bold text-text-primary leading-snug">{fac.label}</p>
-                      <p className="text-[10px] text-text-muted capitalize">{fac.category} Category</p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => toggleFacility(fac.id)}
-                    className={`h-7 px-3.5 text-[10px] font-bold rounded-lg border transition-all ${
-                      active 
-                        ? "bg-primary text-white border-primary hover:bg-primary/90" 
-                        : "bg-transparent border-border text-text-secondary hover:text-white hover:border-text-secondary"
-                    }`}
-                  >
-                    {active ? "Active" : "Enable"}
-                  </button>
-                </div>
-              );
-            })}
-            {filteredDefault.length === 0 && (
-              <p className="text-xs text-text-muted italic text-center py-8">No standard facilities match search/filters.</p>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary flex items-center gap-2">
-            <Sliders className="h-4.5 w-4.5 text-primary" />
-            Active Specifications
-          </h3>
-
-          <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
-            {DEFAULT_FACILITIES.map(fac => {
-              const active = activeFacilities.includes(fac.id);
-              if (!active) return null;
-
-              const facDetails = facilityDetails[fac.id] || {};
-
-              return (
-                <Card key={fac.id} className="bg-bg-card/45 backdrop-blur-md border border-border/85 rounded-xl shadow">
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-center gap-2 border-b border-border/30 pb-2">
-                      <fac.icon className="h-4 w-4 text-primary" />
-                      <span className="text-xs font-bold text-text-primary">{fac.label} Details</span>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      {fac.fields.map(f => {
-                        const val = facDetails[f.key] !== undefined ? facDetails[f.key] : "";
-                        return (
-                          <div key={f.key} className="space-y-1">
-                            <Label className="text-[10px] text-text-secondary">{f.label}</Label>
-                            {f.type === "boolean" ? (
-                              <select
-                                value={val === "" ? "false" : String(val)}
-                                onChange={e => updateDetailField(fac.id, f.key, e.target.value === "true")}
-                                className="w-full h-8 px-2 rounded border border-border bg-bg-card text-text-primary text-[11px]"
-                              >
-                                <option value="false">No / Disabled</option>
-                                <option value="true">Yes / Enabled</option>
-                              </select>
-                            ) : (
-                              <Input 
-                                type={f.type === "number" ? "number" : "text"}
-                                value={val}
-                                placeholder={f.placeholder}
-                                onChange={e => updateDetailField(
-                                  fac.id, 
-                                  f.key, 
-                                  f.type === "number" ? (e.target.value === "" ? "" : Number(e.target.value)) : e.target.value
-                                )}
-                                className="h-8 text-xs"
-                              />
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-            {activeFacilities.filter(id => !id.startsWith("Custom:")).length === 0 && (
-              <p className="text-xs text-text-muted italic text-center py-8">Enable facilities from the checklist to configure details.</p>
-            )}
-          </div>
-        </div>
-      </div>
-
+      {/* ── Section: Custom Venue Facilities ── */}
       {showCustomSection && (
-        <div className="pt-6 border-t border-border/50 space-y-4">
-          <div className="space-y-1">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-text-primary flex items-center gap-2">
-              <Grid className="h-4.5 w-4.5 text-primary" />
-              Add Custom Venue Facilities
-            </h3>
-            <p className="text-[11px] text-text-secondary">Got unique highlights? (e.g. Helipad, Swimming Pool, Open Kitchen). Register them below.</p>
+        <div
+          style={{
+            backgroundColor: "#ffffff",
+            borderRadius: "24px",
+            border: "1px solid #e2e8f0",
+            padding: "24px 32px",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "20px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "14px" }}>
+            <div style={{ width: "36px", height: "36px", borderRadius: "10px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#c6ff3d" }}>
+              <Plus style={{ width: "18px", height: "18px" }} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: "16px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+                Register Custom Space Facilities
+              </h2>
+              <p style={{ fontSize: "12px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>
+                Got unique property highlights? (e.g. Helipad, Swimming Pool, Open Terrace Lounge). Add them below.
+              </p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end p-4 border border-border/60 bg-bg-elevated/15 rounded-2xl">
-            <div className="space-y-1.5 md:col-span-1">
-              <Label htmlFor="custom_name">Facility Name</Label>
-              <Input 
-                id="custom_name" 
-                placeholder="e.g. Swimming Pool" 
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr)) 160px",
+              gap: "14px",
+              alignItems: "flex-end",
+              backgroundColor: "#f8fafc",
+              padding: "16px",
+              borderRadius: "16px",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              <label style={{ fontSize: "12px", fontWeight: 800, color: "#1e293b" }}>Facility Name</label>
+              <input
+                placeholder="e.g. Infinity Swimming Pool"
                 value={customName}
                 onChange={e => setCustomName(e.target.value)}
-                className="h-9.5 text-xs"
+                style={{
+                  height: "40px",
+                  padding: "0 14px",
+                  borderRadius: "10px",
+                  border: "1px solid #cbd5e1",
+                  backgroundColor: "#ffffff",
+                  fontSize: "13px",
+                  color: "#0a0a0f",
+                  fontWeight: 600,
+                  outline: "none",
+                }}
               />
             </div>
-            <div className="space-y-1.5 md:col-span-1">
-              <Label htmlFor="custom_desc">Description / Capacity</Label>
-              <Input 
-                id="custom_desc" 
-                placeholder="e.g. Length 25m, depth 4.5ft" 
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              <label style={{ fontSize: "12px", fontWeight: 800, color: "#1e293b" }}>Description / Capacity</label>
+              <input
+                placeholder="e.g. Length 25m, heated water, 4.5ft depth"
                 value={customDesc}
                 onChange={e => setCustomDesc(e.target.value)}
-                className="h-9.5 text-xs"
+                style={{
+                  height: "40px",
+                  padding: "0 14px",
+                  borderRadius: "10px",
+                  border: "1px solid #cbd5e1",
+                  backgroundColor: "#ffffff",
+                  fontSize: "13px",
+                  color: "#0a0a0f",
+                  fontWeight: 600,
+                  outline: "none",
+                }}
               />
             </div>
-            <Button onClick={handleAddCustomFacility} className="bg-primary text-white h-9.5 font-bold flex items-center justify-center gap-1">
-              <Plus className="h-4 w-4" />
-              <span>Add Custom Facility</span>
-            </Button>
+
+            <button
+              type="button"
+              onClick={handleAddCustomFacility}
+              style={{
+                height: "40px",
+                padding: "0 18px",
+                borderRadius: "10px",
+                backgroundColor: "#0a0a0f",
+                color: "#c6ff3d",
+                fontWeight: 900,
+                fontSize: "12.5px",
+                border: "none",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "6px",
+              }}
+            >
+              <Plus style={{ width: "16px", height: "16px" }} />
+              <span>Add Facility</span>
+            </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-2">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "12px" }}>
             {customFacList.map((custom, idx) => (
-              <div key={idx} className="p-3 border border-border bg-bg-card/80 rounded-2xl flex items-start justify-between relative group">
-                <div className="space-y-1">
-                  <Badge className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] py-0.5 uppercase font-bold">
+              <div
+                key={idx}
+                style={{
+                  padding: "14px 16px",
+                  borderRadius: "14px",
+                  backgroundColor: "#ffffff",
+                  border: "1px solid #e2e8f0",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.02)",
+                }}
+              >
+                <div>
+                  <span style={{ fontSize: "10px", fontWeight: 900, textTransform: "uppercase", backgroundColor: "rgba(198, 255, 61, 0.2)", color: "#0a0a0f", padding: "2px 8px", borderRadius: "6px" }}>
                     Custom Spec
-                  </Badge>
-                  <p className="text-xs font-bold text-text-primary">{custom.name}</p>
-                  <p className="text-[10px] text-text-secondary leading-snug">{custom.desc || "No specifications description"}</p>
+                  </span>
+                  <div style={{ fontSize: "13.5px", fontWeight: 800, color: "#0a0a0f", marginTop: "6px" }}>
+                    {custom.name}
+                  </div>
+                  <div style={{ fontSize: "11.5px", color: "#64748b", fontWeight: 500, marginTop: "2px" }}>
+                    {custom.desc || "No special constraints defined"}
+                  </div>
                 </div>
 
-                <button 
+                <button
+                  type="button"
                   onClick={() => handleRemoveCustomFacility(custom.name)}
-                  className="text-error hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#e11d48",
+                    cursor: "pointer",
+                    padding: "4px",
+                  }}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 style={{ width: "16px", height: "16px" }} />
                 </button>
               </div>
             ))}
+
             {customFacList.length === 0 && (
-              <div className="col-span-full py-8 text-center text-xs text-text-muted italic border border-dashed border-border rounded-xl">
+              <div style={{ gridColumn: "1 / -1", padding: "24px", textAlign: "center", border: "1px dashed #cbd5e1", borderRadius: "14px", color: "#94a3b8", fontSize: "12.5px", fontWeight: 600 }}>
                 No custom facilities registered yet.
               </div>
             )}

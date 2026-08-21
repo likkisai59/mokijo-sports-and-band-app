@@ -24,7 +24,7 @@ def format_venue_dict(venue: BandVenue) -> Dict[str, Any]:
         "name": venue.name,
         "business_name": venue.business_name or venue.name,
         "description": venue.description or "Premier live performance, concert, and acoustic venue.",
-        "address": venue.address,
+        "address": venue.address or "Jubilee Hills, Road No. 36",
         "city": city_name,
         "state": venue.state or "Telangana",
         "pincode": venue.pincode or "500081",
@@ -37,17 +37,23 @@ def format_venue_dict(venue: BandVenue) -> Dict[str, Any]:
         "verification_status": venue.verification_status,
         "facilities": venue.facilities or ["Pro Sound PA", "Stage Lighting", "Green Room", "Acoustic Walls", "Valet Parking", "Air Conditioning"],
         "gallery": gallery_list,
-        "cover_image": gallery_list[0],
+        "cover_image": gallery_list[0] if gallery_list else None,
         "categories": categories_list or ["Auditorium", "Lounge", "Live Club"],
         "contact_details": venue.contact_details or "venue@bandconnect.in",
         "pricing_details": venue.pricing_details or {
-            "per_slot_rate": venue.base_price,
+            "per_slot_rate": venue.base_price or 35000.0,
             "security_deposit": 10000.0,
-            "cleaning_fee": 2500.0
+            "cleaning_fee": 2500.0,
+            "hourly_rate": 5000.0,
         },
         "availability_rules": venue.availability_rules or {
             "operating_hours": "10:00 AM - 11:30 PM",
             "sound_curfew": "10:00 PM"
+        },
+        "metadata_fields": venue.metadata_fields or {
+            "cover_image": gallery_list[0] if gallery_list else None,
+            "youtube_links": ["https://www.youtube.com/watch?v=dQw4w9WgXcQ"],
+            "virtual_tour": None
         }
     }
 
@@ -79,15 +85,15 @@ def list_venues(
         skip=skip,
         limit=limit,
     )
-
+    
     if total == 0:
         mock_venues = [
             {
                 "id": 201,
                 "venue_number": "BCV-000201",
                 "name": "The Velvet Amphitheater",
-                "business_name": "Velvet Hospitality Spaces",
-                "description": "State-of-the-art live performance auditorium with concert acoustics, moving head stage lighting, and VIP hospitality lounge.",
+                "business_name": "Velvet Hospitality Ltd",
+                "description": "State-of-the-art live performance auditorium with concert acoustics, moving head stage lighting, and VIP lounge.",
                 "address": "Road No. 36, Jubilee Hills",
                 "city": "Hyderabad",
                 "state": "Telangana",
@@ -95,7 +101,7 @@ def list_venues(
                 "google_map_location": "https://maps.google.com",
                 "venue_type": "Amphitheater",
                 "capacity": 450,
-                "min_capacity": 100,
+                "min_capacity": 50,
                 "base_price": 55000.0,
                 "rating": 4.9,
                 "verification_status": "approved",
@@ -192,3 +198,126 @@ def get_venue_detail(db: Session, identifier: str) -> Optional[Dict[str, Any]]:
                 return item
 
     return None
+
+
+def get_or_create_my_venue(db: Session, account) -> BandVenue:
+    venue = crud.get_venue_by_account_id(db, account.id)
+    if not venue:
+        venue = BandVenue(
+            account_id=account.id,
+            name=f"{account.name}'s Grand Arena",
+            business_name=f"{account.name} Hospitality",
+            description="Premier live concert and performance venue equipped with acoustic panels, moving head stage lighting, and VIP lounges.",
+            address="Road No. 36, Jubilee Hills",
+            state="Telangana",
+            pincode="500033",
+            venue_type="Concert Hall",
+            capacity=350,
+            min_capacity=50,
+            base_price=45000.0,
+            verification_status="approved",
+            facilities=["Pro Sound PA", "Stage Lighting", "Green Room", "Acoustic Walls", "Valet Parking", "Air Conditioning"],
+            gallery=[
+                "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&auto=format&fit=crop&q=80"
+            ],
+            pricing_details={"per_slot_rate": 45000.0, "security_deposit": 10000.0, "cleaning_fee": 2500.0},
+            availability_rules={"operating_hours": "09:00 AM - 11:30 PM", "sound_curfew": "10:00 PM"},
+            metadata_fields={"youtube_links": ["https://www.youtube.com/watch?v=dQw4w9WgXcQ"]}
+        )
+        db.add(venue)
+        db.commit()
+        db.refresh(venue)
+    return venue
+
+
+def get_my_venue_profile(db: Session, account) -> Dict[str, Any]:
+    venue = get_or_create_my_venue(db, account)
+    return format_venue_dict(venue)
+
+
+def update_my_venue_profile(db: Session, account, payload: Dict[str, Any]) -> Dict[str, Any]:
+    venue = get_or_create_my_venue(db, account)
+
+    allowed_fields = [
+        "name", "business_name", "description", "address", "state", "pincode",
+        "google_map_location", "venue_type", "capacity", "min_capacity", "base_price",
+        "contact_details", "facilities", "gallery", "pricing_details", "availability_rules",
+        "metadata_fields"
+    ]
+
+    for key, value in payload.items():
+        if key in allowed_fields and hasattr(venue, key):
+            setattr(venue, key, value)
+
+    db.commit()
+    db.refresh(venue)
+    return format_venue_dict(venue)
+
+
+def update_my_venue_media(db: Session, account, payload: Dict[str, Any]) -> Dict[str, Any]:
+    venue = get_or_create_my_venue(db, account)
+    
+    if "gallery" in payload:
+        venue.gallery = payload["gallery"]
+    
+    meta = dict(venue.metadata_fields or {})
+    for k in ["cover_image", "youtube_links", "virtual_tour", "videos"]:
+        if k in payload:
+            meta[k] = payload[k]
+    venue.metadata_fields = meta
+
+    db.commit()
+    db.refresh(venue)
+    return {
+        "gallery": venue.gallery,
+        "cover_image": meta.get("cover_image", venue.gallery[0] if venue.gallery else None),
+        "youtube_links": meta.get("youtube_links", []),
+        "virtual_tour": meta.get("virtual_tour")
+    }
+
+
+def update_my_venue_facilities(db: Session, account, payload: Dict[str, Any]) -> Dict[str, Any]:
+    venue = get_or_create_my_venue(db, account)
+    if "facilities" in payload:
+        venue.facilities = payload["facilities"]
+    db.commit()
+    db.refresh(venue)
+    return format_venue_dict(venue)
+
+
+def update_my_venue_pricing(db: Session, account, payload: Dict[str, Any]) -> Dict[str, Any]:
+    venue = get_or_create_my_venue(db, account)
+    if "pricing_details" in payload:
+        venue.pricing_details = payload["pricing_details"]
+    if "base_price" in payload:
+        venue.base_price = float(payload["base_price"])
+    db.commit()
+    db.refresh(venue)
+    return format_venue_dict(venue)
+
+
+def get_my_venue_availability(db: Session, account) -> Dict[str, Any]:
+    venue = get_or_create_my_venue(db, account)
+    return venue.availability_rules or {
+        "weekly_schedule": {
+            "Monday": {"available": True, "start": "08:00", "end": "23:00"},
+            "Tuesday": {"available": True, "start": "08:00", "end": "23:00"},
+            "Wednesday": {"available": True, "start": "08:00", "end": "23:00"},
+            "Thursday": {"available": True, "start": "08:00", "end": "23:00"},
+            "Friday": {"available": True, "start": "08:00", "end": "23:59"},
+            "Saturday": {"available": True, "start": "08:00", "end": "23:59"},
+            "Sunday": {"available": True, "start": "09:00", "end": "22:00"}
+        },
+        "blocked_dates": [],
+        "maintenance_days": [],
+        "public_holidays": []
+    }
+
+
+def update_my_venue_availability(db: Session, account, payload: Dict[str, Any]) -> Dict[str, Any]:
+    venue = get_or_create_my_venue(db, account)
+    venue.availability_rules = payload
+    db.commit()
+    db.refresh(venue)
+    return venue.availability_rules

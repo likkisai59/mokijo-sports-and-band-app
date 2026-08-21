@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Button } from "@/components/ui/button";
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -10,7 +9,8 @@ import {
   MapPin, 
   User, 
   ListOrdered,
-  Layers
+  Layers,
+  Sparkles
 } from "lucide-react";
 import { 
   format, 
@@ -87,70 +87,127 @@ export function BookingCalendar({
   }, [bookings]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 bg-bg-card/45 backdrop-blur-md border border-border/80 p-5 rounded-2xl shadow-xl flex flex-col space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/30">
-          <div className="space-y-0.5">
-            <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
-              <CalendarIcon className="h-4.5 w-4.5 text-primary animate-pulse" />
-              Event Schedule Calendar
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr)) 340px", gap: "24px" }}>
+      
+      {/* ── Main Calendar Matrix ── */}
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "24px",
+          border: "1px solid #e2e8f0",
+          padding: "24px 28px",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "20px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px", borderBottom: "1px solid #f1f5f9", paddingBottom: "16px" }}>
+          <div>
+            <h3 style={{ fontSize: "16px", fontWeight: 900, color: "#0a0a0f", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+              <CalendarIcon style={{ width: "18px", height: "18px", color: "#0a0a0f" }} />
+              <span>Event Schedule Calendar</span>
             </h3>
-            <p className="text-[10px] text-text-muted">
+            <p style={{ fontSize: "12px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>
               {calendarView === "month" && format(currentDate, "MMMM yyyy")}
               {calendarView === "week" && `Week of ${format(weekStart, "PP")}`}
               {calendarView === "day" && format(currentDate, "PP")}
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="bg-bg-elevated border border-border p-0.5 rounded-lg flex text-[10px] font-bold">
-              <button
-                type="button"
-                onClick={() => setCalendarView("month")}
-                className={`px-2.5 py-1 rounded-md transition-all ${calendarView === "month" ? "bg-primary text-white" : "text-text-secondary hover:text-text-primary"}`}
-              >
-                Month
-              </button>
-              <button
-                type="button"
-                onClick={() => setCalendarView("week")}
-                className={`px-2.5 py-1 rounded-md transition-all ${calendarView === "week" ? "bg-primary text-white" : "text-text-secondary hover:text-text-primary"}`}
-              >
-                Week
-              </button>
-              <button
-                type="button"
-                onClick={() => setCalendarView("day")}
-                className={`px-2.5 py-1 rounded-md transition-all ${calendarView === "day" ? "bg-primary text-white" : "text-text-secondary hover:text-text-primary"}`}
-              >
-                Day
-              </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", backgroundColor: "#f8fafc", padding: "3px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+              {["month", "week", "day"].map(view => (
+                <button
+                  key={view}
+                  type="button"
+                  onClick={() => setCalendarView(view)}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: "8px",
+                    fontSize: "11.5px",
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    border: "none",
+                    backgroundColor: calendarView === view ? "#0a0a0f" : "transparent",
+                    color: calendarView === view ? "#c6ff3d" : "#64748b",
+                    textTransform: "capitalize",
+                  }}
+                >
+                  {view}
+                </button>
+              ))}
             </div>
 
-            <div className="flex items-center gap-1">
-              <Button variant="outline" size="icon" onClick={handlePrev} className="h-7 w-7">
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleToday} className="text-[9px] font-bold h-7 px-2">
+            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+              <button
+                type="button"
+                onClick={handlePrev}
+                style={{
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "8px",
+                  border: "1px solid #e2e8f0",
+                  backgroundColor: "#f8fafc",
+                  color: "#0a0a0f",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <ChevronLeft style={{ width: "16px", height: "16px" }} />
+              </button>
+              <button
+                type="button"
+                onClick={handleToday}
+                style={{
+                  height: "32px",
+                  padding: "0 10px",
+                  borderRadius: "8px",
+                  border: "1px solid #e2e8f0",
+                  backgroundColor: "#f8fafc",
+                  color: "#0a0a0f",
+                  fontSize: "11.5px",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
                 Today
-              </Button>
-              <Button variant="outline" size="icon" onClick={handleNext} className="h-7 w-7">
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+              </button>
+              <button
+                type="button"
+                onClick={handleNext}
+                style={{
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "8px",
+                  border: "1px solid #e2e8f0",
+                  backgroundColor: "#f8fafc",
+                  color: "#0a0a0f",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <ChevronRight style={{ width: "16px", height: "16px" }} />
+              </button>
             </div>
           </div>
         </div>
 
+        {/* Month View Grid */}
         {calendarView === "month" && (
-          <div className="grid grid-cols-7 gap-1 text-center">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "6px" }}>
             {WEEKDAYS.map(day => (
-              <span key={day} className="text-[10px] font-bold text-text-muted py-1 uppercase">
+              <span key={day} style={{ textAlign: "center", fontSize: "11px", fontWeight: 900, color: "#94a3b8", textTransform: "uppercase", paddingBottom: "6px" }}>
                 {day}
               </span>
             ))}
             {monthGrid.map((day, idx) => {
               if (!day) {
-                return <div key={`empty-${idx}`} className="aspect-square bg-transparent rounded-lg border border-transparent" />;
+                return <div key={`empty-${idx}`} style={{ aspectRatio: "1 / 1", backgroundColor: "transparent" }} />;
               }
 
               const dayBookings = getDayBookings(day);
@@ -165,40 +222,50 @@ export function BookingCalendar({
                     setCurrentDate(day);
                   }}
                   type="button"
-                  className={`aspect-square p-1 rounded-xl border flex flex-col items-center justify-between transition-all relative ${
-                    active 
-                      ? "bg-primary border-primary text-white shadow-lg scale-102" 
-                      : isTodayDate
-                        ? "bg-primary/5 border-primary/40 text-primary"
-                        : "bg-bg-elevated/10 border-border/50 text-text-secondary hover:border-text-secondary"
-                  }`}
+                  style={{
+                    aspectRatio: "1 / 1",
+                    padding: "6px",
+                    borderRadius: "12px",
+                    border: active ? "2px solid #0a0a0f" : isTodayDate ? "1.5px solid #0a0a0f" : "1px solid #e2e8f0",
+                    backgroundColor: active ? "#0a0a0f" : isTodayDate ? "#f0fdf4" : "#ffffff",
+                    color: active ? "#c6ff3d" : "#0a0a0f",
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    transition: "all 0.15s ease",
+                  }}
                 >
-                  <span className="text-xs font-black self-start pl-1 pt-0.5">
+                  <span style={{ fontSize: "12px", fontWeight: 900 }}>
                     {day.getDate()}
                   </span>
 
-                  <div className="flex flex-wrap gap-0.5 w-full justify-center pb-1">
-                    {dayBookings.slice(0, 3).map((_, bIdx) => (
-                      <span 
-                        key={bIdx} 
-                        className={`h-1.5 w-1.5 rounded-full ${
-                          active ? "bg-white" : "bg-primary"
-                        }`} 
-                      />
-                    ))}
-                    {dayBookings.length > 3 && (
-                      <span className="text-[7px] font-bold leading-none text-text-muted">+</span>
-                    )}
-                  </div>
+                  {dayBookings.length > 0 && (
+                    <div style={{ display: "flex", gap: "3px", width: "100%", justifyContent: "center" }}>
+                      {dayBookings.slice(0, 3).map((_, bIdx) => (
+                        <span
+                          key={bIdx}
+                          style={{
+                            width: "6px",
+                            height: "6px",
+                            borderRadius: "50%",
+                            backgroundColor: active ? "#c6ff3d" : "#16a34a",
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </button>
               );
             })}
           </div>
         )}
 
+        {/* Week View */}
         {calendarView === "week" && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-7 gap-2 text-center border-b border-border/30 pb-2">
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "6px" }}>
               {daysInWeek.map(day => {
                 const active = selectedDate && isSameDay(day, selectedDate);
                 const isTodayDate = isToday(day);
@@ -209,191 +276,156 @@ export function BookingCalendar({
                       setSelectedDate(day);
                       setCurrentDate(day);
                     }}
-                    className={`p-2 rounded-xl border flex flex-col items-center gap-1 transition-all ${
-                      active 
-                        ? "bg-primary border-primary text-white"
-                        : isTodayDate
-                          ? "bg-primary/5 border-primary/30 text-primary font-bold"
-                          : "bg-bg-elevated/5 border-border/40 text-text-secondary hover:bg-bg-elevated/20"
-                    }`}
+                    style={{
+                      padding: "10px 6px",
+                      borderRadius: "12px",
+                      border: active ? "2px solid #0a0a0f" : "1px solid #e2e8f0",
+                      backgroundColor: active ? "#0a0a0f" : isTodayDate ? "#f0fdf4" : "#f8fafc",
+                      color: active ? "#c6ff3d" : "#0a0a0f",
+                      cursor: "pointer",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: "2px",
+                    }}
                   >
-                    <span className="text-[9px] uppercase font-bold text-text-muted">{format(day, "eee")}</span>
-                    <span className="text-sm font-black">{day.getDate()}</span>
+                    <span style={{ fontSize: "10px", fontWeight: 800, textTransform: "uppercase" }}>{format(day, "eee")}</span>
+                    <span style={{ fontSize: "14px", fontWeight: 900 }}>{day.getDate()}</span>
                   </button>
                 );
               })}
             </div>
 
-            <div className="space-y-2">
-              {selectedDate && (
-                <>
-                  <p className="text-[10px] uppercase font-bold text-text-muted">
-                    Bookings for {format(selectedDate, "eeee, MMMM d")}:
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {getDayBookings(selectedDate).map(b => (
-                      <div
-                        key={b.id}
-                        onClick={() => onSelectBooking(b)}
-                        className="p-3 border border-border bg-bg-elevated/15 hover:bg-bg-elevated/30 rounded-xl cursor-pointer transition-all flex justify-between items-center"
-                      >
-                        <div className="space-y-1">
-                          <p className="font-bold text-text-primary text-xs">{b.event_name}</p>
-                          <p className="text-[10px] text-text-muted flex items-center gap-1">
-                            <Clock className="h-3 w-3" /> {b.start_time} - {b.end_time}
-                          </p>
-                        </div>
-                        <ChevronRight className="h-4 w-4 text-text-muted" />
-                      </div>
-                    ))}
-                    {getDayBookings(selectedDate).length === 0 && (
-                      <p className="text-xs text-text-muted italic col-span-2">No bookings for this date.</p>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-
-        {calendarView === "day" && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-border/30 pb-2">
-              <span className="text-xs font-bold text-text-primary">
-                Daily Schedule: {format(currentDate, "PP")}
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <span style={{ fontSize: "12px", fontWeight: 800, color: "#64748b" }}>
+                Bookings on {format(selectedDate, "eeee, MMMM d")}:
               </span>
-              {isToday(currentDate) && (
-                <span className="text-[9px] font-bold bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded-full">
-                  Today
-                </span>
-              )}
-            </div>
-
-            <div className="space-y-2 min-h-50">
-              {getDayBookings(currentDate).map(b => (
+              {getDayBookings(selectedDate).map(b => (
                 <div
                   key={b.id}
                   onClick={() => onSelectBooking(b)}
-                  className="p-4 border border-border bg-bg-elevated/10 hover:bg-bg-elevated/20 cursor-pointer rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all"
+                  style={{
+                    padding: "12px 16px",
+                    borderRadius: "12px",
+                    backgroundColor: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    cursor: "pointer",
+                  }}
                 >
-                  <div className="space-y-1.5">
-                    <p className="text-sm font-black text-text-primary leading-snug">{b.event_name}</p>
-                    <div className="flex flex-wrap gap-4 text-[10px] text-text-secondary">
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3.5 w-3.5 text-text-muted" />
-                        {b.start_time} - {b.end_time}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <User className="h-3.5 w-3.5 text-text-muted" />
-                        Host: {b.client?.name}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3.5 w-3.5 text-text-muted" />
-                        {b.location}
-                      </span>
-                    </div>
+                  <div>
+                    <span style={{ fontSize: "13px", fontWeight: 900, color: "#0a0a0f", display: "block" }}>{b.event_name}</span>
+                    <span style={{ fontSize: "11px", color: "#64748b", fontWeight: 600 }}>{b.start_time} - {b.end_time} • {b.client?.name || b.client_name}</span>
                   </div>
-                  <Button variant="outline" size="sm" className="h-8 font-bold text-[10px] shrink-0">
-                    Inspect Booking
-                  </Button>
-                </div>
-              ))}
-
-              {getDayBookings(currentDate).length === 0 && (
-                <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <Layers className="h-8 w-8 text-text-muted mb-2 animate-bounce" />
-                  <p className="text-xs text-text-muted italic">No reservations booked on this date slot.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {calendarView === "month" && selectedDate && (
-          <div className="mt-4 pt-4 border-t border-border/40 space-y-2 text-xs">
-            <p className="font-bold uppercase tracking-wider text-[10px] text-text-secondary">
-              Selected Day: {format(selectedDate, "do MMMM, yyyy")}
-            </p>
-
-            <div className="space-y-2">
-              {getDayBookings(selectedDate).map(b => (
-                <div 
-                  key={b.id} 
-                  onClick={() => onSelectBooking(b)}
-                  className="p-3 border border-border/80 bg-bg-elevated/10 hover:bg-bg-elevated/20 cursor-pointer rounded-xl flex items-center justify-between transition-all"
-                >
-                  <div className="space-y-1">
-                    <p className="font-bold text-text-primary text-xs">{b.event_name}</p>
-                    <div className="flex items-center gap-3 text-[10px] text-text-muted">
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {b.start_time} - {b.end_time}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        {b.client?.name}
-                      </span>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-text-muted" />
+                  <ChevronRight style={{ width: "16px", height: "16px", color: "#0a0a0f" }} />
                 </div>
               ))}
               {getDayBookings(selectedDate).length === 0 && (
-                <p className="text-[11px] text-text-muted italic">No accepted bookings scheduled for this date.</p>
+                <p style={{ fontSize: "12px", color: "#94a3b8", fontStyle: "italic", margin: 0 }}>No bookings scheduled on this date.</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Selected Date Details in Month View */}
+        {calendarView === "month" && selectedDate && (
+          <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: "14px", display: "flex", flexDirection: "column", gap: "10px" }}>
+            <span style={{ fontSize: "11px", fontWeight: 900, color: "#64748b", textTransform: "uppercase" }}>
+              Schedule for {format(selectedDate, "do MMMM, yyyy")}
+            </span>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {getDayBookings(selectedDate).map(b => (
+                <div
+                  key={b.id}
+                  onClick={() => onSelectBooking(b)}
+                  style={{
+                    padding: "12px 16px",
+                    borderRadius: "12px",
+                    backgroundColor: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    cursor: "pointer",
+                  }}
+                >
+                  <div>
+                    <span style={{ fontSize: "13px", fontWeight: 900, color: "#0a0a0f", display: "block" }}>{b.event_name}</span>
+                    <span style={{ fontSize: "11px", color: "#64748b", fontWeight: 600 }}>{b.start_time} - {b.end_time} • {b.client?.name || b.client_name}</span>
+                  </div>
+                  <ChevronRight style={{ width: "16px", height: "16px", color: "#0a0a0f" }} />
+                </div>
+              ))}
+              {getDayBookings(selectedDate).length === 0 && (
+                <p style={{ fontSize: "12px", color: "#94a3b8", fontStyle: "italic", margin: 0 }}>No confirmed bookings on this day.</p>
               )}
             </div>
           </div>
         )}
       </div>
 
-      <div className="bg-bg-card/45 backdrop-blur-md border border-border/80 p-5 rounded-2xl shadow-xl flex flex-col space-y-4">
-        <div className="border-b border-border/30 pb-2">
-          <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
-            <ListOrdered className="h-4.5 w-4.5 text-primary" />
-            Upcoming Schedules
+      {/* ── Upcoming Schedule Timeline Sidebar ── */}
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "24px",
+          border: "1px solid #e2e8f0",
+          padding: "24px 28px",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "16px",
+        }}
+      >
+        <div style={{ borderBottom: "1px solid #f1f5f9", paddingBottom: "12px" }}>
+          <h3 style={{ fontSize: "14px", fontWeight: 900, color: "#0a0a0f", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+            <ListOrdered style={{ width: "16px", height: "16px", color: "#0a0a0f" }} />
+            <span>Upcoming Schedules</span>
           </h3>
-          <p className="text-[10px] text-text-muted">Accepted bookings in timeline progression</p>
+          <p style={{ fontSize: "11px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>
+            Timeline of confirmed engagements
+          </p>
         </div>
 
-        <div className="space-y-3.5 overflow-y-auto max-h-[55vh] pr-1 scrollbar-thin">
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxHeight: "460px", overflowY: "auto" }}>
           {upcomingBookings.map(b => (
-            <div 
+            <div
               key={b.id}
               onClick={() => onSelectBooking(b)}
-              className="p-3.5 border border-border/70 hover:border-primary bg-bg-card/60 hover:bg-bg-card cursor-pointer rounded-xl transition-all space-y-2 relative group"
+              style={{
+                padding: "12px 14px",
+                borderRadius: "14px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #e2e8f0",
+                cursor: "pointer",
+                display: "flex",
+                flexDirection: "column",
+                gap: "4px",
+              }}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-primary">
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ fontSize: "11px", fontWeight: 900, color: "#16a34a" }}>
                   {format(new Date(b.event_date), "MMM dd, yyyy")}
                 </span>
-                <span className="text-[10px] text-text-muted font-semibold">
+                <span style={{ fontSize: "10.5px", color: "#64748b", fontWeight: 700 }}>
                   {b.start_time} - {b.end_time}
                 </span>
               </div>
-
-              <p className="text-xs font-bold text-text-primary truncate leading-snug">{b.event_name}</p>
-
-              <div className="flex flex-col gap-1 text-[10px] text-text-secondary pt-0.5">
-                <span className="flex items-center gap-1">
-                  <User className="h-3 w-3 text-text-muted" />
-                  Client: {b.client?.name}
-                </span>
-                <span className="flex items-center gap-1 truncate">
-                  <MapPin className="h-3 w-3 text-text-muted" />
-                  {b.location}
-                </span>
-              </div>
-
-              <div className="absolute right-3.5 bottom-3.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                <ChevronRight className="h-4 w-4 text-primary" />
-              </div>
+              <span style={{ fontSize: "13px", fontWeight: 900, color: "#0a0a0f" }}>{b.event_name}</span>
+              <span style={{ fontSize: "11.5px", color: "#64748b", fontWeight: 600 }}>{b.client?.name || b.client_name || "Direct Client"}</span>
             </div>
           ))}
+
           {upcomingBookings.length === 0 && (
-            <p className="text-xs text-text-muted italic text-center py-12">No upcoming accepted reservations.</p>
+            <p style={{ fontSize: "12px", color: "#94a3b8", fontStyle: "italic", textAlign: "center", padding: "40px 0", margin: 0 }}>
+              No upcoming confirmed engagements.
+            </p>
           )}
         </div>
       </div>
+
     </div>
   );
 }

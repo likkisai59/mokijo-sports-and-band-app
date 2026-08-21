@@ -2,9 +2,6 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { ImageUpload } from "@/components/shared/ImageUpload";
 import { VideoUpload } from "@/components/shared/VideoUpload";
 import { 
@@ -156,197 +153,233 @@ export function VenueMediaGallery({ media, onSave }) {
   };
 
   return (
-    <div className="space-y-8 bg-bg-card/45 backdrop-blur-md border border-border/80 p-6 md:p-8 rounded-3xl shadow-xl">
-      <div className="border-b border-border/50 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-0.5">
-          <h2 className="text-xl font-bold text-text-primary">Venue Media Showcase &amp; Albums</h2>
-          <p className="text-xs text-text-secondary">Upload high resolution photos of your spaces, walkthrough clips and Matterport 360° virtual tours.</p>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "28px",
+        width: "100%",
+      }}
+    >
+      {/* ── Top Header & Save Banner ── */}
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "24px",
+          border: "1px solid #e2e8f0",
+          padding: "24px 32px",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "16px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div style={{ width: "42px", height: "42px", borderRadius: "12px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#c6ff3d" }}>
+            <ImageIcon style={{ width: "20px", height: "20px" }} />
+          </div>
+          <div>
+            <h1 style={{ fontSize: "18px", fontWeight: 900, color: "#0a0a0f", margin: 0, letterSpacing: "-0.01em" }}>
+              Venue Media Showcase &amp; Gallery
+            </h1>
+            <p style={{ fontSize: "12.5px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>
+              Upload high-resolution photography, concert stages, walkthrough videos, and 360° virtual tours.
+            </p>
+          </div>
         </div>
-        <Button 
-          onClick={handleSave} 
-          disabled={saving} 
-          className="bg-primary hover:bg-primary/95 text-white font-bold h-10 px-6 flex items-center gap-1.5 self-start sm:self-center"
+
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "12px 28px",
+            borderRadius: "14px",
+            backgroundColor: "#c6ff3d",
+            color: "#0a0a0f",
+            fontWeight: 900,
+            fontSize: "14px",
+            border: "none",
+            cursor: saving ? "not-allowed" : "pointer",
+            boxShadow: "0 4px 14px rgba(198, 255, 61, 0.4)",
+            transition: "all 0.15s ease",
+          }}
         >
-          <Save className="h-4 w-4" />
+          <Save style={{ width: "17px", height: "17px" }} />
           <span>{saving ? "Saving Media..." : "Save Media Configuration"}</span>
-        </Button>
+        </button>
       </div>
 
-      <div className="space-y-4">
-        <Label className="text-sm font-bold text-text-primary">Cover Banner Image</Label>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end p-4 border border-border/60 bg-bg-elevated/15 rounded-2xl">
-          <div className="md:col-span-2">
+      {/* ── Cover Banner Section ── */}
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "24px",
+          border: "1px solid #e2e8f0",
+          padding: "24px 32px",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "18px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "12px" }}>
+          <div style={{ width: "32px", height: "32px", borderRadius: "10px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#c6ff3d" }}>
+            <Star style={{ width: "16px", height: "16px" }} />
+          </div>
+          <div>
+            <h2 style={{ fontSize: "15px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+              Primary Cover Banner Image
+            </h2>
+            <p style={{ fontSize: "11.5px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>The main hero picture displayed across client searches and marketplace listings.</p>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "24px", alignItems: "center" }}>
+          <div>
             {coverImage ? (
-              <div className="aspect-video w-full max-w-md relative rounded-xl overflow-hidden border border-border">
-                <Image src={coverImage} alt="Cover Banner" fill className="object-cover" />
+              <div style={{ position: "relative", width: "100%", height: "240px", borderRadius: "16px", overflow: "hidden", border: "1px solid #e2e8f0", boxShadow: "0 4px 14px rgba(0,0,0,0.06)" }}>
+                <Image src={coverImage} alt="Cover Banner" fill style={{ objectFit: "cover" }} />
                 <button 
                   type="button" 
                   onClick={() => setCoverImage(null)}
-                  className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500 hover:bg-red-600 text-white shadow"
+                  style={{
+                    position: "absolute",
+                    top: "12px",
+                    right: "12px",
+                    width: "34px",
+                    height: "34px",
+                    borderRadius: "10px",
+                    backgroundColor: "rgba(225, 29, 72, 0.9)",
+                    color: "#ffffff",
+                    border: "none",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                  }}
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Trash2 style={{ width: "16px", height: "16px" }} />
                 </button>
+                <div style={{ position: "absolute", bottom: "12px", left: "12px", backgroundColor: "rgba(10, 10, 15, 0.8)", backdropFilter: "blur(6px)", padding: "4px 12px", borderRadius: "8px", color: "#c6ff3d", fontSize: "11px", fontWeight: 800, display: "flex", alignItems: "center", gap: "6px" }}>
+                  <Star style={{ width: "12px", height: "12px", fill: "#c6ff3d" }} /> Active Marketplace Cover
+                </div>
               </div>
             ) : (
-              <div className="aspect-video w-full max-w-md bg-bg-elevated/40 border border-dashed border-border rounded-xl flex items-center justify-center text-text-muted text-xs italic">
-                No cover banner selected. Upload gallery photos and mark one as cover or upload below.
+              <div style={{ width: "100%", height: "240px", backgroundColor: "#f8fafc", border: "2px dashed #cbd5e1", borderRadius: "16px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px", padding: "20px", textAlign: "center" }}>
+                <ImageIcon style={{ width: "36px", height: "36px", color: "#94a3b8" }} />
+                <span style={{ fontSize: "13px", fontWeight: 700, color: "#64748b" }}>No Cover Banner Assigned</span>
+                <span style={{ fontSize: "11px", color: "#94a3b8" }}>Upload a new image below or choose one from your gallery.</span>
               </div>
             )}
           </div>
-          <ImageUpload 
-            onChange={(url) => setCoverImage(url)}
-            subfolder="venues/covers"
-          />
-        </div>
-      </div>
 
-      <div className="space-y-4 pt-4 border-t border-border/50">
-        <div className="space-y-1">
-          <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
-            <ImageIcon className="h-5 w-5 text-primary" />
-            Photo Gallery Albums
-          </h3>
-          <p className="text-xs text-text-secondary">Upload images of your venue halls and classify them into respective spaces.</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end p-4 border border-border/60 bg-bg-elevated/15 rounded-2xl">
-          <div className="space-y-1.5 md:col-span-2">
-            <Label>Select Album category to upload into</Label>
-            <select 
-              value={newAlbumName} 
-              onChange={e => setNewAlbumName(e.target.value)}
-              className="w-full h-10 px-3 rounded-lg border border-border bg-bg-card text-text-primary text-xs"
-            >
-              {ALBUMS.map(al => (
-                <option key={al} value={al}>{al}</option>
-              ))}
-            </select>
+          <div style={{ backgroundColor: "#f8fafc", padding: "20px", borderRadius: "16px", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column", gap: "10px" }}>
+            <span style={{ fontSize: "12.5px", fontWeight: 800, color: "#1e293b" }}>Upload New Cover Photo</span>
+            <ImageUpload 
+              onChange={(url) => setCoverImage(url)}
+              subfolder="venues/covers"
+            />
           </div>
-          <ImageUpload 
-            onChange={addImageToGallery}
-            subfolder="venues/gallery"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-2">
-          {gallery.map((item, idx) => (
-            <div key={idx} className="border border-border/80 rounded-2xl overflow-hidden bg-bg-card/85 flex flex-col group relative">
-              <div className="aspect-video w-full relative bg-bg-elevated/40 flex items-center justify-center border-b border-border/50">
-                <Image src={item.url} alt="Gallery item" fill className="object-cover" />
-                {item.is_cover && (
-                  <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-primary text-white flex items-center gap-1 shadow-sm border border-primary-light">
-                    <Star className="h-3 w-3 fill-current" /> Cover Image
-                  </span>
-                )}
-                
-                <button 
-                  type="button" 
-                  onClick={() => removeImage(idx)}
-                  className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500 hover:bg-red-600 text-white shadow opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-
-              <div className="p-3 space-y-3">
-                <div className="space-y-1">
-                  <span className="text-[9px] uppercase font-bold text-text-muted">Album Category</span>
-                  <select
-                    value={item.album}
-                    onChange={e => handleAlbumChange(idx, e.target.value)}
-                    className="w-full h-8 px-2 rounded border border-border bg-bg-elevated text-text-primary text-[10px]"
-                  >
-                    {ALBUMS.map(al => (
-                      <option key={al} value={al}>{al}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex items-center justify-between pt-1 border-t border-border/40">
-                  <div className="flex gap-1.5">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      disabled={idx === 0}
-                      onClick={() => moveImage(idx, "left")}
-                      className="h-7 w-7"
-                    >
-                      <ChevronLeft className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      disabled={idx === gallery.length - 1}
-                      onClick={() => moveImage(idx, "right")}
-                      className="h-7 w-7"
-                    >
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-
-                  {!item.is_cover && (
-                    <Button 
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setAsCover(idx)}
-                      className="h-7 text-[9px] font-bold"
-                    >
-                      Set Cover
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-          {gallery.length === 0 && (
-            <div className="sm:col-span-2 md:col-span-4 py-12 text-center text-xs text-text-muted italic border border-dashed border-border rounded-2xl">
-              No photos added to gallery yet.
-            </div>
-          )}
         </div>
       </div>
 
-      <div className="space-y-4 pt-4 border-t border-border/50">
-        <div className="space-y-1">
-          <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
-            <VideoIcon className="h-5 w-5 text-primary" />
-            Upload Walkthrough Videos
-          </h3>
-          <p className="text-xs text-text-secondary">Upload actual walkthrough video files showcasing hall space layout. Max size: 20MB.</p>
+      {/* ── Walkthrough Videos ── */}
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "24px",
+          border: "1px solid #e2e8f0",
+          padding: "24px 32px",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "20px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "12px" }}>
+          <div style={{ width: "32px", height: "32px", borderRadius: "10px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#c6ff3d" }}>
+            <VideoIcon style={{ width: "16px", height: "16px" }} />
+          </div>
+          <div>
+            <h2 style={{ fontSize: "15px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+              Direct Video Clips (Max 20MB)
+            </h2>
+            <p style={{ fontSize: "11.5px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>Upload video files directly showcasing room acoustic setups and stage lighting.</p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center p-4 border border-border/60 bg-bg-elevated/15 rounded-2xl">
-          <p className="text-xs text-text-secondary md:col-span-2 leading-relaxed">
-            Choose a walkthrough clip showing the space decor configurations. Max size: 20MB. MP4 format preferred.
-          </p>
+        <div style={{ backgroundColor: "#f8fafc", padding: "16px", borderRadius: "16px", border: "1px solid #e2e8f0" }}>
           <VideoUpload 
             onChange={addVideoFile}
             subfolder="venues/videos"
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px" }}>
           {videos.map((v, idx) => (
-            <div key={idx} className="border border-border/80 rounded-2xl overflow-hidden bg-bg-card/85 flex flex-col group relative">
-              <div className="aspect-video w-full relative bg-bg-elevated/40 border-b border-border/50 flex items-center justify-center">
-                <video src={v.url} controls className="w-full h-full object-cover" />
+            <div
+              key={idx}
+              style={{
+                borderRadius: "16px",
+                overflow: "hidden",
+                border: "1px solid #e2e8f0",
+                backgroundColor: "#ffffff",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.02)",
+                display: "flex",
+                flexDirection: "column",
+                position: "relative",
+              }}
+            >
+              <div style={{ position: "relative", width: "100%", height: "160px", backgroundColor: "#0a0a0f" }}>
+                <video src={v.url} controls style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 <button 
                   type="button" 
                   onClick={() => removeVideoFile(idx)}
-                  className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500 hover:bg-red-600 text-white shadow opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  style={{
+                    position: "absolute",
+                    top: "8px",
+                    right: "8px",
+                    width: "28px",
+                    height: "28px",
+                    borderRadius: "8px",
+                    backgroundColor: "rgba(225, 29, 72, 0.9)",
+                    color: "#ffffff",
+                    border: "none",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 10,
+                  }}
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Trash2 style={{ width: "14px", height: "14px" }} />
                 </button>
               </div>
-              <div className="p-3">
-                <span className="text-[9px] uppercase font-bold text-text-muted">Video Category tag</span>
+
+              <div style={{ padding: "12px" }}>
+                <span style={{ fontSize: "9.5px", fontWeight: 800, textTransform: "uppercase", color: "#64748b", display: "block", marginBottom: "4px" }}>Video Category</span>
                 <select
                   value={v.category}
                   onChange={e => handleVideoCategoryChange(idx, e.target.value)}
-                  className="w-full h-8 px-2 mt-1 rounded border border-border bg-bg-elevated text-text-primary text-[10px]"
+                  style={{
+                    width: "100%",
+                    height: "32px",
+                    padding: "0 8px",
+                    borderRadius: "8px",
+                    border: "1px solid #cbd5e1",
+                    backgroundColor: "#f8fafc",
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    color: "#0a0a0f",
+                    outline: "none",
+                  }}
                 >
                   {VIDEO_CATEGORIES.map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
@@ -358,63 +391,165 @@ export function VenueMediaGallery({ media, onSave }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-border/50">
-        <div className="space-y-4">
-          <div className="space-y-1">
-            <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
-              <Youtube className="h-5 w-5 text-red-500" />
-              YouTube Video Embeds
-            </h3>
-            <p className="text-xs text-text-secondary">Embed showcase links from your YouTube channel.</p>
+      {/* ── 2-Column: YouTube Embeds & Matterport 360° ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "24px" }}>
+        
+        {/* YouTube Section */}
+        <div
+          style={{
+            backgroundColor: "#ffffff",
+            borderRadius: "24px",
+            border: "1px solid #e2e8f0",
+            padding: "24px 28px",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "18px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "12px" }}>
+            <div style={{ width: "32px", height: "32px", borderRadius: "10px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#e11d48" }}>
+              <Youtube style={{ width: "16px", height: "16px" }} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: "15px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+                YouTube Performance Embeds
+              </h2>
+              <p style={{ fontSize: "11.5px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>Paste concert recordings and drone showreels.</p>
+            </div>
           </div>
 
-          <div className="flex gap-2">
-            <Input 
+          <div style={{ display: "flex", gap: "8px" }}>
+            <input
               placeholder="https://www.youtube.com/watch?v=..." 
               value={newYoutubeUrl}
               onChange={e => setNewYoutubeUrl(e.target.value)}
+              style={{
+                flex: 1,
+                height: "40px",
+                padding: "0 14px",
+                borderRadius: "10px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "12.5px",
+                color: "#0a0a0f",
+                fontWeight: 600,
+                outline: "none",
+              }}
             />
-            <Button type="button" onClick={addYoutube} className="h-10 px-4 bg-primary text-white shrink-0">
-              <Plus className="h-4 w-4" />
-            </Button>
+            <button
+              type="button"
+              onClick={addYoutube}
+              style={{
+                height: "40px",
+                padding: "0 16px",
+                borderRadius: "10px",
+                backgroundColor: "#0a0a0f",
+                color: "#c6ff3d",
+                fontWeight: 900,
+                fontSize: "12px",
+                border: "none",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+            >
+              <Plus style={{ width: "15px", height: "15px" }} />
+              <span>Add</span>
+            </button>
           </div>
 
-          <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "240px", overflowY: "auto" }}>
             {youtubeLinks.map((link, idx) => (
-              <div key={idx} className="flex items-center justify-between p-3 rounded-xl border border-border/80 bg-bg-elevated/20 hover:border-primary/30 transition-colors">
-                <span className="text-xs text-text-primary truncate max-w-[280px]">{link}</span>
-                <button type="button" onClick={() => removeYoutube(idx)} className="text-error hover:text-red-400 p-1 shrink-0">
-                  <Trash2 className="h-4 w-4" />
+              <div
+                key={idx}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "10px 14px",
+                  borderRadius: "12px",
+                  backgroundColor: "#f8fafc",
+                  border: "1px solid #e2e8f0",
+                }}
+              >
+                <span style={{ fontSize: "12px", color: "#0a0a0f", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "260px" }}>
+                  {link}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => removeYoutube(idx)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#e11d48",
+                    cursor: "pointer",
+                    padding: "4px",
+                  }}
+                >
+                  <Trash2 style={{ width: "15px", height: "15px" }} />
                 </button>
               </div>
             ))}
+
             {youtubeLinks.length === 0 && (
-              <p className="text-xs text-text-muted italic">No YouTube links added yet.</p>
+              <p style={{ fontSize: "12px", color: "#94a3b8", margin: 0, fontStyle: "italic", textAlign: "center", padding: "16px 0" }}>
+                No YouTube links added yet.
+              </p>
             )}
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="space-y-1">
-            <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
-              <Compass className="h-5 w-5 text-emerald-400" />
-              Matterport 360° Virtual Tour Link
-            </h3>
-            <p className="text-xs text-text-secondary">Provide an iframe embed or shareable URL from Matterport to allow guest tours.</p>
+        {/* Matterport 360° Section */}
+        <div
+          style={{
+            backgroundColor: "#ffffff",
+            borderRadius: "24px",
+            border: "1px solid #e2e8f0",
+            padding: "24px 28px",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "18px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", borderBottom: "1px solid #f1f5f9", paddingBottom: "12px" }}>
+            <div style={{ width: "32px", height: "32px", borderRadius: "10px", backgroundColor: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", color: "#10b981" }}>
+              <Compass style={{ width: "16px", height: "16px" }} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: "15px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+                Matterport 360° Virtual Tour
+              </h2>
+              <p style={{ fontSize: "11.5px", color: "#64748b", margin: "2px 0 0 0", fontWeight: 500 }}>Allow guests to walk through the hall in interactive 3D.</p>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="virtual_tour">360° Tour Shareable Link</Label>
-            <Input 
-              id="virtual_tour"
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <label style={{ fontSize: "12px", fontWeight: 800, color: "#1e293b" }}>360° Tour Shareable Link</label>
+            <input
               placeholder="https://my.matterport.com/show/?m=..." 
               value={virtualTour || ""}
               onChange={e => setVirtualTour(e.target.value || null)}
+              style={{
+                width: "100%",
+                height: "40px",
+                padding: "0 14px",
+                borderRadius: "10px",
+                backgroundColor: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                fontSize: "12.5px",
+                color: "#0a0a0f",
+                fontWeight: 600,
+                outline: "none",
+                boxSizing: "border-box",
+              }}
             />
             {virtualTour && (
-              <div className="p-3 bg-bg-elevated/20 border border-border/80 rounded-xl space-y-2 text-xs">
-                <p className="text-emerald-400 font-bold">Virtual tour active!</p>
-                <p className="text-[10px] text-text-secondary break-all">{virtualTour}</p>
+              <div style={{ padding: "12px 14px", backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "12px", fontSize: "12px" }}>
+                <span style={{ color: "#15803d", fontWeight: 800, display: "block" }}>✓ Virtual Tour URL Active</span>
+                <span style={{ color: "#475569", fontSize: "11px", wordBreak: "break-all" }}>{virtualTour}</span>
               </div>
             )}
           </div>

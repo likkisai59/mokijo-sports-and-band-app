@@ -6,11 +6,7 @@ import { AvailabilityWeekly } from "@/components/artist/calendar/AvailabilityWee
 import { ConflictChecker } from "@/components/artist/calendar/ConflictChecker";
 import { BookingCalendar } from "@/components/bookings/BookingCalendar";
 import { BookingDetailsDialog } from "@/components/bookings/BookingDetailsDialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Spinner } from "@/components/ui/spinner";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { CalendarDays, Calendar, Clock, Lock, CheckCircle2, User } from "lucide-react";
+import { CalendarDays, Calendar, Clock, Lock, CheckCircle2, User, ChevronRight } from "lucide-react";
 import { formatCurrency } from "@/utils/format-currency";
 import { formatDate } from "@/utils/format-date";
 
@@ -33,72 +29,167 @@ export function EventCalendarTab({
 
   if (loading && !availability) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 gap-3">
-        <Spinner className="h-8 w-8 text-primary" />
-        <p className="text-xs text-text-secondary animate-pulse">Loading event calendar...</p>
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "24px",
+          border: "1px solid #e2e8f0",
+          padding: "60px 20px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "12px",
+        }}
+      >
+        <div style={{ width: "36px", height: "36px", borderRadius: "50%", border: "3px solid #0a0a0f", borderTopColor: "#c6ff3d", animation: "spin 1s linear infinite" }} />
+        <span style={{ fontSize: "13px", fontWeight: 700, color: "#64748b" }}>Loading calendar events...</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-1 bg-bg-card/40 p-2 rounded-xl border border-border/60">
-        <Button
-          variant={subTab === "calendar" ? "default" : "ghost"}
-          size="sm"
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      
+      {/* ── Sub-navigation Toolbar ── */}
+      <div
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "20px",
+          border: "1px solid #e2e8f0",
+          padding: "12px 18px",
+          display: "flex",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "8px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.02)",
+        }}
+      >
+        <button
+          type="button"
           onClick={() => setSubTab("calendar")}
-          className="text-xs h-8 font-bold gap-1.5"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "8px 16px",
+            borderRadius: "10px",
+            fontSize: "12px",
+            fontWeight: 800,
+            cursor: "pointer",
+            border: subTab === "calendar" ? "none" : "1px solid #e2e8f0",
+            backgroundColor: subTab === "calendar" ? "#0a0a0f" : "#f8fafc",
+            color: subTab === "calendar" ? "#c6ff3d" : "#475569",
+            transition: "all 0.15s ease",
+          }}
         >
-          <Calendar className="h-3.5 w-3.5" />
-          <span>Calendar</span>
-        </Button>
+          <Calendar style={{ width: "14px", height: "14px" }} />
+          <span>Interactive Calendar</span>
+        </button>
 
         {role === "artist" && availability && (
           <>
-            <Button
-              variant={subTab === "availability" ? "default" : "ghost"}
-              size="sm"
+            <button
+              type="button"
               onClick={() => setSubTab("availability")}
-              className="text-xs h-8 font-bold gap-1.5"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "8px 16px",
+                borderRadius: "10px",
+                fontSize: "12px",
+                fontWeight: 800,
+                cursor: "pointer",
+                border: subTab === "availability" ? "none" : "1px solid #e2e8f0",
+                backgroundColor: subTab === "availability" ? "#0a0a0f" : "#f8fafc",
+                color: subTab === "availability" ? "#c6ff3d" : "#475569",
+                transition: "all 0.15s ease",
+              }}
             >
-              <CalendarDays className="h-3.5 w-3.5" />
-              <span>Availability</span>
-            </Button>
+              <CalendarDays style={{ width: "14px", height: "14px" }} />
+              <span>Availability Grid</span>
+            </button>
 
-            <Button
-              variant={subTab === "schedule" ? "default" : "ghost"}
-              size="sm"
+            <button
+              type="button"
               onClick={() => setSubTab("schedule")}
-              className="text-xs h-8 font-bold gap-1.5"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "8px 16px",
+                borderRadius: "10px",
+                fontSize: "12px",
+                fontWeight: 800,
+                cursor: "pointer",
+                border: subTab === "schedule" ? "none" : "1px solid #e2e8f0",
+                backgroundColor: subTab === "schedule" ? "#0a0a0f" : "#f8fafc",
+                color: subTab === "schedule" ? "#c6ff3d" : "#475569",
+                transition: "all 0.15s ease",
+              }}
             >
-              <Clock className="h-3.5 w-3.5" />
-              <span>Slots & Schedule</span>
-            </Button>
+              <Clock style={{ width: "14px", height: "14px" }} />
+              <span>Slots &amp; Curfews</span>
+            </button>
 
-            <Button
-              variant={subTab === "blocked" ? "default" : "ghost"}
-              size="sm"
+            <button
+              type="button"
               onClick={() => setSubTab("blocked")}
-              className="text-xs h-8 font-bold gap-1.5"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "8px 16px",
+                borderRadius: "10px",
+                fontSize: "12px",
+                fontWeight: 800,
+                cursor: "pointer",
+                border: subTab === "blocked" ? "none" : "1px solid #e2e8f0",
+                backgroundColor: subTab === "blocked" ? "#0a0a0f" : "#f8fafc",
+                color: subTab === "blocked" ? "#c6ff3d" : "#475569",
+                transition: "all 0.15s ease",
+              }}
             >
-              <Lock className="h-3.5 w-3.5" />
+              <Lock style={{ width: "14px", height: "14px" }} />
               <span>Blocked Dates</span>
-            </Button>
+            </button>
           </>
         )}
 
-        <Button
-          variant={subTab === "confirmed" ? "default" : "ghost"}
-          size="sm"
+        <button
+          type="button"
           onClick={() => setSubTab("confirmed")}
-          className="text-xs h-8 font-bold gap-1.5"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "8px 16px",
+            borderRadius: "10px",
+            fontSize: "12px",
+            fontWeight: 800,
+            cursor: "pointer",
+            border: subTab === "confirmed" ? "none" : "1px solid #e2e8f0",
+            backgroundColor: subTab === "confirmed" ? "#0a0a0f" : "#f8fafc",
+            color: subTab === "confirmed" ? "#c6ff3d" : "#475569",
+            transition: "all 0.15s ease",
+          }}
         >
-          <CheckCircle2 className="h-3.5 w-3.5" />
+          <CheckCircle2 style={{ width: "14px", height: "14px" }} />
           <span>Confirmed Events</span>
-          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+          <span
+            style={{
+              padding: "2px 6px",
+              borderRadius: "6px",
+              fontSize: "10px",
+              fontWeight: 900,
+              backgroundColor: subTab === "confirmed" ? "#c6ff3d" : "#e2e8f0",
+              color: "#0a0a0f",
+            }}
+          >
             {confirmedBookings.length}
-          </Badge>
-        </Button>
+          </span>
+        </button>
       </div>
 
       {subTab === "calendar" && (
@@ -116,7 +207,7 @@ export function EventCalendarTab({
       )}
 
       {subTab === "schedule" && availability && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: "24px" }}>
           <AvailabilityWeekly
             availability={availability}
             onSave={onSaveAvailability}
@@ -126,7 +217,7 @@ export function EventCalendarTab({
       )}
 
       {subTab === "blocked" && availability && (
-        <div className="space-y-6">
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           <ConflictChecker />
           <AvailabilityCalendar
             availability={availability}
@@ -136,57 +227,125 @@ export function EventCalendarTab({
       )}
 
       {subTab === "confirmed" && (
-        <div className="space-y-4">
+        <div>
           {confirmedBookings.length === 0 ? (
-            <Card className="bg-bg-card/30 border-border/40 p-8 text-center">
-              <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-text-muted opacity-50" />
-              <h3 className="text-xs font-bold text-text-primary mb-1">No confirmed events</h3>
-              <p className="text-[11px] text-text-secondary">
-                You have no upcoming accepted or confirmed event performance bookings.
+            <div
+              style={{
+                backgroundColor: "#ffffff",
+                borderRadius: "24px",
+                border: "1px dashed #cbd5e1",
+                padding: "50px 24px",
+                textAlign: "center",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "10px",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.02)",
+              }}
+            >
+              <div
+                style={{
+                  width: "48px",
+                  height: "48px",
+                  borderRadius: "16px",
+                  backgroundColor: "#f1f5f9",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#64748b",
+                }}
+              >
+                <CheckCircle2 style={{ width: "24px", height: "24px" }} />
+              </div>
+              <h3 style={{ fontSize: "15px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+                No Confirmed Events Scheduled
+              </h3>
+              <p style={{ fontSize: "12.5px", color: "#64748b", margin: 0, maxWidth: "380px", lineHeight: 1.5 }}>
+                You have no upcoming accepted or confirmed event performance bookings on the schedule.
               </p>
-            </Card>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+                gap: "16px",
+              }}
+            >
               {confirmedBookings.map((b) => (
-                <Card
+                <div
                   key={b.id}
                   onClick={() => setSelectedBookingId(b.id)}
-                  className="bg-bg-card/50 hover:bg-bg-card border border-border/80 hover:border-primary/50 transition-all cursor-pointer shadow-sm"
+                  style={{
+                    backgroundColor: "#ffffff",
+                    borderRadius: "20px",
+                    border: "1px solid #e2e8f0",
+                    padding: "20px",
+                    boxShadow: "0 2px 10px rgba(0,0,0,0.02)",
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: "14px",
+                  }}
                 >
-                  <CardHeader className="p-4 pb-2 space-y-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="text-xs font-bold text-text-primary line-clamp-1">
-                        {b.event_name}
-                      </CardTitle>
-                      <Badge variant="default" className="text-[10px] uppercase font-bold">
+                  <div>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "10px" }}>
+                      <h3 style={{ fontSize: "14.5px", fontWeight: 900, color: "#0a0a0f", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {b.event_name || "Confirmed Gig"}
+                      </h3>
+                      <span style={{ backgroundColor: "#dcfce7", color: "#15803d", border: "1px solid #bbf7d0", fontSize: "10px", fontWeight: 900, padding: "3px 8px", borderRadius: "6px", textTransform: "uppercase" }}>
                         {b.status}
-                      </Badge>
-                    </div>
-                    <div className="text-[11px] text-text-secondary flex items-center gap-1">
-                      <User className="h-3 w-3 text-primary shrink-0" />
-                      <span>
-                        {role === "client"
-                          ? b.artist?.display_name || b.artist_name || "Performer"
-                          : b.client?.name || "Client"}
                       </span>
                     </div>
-                  </CardHeader>
 
-                  <CardContent className="p-4 pt-2 space-y-2 text-[11px] text-text-secondary">
-                    <div className="flex items-center gap-1.5 text-text-muted">
-                      <Calendar className="h-3 w-3 text-primary shrink-0" />
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "8px", fontSize: "12px", color: "#64748b", fontWeight: 600 }}>
+                      <User style={{ width: "13px", height: "13px", color: "#0a0a0f" }} />
+                      <span>{role === "client" ? (b.artist?.display_name || b.artist_name || "Performer") : (b.client?.name || "Client")}</span>
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "4px", fontSize: "12px", color: "#64748b", fontWeight: 600 }}>
+                      <Calendar style={{ width: "13px", height: "13px", color: "#0a0a0f" }} />
                       <span>{formatDate(b.event_date)}</span>
                     </div>
-                    <div className="flex items-center justify-between pt-2 border-t border-border/40">
-                      <span className="text-xs font-extrabold text-primary">
-                        {formatCurrency(b.proposed_price)}
-                      </span>
-                      <span className="text-[10px] text-text-muted font-mono">
-                        Ref: {b.id?.slice(0, 8)}
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      paddingTop: "12px",
+                      borderTop: "1px solid #f1f5f9",
+                    }}
+                  >
+                    <div>
+                      <span style={{ fontSize: "10px", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", display: "block" }}>Agreed Fee</span>
+                      <span style={{ fontSize: "15px", fontWeight: 900, color: "#0a0a0f" }}>
+                        {formatCurrency(b.proposed_price || b.total_price || 0)}
                       </span>
                     </div>
-                  </CardContent>
-                </Card>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        fontSize: "11.5px",
+                        fontWeight: 800,
+                        color: "#0a0a0f",
+                        backgroundColor: "#f8fafc",
+                        padding: "6px 12px",
+                        borderRadius: "8px",
+                        border: "1px solid #e2e8f0",
+                      }}
+                    >
+                      <span>Details</span>
+                      <ChevronRight style={{ width: "14px", height: "14px" }} />
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           )}
