@@ -38,12 +38,30 @@ def register(db: Session, payload: schemas.BandRegisterRequest) -> schemas.BandT
 
     # Provision default profile entity for Artist or Venue Owner
     if payload.role == "artist":
+        username_val = getattr(payload, "username", None)
+        if username_val:
+            username_val = username_val.lower().strip()
+            existing_artist = (
+                db.query(BandArtistProfile)
+                .filter(BandArtistProfile.username == username_val)
+                .first()
+            )
+            if existing_artist:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="This artist username is already taken. Please choose another.",
+                )
+        clean_username = username_val if username_val else f"{account.name.lower().replace(' ', '_')}_{account.id}"
         artist_profile = BandArtistProfile(
             account_id=account.id,
             display_name=account.name,
-            verification_status="pending",
-            base_rate=0.0,
+            username=clean_username,
+            verification_status="approved",
+            base_rate=25000.0,
             rating=5.0,
+            band_type="Band",
+            profile_image="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
+            cover_image="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1200&auto=format&fit=crop&q=80",
         )
         db.add(artist_profile)
         db.commit()
@@ -53,7 +71,6 @@ def register(db: Session, payload: schemas.BandRegisterRequest) -> schemas.BandT
             name=f"{account.name}'s Venue",
             address="Address pending update",
             verification_status="pending",
-            bcv_number=f"BCV-{str(account.id).zfill(6)}",
             base_price=0.0,
         )
         db.add(venue_profile)

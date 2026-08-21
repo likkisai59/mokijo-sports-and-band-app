@@ -38,12 +38,20 @@ async def ws_notifications(
     user_id: str
     try:
         payload = decode_token(token)
-        user_id = payload["sub"]
+        user_id = str(payload.get("sub", ""))
+        if not user_id:
+            raise ValueError("Token missing sub claim")
     except Exception as exc:
         logger.warning(f"[WS] Rejected unauthenticated connection: {exc}")
-        await websocket.close(code=WS_CLOSE_UNAUTHORIZED, reason="Unauthorized: invalid or expired token")
+        try:
+            await websocket.accept()
+            await websocket.close(code=WS_CLOSE_UNAUTHORIZED, reason="Unauthorized: invalid or expired token")
+        except Exception:
+            pass
         return
 
+    # Accept connection first
+    await websocket.accept()
     was_already_online = connection_manager.is_connected(user_id)
 
     # ── Step 2: Register Connection ───────────────────────────────────────────
@@ -111,7 +119,12 @@ def _broadcast_user_presence(user_id: str, is_online: bool, last_seen: datetime 
         from app.features.messaging.publisher import publish_messaging_event
         from sqlalchemy import or_
 
-        uid = UUID(user_id)
+        try:
+            uid = UUID(user_id)
+        except (ValueError, TypeError):
+            # Not a UUID account ID (e.g. integer BandAccount ID)
+            return
+
         conversations = db.query(Conversation).filter(
             or_(
                 Conversation.client_id == uid,
@@ -151,7 +164,12 @@ def _persist_last_seen(user_id: str, last_seen_dt: datetime) -> None:
     db = SessionLocal()
     try:
         from app.features.auth.models import BandUser
-        user = db.query(BandUser).filter(BandUser.id == UUID(user_id)).first()
+        try:
+            uid = UUID(user_id)
+        except (ValueError, TypeError):
+            return
+
+        user = db.query(BandUser).filter(BandUser.id == uid).first()
         if user:
             user.last_seen = last_seen_dt
             db.commit()
@@ -166,7 +184,12 @@ def _handle_typing_event(user_id: str, conversation_id_str: str, is_typing: bool
     db = SessionLocal()
     try:
         from app.features.messaging.message.service import message_service
-        message_service.set_typing_status(db, UUID(conversation_id_str), UUID(user_id), is_typing)
+        try:
+            conv_uid = UUID(conversation_id_str)
+            user_uid = UUID(user_id)
+        except (ValueError, TypeError):
+            return
+        message_service.set_typing_status(db, conv_uid, user_uid, is_typing)
     except Exception as e:
         logger.warning(f"[WS] Failed typing event for {user_id}: {e}")
     finally:

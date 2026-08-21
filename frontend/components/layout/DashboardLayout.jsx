@@ -32,16 +32,16 @@ export function DashboardLayout({ children, role }) {
       {/* ── Main Dashboard Canvas ── */}
       <main
         style={{
-          paddingTop: "0px",
-          paddingLeft: isDesktop ? "280px" : "0px",
-          minHeight: "calc(100vh - 72px)",
+          paddingTop: "76px",
+          paddingLeft: isDesktop ? "260px" : "0px",
+          minHeight: "100vh",
           backgroundColor: "#f7f7f8",
           boxSizing: "border-box",
           width: "100%",
           transition: "padding-left 0.2s ease",
         }}
       >
-        <div style={{ padding: "36px 40px 80px", maxWidth: "1600px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
+        <div style={{ padding: "28px 32px 80px", maxWidth: "1500px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
           {children}
         </div>
       </main>

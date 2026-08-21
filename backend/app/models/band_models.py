@@ -297,6 +297,10 @@ class BandBooking(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     deleted_at = Column(DateTime, nullable=True)
 
+    client = relationship("BandAccount", foreign_keys=[client_id], lazy="joined")
+    artist = relationship("BandArtistProfile", foreign_keys=[artist_profile_id], lazy="joined")
+    venue = relationship("BandVenue", foreign_keys=[venue_id], lazy="joined")
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Reviews

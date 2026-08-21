@@ -1,0 +1,1 @@
+import{r as a,j as e}from"./index-BZdC8uhG.js";import{a as s}from"./next-navigation-nyi-CNTG.js";function i(){const r=s();return a.useEffect(()=>{r.replace("/trainer-dashboard/overview")},[r]),e.jsx("div",{className:"vd-loading",children:e.jsx("div",{className:"vd-spinner"})})}export{i as default};

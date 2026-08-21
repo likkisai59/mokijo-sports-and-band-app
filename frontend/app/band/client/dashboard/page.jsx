@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import BandNavbar from "@/components/band/BandNavbar";
-import BandFooter from "@/components/band/BandFooter";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { getBandUser } from "@/lib/bandAuth";
+import bandApi from "@/lib/bandApi";
 import {
   Calendar,
   Music,
@@ -22,100 +22,94 @@ import {
   Plus,
   ChevronRight,
   Headphones,
+  Inbox,
+  RefreshCw,
 } from "lucide-react";
 
 export default function ClientDashboardPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Real Dynamic Stats (Initialized to Zero — No Dummy Numbers)
+  const [stats, setStats] = useState({
+    active_bookings: 0,
+    pending_requests: 0,
+    completed_events: 0,
+    total_spent: 0,
+  });
+
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [featuredArtists, setFeaturedArtists] = useState([]);
 
   useEffect(() => {
     const authUser = getBandUser();
-    setUser(authUser || { name: "Avinash", role: "client" });
+    if (authUser) setUser(authUser);
   }, []);
 
-  const [stats, setStats] = useState({
-    active_bookings: 2,
-    pending_requests: 1,
-    completed_events: 5,
-    total_spent: 185000,
-  });
+  const fetchClientDashboard = useCallback(async () => {
+    try {
+      const [bookingsRes, artistsRes] = await Promise.allSettled([
+        bandApi.get("/bookings/my"),
+        bandApi.get("/artists?limit=3"),
+      ]);
 
-  const [upcomingEvents, setUpcomingEvents] = useState([
-    {
-      id: 101,
-      title: "Wedding Reception Live Band",
-      performer: "The Groove Collective",
-      type: "6-Piece Live Band",
-      dateMonth: "AUG",
-      dateDay: "28",
-      time: "19:00 - 23:00",
-      location: "Skyline Grand Ballroom, Mumbai",
-      status: "confirmed",
-      amount: "₹75,000",
-      statusLabel: "CONFIRMED & LOCKED",
-      statusColor: "#10b981",
-      statusBg: "rgba(16, 185, 129, 0.08)",
-      statusBorder: "rgba(16, 185, 129, 0.25)",
-    },
-    {
-      id: 102,
-      title: "Corporate Annual Gala Night",
-      performer: "Acoustic Sunset Duo",
-      type: "Acoustic Duo",
-      dateMonth: "SEP",
-      dateDay: "12",
-      time: "18:30 - 21:30",
-      location: "Palms Resort Arena, Bangalore",
-      status: "pending",
-      amount: "₹45,000",
-      statusLabel: "OFFER UNDER REVIEW",
-      statusColor: "#d97706",
-      statusBg: "rgba(245, 158, 11, 0.08)",
-      statusBorder: "rgba(245, 158, 11, 0.25)",
-    },
-  ]);
+      let pendingCount = 0;
+      let activeCount = 0;
+      let completedCount = 0;
+      let totalSpent = 0;
+      let eventsList = [];
 
-  const [featuredArtists, setFeaturedArtists] = useState([
-    {
-      id: 1,
-      name: "The Neon Echoes",
-      genre: "Rock / Indie Fusion",
-      rating: 4.9,
-      reviews_count: 38,
-      base_rate: "₹50,000",
-      location: "Mumbai",
-      image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200&auto=format&fit=crop&q=80",
-    },
-    {
-      id: 2,
-      name: "Symphony Strings",
-      genre: "Classical & Bollywood",
-      rating: 5.0,
-      reviews_count: 52,
-      base_rate: "₹65,000",
-      location: "Delhi NCR",
-      image: "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=200&auto=format&fit=crop&q=80",
-    },
-    {
-      id: 3,
-      name: "DJ Rohit & Percussion",
-      genre: "EDM / Punjabi Beats",
-      rating: 4.8,
-      reviews_count: 29,
-      base_rate: "₹40,000",
-      location: "Bangalore",
-      image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=200&auto=format&fit=crop&q=80",
-    },
-  ]);
+      if (bookingsRes.status === "fulfilled" && bookingsRes.value?.data) {
+        const bData = bookingsRes.value.data;
+        const items = Array.isArray(bData) ? bData : bData.items || [];
+
+        items.forEach((b) => {
+          if (b.status === "pending" || b.status === "inquiry" || b.status === "counter_offered") {
+            pendingCount++;
+          } else if (b.status === "accepted" || b.status === "confirmed" || b.status === "locked") {
+            activeCount++;
+            eventsList.push(b);
+          } else if (b.status === "completed") {
+            completedCount++;
+          }
+          if (b.status === "accepted" || b.status === "confirmed" || b.status === "completed") {
+            totalSpent += Number(b.total_amount || b.agreed_price || b.offer_amount || 0) || 0;
+          }
+        });
+
+        setUpcomingEvents(eventsList);
+      }
+
+      if (artistsRes.status === "fulfilled" && artistsRes.value?.data) {
+        const aData = artistsRes.value.data;
+        const aItems = Array.isArray(aData) ? aData : aData.items || [];
+        setFeaturedArtists(aItems.slice(0, 3));
+      }
+
+      setStats({
+        active_bookings: activeCount,
+        pending_requests: pendingCount,
+        completed_events: completedCount,
+        total_spent: totalSpent,
+      });
+    } catch {
+      // Graceful clean zero state
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchClientDashboard();
+  }, [fetchClientDashboard]);
 
   return (
-    <div style={{ backgroundColor: "#f7f7f8", minHeight: "100vh", color: "#0a0a0f", width: "100%" }}>
-      {/* ── TOP FULL BRAND NAVIGATION ── */}
-      <BandNavbar />
+    <DashboardLayout role="client">
+      <div style={{ maxWidth: "1320px", margin: "0 auto", width: "100%", display: "flex", flexDirection: "column", gap: "32px" }}>
 
-      {/* ── MAIN DASHBOARD CONTAINER ── */}
-      <main style={{ maxWidth: "1320px", margin: "0 auto", padding: "40px 24px 80px", width: "100%", display: "flex", flexDirection: "column", gap: "32px" }}>
-        
         {/* ── 1. HERO WELCOME BANNER ── */}
         <div
           style={{
@@ -174,7 +168,7 @@ export default function ClientDashboardPage() {
             <h1 style={{ fontSize: "36px", fontWeight: 900, color: "#0a0a0f", letterSpacing: "-0.03em", margin: 0, lineHeight: 1.15 }}>
               Welcome back,{" "}
               <span style={{ borderBottom: "4px solid #c6ff3d", paddingBottom: "2px" }}>
-                {user?.name || "Avinash"}
+                {user?.name || "Client"}
               </span>
               ! 👋
             </h1>
@@ -186,6 +180,31 @@ export default function ClientDashboardPage() {
 
           {/* Right Action CTAs */}
           <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+            <button
+              type="button"
+              onClick={() => {
+                setRefreshing(true);
+                fetchClientDashboard();
+              }}
+              disabled={refreshing}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "13px 18px",
+                borderRadius: "16px",
+                backgroundColor: "#f8fafc",
+                color: "#0a0a0f",
+                fontWeight: 800,
+                fontSize: "13.5px",
+                border: "1px solid #e2e8f0",
+                cursor: "pointer",
+              }}
+            >
+              <RefreshCw style={{ width: "15px", height: "15px", animation: refreshing ? "spin 1s linear infinite" : "none" }} />
+              <span>{refreshing ? "Refreshing..." : "Sync Live"}</span>
+            </button>
+
             <Link
               to="/band/artists"
               style={{
@@ -231,7 +250,7 @@ export default function ClientDashboardPage() {
           </div>
         </div>
 
-        {/* ── 2. 4-GRID KPI METRICS ── */}
+        {/* ── 2. 4-GRID REAL KPI METRICS (ZERO DUMMY DATA) ── */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px" }}>
           {/* Card 1 */}
           <div style={{ backgroundColor: "#ffffff", borderRadius: "24px", border: "1px solid rgba(10, 10, 15, 0.08)", padding: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: "135px", boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
@@ -247,8 +266,8 @@ export default function ClientDashboardPage() {
               <div style={{ fontSize: "32px", fontWeight: 900, color: "#0a0a0f", lineHeight: 1 }}>
                 {stats.active_bookings}
               </div>
-              <span style={{ fontSize: "12px", fontWeight: 700, color: "#10b981", marginTop: "6px", display: "block" }}>
-                Confirmed gigs scheduled
+              <span style={{ fontSize: "12px", fontWeight: 700, color: stats.active_bookings > 0 ? "#10b981" : "#94a3b8", marginTop: "6px", display: "block" }}>
+                {stats.active_bookings > 0 ? "Confirmed gigs scheduled" : "No active bookings"}
               </span>
             </div>
           </div>
@@ -257,7 +276,7 @@ export default function ClientDashboardPage() {
           <div style={{ backgroundColor: "#ffffff", borderRadius: "24px", border: "1px solid rgba(10, 10, 15, 0.08)", padding: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: "135px", boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b" }}>
-                Pending Responses
+                Pending Requests
               </span>
               <div style={{ width: "38px", height: "38px", borderRadius: "12px", backgroundColor: "rgba(245, 158, 11, 0.1)", color: "#d97706", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Clock style={{ width: "20px", height: "20px" }} />
@@ -267,8 +286,8 @@ export default function ClientDashboardPage() {
               <div style={{ fontSize: "32px", fontWeight: 900, color: "#0a0a0f", lineHeight: 1 }}>
                 {stats.pending_requests}
               </div>
-              <span style={{ fontSize: "12px", fontWeight: 700, color: "#d97706", marginTop: "6px", display: "block" }}>
-                Awaiting artist reply
+              <span style={{ fontSize: "12px", fontWeight: 700, color: stats.pending_requests > 0 ? "#d97706" : "#94a3b8", marginTop: "6px", display: "block" }}>
+                {stats.pending_requests > 0 ? "Awaiting artist reply" : "0 pending inquiries"}
               </span>
             </div>
           </div>
@@ -287,8 +306,8 @@ export default function ClientDashboardPage() {
               <div style={{ fontSize: "32px", fontWeight: 900, color: "#0a0a0f", lineHeight: 1 }}>
                 {stats.completed_events}
               </div>
-              <span style={{ fontSize: "12px", fontWeight: 700, color: "#2563eb", marginTop: "6px", display: "block" }}>
-                Live events hosted
+              <span style={{ fontSize: "12px", fontWeight: 700, color: stats.completed_events > 0 ? "#2563eb" : "#94a3b8", marginTop: "6px", display: "block" }}>
+                {stats.completed_events > 0 ? "Live events hosted" : "0 past events"}
               </span>
             </div>
           </div>
@@ -307,344 +326,309 @@ export default function ClientDashboardPage() {
               <div style={{ fontSize: "32px", fontWeight: 900, color: "#0a0a0f", lineHeight: 1 }}>
                 ₹{stats.total_spent.toLocaleString("en-IN")}
               </div>
-              <span style={{ fontSize: "12px", fontWeight: 700, color: "#64748b", marginTop: "6px", display: "block" }}>
-                Escrow protected volume
+              <span style={{ fontSize: "12px", fontWeight: 700, color: stats.total_spent > 0 ? "#10b981" : "#94a3b8", marginTop: "6px", display: "block" }}>
+                {stats.total_spent > 0 ? "Escrow protected payments" : "0 spent so far"}
               </span>
             </div>
           </div>
         </div>
 
-        {/* ── 3. TWO-COLUMN RESPONSIVE LAYOUT (8 COLS LEFT / 4 COLS RIGHT) ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "32px", alignItems: "start" }}>
-          
-          {/* ── LEFT COLUMN (UPCOMING SHOWS & CATEGORIES) ── */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "28px", gridColumn: "span 2" }}>
-            
-            {/* Upcoming Event Timelines Card */}
-            <div style={{ backgroundColor: "#ffffff", borderRadius: "28px", border: "1px solid rgba(10, 10, 15, 0.08)", padding: "32px", boxShadow: "0 4px 20px rgba(0, 0, 0, 0.02)", display: "flex", flexDirection: "column", gap: "24px" }}>
-              
-              {/* Header */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "16px", borderBottom: "1px solid #f1f5f9" }}>
-                <div>
-                  <h2 style={{ fontSize: "20px", fontWeight: 900, color: "#0a0a0f", margin: 0, display: "flex", alignItems: "center", gap: "10px" }}>
-                    <Calendar style={{ width: "20px", height: "20px", color: "#0a0a0f" }} />
-                    <span>Upcoming Event Timelines</span>
-                  </h2>
-                  <p style={{ fontSize: "12px", color: "#64748b", margin: "4px 0 0 0", fontWeight: 500 }}>
-                    Real-time status of your live music bookings and schedules
-                  </p>
-                </div>
+        {/* ── 3. TWO-COLUMN INTERACTIVE CONTENT ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: "32px", alignItems: "start" }}>
 
-                <Link to="/band/client/bookings" style={{ fontSize: "13px", fontWeight: 800, color: "#0a0a0f", textDecoration: "none", display: "flex", alignItems: "center", gap: "4px" }}>
-                  <span>View All</span>
+          {/* ── LEFT COLUMN: UPCOMING EVENTS & TIMELINE ── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
+
+            {/* UPCOMING EVENTS CONTAINER */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <Calendar style={{ width: "20px", height: "20px", color: "#0a0a0f" }} />
+                  <h2 style={{ fontSize: "20px", fontWeight: 900, color: "#0a0a0f", margin: 0, letterSpacing: "-0.02em" }}>
+                    Your Event Timeline ({upcomingEvents.length})
+                  </h2>
+                </div>
+                <Link
+                  to="/band/client/bookings"
+                  style={{ fontSize: "13px", fontWeight: 800, color: "#0a0a0f", textDecoration: "none", display: "flex", alignItems: "center", gap: "4px" }}
+                >
+                  <span>View All Bookings</span>
                   <ArrowRight style={{ width: "14px", height: "14px" }} />
                 </Link>
               </div>
 
-              {/* Event Cards */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                {upcomingEvents.map((evt) => (
+              {upcomingEvents.length === 0 ? (
+                <div
+                  style={{
+                    padding: "40px 24px",
+                    borderRadius: "24px",
+                    backgroundColor: "#ffffff",
+                    border: "1px solid rgba(10, 10, 15, 0.08)",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    textAlign: "center",
+                    gap: "12px",
+                    boxShadow: "0 2px 10px rgba(0,0,0,0.02)",
+                  }}
+                >
                   <div
-                    key={evt.id}
                     style={{
+                      width: "48px",
+                      height: "48px",
+                      borderRadius: "14px",
                       backgroundColor: "#f8fafc",
-                      borderRadius: "20px",
                       border: "1px solid #e2e8f0",
-                      padding: "20px 24px",
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "space-between",
-                      flexWrap: "wrap",
-                      gap: "20px",
-                      transition: "all 0.2s ease",
+                      justifyContent: "center",
+                      color: "#94a3b8",
                     }}
                   >
-                    {/* Left: Date Block + Meta */}
-                    <div style={{ display: "flex", alignItems: "center", gap: "18px", minWidth: "260px" }}>
-                      {/* Date Badge */}
-                      <div
-                        style={{
-                          width: "56px",
-                          height: "64px",
-                          borderRadius: "16px",
-                          backgroundColor: "#0a0a0f",
-                          color: "#ffffff",
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexShrink: 0,
-                        }}
-                      >
-                        <span style={{ fontSize: "10px", fontWeight: 900, color: "#c6ff3d", letterSpacing: "0.05em" }}>
-                          {evt.dateMonth}
-                        </span>
-                        <span style={{ fontSize: "20px", fontWeight: 900, lineHeight: 1, marginTop: "2px" }}>
-                          {evt.dateDay}
-                        </span>
-                      </div>
+                    <Calendar style={{ width: "24px", height: "24px" }} />
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: "15px", fontWeight: 800, color: "#0a0a0f", margin: 0 }}>
+                      No Active Event Bookings
+                    </h4>
+                    <p style={{ fontSize: "12.5px", color: "#64748b", margin: "4px 0 0 0", maxWidth: "400px", lineHeight: 1.5 }}>
+                      You don't have any upcoming gig bookings yet. Explore top performers and request a custom quote.
+                    </p>
+                  </div>
+                  <Link
+                    to="/band/artists"
+                    style={{
+                      marginTop: "6px",
+                      padding: "10px 20px",
+                      borderRadius: "12px",
+                      backgroundColor: "#c6ff3d",
+                      color: "#0a0a0f",
+                      fontWeight: 800,
+                      fontSize: "13px",
+                      textDecoration: "none",
+                      boxShadow: "0 2px 10px rgba(198, 255, 61, 0.4)",
+                    }}
+                  >
+                    Browse Live Artists
+                  </Link>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                  {upcomingEvents.map((evt) => (
+                    <div
+                      key={evt.id}
+                      style={{
+                        backgroundColor: "#ffffff",
+                        borderRadius: "24px",
+                        border: "1px solid rgba(10, 10, 15, 0.08)",
+                        padding: "24px",
+                        boxShadow: "0 2px 10px rgba(0,0,0,0.02)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: "20px",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
+                        <div
+                          style={{
+                            width: "56px",
+                            height: "56px",
+                            borderRadius: "16px",
+                            backgroundColor: "#0a0a0f",
+                            color: "#c6ff3d",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontWeight: 900,
+                            flexShrink: 0,
+                          }}
+                        >
+                          <Calendar style={{ width: "24px", height: "24px" }} />
+                        </div>
 
-                      {/* Event Details */}
-                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                          <h3 style={{ fontSize: "16px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
-                            {evt.title}
-                          </h3>
+                        <div>
                           <span
                             style={{
-                              padding: "3px 10px",
-                              borderRadius: "9999px",
                               fontSize: "10px",
                               fontWeight: 800,
-                              color: evt.statusColor,
-                              backgroundColor: evt.statusBg,
-                              border: `1px solid ${evt.statusBorder}`,
+                              textTransform: "uppercase",
+                              padding: "3px 8px",
+                              borderRadius: "9999px",
+                              backgroundColor: "#ecfdf5",
+                              color: "#047857",
+                              border: "1px solid #a7f3d0",
                             }}
                           >
-                            {evt.statusLabel}
+                            {evt.status || "CONFIRMED"}
                           </span>
-                        </div>
-
-                        <div style={{ display: "flex", alignItems: "center", gap: "16px", fontSize: "12px", color: "#64748b", flexWrap: "wrap" }}>
-                          <span style={{ display: "flex", alignItems: "center", gap: "5px", color: "#0a0a0f", fontWeight: 700 }}>
-                            <Music style={{ width: "14px", height: "14px", color: "#64748b" }} />
-                            {evt.performer} ({evt.type})
-                          </span>
-                          <span style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                            <Clock style={{ width: "14px", height: "14px" }} />
-                            {evt.time}
-                          </span>
-                          <span style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                            <MapPin style={{ width: "14px", height: "14px" }} />
-                            {evt.location}
-                          </span>
+                          <h3 style={{ fontSize: "17px", fontWeight: 800, color: "#0a0a0f", margin: "4px 0 2px 0" }}>
+                            {evt.event_name || evt.title || "Live Performance"}
+                          </h3>
+                          <p style={{ fontSize: "12.5px", color: "#64748b", margin: 0, fontWeight: 500 }}>
+                            {evt.artist_name || evt.performer || "Artist"} • {evt.location || "Venue TBD"}
+                          </p>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Right: Deal Value + Action Button */}
-                    <div style={{ display: "flex", alignItems: "center", gap: "20px", flexShrink: 0 }}>
-                      <div style={{ textAlign: "right" }}>
-                        <span style={{ fontSize: "10px", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase", display: "block" }}>
-                          Deal Value
-                        </span>
+                      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
                         <span style={{ fontSize: "18px", fontWeight: 900, color: "#0a0a0f" }}>
-                          {evt.amount}
+                          {evt.amount || (evt.total_amount ? `₹${Number(evt.total_amount).toLocaleString("en-IN")}` : "₹0")}
                         </span>
+                        <Link
+                          to="/band/client/bookings"
+                          style={{
+                            padding: "10px 18px",
+                            borderRadius: "12px",
+                            backgroundColor: "#0a0a0f",
+                            color: "#ffffff",
+                            fontSize: "12.5px",
+                            fontWeight: 800,
+                            textDecoration: "none",
+                          }}
+                        >
+                          Details
+                        </Link>
                       </div>
-
-                      <Link
-                        to={`/band/client/bookings/${evt.id}`}
-                        style={{
-                          padding: "10px 20px",
-                          borderRadius: "12px",
-                          backgroundColor: "#0a0a0f",
-                          color: "#ffffff",
-                          fontWeight: 800,
-                          fontSize: "13px",
-                          textDecoration: "none",
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                          transition: "all 0.2s ease",
-                        }}
-                      >
-                        Manage Booking
-                      </Link>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Quick Explorer Dual Split Cards */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
-              {/* Card 1 */}
-              <div style={{ backgroundColor: "#ffffff", borderRadius: "28px", border: "1px solid rgba(10, 10, 15, 0.08)", padding: "28px", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: "16px", boxShadow: "0 4px 20px rgba(0, 0, 0, 0.02)" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <div style={{ width: "48px", height: "48px", borderRadius: "16px", backgroundColor: "#0a0a0f", color: "#c6ff3d", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Music style={{ width: "24px", height: "24px" }} />
-                  </div>
-                  <h3 style={{ fontSize: "18px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
-                    Find Live Artists & Bands
-                  </h3>
-                  <p style={{ fontSize: "13px", color: "#64748b", margin: 0, lineHeight: 1.5 }}>
-                    Explore top solo acts, acoustic trios, rock bands, DJs, and classical ensembles with authentic verified ratings.
-                  </p>
-                </div>
-
-                <Link to="/band/artists" style={{ fontSize: "13px", fontWeight: 800, color: "#0a0a0f", textDecoration: "none", display: "flex", alignItems: "center", gap: "6px" }}>
-                  <span>Explore Marketplace</span>
-                  <ArrowRight style={{ width: "16px", height: "16px" }} />
-                </Link>
-              </div>
-
-              {/* Card 2 */}
-              <div style={{ backgroundColor: "#ffffff", borderRadius: "28px", border: "1px solid rgba(10, 10, 15, 0.08)", padding: "28px", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: "16px", boxShadow: "0 4px 20px rgba(0, 0, 0, 0.02)" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <div style={{ width: "48px", height: "48px", borderRadius: "16px", backgroundColor: "#0a0a0f", color: "#c6ff3d", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Building2 style={{ width: "24px", height: "24px" }} />
-                  </div>
-                  <h3 style={{ fontSize: "18px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
-                    Discover Concert Venues
-                  </h3>
-                  <p style={{ fontSize: "13px", color: "#64748b", margin: 0, lineHeight: 1.5 }}>
-                    Search acoustic-ready amphitheatres, luxury resort halls, and club spaces with unique BCV venue numbers.
-                  </p>
-                </div>
-
-                <Link to="/band/venues" style={{ fontSize: "13px", fontWeight: 800, color: "#0a0a0f", textDecoration: "none", display: "flex", alignItems: "center", gap: "6px" }}>
-                  <span>Browse Venues</span>
-                  <ArrowRight style={{ width: "16px", height: "16px" }} />
-                </Link>
-              </div>
-            </div>
           </div>
 
-          {/* ── RIGHT COLUMN (TOP TRENDING ACTS & CONCIERGE) ── */}
+          {/* ── RIGHT COLUMN: QUICK DISCOVERY & SHORTCUTS ── */}
           <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             
-            {/* Top Trending Acts Card */}
-            <div style={{ backgroundColor: "#ffffff", borderRadius: "28px", border: "1px solid rgba(10, 10, 15, 0.08)", padding: "28px", boxShadow: "0 4px 20px rgba(0, 0, 0, 0.02)", display: "flex", flexDirection: "column", gap: "20px" }}>
-              
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "14px", borderBottom: "1px solid #f1f5f9" }}>
-                <h2 style={{ fontSize: "16px", fontWeight: 900, color: "#0a0a0f", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
-                  <Compass style={{ width: "18px", height: "18px" }} />
-                  <span>Top Trending Acts</span>
-                </h2>
-                <Link to="/band/artists" style={{ fontSize: "12px", fontWeight: 800, color: "#0a0a0f", textDecoration: "none" }}>
-                  See all
-                </Link>
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-                {featuredArtists.map((artist) => (
-                  <div
-                    key={artist.id}
-                    style={{
-                      backgroundColor: "#f8fafc",
-                      borderRadius: "18px",
-                      border: "1px solid #e2e8f0",
-                      padding: "16px",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "12px",
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                        <img
-                          src={artist.image}
-                          alt={artist.name}
-                          style={{ width: "44px", height: "44px", borderRadius: "12px", objectFit: "cover", border: "1px solid #cbd5e1" }}
-                        />
-                        <div>
-                          <span style={{ fontSize: "14px", fontWeight: 800, color: "#0a0a0f", display: "block" }}>
-                            {artist.name}
-                          </span>
-                          <span style={{ fontSize: "11px", color: "#64748b", fontWeight: 500, display: "block", marginTop: "2px" }}>
-                            {artist.genre}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div style={{ textAlign: "right" }}>
-                        <span style={{ fontSize: "13px", fontWeight: 900, color: "#0a0a0f", display: "block" }}>
-                          {artist.base_rate}
-                        </span>
-                        <span style={{ fontSize: "9px", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase" }}>
-                          Starting Fee
-                        </span>
-                      </div>
-                    </div>
-
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "10px", borderTop: "1px solid #edf2f7", fontSize: "12px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "4px", color: "#0a0a0f", fontWeight: 800, fontSize: "11px" }}>
-                        <Star style={{ width: "13px", height: "13px", fill: "#f59e0b", color: "#f59e0b" }} />
-                        <span>{artist.rating}</span>
-                        <span style={{ color: "#94a3b8", fontWeight: 500 }}>({artist.reviews_count})</span>
-                        <span style={{ color: "#cbd5e1" }}>•</span>
-                        <span style={{ color: "#64748b", fontWeight: 500 }}>{artist.location}</span>
-                      </div>
-
-                      <Link
-                        to={`/band/artists/${artist.id}`}
-                        style={{ fontSize: "12px", fontWeight: 800, color: "#0a0a0f", textDecoration: "none" }}
-                      >
-                        Book Now →
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* VIP Music Concierge Box */}
+            {/* QUICK ACTIONS CARD */}
             <div
               style={{
-                position: "relative",
-                backgroundColor: "#0a0a0f",
-                color: "#ffffff",
-                borderRadius: "28px",
-                padding: "28px",
-                boxShadow: "0 8px 30px rgba(0, 0, 0, 0.12)",
-                overflow: "hidden",
+                backgroundColor: "#ffffff",
+                borderRadius: "24px",
+                border: "1px solid rgba(10, 10, 15, 0.08)",
+                padding: "24px",
+                boxShadow: "0 2px 10px rgba(0, 0, 0, 0.02)",
                 display: "flex",
                 flexDirection: "column",
                 gap: "16px",
               }}
             >
-              <div
-                style={{
-                  position: "absolute",
-                  top: "-20px",
-                  right: "-20px",
-                  width: "150px",
-                  height: "150px",
-                  backgroundColor: "rgba(198, 255, 61, 0.2)",
-                  borderRadius: "9999px",
-                  filter: "blur(40px)",
-                  pointerEvents: "none",
-                }}
-              />
+              <h2 style={{ fontSize: "16px", fontWeight: 800, color: "#0a0a0f", margin: 0 }}>
+                Planning an Event?
+              </h2>
 
-              <div style={{ width: "42px", height: "42px", borderRadius: "14px", backgroundColor: "rgba(255, 255, 255, 0.1)", color: "#c6ff3d", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Sparkles style={{ width: "22px", height: "22px" }} />
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <Link
+                  to="/band/artists"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "14px 16px",
+                    borderRadius: "16px",
+                    backgroundColor: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    color: "#0a0a0f",
+                    textDecoration: "none",
+                  }}
+                >
+                  <span style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <Music style={{ width: "16px", height: "16px", color: "#10b981" }} />
+                    <span>Find &amp; Book Artists</span>
+                  </span>
+                  <ChevronRight style={{ width: "16px", height: "16px", color: "#94a3b8" }} />
+                </Link>
+
+                <Link
+                  to="/band/venues"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "14px 16px",
+                    borderRadius: "16px",
+                    backgroundColor: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    color: "#0a0a0f",
+                    textDecoration: "none",
+                  }}
+                >
+                  <span style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <Building2 style={{ width: "16px", height: "16px", color: "#2563eb" }} />
+                    <span>Rent Concert Venues</span>
+                  </span>
+                  <ChevronRight style={{ width: "16px", height: "16px", color: "#94a3b8" }} />
+                </Link>
+
+                <Link
+                  to="/band/client/bookings"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "14px 16px",
+                    borderRadius: "16px",
+                    backgroundColor: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    color: "#0a0a0f",
+                    textDecoration: "none",
+                  }}
+                >
+                  <span style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <Calendar style={{ width: "16px", height: "16px", color: "#d97706" }} />
+                    <span>Track Active Bookings</span>
+                  </span>
+                  <ChevronRight style={{ width: "16px", height: "16px", color: "#94a3b8" }} />
+                </Link>
               </div>
-
-              <div>
-                <h3 style={{ fontSize: "17px", fontWeight: 900, color: "#ffffff", margin: "0 0 6px 0" }}>
-                  Need a Customized Lineup?
-                </h3>
-                <p style={{ fontSize: "12px", color: "#cbd5e1", margin: 0, lineHeight: 1.5 }}>
-                  Our live music curation team can match verified performers with your specific event theme, acoustics, and budget.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  borderRadius: "14px",
-                  backgroundColor: "#c6ff3d",
-                  color: "#0a0a0f",
-                  fontWeight: 900,
-                  fontSize: "13px",
-                  border: "none",
-                  cursor: "pointer",
-                  boxShadow: "0 4px 14px rgba(198, 255, 61, 0.3)",
-                  transition: "all 0.2s ease",
-                }}
-              >
-                Message Concierge Support
-              </button>
             </div>
+
+            {/* TRUST & ESCROW BADGE */}
+            <div
+              style={{
+                backgroundColor: "#0a0a0f",
+                color: "#ffffff",
+                borderRadius: "24px",
+                padding: "24px",
+                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "12px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div style={{ width: "36px", height: "36px", borderRadius: "10px", backgroundColor: "#c6ff3d", color: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <ShieldCheck style={{ width: "20px", height: "20px" }} />
+                </div>
+                <div>
+                  <h4 style={{ fontSize: "14.5px", fontWeight: 800, margin: 0, color: "#ffffff" }}>
+                    100% Escrow Protection
+                  </h4>
+                  <span style={{ fontSize: "11px", color: "#c6ff3d", fontWeight: 700 }}>
+                    BandConnect Verified Guarantee
+                  </span>
+                </div>
+              </div>
+              <p style={{ fontSize: "12px", color: "#94a3b8", margin: 0, lineHeight: 1.5 }}>
+                Your payments are held securely in escrow and only released to artists and venues after successful event completion.
+              </p>
+            </div>
+
           </div>
 
         </div>
-      </main>
 
-      {/* ── FOOTER DIRECTORY ── */}
-      <BandFooter />
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

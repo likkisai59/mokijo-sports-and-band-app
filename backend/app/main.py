@@ -29,6 +29,12 @@ async def lifespan(app: FastAPI):
     logger.log_message_sync(message="Starting up Mukijo Club Management API...")
     try:
         models.Base.metadata.create_all(bind=engine)
+        try:
+            from app.core.sync_db import sync_band_tables
+            sync_band_tables()
+            logger.log_message_sync(message="Band database tables and columns synchronized successfully.")
+        except Exception as sync_err:
+            logger.log_warning_sync(message=f"Band table column sync notice: {sync_err}")
         logger.log_message_sync(message="Database tables verified/created successfully.")
     except Exception as e:
         logger.log_error_sync(message=f"Failed to create database tables: {e}")

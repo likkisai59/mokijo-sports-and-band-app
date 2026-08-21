@@ -28,6 +28,7 @@ class BandRegisterRequest(BaseModel):
     name: str
     phone: Optional[str] = None
     role: str = Field(default="client", description="client | artist | venue_owner | admin")
+    username: Optional[str] = None
 
 
 class BandLoginRequest(BaseModel):
@@ -460,6 +461,12 @@ class BandBookingResponse(BandORMSchema):
     notes: Optional[str] = None
     timeline: List[Any] = Field(default_factory=list)
     created_at: Optional[datetime] = None
+    client_name: Optional[str] = None
+    client_email: Optional[str] = None
+    client_mobile: Optional[str] = None
+    artist_name: Optional[str] = None
+    venue_name: Optional[str] = None
+    conversation_id: Optional[int] = None
 
 
 class BandPaginatedBookingList(BaseModel):

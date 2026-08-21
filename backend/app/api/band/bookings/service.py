@@ -5,9 +5,48 @@ from datetime import datetime
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.models.band_models import BandAccount, BandBooking, BandArtistProfile, BandVenue
+from app.models.band_models import (
+    BandAccount,
+    BandBooking,
+    BandArtistProfile,
+    BandVenue,
+    BandNotification,
+    BandConversation,
+    BandMessage,
+)
 from app.models import band_schemas as schemas
 from app.api.band.bookings import crud
+from app.api.band.messaging.service import MessagingService
+
+
+def serialize_booking(db: Session, booking: BandBooking) -> schemas.BandBookingResponse:
+    """Enrich BandBooking response with client details, partner names, and conversation ID."""
+    conv = db.query(BandConversation).filter_by(booking_id=booking.id).first()
+    conv_id = conv.id if conv else None
+
+    client_name = booking.client.name if (booking and booking.client) else None
+    client_email = booking.client.email if (booking and booking.client) else None
+    client_mobile = (
+        getattr(booking.client, "mobile_number", None)
+        or getattr(booking.client, "phone", None)
+        if (booking and booking.client)
+        else None
+    )
+    artist_name = (
+        (booking.artist.display_name or booking.artist.name)
+        if (booking and booking.artist)
+        else None
+    )
+    venue_name = booking.venue.name if (booking and booking.venue) else None
+
+    resp = schemas.BandBookingResponse.model_validate(booking)
+    resp.client_name = client_name
+    resp.client_email = client_email
+    resp.client_mobile = client_mobile
+    resp.artist_name = artist_name
+    resp.venue_name = venue_name
+    resp.conversation_id = conv_id
+    return resp
 
 
 def check_availability(
@@ -52,8 +91,8 @@ def create_booking_inquiry(
     db: Session,
     client_account: BandAccount,
     payload: schemas.BandBookingCreateRequest,
-) -> BandBooking:
-    """Validate and initiate a new booking inquiry."""
+) -> schemas.BandBookingResponse:
+    """Validate and initiate a new booking inquiry and dispatch notification."""
     if not payload.artist_profile_id and not payload.venue_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -75,16 +114,19 @@ def create_booking_inquiry(
         )
 
     # Validate artist existence if requested
+    target_account_id = None
     if payload.artist_profile_id:
         artist = db.query(BandArtistProfile).filter_by(id=payload.artist_profile_id, deleted_at=None).first()
         if not artist:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artist profile not found.")
+        target_account_id = artist.account_id
 
     # Validate venue existence if requested
     if payload.venue_id:
         venue = db.query(BandVenue).filter_by(id=payload.venue_id, deleted_at=None).first()
         if not venue:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Venue not found.")
+        target_account_id = venue.account_id
 
     # Check for scheduling overlap conflicts
     has_conflict = crud.check_conflicts(
@@ -101,12 +143,29 @@ def create_booking_inquiry(
             detail="The requested date and time slot is already booked or reserved.",
         )
 
-    return crud.create_booking(
+    booking = crud.create_booking(
         db=db,
         client_id=client_account.id,
         payload=payload,
         event_date_dt=event_date_dt,
     )
+
+    # Dispatch in-app notification to provider
+    if target_account_id:
+        notif = BandNotification(
+            account_id=target_account_id,
+            title="New Gig Request Received!",
+            message=f"You received a new booking inquiry for '{booking.event_name}' on {booking.event_date.strftime('%d %b %Y')} ({booking.start_time} - {booking.end_time}) from {client_account.name or client_account.email} (Budget: ₹{booking.proposed_price:,.0f}).",
+            notification_type="booking_inquiry",
+            reference_type="booking",
+            reference_id=booking.id,
+            is_read=False,
+            created_at=datetime.utcnow(),
+        )
+        db.add(notif)
+        db.commit()
+
+    return serialize_booking(db, booking)
 
 
 def get_user_bookings(
@@ -132,7 +191,7 @@ def get_user_bookings(
         items, total = crud.get_client_bookings(db, account.id, status=status_filter, limit=limit, offset=offset)
 
     return schemas.BandPaginatedBookingList(
-        items=[schemas.BandBookingResponse.model_validate(b) for b in items],
+        items=[serialize_booking(db, b) for b in items],
         total=total,
     )
 
@@ -168,7 +227,7 @@ def get_booking_detail(
             detail="You are not authorized to view this booking.",
         )
 
-    return schemas.BandBookingResponse.model_validate(booking)
+    return serialize_booking(db, booking)
 
 
 def accept_booking(
@@ -176,21 +235,24 @@ def accept_booking(
     account: BandAccount,
     booking_id: int,
 ) -> schemas.BandBookingResponse:
-    """Provider accepts the booking inquiry."""
+    """Provider accepts the booking inquiry, initializes direct chat, and notifies client."""
     booking = crud.get_booking_by_id(db, booking_id)
     if not booking:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found.")
 
     # Validate provider authority
     is_authorized = False
+    provider_name = account.name or "Performer"
     if booking.artist_profile_id:
         artist = db.query(BandArtistProfile).filter_by(id=booking.artist_profile_id).first()
         if artist and artist.account_id == account.id:
             is_authorized = True
+            provider_name = artist.display_name or artist.name or provider_name
     if booking.venue_id:
         venue = db.query(BandVenue).filter_by(id=booking.venue_id).first()
         if venue and venue.account_id == account.id:
             is_authorized = True
+            provider_name = venue.name or provider_name
 
     if not is_authorized and account.role != "admin":
         raise HTTPException(
@@ -210,9 +272,46 @@ def accept_booking(
         new_status="accepted",
         action_name="accepted_by_provider",
         by_account_id=account.id,
-        notes="Provider accepted booking inquiry. Awaiting advance payment.",
+        notes="Provider accepted booking inquiry. Direct messaging thread opened.",
     )
-    return schemas.BandBookingResponse.model_validate(updated)
+
+    # 1. Initialize direct messaging conversation thread
+    conv = MessagingService.get_or_start_chat(
+        db=db,
+        booking_id=booking.id,
+        client_id=booking.client_id,
+        artist_profile_id=booking.artist_profile_id,
+        venue_id=booking.venue_id,
+    )
+
+    # 2. Post initial greeting / system message if conversation is fresh
+    existing_msgs_count = db.query(BandMessage).filter_by(conversation_id=conv.id).count()
+    if existing_msgs_count == 0:
+        greeting_msg = BandMessage(
+            conversation_id=conv.id,
+            sender_id=account.id,
+            content=f"Hello! I have accepted your booking request for '{booking.event_name}' on {booking.event_date.strftime('%d %b %Y')}. Looking forward to performing! Let's coordinate sound rider and setlist requirements here.",
+            created_at=datetime.utcnow(),
+        )
+        db.add(greeting_msg)
+        conv.last_message_at = datetime.utcnow()
+        db.commit()
+
+    # 3. Create in-app notification for Client
+    client_notif = BandNotification(
+        account_id=booking.client_id,
+        title="Booking Request Accepted! 🎉",
+        message=f"Great news! {provider_name} has accepted your booking request for '{booking.event_name}' ({booking.event_date.strftime('%d %b %Y')}). You can now chat directly in Messages to finalize event details.",
+        notification_type="booking_accepted",
+        reference_type="booking",
+        reference_id=booking.id,
+        is_read=False,
+        created_at=datetime.utcnow(),
+    )
+    db.add(client_notif)
+    db.commit()
+
+    return serialize_booking(db, updated)
 
 
 def counter_offer(
@@ -241,7 +340,22 @@ def counter_offer(
         notes=payload.message or f"Counter-offer proposed: ₹{payload.counter_price}",
         counter_price=payload.counter_price,
     )
-    return schemas.BandBookingResponse.model_validate(updated)
+
+    # Notify Client about counter-offer
+    client_notif = BandNotification(
+        account_id=booking.client_id,
+        title="New Counter-Offer Received",
+        message=f"A counter-offer of ₹{payload.counter_price:,.0f} was proposed for your booking inquiry '{booking.event_name}'.",
+        notification_type="counter_offer",
+        reference_type="booking",
+        reference_id=booking.id,
+        is_read=False,
+        created_at=datetime.utcnow(),
+    )
+    db.add(client_notif)
+    db.commit()
+
+    return serialize_booking(db, updated)
 
 
 def decline_booking(
@@ -263,7 +377,22 @@ def decline_booking(
         by_account_id=account.id,
         notes=reason or "Provider is unable to accommodate booking request.",
     )
-    return schemas.BandBookingResponse.model_validate(updated)
+
+    # Notify Client about rejection
+    client_notif = BandNotification(
+        account_id=booking.client_id,
+        title="Booking Inquiry Declined",
+        message=f"Unfortunately, your booking request for '{booking.event_name}' could not be accommodated at this time.",
+        notification_type="booking_declined",
+        reference_type="booking",
+        reference_id=booking.id,
+        is_read=False,
+        created_at=datetime.utcnow(),
+    )
+    db.add(client_notif)
+    db.commit()
+
+    return serialize_booking(db, updated)
 
 
 def cancel_booking(
@@ -297,4 +426,4 @@ def cancel_booking(
         by_account_id=account.id,
         notes=reason or "Cancelled by client.",
     )
-    return schemas.BandBookingResponse.model_validate(updated)
+    return serialize_booking(db, updated)

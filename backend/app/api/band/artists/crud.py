@@ -123,3 +123,87 @@ def get_featured_artists(db: Session, limit: int = 6) -> List[BandArtistProfile]
         .limit(limit)
         .all()
     )
+
+
+def get_artist_by_account_id(db: Session, account_id: int) -> Optional[BandArtistProfile]:
+    return (
+        db.query(BandArtistProfile)
+        .options(
+            joinedload(BandArtistProfile.genres),
+            joinedload(BandArtistProfile.languages),
+            joinedload(BandArtistProfile.account),
+        )
+        .filter(BandArtistProfile.account_id == account_id, BandArtistProfile.deleted_at.is_(None))
+        .first()
+    )
+
+
+def sync_artist_categories(
+    db: Session,
+    artist: BandArtistProfile,
+    genres: Optional[List[str]] = None,
+    languages: Optional[List[str]] = None,
+):
+    """Associate taxonomy categories with artist profile."""
+    if genres is not None:
+        matched_genres = []
+        for g_name in genres:
+            clean_g = g_name.strip()
+            if not clean_g:
+                continue
+            cat = (
+                db.query(BandCategory)
+                .filter(
+                    BandCategory.name.ilike(clean_g),
+                    BandCategory.type.in_(["music_genre", "genre"]),
+                    BandCategory.is_active == True,
+                )
+                .first()
+            )
+            if not cat:
+                cat = BandCategory(name=clean_g, type="music_genre", is_active=True)
+                db.add(cat)
+                db.flush()
+            if cat not in matched_genres:
+                matched_genres.append(cat)
+        artist.genres = matched_genres
+
+    if languages is not None:
+        matched_langs = []
+        for l_name in languages:
+            clean_l = l_name.strip()
+            if not clean_l:
+                continue
+            cat = (
+                db.query(BandCategory)
+                .filter(
+                    BandCategory.name.ilike(clean_l),
+                    BandCategory.type == "language",
+                    BandCategory.is_active == True,
+                )
+                .first()
+            )
+            if not cat:
+                cat = BandCategory(name=clean_l, type="language", is_active=True)
+                db.add(cat)
+                db.flush()
+            if cat not in matched_langs:
+                matched_langs.append(cat)
+        artist.languages = matched_langs
+
+
+def update_artist_profile(
+    db: Session,
+    artist: BandArtistProfile,
+    fields: dict,
+    genres: Optional[List[str]] = None,
+    languages: Optional[List[str]] = None,
+) -> BandArtistProfile:
+    for key, value in fields.items():
+        if hasattr(artist, key) and value is not None:
+            setattr(artist, key, value)
+
+    sync_artist_categories(db, artist, genres=genres, languages=languages)
+    db.commit()
+    db.refresh(artist)
+    return artist

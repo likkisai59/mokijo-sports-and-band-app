@@ -142,8 +142,19 @@ const BandAdminPromos = React.lazy(() => import('@/app/admin/promos/page.jsx'));
 const BandAdminReports = React.lazy(() => import('@/app/admin/reports/page.jsx'));
 
 const BandArtistMessages = React.lazy(() => import('@/app/band/artist/messages/page.jsx'));
+const BandArtistReviews = React.lazy(() => import('@/app/band/artist/reviews/page.jsx'));
+const BandArtistSettings = React.lazy(() => import('@/app/band/artist/settings/page.jsx'));
+
 const BandClientMessages = React.lazy(() => import('@/app/band/client/messages/page.jsx'));
+const BandClientProfile = React.lazy(() => import('@/app/band/client/profile/page.jsx'));
+const BandClientFavorites = React.lazy(() => import('@/app/band/client/favorites/page.jsx'));
+const BandClientReviews = React.lazy(() => import('@/app/band/client/reviews/page.jsx'));
+const BandClientPayments = React.lazy(() => import('@/app/band/client/payments/page.jsx'));
+const BandClientSettings = React.lazy(() => import('@/app/band/client/settings/page.jsx'));
+
 const BandVenueMessages = React.lazy(() => import('@/app/venue/messages/page.jsx'));
+const BandVenueProfile = React.lazy(() => import('@/app/venue/profile/page.jsx'));
+const BandVenueEarnings = React.lazy(() => import('@/app/venue/earnings/page.jsx'));
 
 // Super Admin Layout and Pages
 const SuperAdminLogin = React.lazy(() => import('@/app/super-admin/login/page.jsx'));
@@ -206,21 +217,28 @@ export default function App() {
                     <Route path="/checkout" element={<Checkout />} />
                     <Route path="/scoreboard/:match_id" element={<PageWrapper Component={Scoreboard} />} />
                     <Route path="/trainings/:id" element={<PageWrapper Component={TrainingDetail} />} />
-                    
+
                     {/* Band Routes */}
                     <Route path="/band" element={<LayoutWrapper LayoutComponent={BandLayout} />}>
                       <Route index element={<BandLanding />} />
                       <Route path="dashboard" element={<BandDashboard />} />
                       <Route path="client/dashboard" element={<BandClientDashboard />} />
+                      <Route path="client/profile" element={<BandClientProfile />} />
                       <Route path="client/bookings" element={<BandClientBookings />} />
                       <Route path="client/bookings/:id" element={<PageWrapper Component={BandClientBookingDetail} />} />
+                      <Route path="client/favorites" element={<BandClientFavorites />} />
+                      <Route path="client/reviews" element={<BandClientReviews />} />
                       <Route path="client/messages" element={<BandClientMessages />} />
+                      <Route path="client/payments" element={<BandClientPayments />} />
+                      <Route path="client/settings" element={<BandClientSettings />} />
                       <Route path="bookings/new" element={<BandNewBooking />} />
                       <Route path="artist/dashboard" element={<BandArtistDashboard />} />
                       <Route path="artist/profile" element={<BandArtistProfile />} />
                       <Route path="artist/bookings" element={<BandArtistBookings />} />
+                      <Route path="artist/reviews" element={<BandArtistReviews />} />
                       <Route path="artist/earnings" element={<BandArtistEarnings />} />
                       <Route path="artist/messages" element={<BandArtistMessages />} />
+                      <Route path="artist/settings" element={<BandArtistSettings />} />
                       <Route path="login" element={<BandLogin />} />
                       <Route path="register" element={<BandRegister />} />
                       <Route path="artists" element={<BandArtists />} />
@@ -236,7 +254,7 @@ export default function App() {
                     </Route>
                     <Route path="/venues" element={<SportsVenues />} />
                     <Route path="/venues/:id" element={<PageWrapper Component={SportsVenueDetail} />} />
-                    
+
                     <Route path="/developer" element={<Developer />} />
                     <Route path="/messages" element={<Messages />} />
                     <Route path="/notifications" element={<Notifications />} />
@@ -322,9 +340,12 @@ export default function App() {
                     {/* Band Venue Owner Routes */}
                     <Route path="/venue" element={<LayoutWrapper LayoutComponent={BandVenueLayout} />}>
                       <Route path="dashboard" element={<BandVenueDashboard />} />
+                      <Route path="profile" element={<BandVenueProfile />} />
+                      <Route path="my-venues" element={<BandVenueProfile />} />
                       <Route path="bookings" element={<BandVenueBookings />} />
                       <Route path="messages" element={<BandVenueMessages />} />
                       <Route path="reviews" element={<BandVenueReviews />} />
+                      <Route path="earnings" element={<BandVenueEarnings />} />
                       <Route path="settings" element={<BandVenueSettings />} />
                     </Route>
 

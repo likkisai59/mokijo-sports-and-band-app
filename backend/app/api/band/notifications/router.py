@@ -5,7 +5,7 @@ from app.api.band.common.deps import get_band_db, get_current_band_account
 from app.api.band.notifications.service import NotificationService
 from app.models.band_models import BandAccount
 
-router = APIRouter(prefix="/notifications", tags=["Band Notifications"])
+router = APIRouter(prefix="/band/notifications", tags=["Band Notifications"])
 
 
 @router.get("/me")

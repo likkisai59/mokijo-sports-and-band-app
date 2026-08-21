@@ -5,6 +5,8 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.core.database import get_db
+from app.models.band_models import BandAccount
+from app.api.band.common.deps import get_band_account
 from app.api.band.artists import service
 
 router = APIRouter(prefix="/band/artists", tags=["Band Artists"])
@@ -37,6 +39,31 @@ def get_artists(
         skip=skip,
         limit=limit,
     )
+
+
+@router.get("/me", summary="Get authenticated artist profile")
+def get_my_profile(
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    return service.get_my_artist_profile(db, account)
+
+
+@router.put("/me", summary="Update authenticated artist profile")
+def update_my_profile(
+    payload: Dict[str, Any],
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    return service.update_my_artist_profile(db, account, payload)
+
+
+@router.post("/verify-submit", summary="Submit profile for admin verification")
+def verify_submit(
+    db: Session = Depends(get_db),
+    account: BandAccount = Depends(get_band_account),
+):
+    return service.submit_for_verification(db, account)
 
 
 @router.get("/{identifier}", summary="Get detailed artist profile by ID or public username")

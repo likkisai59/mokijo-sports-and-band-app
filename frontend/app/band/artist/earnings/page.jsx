@@ -1,438 +1,306 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import BandNavbar from "@/components/band/BandNavbar";
-import BandFooter from "@/components/band/BandFooter";
-import bandApi from "@/lib/bandApi";
-import { getBandUser } from "@/lib/bandAuth";
+import Link from "next/link";
 import {
-  DollarSign,
+  IndianRupee,
+  ShieldCheck,
   TrendingUp,
   Clock,
   CheckCircle2,
   ArrowUpRight,
-  ArrowDownLeft,
-  ArrowLeft,
-  Building2,
-  CreditCard,
   Download,
+  Building,
+  CreditCard,
   Sparkles,
-  AlertCircle,
-  ShieldCheck,
+  Inbox,
+  Calendar,
 } from "lucide-react";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import bandApi from "@/lib/bandApi";
+import toast from "react-hot-toast";
 
 export default function ArtistEarningsPage() {
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
-  const [withdrawAmount, setWithdrawAmount] = useState("");
-  const [payoutMethod, setPayoutMethod] = useState("upi");
-  const [upiId, setUpiId] = useState("artist@okhdfcbank");
-  const [payoutSuccess, setPayoutSuccess] = useState(false);
-
-  const [summary, setSummary] = useState({
-    wallet_balance: 85000,
-    total_earnings: 185000,
-    monthly_earnings: 45000,
-    pending_payments: 20000,
-    completed_payments: 5,
-    revenue_chart: [
-      { month: "Mar 2026", revenue: 25000 },
-      { month: "Apr 2026", revenue: 30000 },
-      { month: "May 2026", revenue: 40000 },
-      { month: "Jun 2026", revenue: 35000 },
-      { month: "Jul 2026", revenue: 55000 },
-      { month: "Aug 2026", revenue: 45000 },
-    ],
-    transactions: [
-      {
-        id: 1,
-        description: "Grand Sangeet Night Gig — Rahul & Sneha",
-        amount: 65000,
-        type: "credit",
-        status: "completed",
-        created_at: "2026-08-16",
-      },
-      {
-        id: 2,
-        description: "Payout Withdrawal to HDFC Bank ****4910",
-        amount: 50000,
-        type: "debit",
-        status: "completed",
-        created_at: "2026-08-10",
-      },
-      {
-        id: 3,
-        description: "Annual Corporate Day Gala — Tech Mahindra",
-        amount: 50000,
-        type: "credit",
-        status: "completed",
-        created_at: "2026-07-28",
-      },
-      {
-        id: 4,
-        description: "Club Weekend Acoustic Night — Echo Underground",
-        amount: 20000,
-        type: "credit",
-        status: "pending",
-        created_at: "2026-08-14",
-      },
-    ],
+  const [wallet, setWallet] = useState({
+    available_balance: 0,
+    escrow_balance: 0,
+    lifetime_earnings: 0,
+    pending_payouts: 0,
   });
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [payoutModalOpen, setPayoutModalOpen] = useState(false);
+  const [payoutAmount, setPayoutAmount] = useState("");
+  const [upiId, setUpiId] = useState("");
 
   useEffect(() => {
-    const authUser = getBandUser();
-    if (!authUser) {
-      navigate("/band/login?redirect=/band/artist/earnings");
-      return;
-    }
-    setUser(authUser);
-
-    async function loadEarnings() {
+    const fetchEarnings = async () => {
       try {
-        setLoading(true);
-        const res = await bandApi.get("/earnings/summary");
-        if (res.data) {
-          setSummary(res.data);
+        const [bookingsRes, earningsRes] = await Promise.allSettled([
+          bandApi.get("/bookings/my"),
+          bandApi.get("/earnings/artist"),
+        ]);
+
+        let available = 0;
+        let inEscrow = 0;
+        let lifetime = 0;
+        let txList = [];
+
+        if (bookingsRes.status === "fulfilled" && bookingsRes.value?.data) {
+          const items = Array.isArray(bookingsRes.value.data)
+            ? bookingsRes.value.data
+            : bookingsRes.value.data.items || [];
+
+          items.forEach((b) => {
+            const amt = Number(b.total_amount || b.agreed_price || b.offer_amount || 0);
+            if (b.status === "completed") {
+              available += amt;
+              lifetime += amt;
+              txList.push({
+                id: `TX-${b.id}`,
+                booking_id: b.id,
+                title: b.event_name || b.title || "Live Performance Gig",
+                date: b.date || b.event_date || "2026-08-20",
+                amount: amt,
+                status: "cleared",
+                type: "Gig Payout",
+              });
+            } else if (b.status === "accepted" || b.status === "confirmed") {
+              inEscrow += amt;
+              txList.push({
+                id: `TX-ESC-${b.id}`,
+                booking_id: b.id,
+                title: b.event_name || b.title || "Upcoming Show Escrow",
+                date: b.date || b.event_date || "2026-08-30",
+                amount: amt,
+                status: "in_escrow",
+                type: "Escrow Deposit",
+              });
+            }
+          });
         }
-      } catch (err) {
-        console.warn("Using active mock earnings data:", err);
+
+        setWallet({
+          available_balance: available,
+          escrow_balance: inEscrow,
+          lifetime_earnings: lifetime,
+          pending_payouts: 0,
+        });
+        setTransactions(txList);
+      } catch {
+        // Fallback clean zero state
       } finally {
         setLoading(false);
       }
-    }
-    loadEarnings();
-  }, [navigate]);
+    };
 
-  const handleWithdrawSubmit = (e) => {
+    fetchEarnings();
+  }, []);
+
+  const handleRequestPayout = (e) => {
     e.preventDefault();
-    const amountNum = Number(withdrawAmount);
-    if (!amountNum || amountNum <= 0 || amountNum > summary.wallet_balance) return;
-
-    setSummary((prev) => ({
-      ...prev,
-      wallet_balance: prev.wallet_balance - amountNum,
-      transactions: [
-        {
-          id: Date.now(),
-          description: `Payout Withdrawal via ${payoutMethod.toUpperCase()} (${upiId})`,
-          amount: amountNum,
-          type: "debit",
-          status: "pending",
-          created_at: "Just now",
-        },
-        ...prev.transactions,
-      ],
-    }));
-
-    setPayoutSuccess(true);
-    setTimeout(() => {
-      setPayoutSuccess(false);
-      setWithdrawModalOpen(false);
-      setWithdrawAmount("");
-    }, 2000);
+    if (Number(payoutAmount) > wallet.available_balance) {
+      toast.error("Requested amount exceeds available balance.");
+      return;
+    }
+    toast.success(`Payout request of ₹${Number(payoutAmount).toLocaleString("en-IN")} submitted!`);
+    setPayoutModalOpen(false);
+    setPayoutAmount("");
   };
 
-  const maxRevenue = Math.max(...summary.revenue_chart.map((p) => p.revenue), 60000);
-
   return (
-    <div style={{ backgroundColor: "#f7f7f8", minHeight: "100vh", color: "#0a0a0f", width: "100%" }}>
-      {/* ── TOP NAVIGATION ── */}
-      <BandNavbar />
-
-      {/* ── MAIN EARNINGS CONTAINER ── */}
-      <main style={{ maxWidth: "1320px", margin: "0 auto", padding: "40px 24px 80px", width: "100%", display: "flex", flexDirection: "column", gap: "32px" }}>
+    <DashboardLayout role="artist">
+      <div style={{ display: "flex", flexDirection: "column", gap: "28px", maxWidth: "1200px", margin: "0 auto", width: "100%" }}>
         
-        {/* ── HEADER WITH BACK BUTTON & WITHDRAW CTA ── */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: "20px",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <Link
-              to="/band/artist/dashboard"
+        {/* Header Title Bar */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
+          <div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "4px 12px", borderRadius: "9999px", backgroundColor: "#0a0a0f", color: "#c6ff3d", fontSize: "11px", fontWeight: 800, textTransform: "uppercase", marginBottom: "8px" }}>
+              <IndianRupee style={{ width: "13px", height: "13px" }} />
+              <span>Financial Ledger &amp; Escrow</span>
+            </div>
+            <h1 style={{ fontSize: "28px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+              Artist Earnings &amp; Payouts
+            </h1>
+            <p style={{ fontSize: "13px", color: "#64748b", margin: "4px 0 0 0", fontWeight: 500 }}>
+              Track completed show earnings, escrow funds clearance status, and request direct bank/UPI payouts.
+            </p>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <button
+              type="button"
+              onClick={() => setPayoutModalOpen(true)}
               style={{
-                width: "44px",
-                height: "44px",
-                borderRadius: "14px",
-                backgroundColor: "#ffffff",
-                border: "1px solid rgba(10,10,15,0.1)",
-                display: "flex",
+                display: "inline-flex",
                 alignItems: "center",
-                justifyContent: "center",
-                textDecoration: "none",
+                gap: "8px",
+                padding: "12px 24px",
+                borderRadius: "14px",
+                backgroundColor: "#c6ff3d",
                 color: "#0a0a0f",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.02)",
+                fontWeight: 900,
+                fontSize: "13px",
+                border: "none",
+                cursor: "pointer",
+                boxShadow: "0 2px 10px rgba(198, 255, 61, 0.4)",
               }}
             >
-              <ArrowLeft style={{ width: "18px", height: "18px" }} />
-            </Link>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-              <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  padding: "4px 12px",
-                  borderRadius: "9999px",
-                  backgroundColor: "#0a0a0f",
-                  color: "#c6ff3d",
-                  fontSize: "11px",
-                  fontWeight: 800,
-                  textTransform: "uppercase",
-                  width: "fit-content",
-                }}
-              >
-                <Sparkles style={{ width: "12px", height: "12px" }} />
-                <span>Provider Wallet & Payouts</span>
-              </div>
-
-              <h1 style={{ fontSize: "32px", fontWeight: 900, color: "#0a0a0f", letterSpacing: "-0.03em", margin: 0 }}>
-                Earnings & Escrow Ledger
-              </h1>
-            </div>
+              <ArrowUpRight style={{ width: "16px", height: "16px" }} />
+              <span>Request Payout</span>
+            </button>
           </div>
-
-          <button
-            type="button"
-            onClick={() => setWithdrawModalOpen(true)}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "14px 28px",
-              borderRadius: "16px",
-              backgroundColor: "#c6ff3d",
-              color: "#0a0a0f",
-              fontWeight: 900,
-              fontSize: "14px",
-              border: "none",
-              cursor: "pointer",
-              boxShadow: "0 4px 14px rgba(198, 255, 61, 0.4)",
-              transition: "all 0.2s ease",
-            }}
-          >
-            <ArrowUpRight style={{ width: "18px", height: "18px" }} />
-            <span>Request Payout Withdrawal</span>
-          </button>
         </div>
 
-        {/* ── 4-GRID FINANCIAL SUMMARY METRICS ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px" }}>
-          {/* Card 1: Available Wallet Balance */}
-          <div style={{ backgroundColor: "#ffffff", borderRadius: "24px", border: "2px solid #c6ff3d", padding: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: "140px", boxShadow: "0 4px 16px rgba(198, 255, 61, 0.15)" }}>
+        {/* 3 Metric Cards */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "20px" }}>
+          {/* Card 1 */}
+          <div style={{ backgroundColor: "#0a0a0f", color: "#ffffff", borderRadius: "24px", padding: "28px", boxShadow: "0 4px 20px rgba(0,0,0,0.12)", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: "14px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "#0a0a0f" }}>
-                Available for Payout
+              <span style={{ fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", color: "#c6ff3d" }}>
+                Available For Payout
               </span>
-              <div style={{ width: "38px", height: "38px", borderRadius: "12px", backgroundColor: "#0a0a0f", color: "#c6ff3d", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <CheckCircle2 style={{ width: "20px", height: "20px" }} />
+              <div style={{ width: "36px", height: "36px", borderRadius: "10px", backgroundColor: "rgba(198, 255, 61, 0.2)", color: "#c6ff3d", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <CheckCircle2 style={{ width: "18px", height: "18px" }} />
               </div>
             </div>
-            <div style={{ marginTop: "16px" }}>
-              <div style={{ fontSize: "34px", fontWeight: 900, color: "#0a0a0f", lineHeight: 1 }}>
-                ₹{summary.wallet_balance.toLocaleString("en-IN")}
+            <div>
+              <div style={{ fontSize: "32px", fontWeight: 900, color: "#ffffff", lineHeight: 1 }}>
+                ₹{wallet.available_balance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </div>
-              <span style={{ fontSize: "12px", fontWeight: 700, color: "#10b981", marginTop: "6px", display: "block" }}>
-                Instant bank transfer eligible
+              <span style={{ fontSize: "12px", color: "#94a3b8", marginTop: "8px", display: "block" }}>
+                Cleared from completed performances
               </span>
             </div>
           </div>
 
-          {/* Card 2: Total Lifetime Earnings */}
-          <div style={{ backgroundColor: "#ffffff", borderRadius: "24px", border: "1px solid rgba(10, 10, 15, 0.08)", padding: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: "140px", boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
+          {/* Card 2 */}
+          <div style={{ backgroundColor: "#ffffff", borderRadius: "24px", border: "1px solid #e2e8f0", padding: "28px", boxShadow: "0 2px 8px rgba(0,0,0,0.02)", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: "14px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b" }}>
-                Lifetime Earnings
+              <span style={{ fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", color: "#64748b" }}>
+                Held in Escrow Clearance
               </span>
-              <div style={{ width: "38px", height: "38px", borderRadius: "12px", backgroundColor: "rgba(59, 130, 246, 0.1)", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <TrendingUp style={{ width: "20px", height: "20px" }} />
+              <div style={{ width: "36px", height: "36px", borderRadius: "10px", backgroundColor: "#fffbeb", color: "#d97706", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Clock style={{ width: "18px", height: "18px" }} />
               </div>
             </div>
-            <div style={{ marginTop: "16px" }}>
+            <div>
               <div style={{ fontSize: "32px", fontWeight: 900, color: "#0a0a0f", lineHeight: 1 }}>
-                ₹{summary.total_earnings.toLocaleString("en-IN")}
+                ₹{wallet.escrow_balance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </div>
-              <span style={{ fontSize: "12px", fontWeight: 700, color: "#64748b", marginTop: "6px", display: "block" }}>
-                Across {summary.completed_payments} completed gigs
+              <span style={{ fontSize: "12px", color: "#64748b", marginTop: "8px", display: "block" }}>
+                Locked for upcoming confirmed gigs
               </span>
             </div>
           </div>
 
-          {/* Card 3: This Month Revenue */}
-          <div style={{ backgroundColor: "#ffffff", borderRadius: "24px", border: "1px solid rgba(10, 10, 15, 0.08)", padding: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: "140px", boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
+          {/* Card 3 */}
+          <div style={{ backgroundColor: "#ffffff", borderRadius: "24px", border: "1px solid #e2e8f0", padding: "28px", boxShadow: "0 2px 8px rgba(0,0,0,0.02)", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: "14px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b" }}>
-                This Month Revenue
+              <span style={{ fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", color: "#64748b" }}>
+                Lifetime Platform Volume
               </span>
-              <div style={{ width: "38px", height: "38px", borderRadius: "12px", backgroundColor: "rgba(16, 185, 129, 0.1)", color: "#10b981", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <DollarSign style={{ width: "20px", height: "20px" }} />
+              <div style={{ width: "36px", height: "36px", borderRadius: "10px", backgroundColor: "#ecfdf5", color: "#059669", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <TrendingUp style={{ width: "18px", height: "18px" }} />
               </div>
             </div>
-            <div style={{ marginTop: "16px" }}>
+            <div>
               <div style={{ fontSize: "32px", fontWeight: 900, color: "#0a0a0f", lineHeight: 1 }}>
-                ₹{summary.monthly_earnings.toLocaleString("en-IN")}
+                ₹{wallet.lifetime_earnings.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
               </div>
-              <span style={{ fontSize: "12px", fontWeight: 700, color: "#10b981", marginTop: "6px", display: "block" }}>
-                +24% vs previous month
-              </span>
-            </div>
-          </div>
-
-          {/* Card 4: Pending Clearance */}
-          <div style={{ backgroundColor: "#ffffff", borderRadius: "24px", border: "1px solid rgba(10, 10, 15, 0.08)", padding: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: "140px", boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b" }}>
-                Pending in Escrow
-              </span>
-              <div style={{ width: "38px", height: "38px", borderRadius: "12px", backgroundColor: "rgba(245, 158, 11, 0.1)", color: "#d97706", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Clock style={{ width: "20px", height: "20px" }} />
-              </div>
-            </div>
-            <div style={{ marginTop: "16px" }}>
-              <div style={{ fontSize: "32px", fontWeight: 900, color: "#0a0a0f", lineHeight: 1 }}>
-                ₹{summary.pending_payments.toLocaleString("en-IN")}
-              </div>
-              <span style={{ fontSize: "12px", fontWeight: 700, color: "#d97706", marginTop: "6px", display: "block" }}>
-                Releases post-gig completion
+              <span style={{ fontSize: "12px", color: "#059669", marginTop: "8px", display: "block", fontWeight: 700 }}>
+                100% Escrow Protection Guaranteed
               </span>
             </div>
           </div>
         </div>
 
-        {/* ── 2-COLUMN: REVENUE GROWTH CHART + TRANSACTION LEDGER ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "32px", alignItems: "start" }}>
-          
-          {/* ── LEFT: 6-MONTH REVENUE GROWTH BARS ── */}
-          <div style={{ backgroundColor: "#ffffff", borderRadius: "28px", border: "1px solid rgba(10, 10, 15, 0.08)", padding: "32px", boxShadow: "0 4px 20px rgba(0, 0, 0, 0.02)", display: "flex", flexDirection: "column", gap: "24px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "16px", borderBottom: "1px solid #f1f5f9" }}>
-              <div>
-                <h2 style={{ fontSize: "18px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
-                  Monthly Revenue Trend
-                </h2>
-                <p style={{ fontSize: "12px", color: "#64748b", margin: "4px 0 0 0" }}>
-                  Historical live gig payout volume
-                </p>
-              </div>
-              <span style={{ fontSize: "12px", fontWeight: 800, color: "#10b981", backgroundColor: "rgba(16,185,129,0.08)", padding: "4px 10px", borderRadius: "9999px" }}>
-                Verified Escrow
-              </span>
-            </div>
+        {/* Transaction History Table */}
+        <div style={{ backgroundColor: "#ffffff", borderRadius: "24px", border: "1px solid #e2e8f0", padding: "28px", display: "flex", flexDirection: "column", gap: "20px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "12px", borderBottom: "1px solid #f1f5f9" }}>
+            <h2 style={{ fontSize: "18px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
+              Transaction &amp; Escrow History ({transactions.length})
+            </h2>
+          </div>
 
-            {/* Visual Bar Chart */}
-            <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", height: "180px", paddingTop: "20px", gap: "12px" }}>
-              {summary.revenue_chart.map((point, idx) => {
-                const heightPct = Math.round((point.revenue / maxRevenue) * 100);
-                return (
-                  <div key={idx} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
-                    <span style={{ fontSize: "10px", fontWeight: 800, color: "#0a0a0f" }}>
-                      ₹{(point.revenue / 1000).toFixed(0)}k
-                    </span>
+          {transactions.length === 0 ? (
+            <div style={{ padding: "40px 20px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
+              <Inbox style={{ width: "36px", height: "36px", color: "#cbd5e1" }} />
+              <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>
+                No completed or escrow transactions recorded yet.
+              </p>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {transactions.map((tx) => (
+                <div
+                  key={tx.id}
+                  style={{
+                    padding: "16px 20px",
+                    borderRadius: "16px",
+                    backgroundColor: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: "12px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
                     <div
                       style={{
-                        width: "100%",
-                        height: `${heightPct}%`,
-                        backgroundColor: idx === summary.revenue_chart.length - 1 ? "#c6ff3d" : "#0a0a0f",
-                        borderRadius: "10px",
-                        transition: "all 0.3s ease",
+                        width: "40px",
+                        height: "40px",
+                        borderRadius: "12px",
+                        backgroundColor: tx.status === "cleared" ? "#ecfdf5" : "#fffbeb",
+                        color: tx.status === "cleared" ? "#047857" : "#d97706",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: 900,
                       }}
-                    />
-                    <span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", whiteSpace: "nowrap" }}>
-                      {point.month.split(" ")[0]}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* ── RIGHT: DETAILED TRANSACTION LEDGER ── */}
-          <div style={{ backgroundColor: "#ffffff", borderRadius: "28px", border: "1px solid rgba(10, 10, 15, 0.08)", padding: "32px", boxShadow: "0 4px 20px rgba(0, 0, 0, 0.02)", display: "flex", flexDirection: "column", gap: "20px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "16px", borderBottom: "1px solid #f1f5f9" }}>
-              <div>
-                <h2 style={{ fontSize: "18px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
-                  Recent Ledger Transactions
-                </h2>
-                <p style={{ fontSize: "12px", color: "#64748b", margin: "4px 0 0 0" }}>
-                  All incoming gig settlements & withdrawals
-                </p>
-              </div>
-            </div>
-
-            {/* Transactions List */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {summary.transactions.map((tx) => {
-                const isCredit = tx.type === "credit";
-                return (
-                  <div
-                    key={tx.id}
-                    style={{
-                      padding: "16px",
-                      borderRadius: "18px",
-                      backgroundColor: "#f8fafc",
-                      border: "1px solid #e2e8f0",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: "14px",
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                      <div
-                        style={{
-                          width: "36px",
-                          height: "36px",
-                          borderRadius: "12px",
-                          backgroundColor: isCredit ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
-                          color: isCredit ? "#10b981" : "#ef4444",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexShrink: 0,
-                        }}
-                      >
-                        {isCredit ? <ArrowDownLeft style={{ width: "18px", height: "18px" }} /> : <ArrowUpRight style={{ width: "18px", height: "18px" }} />}
-                      </div>
-
-                      <div>
-                        <span style={{ fontSize: "13px", fontWeight: 800, color: "#0a0a0f", display: "block" }}>
-                          {tx.description}
-                        </span>
-                        <span style={{ fontSize: "11px", color: "#64748b", display: "block", marginTop: "2px" }}>
-                          {tx.created_at} • {tx.status.toUpperCase()}
-                        </span>
-                      </div>
+                    >
+                      ₹
                     </div>
-
-                    <div style={{ textAlign: "right", flexShrink: 0 }}>
-                      <span
-                        style={{
-                          fontSize: "15px",
-                          fontWeight: 900,
-                          color: isCredit ? "#10b981" : "#0a0a0f",
-                          display: "block",
-                        }}
-                      >
-                        {isCredit ? "+" : "-"}₹{tx.amount.toLocaleString("en-IN")}
+                    <div>
+                      <h4 style={{ fontSize: "14.5px", fontWeight: 800, color: "#0a0a0f", margin: 0 }}>
+                        {tx.title}
+                      </h4>
+                      <span style={{ fontSize: "11.5px", color: "#64748b", fontWeight: 500 }}>
+                        {tx.id} · {tx.date}
                       </span>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
 
+                  <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                    <span
+                      style={{
+                        fontSize: "10.5px",
+                        fontWeight: 800,
+                        textTransform: "uppercase",
+                        padding: "3px 10px",
+                        borderRadius: "9999px",
+                        backgroundColor: tx.status === "cleared" ? "#ecfdf5" : "#fffbeb",
+                        color: tx.status === "cleared" ? "#047857" : "#92400e",
+                        border: tx.status === "cleared" ? "1px solid #a7f3d0" : "1px solid #fde68a",
+                      }}
+                    >
+                      {tx.status === "cleared" ? "Cleared Payout" : "In Escrow"}
+                    </span>
+
+                    <span style={{ fontSize: "16px", fontWeight: 900, color: "#0a0a0f" }}>
+                      ₹{tx.amount.toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* ── WITHDRAWAL MODAL ── */}
-        {withdrawModalOpen && (
+        {/* Payout Request Modal */}
+        {payoutModalOpen && (
           <div
             style={{
               position: "fixed",
@@ -440,137 +308,85 @@ export default function ArtistEarningsPage() {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: "rgba(10, 10, 15, 0.6)",
-              backdropFilter: "blur(6px)",
+              backgroundColor: "rgba(0,0,0,0.5)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              zIndex: 100,
               padding: "20px",
-              zIndex: 200,
             }}
           >
             <div
               style={{
                 backgroundColor: "#ffffff",
-                borderRadius: "28px",
-                maxWidth: "480px",
+                borderRadius: "24px",
+                padding: "32px",
+                maxWidth: "460px",
                 width: "100%",
-                padding: "36px",
-                boxShadow: "0 20px 50px rgba(0,0,0,0.2)",
+                boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
                 display: "flex",
                 flexDirection: "column",
                 gap: "20px",
               }}
             >
-              <div>
-                <h3 style={{ fontSize: "22px", fontWeight: 900, color: "#0a0a0f", margin: 0 }}>
-                  Request Payout
-                </h3>
-                <p style={{ fontSize: "13px", color: "#64748b", margin: "4px 0 0 0" }}>
-                  Available Balance: <strong>₹{summary.wallet_balance.toLocaleString("en-IN")}</strong>
-                </p>
-              </div>
+              <h3 style={{ fontSize: "18px", fontWeight: 800, color: "#0a0a0f", margin: 0 }}>
+                Request Direct Payout
+              </h3>
+              <p style={{ fontSize: "12.5px", color: "#64748b", margin: 0 }}>
+                Available balance for immediate withdrawal: <strong>₹{wallet.available_balance.toLocaleString("en-IN")}</strong>
+              </p>
 
-              {payoutSuccess ? (
-                <div style={{ padding: "20px", borderRadius: "16px", backgroundColor: "rgba(16,185,129,0.1)", color: "#10b981", textAlign: "center", fontWeight: 800, fontSize: "14px" }}>
-                  🎉 Payout request submitted successfully! Funds will credit within 2-4 hours.
+              <form onSubmit={handleRequestPayout} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <label style={{ fontSize: "12px", fontWeight: 800, color: "#0a0a0f" }}>
+                    Withdrawal Amount (₹) *
+                  </label>
+                  <input
+                    type="number"
+                    max={wallet.available_balance}
+                    value={payoutAmount}
+                    onChange={(e) => setPayoutAmount(e.target.value)}
+                    placeholder={String(wallet.available_balance)}
+                    required
+                    style={{ padding: "10px 14px", borderRadius: "10px", border: "1px solid #e2e8f0", fontSize: "14px", outline: "none" }}
+                  />
                 </div>
-              ) : (
-                <form onSubmit={handleWithdrawSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  <div>
-                    <label style={{ fontSize: "12px", fontWeight: 800, color: "#0a0a0f", display: "block", marginBottom: "6px" }}>
-                      Withdrawal Amount (₹) *
-                    </label>
-                    <input
-                      type="number"
-                      max={summary.wallet_balance}
-                      min={500}
-                      value={withdrawAmount}
-                      onChange={(e) => setWithdrawAmount(e.target.value)}
-                      placeholder="e.g. 25000"
-                      required
-                      style={{
-                        width: "100%",
-                        padding: "14px",
-                        borderRadius: "14px",
-                        border: "1px solid #cbd5e1",
-                        fontSize: "16px",
-                        fontWeight: 800,
-                        color: "#0a0a0f",
-                        boxSizing: "border-box",
-                      }}
-                    />
-                  </div>
 
-                  <div>
-                    <label style={{ fontSize: "12px", fontWeight: 800, color: "#0a0a0f", display: "block", marginBottom: "6px" }}>
-                      Payout Destination (UPI ID / Bank IFSC)
-                    </label>
-                    <input
-                      type="text"
-                      value={upiId}
-                      onChange={(e) => setUpiId(e.target.value)}
-                      required
-                      style={{
-                        width: "100%",
-                        padding: "14px",
-                        borderRadius: "14px",
-                        border: "1px solid #cbd5e1",
-                        fontSize: "14px",
-                        fontWeight: 700,
-                        color: "#0a0a0f",
-                        boxSizing: "border-box",
-                      }}
-                    />
-                  </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <label style={{ fontSize: "12px", fontWeight: 800, color: "#0a0a0f" }}>
+                    UPI ID or Bank Account Details *
+                  </label>
+                  <input
+                    type="text"
+                    value={upiId}
+                    onChange={(e) => setUpiId(e.target.value)}
+                    placeholder="artist@okhdfcbank or Account/IFSC"
+                    required
+                    style={{ padding: "10px 14px", borderRadius: "10px", border: "1px solid #e2e8f0", fontSize: "13px", outline: "none" }}
+                  />
+                </div>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "8px" }}>
-                    <button
-                      type="button"
-                      onClick={() => setWithdrawModalOpen(false)}
-                      style={{
-                        flex: 1,
-                        padding: "14px",
-                        borderRadius: "14px",
-                        backgroundColor: "#f1f5f9",
-                        color: "#64748b",
-                        fontWeight: 800,
-                        fontSize: "13px",
-                        border: "none",
-                        cursor: "pointer",
-                      }}
-                    >
-                      Cancel
-                    </button>
-
-                    <button
-                      type="submit"
-                      style={{
-                        flex: 2,
-                        padding: "14px",
-                        borderRadius: "14px",
-                        backgroundColor: "#c6ff3d",
-                        color: "#0a0a0f",
-                        fontWeight: 900,
-                        fontSize: "14px",
-                        border: "none",
-                        cursor: "pointer",
-                        boxShadow: "0 4px 14px rgba(198, 255, 61, 0.4)",
-                      }}
-                    >
-                      Confirm Transfer
-                    </button>
-                  </div>
-                </form>
-              )}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "12px", marginTop: "8px" }}>
+                  <button
+                    type="button"
+                    onClick={() => setPayoutModalOpen(false)}
+                    style={{ padding: "10px 18px", borderRadius: "10px", border: "1px solid #e2e8f0", backgroundColor: "#fff", color: "#64748b", fontWeight: 700, fontSize: "13px", cursor: "pointer" }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    style={{ padding: "10px 22px", borderRadius: "10px", border: "none", backgroundColor: "#c6ff3d", color: "#0a0a0f", fontWeight: 900, fontSize: "13px", cursor: "pointer" }}
+                  >
+                    Confirm Payout
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}
 
-      </main>
-
-      {/* ── FOOTER DIRECTORY ── */}
-      <BandFooter />
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

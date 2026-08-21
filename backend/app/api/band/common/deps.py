@@ -27,7 +27,7 @@ def get_band_account(
     try:
         payload = jwt.decode(
             cred.credentials,
-            settings.SECRET_KEY,
+            settings.effective_secret_key,
             algorithms=[settings.ALGORITHM],
         )
         user_id = payload.get("sub") or payload.get("id")

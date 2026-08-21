@@ -19,6 +19,7 @@ import {
   BarChart2,
   LogOut,
   Tag,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -29,7 +30,6 @@ export function Sidebar({ role }) {
   const getMenuSections = () => {
     switch (role) {
       case "venue":
-      default:
         return [
           {
             title: "MAIN",
@@ -112,6 +112,9 @@ export function Sidebar({ role }) {
             ],
           },
         ];
+
+      default:
+        return [];
     }
   };
 
@@ -121,48 +124,122 @@ export function Sidebar({ role }) {
     role === "venue"
       ? user?.venue_name || "Grand Arena"
       : role === "artist"
-      ? user?.artist_name || "Groove Collective"
-      : role === "admin"
-      ? "Super Admin"
-      : "BandConnect";
+        ? user?.artist_name || "Groove Collective"
+        : role === "admin"
+          ? "Super Admin"
+          : "BandConnect";
 
   const brandInitial = brandName.charAt(0).toUpperCase();
 
+  const settingsHref =
+    role === "venue"
+      ? "/venue/settings"
+      : role === "artist"
+      ? "/band/artist/settings"
+      : role === "admin"
+      ? "/admin/settings"
+      : "/band/client/settings";
+
   return (
     <aside
-      style={{ top: "72px", height: "calc(100vh - 72px)" }}
-      className="fixed bottom-0 left-0 z-30 hidden w-[280px] border-r border-[#e2e8f0] bg-[#ffffff] md:flex flex-col justify-between py-[32px] px-[18px] font-['Raleway','Outfit',sans-serif] select-none overflow-y-auto shadow-xs"
+      style={{
+        position: "fixed",
+        top: "76px",
+        left: 0,
+        bottom: 0,
+        width: "260px",
+        backgroundColor: "#ffffff",
+        borderRight: "1px solid #e2e8f0",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        padding: "24px 16px 20px",
+        zIndex: 30,
+        boxSizing: "border-box",
+        overflowY: "auto",
+      }}
     >
-      {/* Top-Left Ambient Subtle Glow */}
-      <div className="absolute top-0 left-0 right-0 h-[220px] bg-[radial-gradient(ellipse_at_top_left,rgba(16,185,129,0.06)_0%,transparent_70%)] pointer-events-none" />
-
-      <div className="relative z-10 space-y-[28px]">
-        {/* 1. Brand/Club Section with Larger Typography and 46px Badge */}
-        <div className="flex items-center gap-[14px] mb-[32px] px-[8px]">
-          {/* 46px Circular Gradient Badge */}
-          <div className="w-[46px] h-[46px] rounded-full bg-gradient-to-br from-[#10b981] to-[#059669] text-[#ffffff] flex items-center justify-center font-[900] text-[22px] shadow-[0_4px_16px_rgba(16,185,129,0.35)] shrink-0">
+      {/* 1. Header Identity & Menu Navigation */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+        {/* Brand Section */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            padding: "8px 10px",
+            backgroundColor: "#f8fafc",
+            borderRadius: "14px",
+            border: "1px solid #e2e8f0",
+          }}
+        >
+          <div
+            style={{
+              width: "38px",
+              height: "38px",
+              borderRadius: "10px",
+              backgroundColor: "#0a0a0f",
+              color: "#c6ff3d",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: 900,
+              fontSize: "17px",
+              flexShrink: 0,
+            }}
+          >
             {brandInitial}
           </div>
 
-          <div className="min-w-0 flex-1">
-            <span className="block text-[18.5px] font-[800] text-[#0f172a] tracking-[-0.3px] truncate">
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <span
+              style={{
+                display: "block",
+                fontSize: "14px",
+                fontWeight: 800,
+                color: "#0a0a0f",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
               {brandName}
+            </span>
+            <span
+              style={{
+                display: "block",
+                fontSize: "11px",
+                fontWeight: 600,
+                color: "#64748b",
+                textTransform: "capitalize",
+              }}
+            >
+              {role === "artist" ? "Verified Performer" : role === "venue" ? "Venue Host" : role}
             </span>
           </div>
         </div>
 
-        {/* 2. Menu Navigation Items with Spacious 20px Gap Between Items */}
-        <div className="space-y-[36px]">
+        {/* Navigation Sections */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           {sections.map((sec, secIdx) => (
-            <div key={sec.title || secIdx} className="space-y-[14px]">
+            <div key={sec.title || secIdx} style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               {sec.title && (
-                <div className="px-[10px] text-[13px] font-[800] uppercase tracking-[0.09em] text-[#94a3b8]">
+                <div
+                  style={{
+                    padding: "0 10px 4px",
+                    fontSize: "11px",
+                    fontWeight: 800,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    color: "#94a3b8",
+                  }}
+                >
                   {sec.title}
                 </div>
               )}
 
-              {/* Generous 20px vertical gap between each tab item */}
-              <div className="space-y-[20px]">
+              {/* Items List */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                 {sec.items.map((item) => {
                   const Icon = item.icon;
                   const isActive =
@@ -173,30 +250,33 @@ export function Sidebar({ role }) {
                     <Link
                       key={item.name}
                       href={item.href}
-                      className={cn(
-                        "relative flex items-center gap-[14px] px-[16px] py-[13px] text-[15.5px] font-[700] tracking-[0.02em] rounded-[10px] transition-all duration-200 overflow-hidden group",
-                        isActive
-                          ? "bg-[#ecfdf5] text-[#047857] font-[800] border border-[#a7f3d0] shadow-xs"
-                          : "text-[#334155] hover:bg-[rgba(16,185,129,0.08)] hover:text-[#10b981]"
-                      )}
+                      style={{
+                        position: "relative",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                        padding: "10px 14px",
+                        fontSize: "13.5px",
+                        fontWeight: isActive ? 800 : 600,
+                        borderRadius: "12px",
+                        textDecoration: "none",
+                        transition: "all 0.15s ease",
+                        backgroundColor: isActive ? "#0a0a0f" : "transparent",
+                        color: isActive ? "#c6ff3d" : "#475569",
+                        boxShadow: isActive ? "0 2px 8px rgba(0,0,0,0.12)" : "none",
+                      }}
                     >
-                      {/* Active Left Indicator Bar */}
-                      {isActive && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3.5px] h-[65%] bg-gradient-to-b from-[#10b981] to-[#059669] rounded-r-sm" />
-                      )}
-
-                      <span className="flex items-center justify-center w-[22px] h-[22px] shrink-0">
-                        <Icon
-                          className={cn(
-                            "w-[20px] h-[20px] transition-transform duration-200",
-                            isActive
-                              ? "stroke-[2.5] text-[#047857]"
-                              : "stroke-[2] text-current group-hover:scale-110"
-                          )}
-                        />
+                      <Icon
+                        style={{
+                          width: "18px",
+                          height: "18px",
+                          color: isActive ? "#c6ff3d" : "#64748b",
+                          flexShrink: 0,
+                        }}
+                      />
+                      <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {item.name}
                       </span>
-
-                      <span className="truncate">{item.name}</span>
                     </Link>
                   );
                 })}
@@ -206,15 +286,32 @@ export function Sidebar({ role }) {
         </div>
       </div>
 
-      {/* 3. Bottom Links with 16px Spacing */}
-      <div className="relative z-10 mt-auto pt-[24px] border-t border-[#e2e8f0] space-y-[16px]">
+      {/* 2. Bottom Links (Settings & Sign Out) */}
+      <div
+        style={{
+          paddingTop: "16px",
+          borderTop: "1px solid #e2e8f0",
+          display: "flex",
+          flexDirection: "column",
+          gap: "4px",
+        }}
+      >
         <Link
-          href={role === "venue" ? "/venue/settings" : "/band/settings"}
-          className="flex items-center gap-[14px] px-[16px] py-[12px] text-[14.5px] font-[600] text-[#475569] hover:bg-[rgba(16,185,129,0.08)] hover:text-[#0f172a] rounded-[10px] transition-all duration-200"
+          href={settingsHref}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            padding: "10px 14px",
+            fontSize: "13.5px",
+            fontWeight: 600,
+            color: "#475569",
+            borderRadius: "12px",
+            textDecoration: "none",
+            transition: "all 0.15s ease",
+          }}
         >
-          <span className="flex items-center justify-center w-[22px] h-[22px] shrink-0">
-            <Settings className="w-[19px] h-[19px] stroke-[2] text-current" />
-          </span>
+          <Settings style={{ width: "18px", height: "18px", color: "#64748b" }} />
           <span>Settings</span>
         </Link>
 
@@ -222,11 +319,24 @@ export function Sidebar({ role }) {
           <button
             type="button"
             onClick={logout}
-            className="w-full flex items-center gap-[14px] px-[16px] py-[12px] text-[14.5px] font-[600] text-[#ef4444] hover:bg-red-50 rounded-[10px] transition-all duration-200 cursor-pointer text-left"
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              padding: "10px 14px",
+              fontSize: "13.5px",
+              fontWeight: 600,
+              color: "#ef4444",
+              borderRadius: "12px",
+              border: "none",
+              backgroundColor: "transparent",
+              cursor: "pointer",
+              textAlign: "left",
+              transition: "all 0.15s ease",
+            }}
           >
-            <span className="flex items-center justify-center w-[22px] h-[22px] shrink-0">
-              <LogOut className="w-[19px] h-[19px] stroke-[2] text-[#ef4444]" />
-            </span>
+            <LogOut style={{ width: "18px", height: "18px", color: "#ef4444" }} />
             <span>Sign Out</span>
           </button>
         )}

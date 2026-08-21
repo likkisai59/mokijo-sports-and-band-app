@@ -74,7 +74,7 @@ const INITIAL_ARTISTS = [
 ];
 
 export default function BandArtistsMarketplace() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [artists, setArtists] = useState(INITIAL_ARTISTS);
   const [loading, setLoading] = useState(false);
 
@@ -90,6 +90,15 @@ export default function BandArtistsMarketplace() {
   const languages = ["All", "English", "Hindi", "Telugu", "Tamil", "Kannada", "Punjabi"];
   const bandTypes = ["All", "Solo", "Duo", "Band"];
 
+  const hasActiveFilters = Boolean(
+    search.trim() ||
+    (selectedGenre && selectedGenre !== "All") ||
+    (selectedLanguage && selectedLanguage !== "All") ||
+    (selectedBandType && selectedBandType !== "All") ||
+    maxPrice ||
+    (sortBy && sortBy !== "rating_desc")
+  );
+
   useEffect(() => {
     async function fetchArtists() {
       try {
@@ -102,7 +111,7 @@ export default function BandArtistsMarketplace() {
         if (maxPrice) params.set("max_price", maxPrice);
         if (sortBy) params.set("sort", sortBy);
 
-        const res = await fetch(`http://localhost:8001/api/band/artists?${params.toString()}`);
+        const res = await fetch(`http://localhost:8001/band/artists?${params.toString()}`);
         if (res.ok) {
           const data = await res.json();
           if (data?.items && data.items.length > 0) {
@@ -110,7 +119,7 @@ export default function BandArtistsMarketplace() {
             return;
           }
         }
-        
+
         // Client side filtering on initial list if backend is offline
         let filtered = [...INITIAL_ARTISTS];
         if (search) {
@@ -147,6 +156,7 @@ export default function BandArtistsMarketplace() {
     setSelectedBandType("");
     setMaxPrice("");
     setSortBy("rating_desc");
+    setSearchParams({});
   };
 
   return (
@@ -195,8 +205,25 @@ export default function BandArtistsMarketplace() {
             </select>
 
             <button
+              type="button"
               onClick={clearFilters}
-              style={{ height: "46px", padding: "0 18px", borderRadius: "12px", background: "#ffffff", border: "1px solid rgba(10,10,15,0.12)", color: "#0a0a0f", fontSize: "13px", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}
+              title="Reset all filters"
+              style={{
+                height: "46px",
+                padding: "0 18px",
+                borderRadius: "12px",
+                background: hasActiveFilters ? "#0a0a0f" : "#ffffff",
+                border: hasActiveFilters ? "1px solid #0a0a0f" : "1px solid rgba(10,10,15,0.12)",
+                color: hasActiveFilters ? "#c6ff3d" : "#0a0a0f",
+                fontSize: "13px",
+                fontWeight: 800,
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                cursor: "pointer",
+                transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                boxShadow: hasActiveFilters ? "0 4px 12px rgba(10, 10, 15, 0.15)" : "none",
+              }}
             >
               <RotateCcw style={{ width: "14px", height: "14px" }} />
               <span>Reset</span>
@@ -213,8 +240,50 @@ export default function BandArtistsMarketplace() {
                 <SlidersHorizontal style={{ width: "16px", height: "16px", color: "#0a0a0f" }} />
                 Filter Artists
               </span>
-              <button onClick={clearFilters} style={{ background: "none", border: "none", color: "#64748b", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>
-                Reset All
+              <button
+                type="button"
+                onClick={clearFilters}
+                title="Clear all active filters"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  padding: "5px 12px",
+                  borderRadius: "9999px",
+                  border: hasActiveFilters ? "1px solid #fecaca" : "1px solid #e2e8f0",
+                  backgroundColor: hasActiveFilters ? "#fef2f2" : "#f8fafc",
+                  color: hasActiveFilters ? "#dc2626" : "#475569",
+                  fontSize: "12px",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                  boxShadow: hasActiveFilters ? "0 2px 6px rgba(220, 38, 38, 0.12)" : "none",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#fee2e2";
+                  e.currentTarget.style.color = "#b91c1c";
+                  e.currentTarget.style.borderColor = "#fca5a5";
+                  e.currentTarget.style.transform = "scale(1.04)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = hasActiveFilters ? "#fef2f2" : "#f8fafc";
+                  e.currentTarget.style.color = hasActiveFilters ? "#dc2626" : "#475569";
+                  e.currentTarget.style.borderColor = hasActiveFilters ? "#fecaca" : "#e2e8f0";
+                  e.currentTarget.style.transform = "scale(1)";
+                }}
+              >
+                <RotateCcw style={{ width: "12px", height: "12px" }} />
+                <span>Reset All</span>
+                {hasActiveFilters && (
+                  <span
+                    style={{
+                      width: "6px",
+                      height: "6px",
+                      borderRadius: "9999px",
+                      backgroundColor: "#ef4444",
+                    }}
+                  />
+                )}
               </button>
             </div>
 
@@ -317,9 +386,9 @@ export default function BandArtistsMarketplace() {
                 {artists.map((artist) => (
                   <div key={artist.id} className="band-card-item group">
                     {/* Card Cover */}
-                    <div style={{ position: "relative", height: "190px", overflow: "hidden", backgroundColor: "#f1f5f9" }}>
+                    <div style={{ position: "relative", height: "190px", overflow: "hidden", backgroundColor: "#0a0a0f" }}>
                       <img
-                        src={artist.cover_image}
+                        src={artist.cover_image || "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1200&auto=format&fit=crop&q=80"}
                         alt={artist.display_name}
                         style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.5s ease" }}
                       />
@@ -327,7 +396,7 @@ export default function BandArtistsMarketplace() {
 
                       {/* Band Type Badge */}
                       <span style={{ position: "absolute", top: "12px", left: "12px", padding: "4px 10px", borderRadius: "9999px", fontSize: "10px", fontWeight: 800, backgroundColor: "rgba(255,255,255,0.92)", color: "#0a0a0f" }}>
-                        {artist.band_type} • {artist.total_members} {artist.total_members > 1 ? "Pax" : "Solo"}
+                        {artist.band_type || "Band"} • {artist.total_members || 1} {(artist.total_members || 1) > 1 ? "Pax" : "Solo"}
                       </span>
 
                       {/* Verified Badge */}
@@ -339,7 +408,7 @@ export default function BandArtistsMarketplace() {
                       {/* Avatar & Title */}
                       <div style={{ position: "absolute", bottom: "12px", left: "14px", display: "flex", alignItems: "center", gap: "10px" }}>
                         <img
-                          src={artist.profile_image}
+                          src={artist.profile_image || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80"}
                           alt={artist.display_name}
                           style={{ width: "42px", height: "42px", borderRadius: "12px", objectFit: "cover", border: "2px solid #ffffff", boxShadow: "0 4px 8px rgba(0,0,0,0.15)" }}
                         />
@@ -347,7 +416,7 @@ export default function BandArtistsMarketplace() {
                           <h3 style={{ fontWeight: 800, fontSize: "15px", color: "#ffffff", margin: 0 }}>
                             {artist.display_name}
                           </h3>
-                          <p style={{ fontSize: "11px", color: "#cbd5e1", margin: 0 }}>@{artist.username}</p>
+                          <p style={{ fontSize: "11px", color: "#cbd5e1", margin: 0 }}>@{artist.username || `artist_${artist.id}`}</p>
                         </div>
                       </div>
                     </div>
@@ -355,12 +424,12 @@ export default function BandArtistsMarketplace() {
                     {/* Card Body */}
                     <div style={{ padding: "20px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                       <p style={{ fontSize: "12px", color: "#5c5c66", lineHeight: 1.6, margin: "0 0 14px 0", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                        {artist.bio}
+                        {artist.bio || "Live performer available for weddings, concerts, and private gigs."}
                       </p>
 
                       {/* Genre Tags */}
                       <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "16px" }}>
-                        {artist.genres.map((g) => (
+                        {(Array.isArray(artist.genres) && artist.genres.length > 0 ? artist.genres : ["Live Music", "Acoustic"]).map((g) => (
                           <span key={g} style={{ padding: "3px 8px", borderRadius: "6px", fontSize: "11px", fontWeight: 600, backgroundColor: "#f1f5f9", color: "#475569" }}>
                             {g}
                           </span>
@@ -384,9 +453,28 @@ export default function BandArtistsMarketplace() {
                           <Link
                             to={`/band/artists/${artist.id}`}
                             className="band-search-action-btn"
-                            style={{ height: "34px", padding: "0 14px", fontSize: "12px", textDecoration: "none" }}
+                            style={{ height: "34px", padding: "0 12px", fontSize: "12px", textDecoration: "none", backgroundColor: "#f8fafc", color: "#334155" }}
                           >
-                            View Profile
+                            Profile
+                          </Link>
+                          <Link
+                            to={`/band/bookings/new?artist_id=${artist.id}`}
+                            style={{
+                              height: "34px",
+                              padding: "0 14px",
+                              borderRadius: "10px",
+                              backgroundColor: "#c6ff3d",
+                              color: "#0a0a0f",
+                              fontWeight: 900,
+                              fontSize: "12px",
+                              textDecoration: "none",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              boxShadow: "0 2px 8px rgba(198, 255, 61, 0.3)",
+                            }}
+                          >
+                            Book Now
                           </Link>
                         </div>
                       </div>

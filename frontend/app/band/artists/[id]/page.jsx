@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import BandNavbar from "@/components/band/BandNavbar";
 import BandFooter from "@/components/band/BandFooter";
+import bandApi from "@/lib/bandApi";
+import { getBandUser } from "@/lib/bandAuth";
 import {
   Star,
   ShieldCheck,
@@ -18,15 +20,20 @@ export default function BandArtistDetailPage() {
   const [selectedHours, setSelectedHours] = useState(2);
   const [bookingDate, setBookingDate] = useState("");
   const [guestCount, setGuestCount] = useState("100-250");
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    setUser(getBandUser());
+  }, []);
 
   useEffect(() => {
     async function fetchArtistDetail() {
       try {
         setLoading(true);
-        const res = await fetch(`http://localhost:8000/api/band/artists/${id}`);
-        if (!res.ok) throw new Error("Not found");
-        const data = await res.json();
-        setArtist(data);
+        const res = await bandApi.get(`/artists/${id}`);
+        if (res.data) {
+          setArtist(res.data);
+        }
       } catch (err) {
         console.error("Failed to load artist detail:", err);
       } finally {
@@ -318,7 +325,11 @@ export default function BandArtistDetailPage() {
 
                 {/* Request Booking CTA */}
                 <Link
-                  to={`/band/login?redirect=/band/artists/${artist.id}`}
+                  to={
+                    user
+                      ? `/band/bookings/new?artist_id=${artist.id}${bookingDate ? `&date=${bookingDate}` : ""}&hours=${selectedHours}`
+                      : `/band/login?redirect=${encodeURIComponent(`/band/bookings/new?artist_id=${artist.id}${bookingDate ? `&date=${bookingDate}` : ""}&hours=${selectedHours}`)}`
+                  }
                   className="w-full mokijo-btn-primary py-3.5 text-center block text-sm"
                 >
                   Request Booking & Check Availability

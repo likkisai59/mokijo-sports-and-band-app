@@ -511,8 +511,8 @@ export default function ClientBookingDetailPage() {
                 <span>Write a Verified Review</span>
               </button>
 
-              <button
-                type="button"
+              <Link
+                to={booking.conversation_id ? `/band/client/messages?conversation_id=${booking.conversation_id}` : `/band/client/messages`}
                 style={{
                   width: "100%",
                   padding: "12px",
@@ -522,7 +522,7 @@ export default function ClientBookingDetailPage() {
                   fontWeight: 700,
                   fontSize: "13px",
                   border: "1px solid #e2e8f0",
-                  cursor: "pointer",
+                  textDecoration: "none",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -530,8 +530,8 @@ export default function ClientBookingDetailPage() {
                 }}
               >
                 <MessageSquare style={{ width: "16px", height: "16px", color: "#64748b" }} />
-                <span>Chat with {booking.performer_name || "Performer"}</span>
-              </button>
+                <span>Chat with {booking.artist_name || booking.performer_name || "Performer"}</span>
+              </Link>
             </div>
           </div>
 

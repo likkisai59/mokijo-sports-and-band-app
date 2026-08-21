@@ -61,7 +61,7 @@ class NotificationWebSocket {
       this.ws.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
-          
+
           if (message.type === "ping") {
             this.send({ type: "pong" });
           } else if (message.type === "notification" && message.data) {
@@ -98,7 +98,7 @@ class NotificationWebSocket {
   disconnect() {
     this.isIntentionalDisconnect = true;
     this.token = null;
-    
+
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;

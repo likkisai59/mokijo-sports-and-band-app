@@ -94,6 +94,7 @@ export default function BandRegisterPage() {
         password: form.password,
         role: role,
         phone: form.phone.trim() || undefined,
+        username: form.username?.trim() || undefined,
       };
 
       const res = await bandRegister(payload);
@@ -104,11 +105,15 @@ export default function BandRegisterPage() {
       window.location.href = targetDashboard;
     } catch (err) {
       const detail = err?.response?.data?.detail;
-      setError(
-        typeof detail === "string"
-          ? detail
-          : "Registration failed. Please check your credentials and try again."
-      );
+      let errorMsg = "Registration failed. Please check your credentials and try again.";
+      if (typeof detail === "string") {
+        errorMsg = detail;
+      } else if (Array.isArray(detail) && detail.length > 0) {
+        errorMsg = detail.map((d) => d.msg || `${d.loc?.slice(-1)[0]} is invalid`).join(", ");
+      } else if (err?.message) {
+        errorMsg = err.message;
+      }
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }

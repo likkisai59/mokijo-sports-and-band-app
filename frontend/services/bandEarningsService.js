@@ -1,6 +1,6 @@
 import { API_BASE_URL } from "./api";
 import { getAuthToken } from "@/utils/auth";
-import { isPreviewActive } from "@/utils/preview-fixtures";
+import { isPreviewActive } from "@/utils/dev-mode";
 import { mockEarningsSummary } from "@/utils/preview-fixtures";
 
 const getHeaders = () => {

@@ -79,8 +79,34 @@ export default function BandNavbar() {
   ];
 
   return (
-    <header className="band-nav-header">
-      <div className="band-nav-inner">
+    <header
+      className="band-nav-header"
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        height: "76px",
+        zIndex: 50,
+        backgroundColor: "#ffffff",
+        borderBottom: "1px solid #e2e8f0",
+        boxShadow: "0 4px 20px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04)",
+        width: "100%",
+      }}
+    >
+      <div
+        className="band-nav-inner"
+        style={{
+          maxWidth: "1600px",
+          margin: "0 auto",
+          padding: "0 32px",
+          height: "76px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          boxSizing: "border-box",
+        }}
+      >
         {/* Brand Logo */}
         <Link to="/band" className="flex items-center gap-3" style={{ textDecoration: "none" }}>
           <div

@@ -7,7 +7,7 @@ from app.api.band.common.deps import get_band_db, get_current_band_account
 from app.api.band.messaging.service import MessagingService
 from app.models.band_models import BandAccount
 
-router = APIRouter(prefix="/messaging", tags=["Band Messaging"])
+router = APIRouter(prefix="/band/messaging", tags=["Band Messaging"])
 
 
 class MessageCreateRequest(BaseModel):

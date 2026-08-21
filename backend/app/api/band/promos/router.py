@@ -9,7 +9,7 @@ from app.api.band.promos.service import PromoService
 from app.api.band.promos import crud
 from app.models.band_models import BandAccount
 
-router = APIRouter(prefix="/promos", tags=["Band Promo Discounts"])
+router = APIRouter(prefix="/band/promos", tags=["Band Promo Discounts"])
 
 
 class PromoValidateRequest(BaseModel):
